@@ -1,0 +1,21 @@
+import db from "../utils/Database.js";
+import AdressRack from "./AddressRackModel.js";
+import Category from "./CategoryModel.js";
+import Location from "./LocationModel.js";
+import Material from "./MaterialModel.js";
+import Plant from "./PlantModel.js";
+import Role from "./RoleModel.js";
+import Shop from "./ShopModel.js";
+import Supplier from "./SupplierModel.js";
+import User from "./UserModel.js";
+import Order from "./OrderModel.js";
+import GoodIssue from "./GoodIssueModel.js";
+
+(async () => {
+  try {
+    await db.sync({ alter: true });
+    console.log("Database synced successfully.");
+  } catch (error) {
+    console.error("Unable to sync the database:", error);
+  }
+})();

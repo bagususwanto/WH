@@ -1,0 +1,15 @@
+{
+  "short_name": "E-WOS",
+  "name": "E-Warehouse Order Stock",
+  "icons": [
+    {
+      "src": "../src/assets/brand/eWosLogo.png",
+      "sizes": "100x100",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
