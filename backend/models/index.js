@@ -10,6 +10,9 @@ import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
 import GoodIssue from "./GoodIssueModel.js";
 import Order from "./OrderModel.js";
+import DetailOrder from "./DetailOrderModel.js";
+import DetailGoodIssue from "./DetailGoodIssue.js";
+import Inventory from "./InventoryModel.js";
 
 (async () => {
   try {

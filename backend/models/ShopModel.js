@@ -19,12 +19,12 @@ const Shop = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    plantId: {
+    plantCode: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: Plant,
-        key: "id",
+        key: "plantCode",
       },
     },
     ext: {
@@ -37,7 +37,7 @@ const Shop = db.define(
   }
 );
 
-Plant.hasMany(Shop, { foreignKey: "plantId" });
-Shop.belongsTo(Plant, { foreignKey: "plantId" });
+Plant.hasMany(Shop, { foreignKey: "plantCode" });
+Shop.belongsTo(Plant, { foreignKey: "plantCode" });
 
 export default Shop;

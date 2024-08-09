@@ -10,6 +10,10 @@ const Category = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

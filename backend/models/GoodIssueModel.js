@@ -7,7 +7,7 @@ const { DataTypes } = Sequelize;
 const GoodIssue = db.define(
   "Good_Issue",
   {
-    userIdRecipent: {
+    userIdRecipient: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -15,21 +15,29 @@ const GoodIssue = db.define(
         key: "id",
       },
     },
-    approvalLH: {
+    approvalLHStatus: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      allowNull: true,
     },
     userIdApprovalLH: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: User,
+        key: "id",
+      },
     },
-    approvalWarehouse: {
+    approvalWarehouseStatus: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      allowNull: true,
     },
     userIdApprovalWarehouse: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: User,
+        key: "id",
+      },
     },
   },
   {
@@ -37,7 +45,7 @@ const GoodIssue = db.define(
   }
 );
 
-User.hasMany(GoodIssue, { foreignKey: "userIdRecipent" });
-GoodIssue.belongsTo(User, { foreignKey: "userIdRecipent" });
+User.hasMany(GoodIssue, { foreignKey: "userIdRecipient" });
+GoodIssue.belongsTo(User, { foreignKey: "userIdRecipient" });
 
 export default GoodIssue;

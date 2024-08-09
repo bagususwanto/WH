@@ -24,13 +24,13 @@ const User = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Role, 
+        model: Role,
         key: "id",
       },
     },
     shopId: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      allowNull: true,
       references: {
         model: Shop,
         key: "id",
