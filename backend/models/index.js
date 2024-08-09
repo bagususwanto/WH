@@ -8,8 +8,8 @@ import Role from "./RoleModel.js";
 import Shop from "./ShopModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
-import Order from "./OrderModel.js";
 import GoodIssue from "./GoodIssueModel.js";
+import Order from "./OrderModel.js";
 
 (async () => {
   try {

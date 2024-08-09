@@ -1,21 +1,12 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import User from "./UserModel.js";
-import Order from "./OrderModel.js";
 
 const { DataTypes } = Sequelize;
 
 const GoodIssue = db.define(
   "Good_Issue",
   {
-    orderId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Order,
-        key: "id",
-      },
-    },
     userIdRecipent: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -30,7 +21,7 @@ const GoodIssue = db.define(
     },
     userIdApprovalLH: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     approvalWarehouse: {
       type: DataTypes.INTEGER,
@@ -38,7 +29,7 @@ const GoodIssue = db.define(
     },
     userIdApprovalWarehouse: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {
@@ -48,8 +39,5 @@ const GoodIssue = db.define(
 
 User.hasMany(GoodIssue, { foreignKey: "userIdRecipent" });
 GoodIssue.belongsTo(User, { foreignKey: "userIdRecipent" });
-
-Order.hasMany(GoodIssue, { foreignKey: "orderId" });
-GoodIssue.belongsTo(Order, { foreignKey: "orderId" });
 
 export default GoodIssue;

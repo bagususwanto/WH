@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import User from "./UserModel.js";
+import GoodIssue from "./GoodIssueModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -23,6 +24,14 @@ const Order = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    goodIssueId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: GoodIssue,
+        key: "id",
+      },
+    },
   },
   {
     freezeTableName: true,
@@ -31,5 +40,7 @@ const Order = db.define(
 
 User.hasMany(Order, { foreignKey: "userId" });
 Order.belongsTo(User, { foreignKey: "userId" });
+
+Order.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
 
 export default Order;
