@@ -2,10 +2,15 @@ import Category from "../models/CategoryModel.js";
 
 export const getCategory = async (req, res) => {
   try {
-    const response = await Category.findAll({ where: { flag: 1 } });
+    const response = await Category.findAll({
+      where: { flag: 1 },
+      attributes: ["id", "categoryName", "createdAt", "updatedAt"],
+    });
+
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
 
@@ -16,6 +21,7 @@ export const getCategoryById = async (req, res) => {
         id: req.params.id,
         flag: 1,
       },
+      attributes: ["id", "categoryName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {
