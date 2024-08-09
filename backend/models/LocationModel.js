@@ -19,6 +19,10 @@ const Location = db.define(
         key: "id",
       },
     },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

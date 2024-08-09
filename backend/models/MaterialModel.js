@@ -48,6 +48,10 @@ const Material = db.define(
         key: "id",
       },
     },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

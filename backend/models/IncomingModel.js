@@ -1,41 +1,35 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import User from "./UserModel.js";
+import Material from "./MaterialModel.js";
+import AddressRack from "./AddressRackModel.js";
 
 const { DataTypes } = Sequelize;
 
-const GoodIssue = db.define(
-  "Good_Issue",
+const Incoming = db.define(
+  "Incoming",
   {
-    userIdRecipient: {
+    materialId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: User,
+        model: Material,
         key: "id",
       },
     },
-    approvalLHStatus: {
+    planning: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    userIdApprovalLH: {
+    actual: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    addressId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: User,
-        key: "id",
-      },
-    },
-    approvalWarehouseStatus: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    userIdApprovalWarehouse: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: User,
+        model: AddressRack,
         key: "id",
       },
     },
@@ -49,7 +43,10 @@ const GoodIssue = db.define(
   }
 );
 
-User.hasMany(GoodIssue, { foreignKey: "userIdRecipient" });
-GoodIssue.belongsTo(User, { foreignKey: "userIdRecipient" });
+Material.hasMany(Incoming, { foreignKey: "materialId" });
+Incoming.belongsTo(Material, { foreignKey: "materialId" });
 
-export default GoodIssue;
+AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
+Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
+
+export default Incoming;

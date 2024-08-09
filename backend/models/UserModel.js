@@ -40,6 +40,10 @@ const User = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

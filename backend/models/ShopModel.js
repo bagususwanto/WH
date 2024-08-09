@@ -31,6 +31,10 @@ const Shop = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

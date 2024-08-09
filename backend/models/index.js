@@ -13,6 +13,9 @@ import Order from "./OrderModel.js";
 import DetailOrder from "./DetailOrderModel.js";
 import DetailGoodIssue from "./DetailGoodIssue.js";
 import Inventory from "./InventoryModel.js";
+import Retur from "./ReturModel.js";
+import Incoming from "./IncomingModel.js";
+import LogEntry from "./LogEntryModel.js";
 
 (async () => {
   try {
