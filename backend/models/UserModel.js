@@ -30,7 +30,8 @@ const User = db.define(
     },
     shopId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
       references: {
         model: Shop,
         key: "id",
@@ -43,6 +44,7 @@ const User = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -50,10 +52,10 @@ const User = db.define(
   }
 );
 
-Shop.hasMany(User, { foreignKey: "shopId" });
-User.belongsTo(Shop, { foreignKey: "shopId" });
+// Shop.hasMany(User, { foreignKey: "shopId" });
+// User.belongsTo(Shop, { foreignKey: "shopId" });
 
-Role.hasMany(User, { foreignKey: "roleId" });
-User.belongsTo(Role, { foreignKey: "roleId" });
+// Role.hasMany(User, { foreignKey: "roleId" });
+// User.belongsTo(Role, { foreignKey: "roleId" });
 
 export default User;

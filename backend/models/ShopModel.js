@@ -34,6 +34,7 @@ const Shop = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -41,7 +42,7 @@ const Shop = db.define(
   }
 );
 
-Plant.hasMany(Shop, { foreignKey: "plantCode" });
-Shop.belongsTo(Plant, { foreignKey: "plantCode" });
+// Plant.hasMany(Shop, { foreignKey: "plantCode" });
+// Shop.belongsTo(Plant, { foreignKey: "plantCode" });
 
 export default Shop;

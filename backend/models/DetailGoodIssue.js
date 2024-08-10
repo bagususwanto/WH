@@ -26,7 +26,8 @@ const DetailGoodIssue = db.define(
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull:true
+      allowNull: false,
+      defaultValue: 0,
     },
     price: {
       type: DataTypes.DECIMAL,
@@ -38,10 +39,10 @@ const DetailGoodIssue = db.define(
   }
 );
 
-GoodIssue.hasMany(DetailGoodIssue, { foreignKey: "goodIssueId" });
-DetailGoodIssue.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
+// GoodIssue.hasMany(DetailGoodIssue, { foreignKey: "goodIssueId" });
+// DetailGoodIssue.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
 
-Material.hasMany(DetailGoodIssue, { foreignKey: "materialId" });
-DetailGoodIssue.belongsTo(Material, { foreignKey: "materialId" });
+// Material.hasMany(DetailGoodIssue, { foreignKey: "materialId" });
+// DetailGoodIssue.belongsTo(Material, { foreignKey: "materialId" });
 
 export default DetailGoodIssue;

@@ -22,6 +22,7 @@ const Location = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -29,7 +30,7 @@ const Location = db.define(
   }
 );
 
-Shop.hasMany(Location, { foreignKey: "shopId" });
-Location.belongsTo(Shop, { foreignKey: "shopId" });
+// Shop.hasMany(Location, { foreignKey: "shopId" });
+// Location.belongsTo(Shop, { foreignKey: "shopId" });
 
 export default Location;

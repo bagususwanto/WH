@@ -38,10 +38,10 @@ const Order = db.define(
   }
 );
 
-User.hasMany(Order, { foreignKey: "userId" });
-Order.belongsTo(User, { foreignKey: "userId" });
+// User.hasMany(Order, { foreignKey: "userId" });
+// Order.belongsTo(User, { foreignKey: "userId" });
 
-Order.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
-GoodIssue.hasOne(Order, { foreignKey: "goodIssueId" });
+// Order.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
+// GoodIssue.hasOne(Order, { foreignKey: "goodIssueId" });
 
 export default Order;

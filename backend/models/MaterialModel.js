@@ -51,6 +51,7 @@ const Material = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -58,10 +59,10 @@ const Material = db.define(
   }
 );
 
-Category.hasMany(Material, { foreignKey: "categoryId" });
-Material.belongsTo(Category, { foreignKey: "categoryId" });
+// Category.hasMany(Material, { foreignKey: "categoryId" });
+// Material.belongsTo(Category, { foreignKey: "categoryId" });
 
-Supplier.hasMany(Material, { foreignKey: "supllierId" });
-Material.belongsTo(Supplier, { foreignKey: "supllierId" });
+// Supplier.hasMany(Material, { foreignKey: "supllierId" });
+// Material.belongsTo(Supplier, { foreignKey: "supllierId" });
 
 export default Material;

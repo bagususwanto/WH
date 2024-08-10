@@ -14,6 +14,7 @@ const LogEntry = db.define(
     inventoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
       references: {
         model: Inventory,
         key: "id",
@@ -21,15 +22,17 @@ const LogEntry = db.define(
     },
     typeLogEntry: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
     },
     materialId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
       references: {
         model: Material,
         key: "id",
@@ -46,6 +49,7 @@ const LogEntry = db.define(
     orderId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
       references: {
         model: Order,
         key: "id",
@@ -54,6 +58,7 @@ const LogEntry = db.define(
     incomingId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
       references: {
         model: Incoming,
         key: "id",
@@ -65,11 +70,11 @@ const LogEntry = db.define(
   }
 );
 
-Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
-LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
+// Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
+// LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
 
-User.hasMany(LogEntry, { foreignKey: "userId" });
-LogEntry.belongsTo(User, { foreignKey: "userId" });
+// User.hasMany(LogEntry, { foreignKey: "userId" });
+// LogEntry.belongsTo(User, { foreignKey: "userId" });
 
 // Order.hasMany(LogEntry, { foreignKey: "orderId" });
 // LogEntry.belongsTo(Order, { foreignKey: "orderId" });

@@ -18,11 +18,13 @@ const Inventory = db.define(
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
     },
     quantityActual: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
     },
     addressId: {
       type: DataTypes.INTEGER,
@@ -38,10 +40,10 @@ const Inventory = db.define(
   }
 );
 
-Material.hasMany(Inventory, { foreignKey: "materialId" });
-Inventory.belongsTo(Material, { foreignKey: "materialId" });
+// Material.hasMany(Inventory, { foreignKey: "materialId" });
+// Inventory.belongsTo(Material, { foreignKey: "materialId" });
 
-AddressRack.hasMany(Inventory, { foreignKey: "addressId" });
-Inventory.belongsTo(AddressRack, { foreignKey: "addressId" });
+// AddressRack.hasMany(Inventory, { foreignKey: "addressId" });
+// Inventory.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Inventory;

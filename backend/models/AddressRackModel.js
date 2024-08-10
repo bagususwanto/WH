@@ -22,6 +22,7 @@ const AddressRack = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -29,7 +30,7 @@ const AddressRack = db.define(
   }
 );
 
-Location.hasMany(AddressRack, { foreignKey: "locationId" });
-AddressRack.belongsTo(Location, { foreignKey: "locationId" });
+// Location.hasMany(AddressRack, { foreignKey: "locationId" });
+// AddressRack.belongsTo(Location, { foreignKey: "locationId" });
 
 export default AddressRack;

@@ -19,7 +19,8 @@ const Retur = db.define(
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue:0,
     },
     remarks: {
       type: DataTypes.TEXT,
@@ -44,6 +45,7 @@ const Retur = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
     },
   },
   {
@@ -51,13 +53,13 @@ const Retur = db.define(
   }
 );
 
-Material.hasMany(Retur, { foreignKey: "materialId" });
-Retur.belongsTo(Material, { foreignKey: "materialId" });
+// Material.hasMany(Retur, { foreignKey: "materialId" });
+// Retur.belongsTo(Material, { foreignKey: "materialId" });
 
-GoodIssue.hasMany(Retur, { foreignKey: "goodIssueId" });
-Retur.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
+// GoodIssue.hasMany(Retur, { foreignKey: "goodIssueId" });
+// Retur.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
 
-AddressRack.hasMany(Retur, { foreignKey: "addressId" });
-Retur.belongsTo(AddressRack, { foreignKey: "addressId" });
+// AddressRack.hasMany(Retur, { foreignKey: "addressId" });
+// Retur.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Retur;
