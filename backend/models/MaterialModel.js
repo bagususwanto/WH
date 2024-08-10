@@ -62,7 +62,7 @@ const Material = db.define(
 Category.hasMany(Material, { foreignKey: "categoryId" });
 Material.belongsTo(Category, { foreignKey: "categoryId" });
 
-Supplier.hasMany(Material, { foreignKey: "supllierId" });
-Material.belongsTo(Supplier, { foreignKey: "supllierId" });
+Supplier.hasMany(Material, { foreignKey: "supplierId" });
+Material.belongsTo(Supplier, { foreignKey: "supplierId" });
 
 export default Material;
