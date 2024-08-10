@@ -1,10 +1,13 @@
 import express from "express";
+import { getMaterial, getMaterialById, createMaterial, updateMaterial, deleteMaterial } from "../controllers/Material.js";
 import { verifyToken } from "../middleware/VerifyToken.js";
-import { getMaterials, addMaterial } from "../controllers/Material.js";
 
 const router = express.Router();
 
-router.get("/materials", getMaterials);
-router.post("/materials", addMaterial);
+router.get("/material", getMaterial);
+router.get("/material/:id", getMaterialById);
+router.post("/material", createMaterial);
+router.put("/material/:id", updateMaterial);
+router.get("/material-delete/:id", deleteMaterial);
 
 export default router;

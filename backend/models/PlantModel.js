@@ -8,8 +8,8 @@ const Plant = db.define(
   {
     plantCode: {
       type: DataTypes.INTEGER,
+      unique: true,
       allowNull: false,
-      primaryKey: true,
     },
     plantName: {
       type: DataTypes.STRING,

@@ -40,7 +40,7 @@ const Material = db.define(
         key: "id",
       },
     },
-    supllierId: {
+    supplierId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
