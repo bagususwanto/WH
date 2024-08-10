@@ -1,11 +1,11 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
-dotenv.config({ path: "./config/.env" });
+dotenv.config({ path: "./.env" });
 
 const db = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_SERVER,
-  dialect: "mssql",
+  dialect: process.env.DIALECT,
   timezone: "+07:00",
   dialectOptions: {
     options: {
