@@ -30,7 +30,7 @@ const Location = db.define(
   }
 );
 
-// Shop.hasMany(Location, { foreignKey: "shopId" });
-// Location.belongsTo(Shop, { foreignKey: "shopId" });
+Shop.hasMany(Location, { foreignKey: "shopId" });
+Location.belongsTo(Shop, { foreignKey: "shopId" });
 
 export default Location;

@@ -42,7 +42,7 @@ const Shop = db.define(
   }
 );
 
-// Plant.hasMany(Shop, { foreignKey: "plantId" });
-// Shop.belongsTo(Plant, { foreignKey: "plantId" });
+Plant.hasMany(Shop, { foreignKey: "plantId" });
+Shop.belongsTo(Plant, { foreignKey: "plantId" });
 
 export default Shop;

@@ -1,3 +1,4 @@
+import Plant from "../models/PlantModel.js";
 import Shop from "../models/ShopModel.js";
 
 export const getShop = async (req, res) => {
@@ -5,6 +6,12 @@ export const getShop = async (req, res) => {
     const response = await Shop.findAll({
       where: { flag: 1 },
       attributes: ["id", "shopName", "costCenter", "wbsNumber", "plantId", "ext", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Plant,
+          attributes: ["id", "plantName"],
+        },
+      ],
     });
 
     res.status(200).json(response);

@@ -1,10 +1,22 @@
+import Category from "../models/CategoryModel.js";
 import Material from "../models/MaterialModel.js";
+import Supplier from "../models/SupplierModel.js";
 
 export const getMaterial = async (req, res) => {
   try {
     const response = await Material.findAll({
       where: { flag: 1 },
-      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "categoryId", "supplierId", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Category,
+          attributes: ["id", "categoryName"],
+        },
+        {
+          model: Supplier,
+          attributes: ["id", "supplierName"],
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -31,7 +43,17 @@ export const getMaterialById = async (req, res) => {
         id: materialId,
         flag: 1,
       },
-      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "categoryId", "supplierId", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Category,
+          attributes: ["id", "categoryName"],
+        },
+        {
+          model: Supplier,
+          attributes: ["id", "supplierName"],
+        },
+      ],
     });
     res.status(200).json(response);
   } catch (error) {

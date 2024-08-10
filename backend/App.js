@@ -8,7 +8,8 @@ import materialRouter from "./routes/MaterialRouter.js";
 import roleRouter from "./routes/RoleRouter.js";
 import shopRouter from "./routes/ShopRouter.js";
 import plantRouter from "./routes/PlantRoute.js";
-import authRouter from "./routes/AuthRouter.js";
+import userRouter from "./routes/UserRouter.js";
+// import authRouter from "./routes/AuthRouter.js";
 import "./models/index.js";
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use("/api", materialRouter);
 app.use("/api", roleRouter);
 app.use("/api", shopRouter);
 app.use("/api", plantRouter);
-app.use("/api", authRouter);
+app.use("/api", userRouter);
+// app.use("/api", authRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));
