@@ -1,5 +1,8 @@
 import Material from "../models/MaterialModel.js";
 import AddressRack from "../models/AddressRackModel.js";
+import Location from "../models/LocationModel.js";
+import Shop from "../models/ShopModel.js";
+import Plant from "../models/PlantModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 
@@ -70,15 +73,33 @@ export const getMaterialById = async (req, res) => {
       include: [
         {
           model: AddressRack,
-          attributes: ["id", "addressRackName"],
+          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Location,
+              attributes: ["id", "locationName", "createdAt", "updatedAt"],
+              include: [
+                {
+                  model: Shop,
+                  attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+                  include: [
+                    {
+                      model: Plant,
+                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         {
           model: Category,
-          attributes: ["id", "categoryName"],
+          attributes: ["id", "categoryName", "createdAt", "updatedAt"],
         },
         {
           model: Supplier,
-          attributes: ["id", "supplierName"],
+          attributes: ["id", "supplierName", "createdAt", "updatedAt"],
         },
       ],
     });

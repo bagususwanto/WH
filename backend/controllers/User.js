@@ -1,12 +1,31 @@
 import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Role from "../models/RoleModel.js";
+import Shop from "../models/ShopModel.js";
+import Plant from "../models/PlantModel.js";
 
 export const getUser = async (req, res) => {
   try {
     const response = await User.findAll({
       where: { flag: 1 },
-      attributes: ["id", "name", "roleId", "shopId", "createdAt", "updatedAt"],
+      attributes: ["id", "name", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Role,
+          attributes: ["id", "roleName", "createdAt", "updatedAt"],
+        },
+        {
+          model: Shop,
+          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Plant,
+              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+            },
+          ],
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -33,7 +52,23 @@ export const getUserById = async (req, res) => {
         id: userId,
         flag: 1,
       },
-      attributes: ["id", "name", "roleId", "shopId", "createdAt", "updatedAt"],
+      attributes: ["id", "name", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Role,
+          attributes: ["id", "roleName", "createdAt", "updatedAt"],
+        },
+        {
+          model: Shop,
+          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Plant,
+              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+            },
+          ],
+        },
+      ],
     });
     res.status(200).json(response);
   } catch (error) {
