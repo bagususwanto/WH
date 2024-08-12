@@ -54,7 +54,7 @@ const GoodIssue = db.define(
   }
 );
 
-// User.hasMany(GoodIssue, { foreignKey: "userIdRecipient" });
-// GoodIssue.belongsTo(User, { foreignKey: "userIdRecipient" });
+User.hasMany(GoodIssue, { foreignKey: "userIdRecipient" });
+GoodIssue.belongsTo(User, { foreignKey: "userIdRecipient" });
 
 export default GoodIssue;

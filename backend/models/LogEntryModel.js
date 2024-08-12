@@ -70,19 +70,19 @@ const LogEntry = db.define(
   }
 );
 
-// Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
-// LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
+Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
+LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
 
-// User.hasMany(LogEntry, { foreignKey: "userId" });
-// LogEntry.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(LogEntry, { foreignKey: "userId" });
+LogEntry.belongsTo(User, { foreignKey: "userId" });
 
 // Order.hasMany(LogEntry, { foreignKey: "orderId" });
-// LogEntry.belongsTo(Order, { foreignKey: "orderId" });
+LogEntry.belongsTo(Order, { foreignKey: "orderId" });
 
 // Incoming.hasMany(LogEntry, { foreignKey: "incomingId" });
-// LogEntry.belongsTo(Incoming, { foreignKey: "incomingId" });
+LogEntry.belongsTo(Incoming, { foreignKey: "incomingId" });
 
 // Material.hasMany(LogEntry, { foreignKey: "materialId" });
-// LogEntry.belongsTo(Material, { foreignKey: "materialId" });
+LogEntry.belongsTo(Material, { foreignKey: "materialId" });
 
 export default LogEntry;

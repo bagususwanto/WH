@@ -1,34 +1,103 @@
-import Users from "../models/UserModel.js";
-import Shop from "../models/shopModel.js";
+import Plant from "../models/PlantModel.js";
+import Shop from "../models/ShopModel.js";
 
-export const getShops = async (req, res) => {
+export const getShop = async (req, res) => {
   try {
-    const shop = await Shop.findAll();
-    return res.status(200).json(shop);
+    const response = await Shop.findAll({
+      where: { flag: 1 },
+      attributes: ["id", "shopName", "costCenter", "wbsNumber", "plantId", "ext", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Plant,
+          attributes: ["id", "plantName"],
+        },
+      ],
+    });
+
+    res.status(200).json(response);
   } catch (error) {
-    console.error("Error fetching shop:", error);
-    return res.status(500).json({ message: "Failed to fetch shop", error: error.message });
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-export const addShop = async (req, res) => {
+export const getShopById = async (req, res) => {
   try {
-    const { shopCode, shopName, wbsNumber, costCenter, createdBy, updateBy } = req.body;
+    const shopId = req.params.id;
 
-    await Shop.create({
-      shopCode,
-      shopName,
-      wbsNumber,
-      costCenter,
-      createdBy,
-      updateBy,
+    const shop = await Shop.findOne({
+      where: { id: shopId },
     });
-    res.json({ msg: "Berhasil menambahkan data shop" });
 
-    // Kembalikan respons sukses
-    return res.status(201).json(newShop);
+    if (!shop) {
+      return res.status(404).json({ msg: "Shop not found" });
+    }
+
+    const response = await Shop.findOne({
+      where: {
+        id: shopId,
+        flag: 1,
+      },
+      attributes: ["id", "shopName", "costCenter", "wbsNumber", "plantId", "ext", "createdAt", "updatedAt"],
+    });
+    res.status(200).json(response);
   } catch (error) {
-    console.error("Error adding shop:", error);
-    return res.status(500).json({ message: "Failed to add shop", error: error.message });
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const createShop = async (req, res) => {
+  try {
+    await Shop.create(req.body);
+    res.status(201).json({ msg: "Shop Created" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const updateShop = async (req, res) => {
+  try {
+    const shopId = req.params.id;
+
+    const shop = await Shop.findOne({
+      where: { id: shopId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ msg: "Shop not found" });
+    }
+
+    await Shop.update(req.body, {
+      where: {
+        id: shopId,
+      },
+    });
+    res.status(200).json({ msg: "Shop Updated" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const deleteShop = async (req, res) => {
+  try {
+    const shopId = req.params.id;
+
+    const shop = await Shop.findOne({
+      where: { id: shopId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ msg: "Shop not found" });
+    }
+
+    await Shop.update({ flag: 0 }, { where: { id: shopId } });
+
+    res.status(200).json({ msg: "Shop deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };

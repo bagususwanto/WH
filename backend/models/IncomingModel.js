@@ -46,10 +46,10 @@ const Incoming = db.define(
   }
 );
 
-// Material.hasMany(Incoming, { foreignKey: "materialId" });
-// Incoming.belongsTo(Material, { foreignKey: "materialId" });
+Material.hasMany(Incoming, { foreignKey: "materialId" });
+Incoming.belongsTo(Material, { foreignKey: "materialId" });
 
-// AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
-// Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
+AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
+Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Incoming;

@@ -11,6 +11,7 @@ const User = db.define(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -30,8 +31,7 @@ const User = db.define(
     },
     shopId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
+      allowNull: true,
       references: {
         model: Shop,
         key: "id",
@@ -52,10 +52,10 @@ const User = db.define(
   }
 );
 
-// Shop.hasMany(User, { foreignKey: "shopId" });
-// User.belongsTo(Shop, { foreignKey: "shopId" });
+Shop.hasMany(User, { foreignKey: "shopId" });
+User.belongsTo(Shop, { foreignKey: "shopId" });
 
-// Role.hasMany(User, { foreignKey: "roleId" });
-// User.belongsTo(Role, { foreignKey: "roleId" });
+Role.hasMany(User, { foreignKey: "roleId" });
+User.belongsTo(Role, { foreignKey: "roleId" });
 
 export default User;

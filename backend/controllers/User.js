@@ -1,111 +1,98 @@
 import User from "../models/UserModel.js";
-import Shops from "../models/ShopModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export const getUsers = async (req, res) => {
+export const getUser = async (req, res) => {
   try {
-    const user = await User.findAll({
-      attributes: ["id", "username", "name", "role", "shopId"],
-      include: [
-        {
-          model: Shops,
-          attributes: ["shopName"],
-        },
-      ],
+    const response = await User.findAll({
+      where: { flag: 1 },
+      attributes: ["id", "name", "roleId", "shopId", "createdAt", "updatedAt"],
     });
-    res.json(user);
+
+    res.status(200).json(response);
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-export const Register = async (req, res) => {
-  const { username, password, name, role, shopId, updateBy, cretedBy, confPassword } = req.body;
-  if (password !== confPassword) return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
-  const salt = await bcrypt.genSalt();
-  const hashPassword = await bcrypt.hash(password, salt);
+export const getUserById = async (req, res) => {
   try {
-    const existingUser = await User.findOne({
-      where: {
-        username: username,
-      },
+    const userId = req.params.id;
+
+    const user = await User.findOne({
+      where: { id: userId },
     });
-    if (existingUser) {
-      return res.status(400).json({ msg: "Username sudah digunakan" });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
     }
-    await User.create({
-      username: username,
-      password: hashPassword,
-      name: name,
-      role: role,
-      shopId: shopId,
-      updateBy: updateBy,
-      cretedBy: cretedBy,
-    });
-    res.json({ msg: "Register Berhasil" });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
-export const Login = async (req, res) => {
-  try {
-    console.log("Request body:", req.body);
-    const user = await User.findAll({
+    const response = await User.findOne({
       where: {
-        username: req.body.username,
+        id: userId,
+        flag: 1,
       },
+      attributes: ["id", "name", "roleId", "shopId", "createdAt", "updatedAt"],
     });
-    const match = await bcrypt.compare(req.body.password, user[0].password);
-    if (!match) return res.status(400).json({ msg: "Password Salah" });
-    const userId = user[0].id;
-    const username = user[0].username;
-    const name = user[0].name;
-    const role = user[0].role;
-    const shopId = user[0].shopId;
-    const accessToken = jwt.sign({ userId, username, name, role, shopId }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "20s",
-    });
-    const refreshToken = jwt.sign({ userId, username, name, role, shopId }, process.env.REFRESH_TOKEN_SECRET, {
-      expiresIn: "1d",
-    });
-    await User.update(
-      { refreshToken: refreshToken },
-      {
-        where: {
-          id: userId,
-        },
-      }
-    );
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-    res.json({ accessToken });
+    res.status(200).json(response);
   } catch (error) {
-    res.status(404).json({ msg: "Username tidak ditemukan" });
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-export const Logout = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.sendStatus(204);
-  const user = await User.findAll({
-    where: {
-      refreshToken: refreshToken,
-    },
-  });
-  if (!user[0]) return res.sendStatus(204);
-  const userId = user[0].id;
-  await User.update(
-    { refreshToken: null },
-    {
+export const createUser = async (req, res) => {
+  try {
+    await User.create(req.body);
+    res.status(201).json({ msg: "User Created" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    await User.update(req.body, {
       where: {
         id: userId,
       },
+    });
+    res.status(200).json({ msg: "User Updated" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
     }
-  );
-  res.clearCookie("refreshToken");
-  return res.sendStatus(200);
+
+    await User.update({ flag: 0 }, { where: { id: userId } });
+
+    res.status(200).json({ msg: "User deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
 };

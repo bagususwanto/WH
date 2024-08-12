@@ -47,10 +47,10 @@ const DetailOrder = db.define(
   }
 );
 
-// Order.hasMany(DetailOrder, { foreignKey: "orderId" });
-// DetailOrder.belongsTo(Order, { foreignKey: "orderId" });
+Order.hasMany(DetailOrder, { foreignKey: "orderId" });
+DetailOrder.belongsTo(Order, { foreignKey: "orderId" });
 
-// Material.hasMany(DetailOrder, { foreignKey: "materialId" });
-// DetailOrder.belongsTo(Material, { foreignKey: "materialId" });
+Material.hasMany(DetailOrder, { foreignKey: "materialId" });
+DetailOrder.belongsTo(Material, { foreignKey: "materialId" });
 
 export default DetailOrder;
