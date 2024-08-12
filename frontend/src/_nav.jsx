@@ -9,6 +9,11 @@ import {
   cilSpeedometer,
   cilTablet,
   cilUser,
+  cilCursor,
+  cilBluetooth,
+  cilCompass,
+  cilAlarm,
+  cilAsterisk
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -20,10 +25,32 @@ const _nav = [
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Order To Warehouse',
     to: '/order',
     icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Order List',
+        to: '/orderlist',
+        icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Tracking Item',
+        to: '/buttons/buttons',
+        icon: <CIcon icon={cilAlarm} customClassName="nav-icon" />,
+      },
+
+      {
+        component: CNavItem,
+        name: 'Good Issue',
+        to: '/buttons/button-groups',
+        icon: <CIcon icon={cilAsterisk} customClassName="nav-icon" />,
+      },
+
+    ], 
   },
   {
     component: CNavItem,
@@ -32,8 +59,20 @@ const _nav = [
     icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
   },
   {
+    component: CNavItem,
+    name: 'Tracking Order',
+    to: '/tracking',
+    icon: <CIcon icon={cilBluetooth} customClassName="nav-icon" />,
+  },
+  {
     component: CNavTitle,
     name: 'Master',
+  },
+  {
+    component: CNavItem,
+    name: 'Category',
+    to: '/category',
+    icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
@@ -43,9 +82,28 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Shop',
+    to: '/master/Shop',
+    icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavGroup,
     name: 'User',
     to: '/master/user',
     icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Recipent',
+        to: '/buttons/buttons',
+      },
+      {
+        component: CNavItem,
+        name: 'Leader',
+        to: '/buttons/button-groups',
+      },
+
+    ],
   },
   {
     component: CNavTitle,
@@ -63,6 +121,9 @@ const _nav = [
     to: '/logout',
     icon: <CIcon icon={cilAccountLogout} customClassName="nav-icon" />,
   },
+
+   
+
 ]
 
 export default _nav
