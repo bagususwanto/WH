@@ -27,14 +27,6 @@ const Incoming = db.define(
       allowNull: false,
       defaultValue:0,
     },
-    addressId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: AddressRack,
-        key: "id",
-      },
-    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -48,8 +40,5 @@ const Incoming = db.define(
 
 Material.hasMany(Incoming, { foreignKey: "materialId" });
 Incoming.belongsTo(Material, { foreignKey: "materialId" });
-
-AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
-Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Incoming;

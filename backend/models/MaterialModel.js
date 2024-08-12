@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
+import AddressRack from "./AddressRackModel.js";
 import Supplier from "./SupplierModel.js";
 import Category from "./CategoryModel.js";
 
@@ -32,6 +33,14 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    addressId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: AddressRack,
+        key: "id",
+      },
+    },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -58,6 +67,9 @@ const Material = db.define(
     freezeTableName: true,
   }
 );
+
+AddressRack.hasMany(Material, { foreignKey: "addressId" });
+Material.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 Category.hasMany(Material, { foreignKey: "categoryId" });
 Material.belongsTo(Category, { foreignKey: "categoryId" });

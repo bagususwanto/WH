@@ -9,6 +9,8 @@ import roleRouter from "./routes/RoleRouter.js";
 import shopRouter from "./routes/ShopRouter.js";
 import plantRouter from "./routes/PlantRoute.js";
 import userRouter from "./routes/UserRouter.js";
+import locationRouter from "./routes/LocationRouter.js";
+import addressRackRouter from "./routes/AddressRackRouter.js";
 // import authRouter from "./routes/AuthRouter.js";
 import "./models/index.js";
 
@@ -26,6 +28,8 @@ app.use("/api", roleRouter);
 app.use("/api", shopRouter);
 app.use("/api", plantRouter);
 app.use("/api", userRouter);
+app.use("/api", locationRouter);
+app.use("/api", addressRackRouter);
 // app.use("/api", authRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));

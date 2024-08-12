@@ -5,11 +5,11 @@ export const getShop = async (req, res) => {
   try {
     const response = await Shop.findAll({
       where: { flag: 1 },
-      attributes: ["id", "shopName", "costCenter", "wbsNumber", "plantId", "ext", "createdAt", "updatedAt"],
+      attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
       include: [
         {
           model: Plant,
-          attributes: ["id", "plantName"],
+          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
         },
       ],
     });
@@ -38,7 +38,13 @@ export const getShopById = async (req, res) => {
         id: shopId,
         flag: 1,
       },
-      attributes: ["id", "shopName", "costCenter", "wbsNumber", "plantId", "ext", "createdAt", "updatedAt"],
+      attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Plant,
+          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+        },
+      ],
     });
     res.status(200).json(response);
   } catch (error) {

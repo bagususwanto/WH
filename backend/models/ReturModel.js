@@ -34,14 +34,6 @@ const Retur = db.define(
         key: "id",
       },
     },
-    addressId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: AddressRack,
-        key: "id",
-      },
-    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -58,8 +50,5 @@ Retur.belongsTo(Material, { foreignKey: "materialId" });
 
 GoodIssue.hasMany(Retur, { foreignKey: "goodIssueId" });
 Retur.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
-
-AddressRack.hasMany(Retur, { foreignKey: "addressId" });
-Retur.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Retur;
