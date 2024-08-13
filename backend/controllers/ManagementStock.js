@@ -15,7 +15,7 @@ export const getInventory = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "createdAt", "updatedAt"],
+          attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
           include: [
             {
               model: AddressRack,

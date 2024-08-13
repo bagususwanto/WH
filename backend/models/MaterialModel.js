@@ -25,6 +25,10 @@ const Material = db.define(
       type: DataTypes.DECIMAL,
       allowNull: false,
     },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     stdStock: {
       type: DataTypes.INTEGER,
       allowNull: false,

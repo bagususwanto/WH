@@ -10,7 +10,7 @@ export const getMaterial = async (req, res) => {
   try {
     const response = await Material.findAll({
       where: { flag: 1 },
-      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
       include: [
         {
           model: AddressRack,
@@ -69,7 +69,7 @@ export const getMaterialById = async (req, res) => {
         id: materialId,
         flag: 1,
       },
-      attributes: ["id", "materialNo", "description", "uom", "price", "stdStock", "img", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
       include: [
         {
           model: AddressRack,
