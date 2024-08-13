@@ -22,36 +22,48 @@ import {
 } from '@coreui/react';
 import axiosInstance from '../../../utils/AxiosInstance';
 
-const Category = () => {
-  const [categories, setCategories] = useState([]);
+//Plant adalah komponen digunakan di navigation unutk halaman 
+const Plant  = () => {
+//plants variabel untuk menampung dari data base,
+//setPlants untuk meng set untuk suatu nilai dari fuction getPlants 
+  const [plants, setPlants] = useState([]);
+//setModal true akan tampil bila false 
+// modal dialog dan pop up sama saja
   const [modal, setModal] = useState(false);
+//setIsEdit ditunjjukan untuk form edit bila TRUE,kalau untuk tambah data = FALSE 
   const [isEdit, setIsEdit] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState({
-    categoryName: '',
+// setcategory untuk mendapatkan nilai "Plant" dari dta base
+  const [currentPlantCode, setCurrentPlantCode] = useState({
+    plantCode: '',
   });
-
+  const [currentPlantName, setCurrentPlantName] = useState({
+    plantName: '',
+  });
+//useEffect akan dijalankan saat membuaka halaman
   useEffect(() => {
-    getCategories();
+    getPlants();
   }, []);
-
-  const getCategories = async () => {
+//fuction getplants dimana kita lihat slug('/plant') dan metode (get) dari postman
+  const getPlants = async () => {
     try {
-      const response = await axiosInstance.get('/category');
-      setCategories(response.data);
+      const response = await axiosInstance.get('/plant');
+      setPlants(response.data);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Error fetching plants:', error);
     }
   };
-
-  const handleAddCategory = () => {
-    setIsEdit(false);
-    setCurrentCategory({ categoryName: '' });
-    setModal(true);
+//function untuk tambah data
+  const handleAddPlant = () => {
+    setIsEdit(false); // tambah data
+    setCurrentPlantCode({ plantCode: '' }); //inputan kosong karen manambah data
+    setCurrentPlantName({ plantName: '' }); //inputan kosong karen manambah data
+    setModal(true); // maka tampil pop up/modal
   };
-
-  const handleEditCategory = (category) => {
-    setIsEdit(true);
-    setCurrentCategory(category);
+//function edit 
+  const handleEditPlant = (plantCode,plantName) => {
+    setIsEdit(true); //dinyatakan untuk edit
+    setCurrentPlantCode(plantCode);
+    setCurrentPlantName(plantName);
     setModal(true);
   };
 

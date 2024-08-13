@@ -77,13 +77,13 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Material',
-    to: '/master/material',
+    to: '/material',
     icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Shop',
-    to: '/master/Shop',
+    to: '/shop',
     icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
   },
   {
