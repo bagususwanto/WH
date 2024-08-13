@@ -19,7 +19,7 @@ import LogEntry from "./LogEntryModel.js";
 
 (async () => {
   try {
-    await db.sync({ force: true });
+    await db.sync();
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

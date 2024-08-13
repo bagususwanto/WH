@@ -8,14 +8,6 @@ const { DataTypes } = Sequelize;
 const Order = db.define(
   "Order",
   {
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
-    },
     totalPrice: {
       type: DataTypes.DECIMAL,
       allowNull: false,

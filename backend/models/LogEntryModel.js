@@ -3,7 +3,7 @@ import db from "../utils/Database.js";
 import Inventory from "./InventoryModel.js";
 import Material from "./MaterialModel.js";
 import User from "./UserModel.js";
-import Order from "./OrderModel.js";
+import DetailOrder from "./DetailOrderModel.js";
 import Incoming from "./IncomingModel.js";
 
 const { DataTypes } = Sequelize;
@@ -46,12 +46,12 @@ const LogEntry = db.define(
         key: "id",
       },
     },
-    orderId: {
+    detailOrderId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
       references: {
-        model: Order,
+        model: DetailOrder,
         key: "id",
       },
     },
@@ -70,19 +70,19 @@ const LogEntry = db.define(
   }
 );
 
-Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
-LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
+// Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
+// LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
 
 User.hasMany(LogEntry, { foreignKey: "userId" });
 LogEntry.belongsTo(User, { foreignKey: "userId" });
 
-// Order.hasMany(LogEntry, { foreignKey: "orderId" });
-LogEntry.belongsTo(Order, { foreignKey: "orderId" });
+// DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId" });
+// LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId" });
 
 // Incoming.hasMany(LogEntry, { foreignKey: "incomingId" });
-LogEntry.belongsTo(Incoming, { foreignKey: "incomingId" });
+// LogEntry.belongsTo(Incoming, { foreignKey: "incomingId" });
 
-// Material.hasMany(LogEntry, { foreignKey: "materialId" });
+Material.hasMany(LogEntry, { foreignKey: "materialId" });
 LogEntry.belongsTo(Material, { foreignKey: "materialId" });
 
 export default LogEntry;

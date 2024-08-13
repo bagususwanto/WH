@@ -1,7 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import Material from "./MaterialModel.js";
-import AddressRack from "./AddressRackModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -26,14 +25,6 @@ const Inventory = db.define(
       allowNull: false,
       defaultValue: 0,
     },
-    addressId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: AddressRack,
-        key: "id",
-      },
-    },
   },
   {
     freezeTableName: true,
@@ -42,8 +33,5 @@ const Inventory = db.define(
 
 Material.hasMany(Inventory, { foreignKey: "materialId" });
 Inventory.belongsTo(Material, { foreignKey: "materialId" });
-
-AddressRack.hasMany(Inventory, { foreignKey: "addressId" });
-Inventory.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 export default Inventory;

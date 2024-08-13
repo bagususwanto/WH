@@ -18,12 +18,12 @@ const GoodIssue = db.define(
     approvalLHStatus: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
     },
     userIdApprovalLH: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
       references: {
         model: User,
         key: "id",
@@ -32,12 +32,12 @@ const GoodIssue = db.define(
     approvalWarehouseStatus: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
     },
     userIdApprovalWarehouse: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
       references: {
         model: User,
         key: "id",
@@ -56,5 +56,11 @@ const GoodIssue = db.define(
 
 User.hasMany(GoodIssue, { foreignKey: "userIdRecipient" });
 GoodIssue.belongsTo(User, { foreignKey: "userIdRecipient" });
+
+User.hasMany(GoodIssue, { foreignKey: "userIdApprovalLH" });
+GoodIssue.belongsTo(User, { foreignKey: "userIdApprovalLH" });
+
+User.hasMany(GoodIssue, { foreignKey: "userIdApprovalWarehouse" });
+GoodIssue.belongsTo(User, { foreignKey: "userIdApprovalWarehouse" });
 
 export default GoodIssue;
