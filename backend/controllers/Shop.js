@@ -5,7 +5,7 @@ export const getShop = async (req, res) => {
   try {
     const response = await Shop.findAll({
       where: { flag: 1 },
-      attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+      attributes: ["id", "shopName", "createdAt", "updatedAt"],
       include: [
         {
           model: Plant,
@@ -38,7 +38,39 @@ export const getShopById = async (req, res) => {
         id: shopId,
         flag: 1,
       },
-      attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+      attributes: ["id", "shopName", "createdAt", "updatedAt"],
+      include: [
+        {
+          model: Plant,
+          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+        },
+      ],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const getShopByPlant = async (req, res) => {
+  try {
+    const plantId = req.params.id;
+
+    const shop = await Shop.findOne({
+      where: { plantId: plantId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ msg: "Shop not found" });
+    }
+
+    const response = await Shop.findAll({
+      where: {
+        plantId: plantId,
+        flag: 1,
+      },
+      attributes: ["id", "shopName", "createdAt", "updatedAt"],
       include: [
         {
           model: Plant,

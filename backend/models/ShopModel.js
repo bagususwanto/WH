@@ -11,14 +11,6 @@ const Shop = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    costCenter: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    wbsNumber: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     plantId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -26,10 +18,6 @@ const Shop = db.define(
         model: Plant,
         key: "Id",
       },
-    },
-    ext: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
     },
     flag: {
       type: DataTypes.INTEGER,

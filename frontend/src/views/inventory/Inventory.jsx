@@ -20,37 +20,88 @@ import {
 import axiosInstance from '../../utils/AxiosInstance'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/themes/dark.css'
+import CIcon from '@coreui/icons-react'
+import { cilDataTransferDown, cilZoom } from '@coreui/icons'
+import { func } from 'prop-types'
+import { DataTable } from 'primereact/datatable'
+import { Column } from 'primereact/column'
 
 const Inventory = () => {
-  const [material, setMaterial] = useState([])
+  const [inventory, setInventory] = useState([])
+  const [plant, setPlant] = useState([])
+  const [shop, setShop] = useState([])
+  const [location, setLocation] = useState([])
   const [date, setDate] = useState(new Date())
 
   useEffect(() => {
-    getMaterial()
+    // getInventory()
+    getPlant()
+    // getShop()
+    // getLocation()
   }, [])
 
-  const getMaterial = async () => {
+  const getInventory = async () => {
     try {
-      const response = await axiosInstance.get('/material')
-      setMaterial(response.data)
+      const response = await axiosInstance.get('/inventory')
+      setInventory(response.data)
     } catch (error) {
-      console.error('Error fetching material:', error)
+      console.error('Error fetching inventory:', error)
+    }
+  }
+
+  const getPlant = async () => {
+    try {
+      const response = await axiosInstance.get('/plant')
+      setPlant(response.data)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
+  const getShop = async () => {
+    try {
+      const response = await axiosInstance.get('/shop')
+      setShop(response.data)
+    } catch (error) {
+      console.error('Error fetching shop:', error)
+    }
+  }
+
+  const getShopByPlantId = async (id) => {
+    try {
+      const response = await axiosInstance.get(`/shop-plant/${id}`)
+      setShop(response.data)
+    } catch (error) {
+      console.error('Error fetching shop by ID:', error)
+    }
+  }
+
+  const getLocation = async () => {
+    try {
+      const response = await axiosInstance.get('/location')
+      setLocation(response.data)
+    } catch (error) {
+      console.error('Error fetching location:', error)
     }
   }
 
   const handleSearch = () => {
-    getMaterial()
+    getInventory()
+  }
+
+  const handlePlantChange = (id) => {
+    getShopByPlantId(id)
   }
 
   return (
     <CRow>
       <CCol>
-        <CCard>
+        <CCard className="mb-3">
           <CCardHeader>Search</CCardHeader>
           <CCardBody>
             <CForm>
               <CRow>
-                <CCol md={4}>
+                <CCol md={3} className="mb-3">
                   <CFormLabel htmlFor="dateInput">Date</CFormLabel>
                   <Flatpickr
                     value={date}
@@ -58,45 +109,55 @@ const Inventory = () => {
                     options={{
                       dateFormat: 'Y-m-d',
                       maxDate: 'today',
+                      allowInput: true,
                     }}
                     className="form-control"
                     placeholder="Select a date"
                   />
                 </CCol>
-                <CCol md={2}>
+                <CCol md={2} className="mb-3">
                   <CFormLabel htmlFor="plantinput">Plant</CFormLabel>
                   <CFormSelect
                     aria-label="Select a plant"
-                    options={[
-                      'Select a plant',
-                      { label: 'Karawang 1', value: '1' },
-                      { label: 'Karawang 2', value: '2' },
-                      { label: 'Karawang 3', value: '3' },
-                    ]}
-                  />
+                    onChange={(e) => handlePlantChange(e.target.value)}
+                  >
+                    <option>Select a plant</option>
+                    {plant.map((plant) => (
+                      <option key={plant.id} value={plant.id}>
+                        {plant.plantName}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </CCol>
-                <CCol md={4}>
+                <CCol md={2} className="mb-3">
+                  <CFormLabel htmlFor="shopinput">Shop</CFormLabel>
+                  <CFormSelect aria-label="Select a plant">
+                    <option>Select a shop</option>
+                    {shop.map((shop) => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.shopName}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                </CCol>
+                <CCol md={3} className="mb-3">
                   <CFormLabel htmlFor="locationinput">Location</CFormLabel>
-                  <CFormSelect
-                    aria-label="Select a location"
-                    options={[
-                      'Select a location',
-                      { label: 'Coat NPI', value: '1' },
-                      { label: 'MCP', value: '2' },
-                      { label: 'Sealer Welding', value: '3' },
-                    ]}
-                  />
+                  <CFormSelect aria-label="Select a plant">
+                    <option>Select a location</option>
+                    {location.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.locationName}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </CCol>
-                <CCol md={2}>
+                <CCol md={2} className="mb-3">
                   <CFormLabel htmlFor="shiftinput">Shift</CFormLabel>
-                  <CFormSelect
-                    aria-label="Select a shift"
-                    options={[
-                      'Select a shift',
-                      { label: 'Day', value: '1' },
-                      { label: 'Night', value: '2' },
-                    ]}
-                  />
+                  <CFormSelect aria-label="Select a plant">
+                    <option>Select a shift</option>
+                    <option value={1}>Day</option>
+                    <option value={2}>Night</option>
+                  </CFormSelect>
                 </CCol>
               </CRow>
             </CForm>
@@ -105,19 +166,35 @@ const Inventory = () => {
             <CRow className="align-items-end">
               <CCol className="d-flex justify-content-end">
                 <CButton color="dark" onClick={handleSearch}>
-                  Search
+                  <CIcon icon={cilZoom} /> Search
                 </CButton>
               </CCol>
             </CRow>
           </CCardFooter>
         </CCard>
 
-        <CCard className="mt-3">
-          <CCardHeader>Inventory Tabel</CCardHeader>
+        <CCard className="mb-3">
+          <CCardHeader>Inventory Table</CCardHeader>
           <CCardBody>
-            <CTable small bordered responsive>
+            <CRow>
+              <CCol className="mb-1">
+                <CButton color="success">
+                  <CIcon icon={cilDataTransferDown} /> Excel
+                </CButton>
+              </CCol>
+            </CRow>
+            <DataTable value={inventory} tableStyle={{ minWidth: '50rem' }}>
+              <Column field="materialNo" header="materialNo"></Column>
+              <Column field="description" header="description"></Column>
+              <Column field="address" header="address"></Column>
+              <Column field="uom" header="uom"></Column>
+            </DataTable>
+            <CTable small bordered responsive className="text-nowrap">
               <CTableHead color="light">
                 <CTableRow>
+                  <CTableHeaderCell rowSpan="2" scope="col" className="text-center align-middle">
+                    No
+                  </CTableHeaderCell>
                   <CTableHeaderCell rowSpan="2" scope="col" className="text-center align-middle">
                     Item No
                   </CTableHeaderCell>
@@ -168,13 +245,15 @@ const Inventory = () => {
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {material.map((material, index) => (
-                  <CTableRow key={material.id}>
+                {inventory.map((inventory, index) => (
+                  <CTableRow key={inventory.id}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{material.materialNo}</CTableDataCell>
-                    <CTableDataCell>{material.description}</CTableDataCell>
-                    <CTableDataCell>{material.uom}</CTableDataCell>
-                    <CTableDataCell>{material.addressRack}</CTableDataCell>
+                    <CTableDataCell>{inventory.Material.materialNo}</CTableDataCell>
+                    <CTableDataCell>{inventory.Material.description}</CTableDataCell>
+                    <CTableDataCell>
+                      {inventory.Material.Address_Rack.addressRackName}
+                    </CTableDataCell>
+                    <CTableDataCell>{inventory.Material.uom}</CTableDataCell>
                     <CTableDataCell></CTableDataCell>
                     <CTableDataCell></CTableDataCell>
                     <CTableDataCell></CTableDataCell>
