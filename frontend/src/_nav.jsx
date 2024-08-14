@@ -13,7 +13,8 @@ import {
   cilBluetooth,
   cilCompass,
   cilAlarm,
-  cilAsterisk
+  cilAsterisk,
+  cilTv
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -76,14 +77,20 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Plant',
+    to: '/plant',
+    icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
     name: 'Material',
-    to: '/master/material',
+    to: '/material',
     icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Shop',
-    to: '/master/Shop',
+    to: '/shop',
     icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
   },
   {

@@ -27,7 +27,6 @@ const Category = () => {
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentCategory, setCurrentCategory] = useState({
-    id: '',
     categoryName: '',
   });
 
@@ -46,7 +45,7 @@ const Category = () => {
 
   const handleAddCategory = () => {
     setIsEdit(false);
-    setCurrentCategory({ id: '', categoryName: '' });
+    setCurrentCategory({ categoryName: '' });
     setModal(true);
   };
 
