@@ -13,7 +13,8 @@ import {
   cilBluetooth,
   cilCompass,
   cilAlarm,
-  cilAsterisk
+  cilAsterisk,
+  cilTv
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -73,6 +74,12 @@ const _nav = [
     name: 'Category',
     to: '/category',
     icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Plant',
+    to: '/plant',
+    icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,

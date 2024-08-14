@@ -10,7 +10,7 @@ import {
   CTableRow,
   CTableHeaderCell,
   CTableBody,
-  CTableDataCell,
+  CTableDataCell,   
   CButton,
   CModal,
   CModalHeader,
@@ -18,32 +18,27 @@ import {
   CModalBody,
   CModalFooter,
   CFormInput,
-  CForm
+  CForm,
+  
 } from '@coreui/react';
 import axiosInstance from '../../../utils/AxiosInstance';
+import Swal from 'sweetalert2'; 
 
-//Plant adalah komponen digunakan di navigation unutk halaman 
-const Plant  = () => {
-//plants variabel untuk menampung dari data base,
-//setPlants untuk meng set untuk suatu nilai dari fuction getPlants 
+
+const Plant = () => {
   const [plants, setPlants] = useState([]);
-//setModal true akan tampil bila false 
-// modal dialog dan pop up sama saja
   const [modal, setModal] = useState(false);
-//setIsEdit ditunjjukan untuk form edit bila TRUE,kalau untuk tambah data = FALSE 
   const [isEdit, setIsEdit] = useState(false);
-// setcategory untuk mendapatkan nilai "Plant" dari dta base
-  const [currentPlantCode, setCurrentPlantCode] = useState({
+  const [currentPlant, setCurrentPlant] = useState({
+    id: '',
     plantCode: '',
-  });
-  const [currentPlantName, setCurrentPlantName] = useState({
     plantName: '',
   });
-//useEffect akan dijalankan saat membuaka halaman
+  
   useEffect(() => {
     getPlants();
   }, []);
-//fuction getplants dimana kita lihat slug('/plant') dan metode (get) dari postman
+
   const getPlants = async () => {
     try {
       const response = await axiosInstance.get('/plant');
@@ -52,73 +47,128 @@ const Plant  = () => {
       console.error('Error fetching plants:', error);
     }
   };
-//function untuk tambah data
+
   const handleAddPlant = () => {
-    setIsEdit(false); // tambah data
-    setCurrentPlantCode({ plantCode: '' }); //inputan kosong karen manambah data
-    setCurrentPlantName({ plantName: '' }); //inputan kosong karen manambah data
-    setModal(true); // maka tampil pop up/modal
-  };
-//function edit 
-  const handleEditPlant = (plantCode,plantName) => {
-    setIsEdit(true); //dinyatakan untuk edit
-    setCurrentPlantCode(plantCode);
-    setCurrentPlantName(plantName);
+    setIsEdit(false);
+    setCurrentPlant({
+      id: '',
+      plantCode: '',
+      plantName: '',
+    });
     setModal(true);
   };
 
-  const handleDeleteCategory = async (id) => {
-    try {
-      await axiosInstance.get(`/category-delete/${id}`);
-      getCategories(); // Refresh the categories list
-    } catch (error) {
-      console.error('Error deleting category:', error);
-    }
+  const handleEditPlant = (plant) => {
+    setIsEdit(true);
+    setCurrentPlant({
+      id: plant.id,
+      plantCode: plant.plantCode,
+      plantName: plant.plantName,
+      createdAt: plant.createdAt,
+      updatedAt: plant.updatedAt
+    });
+    setModal(true);
   };
 
-  const handleSaveCategory = async () => {
-    try {
-      if (isEdit) {
-        // Edit existing category
-        await axiosInstance.put(`/category/${currentCategory.id}`, currentCategory);
-      } else {
-        // Add new category
-        await axiosInstance.post('/category', currentCategory);
+  const handleDeletePlant = (plant) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this plant!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmDelete(plant);
       }
-      setModal(false);
-      getCategories(); // Refresh the categories list
+    });
+  };
+  
+
+  const confirmDelete = async (plant) => {
+    try {
+      await axiosInstance.get(`/plant-delete/${plant}`);
+      Swal.fire(
+        'Deleted!',
+        'The plant has been deleted.',
+        'success'
+      );
+      getPlants();
     } catch (error) {
-      console.error('Error saving category:', error);
+      console.error('Error deleting plant:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to delete the plant.',
+        'error'
+      );
     }
   };
+  
+  
+
+
+  const handleSavePlant = async () => {
+    try {
+      if (isEdit) {
+        await axiosInstance.put(`/plant/${currentPlant.id}`, currentPlant);
+        Swal.fire(
+          'Updated!',
+          'The plant has been updated.',
+          'success'
+        );
+      } else {
+        await axiosInstance.post('/plant', currentPlant);
+        Swal.fire(
+          'Added!',
+          'The plant has been added.',
+          'success'
+        );
+      }
+      setModal(false);
+      getPlants();
+    } catch (error) {
+      console.error('Error saving plant:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to save the plant.',
+        'error'
+      );
+    }
+  };
+  
 
   return (
     <CRow>
       <CCol>
         <CCard>
-          <CCardHeader>Inventory Table</CCardHeader>
+          <CCardHeader>Master Data Plant</CCardHeader>
           <CCardBody>
-            <CButton color="primary" onClick={handleAddCategory}>Add</CButton>
+            
+            <CButton color="primary" onClick={handleAddPlant}>Add</CButton>
             <CTable bordered responsive>
               <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Category Name</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Plant Code</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Plant Name</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Action</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody color="light">
-                {categories.map((category, index) => (
-                  <CTableRow key={category.id}>
+                {plants.map((plant, index) => (
+                  <CTableRow key={plant.id}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{category.categoryName}</CTableDataCell>
-                    <CTableDataCell>{category.createdAt}</CTableDataCell>
-                    <CTableDataCell>{category.updatedAt}</CTableDataCell>
+                    <CTableDataCell>{plant.plantCode}</CTableDataCell>
+                    <CTableDataCell>{plant.plantName}</CTableDataCell>
+                    <CTableDataCell>{plant.createdAt}</CTableDataCell>
+                    <CTableDataCell>{plant.updatedAt}</CTableDataCell>
                     <CTableDataCell>
-                      <CButton color="success" onClick={() => handleEditCategory(category)}>Edit</CButton>
-                      <CButton color="danger" onClick={() => handleDeleteCategory(category.id)}>Delete</CButton>
+                      <CButton color="success" onClick={() => handleEditPlant(plant)}>Edit</CButton>
+                      <CButton color="danger" onClick={() => handleDeletePlant(plant.id)}>Delete</CButton>
                     </CTableDataCell>
                   </CTableRow>
                 ))}
@@ -130,26 +180,33 @@ const Plant  = () => {
 
       <CModal visible={modal} onClose={() => setModal(false)}>
         <CModalHeader>
-          <CModalTitle>{isEdit ? 'Edit Category' : 'Add Category'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Plant' : 'Add Plant'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CFormInput
               type="text"
-              value={currentCategory.categoryName}
-              onChange={(e) => setCurrentCategory({ ...currentCategory, categoryName: e.target.value })}
-              placeholder="Enter category name"
-              label="Category Name"
+              value={currentPlant.plantName}
+              onChange={(e) => setCurrentPlant({ ...currentPlant, plantName: e.target.value })}
+              placeholder="Enter plant name"
+              label="Plant Name"
+            />
+            <CFormInput
+              type="text"
+              value={currentPlant.plantCode}
+              onChange={(e) => setCurrentPlant({ ...currentPlant, plantCode: e.target.value })}
+              placeholder="Enter plant code"
+              label="Plant Code"
             />
           </CForm>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveCategory}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="primary" onClick={handleSavePlant}>{isEdit ? 'Update' : 'Save'}</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
   );
 };
 
-export default Category;
+export default Plant;
