@@ -1,45 +1,36 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import Shop from "./ShopModel.js";
-import Role from "./RoleModel.js";
-import CostCenter from "./CostCenterModel.js";
 
 const { DataTypes } = Sequelize;
 
-const User = db.define(
-  "User",
+const CostCenter = db.define(
+  "Cost_Center",
   {
-    username: {
+    costCenterCode: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
     },
-    password: {
+    costCenterName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    name: {
+    wbsNumber: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
-    roleId: {
+    shopId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Role,
-        key: "id",
+        model: Shop,
+        key: "Id",
       },
     },
-    costCenterId: {
+    ext: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: CostCenter,
-        key: "id",
-      },
-    },
-    refreshToken: {
-      type: DataTypes.TEXT,
       allowNull: true,
     },
     flag: {
@@ -53,10 +44,7 @@ const User = db.define(
   }
 );
 
-CostCenter.hasMany(User, { foreignKey: "costCenterId" });
-User.belongsTo(CostCenter, { foreignKey: "costCenterId" });
+Shop.hasMany(CostCenter, { foreignKey: "shopId" });
+CostCenter.belongsTo(Shop, { foreignKey: "shopId" });
 
-Role.hasMany(User, { foreignKey: "roleId" });
-User.belongsTo(Role, { foreignKey: "roleId" });
-
-export default User;
+export default CostCenter;

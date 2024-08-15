@@ -2,6 +2,7 @@ import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Role from "../models/RoleModel.js";
+import CostCenter from "../models/CostCenterModel.js";
 import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 
@@ -16,12 +17,18 @@ export const getUser = async (req, res) => {
           attributes: ["id", "roleName", "createdAt", "updatedAt"],
         },
         {
-          model: Shop,
-          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          model: CostCenter,
+          attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
           include: [
             {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+              model: Shop,
+              attributes: ["id", "shopName", "createdAt", "updatedAt"],
+              include: [
+                {
+                  model: Plant,
+                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                },
+              ],
             },
           ],
         },
@@ -59,12 +66,18 @@ export const getUserById = async (req, res) => {
           attributes: ["id", "roleName", "createdAt", "updatedAt"],
         },
         {
-          model: Shop,
-          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          model: CostCenter,
+          attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
           include: [
             {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+              model: Shop,
+              attributes: ["id", "shopName", "createdAt", "updatedAt"],
+              include: [
+                {
+                  model: Plant,
+                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                },
+              ],
             },
           ],
         },

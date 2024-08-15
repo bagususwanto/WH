@@ -10,7 +10,7 @@ export const getLocation = async (req, res) => {
       include: [
         {
           model: Shop,
-          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          attributes: ["id", "shopName", "createdAt", "updatedAt"],
           include: [
             {
               model: Plant,
@@ -49,7 +49,7 @@ export const getLocationById = async (req, res) => {
       include: [
         {
           model: Shop,
-          attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          attributes: ["id", "shopName", "createdAt", "updatedAt"],
           include: [
             {
               model: Plant,
