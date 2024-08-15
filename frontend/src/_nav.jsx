@@ -65,34 +65,66 @@ const _nav = [
     to: '/tracking',
     icon: <CIcon icon={cilBluetooth} customClassName="nav-icon" />,
   },
+
+  
   {
     component: CNavTitle,
     name: 'Master',
   },
-  {
-    component: CNavItem,
-    name: 'Category',
-    to: '/category',
-    icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Plant',
-    to: '/plant',
-    icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Material',
-    to: '/material',
-    icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Shop',
-    to: '/shop',
-    icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
-  },
+      {
+        component: CNavItem,
+        name: 'Category',
+        to: '/category',
+        icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Supplier',
+        to: '/supplier',
+        icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Material',
+        to: '/material',
+        icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Role',
+        to: '/role',
+        icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Location',
+        to: '/location',
+        icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Address',
+        to: '/Address',
+        icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Plant',
+        to: '/plant',
+        icon: <CIcon icon={cilTv} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Shop',
+        to: '/shop',
+        icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Cost',
+        to: '/cost',
+        icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
+      },
   {
     component: CNavGroup,
     name: 'User',

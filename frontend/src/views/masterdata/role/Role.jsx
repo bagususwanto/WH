@@ -26,48 +26,48 @@ import Swal from 'sweetalert2';
 
 
 const Supplier = () => {
-  const [suppliers, setSuppliers] = useState([]);
-  const [modal, setModal] = useState(false);
+  const [Roles, setRoles] = useState([]);
+  const [role, setRole] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [currentSupplier, setCurrentSupplier] = useState({
+  const [currentRole, setcurrentRole] = useState({
     id: '',
-    supplierName: '',
+    roleName: '',
   });
   
   useEffect(() => {
-    getSupplier();
+    getRole();
   }, []);
 
-  const getSupplier = async () => {
+  const getRole = async () => {
     try {
       const response = await axiosInstance.get('/supplier');
-      setSuppliers(response.data);
+      setRole(response.data);
     } catch (error) {
-      console.error('Error fetching supplier:', error);
+      console.error('Error fetching role:', error);
     }
   };
 
-  const handleAddSupplier = () => {
+  const handleAddRole = () => {
     setIsEdit(false);
-    setCurrentSupplier({
+    setcurrentRole({
       id: '',
-      supplierName: '',
+      roleName: '',
     });
-    setModal(true);
+    setRole(true);
   };
 
-  const handleEditSupplier= (supplier) => {
+  const handleEditRole= (role) => {
     setIsEdit(true);
-    setCurrentSupplier({
-      id: supplier.id,
-      supplierName: supplier.supplierName,
-      createdAt: supplier.createdAt,
-      updatedAt: supplier.updatedAt
+    setcurrentRole({
+      id: role.id,
+      roleName: role.roleName,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt
     });
-    setModal(true);
+    setRole(true);
   };
 
-  const handleDeleteSupplier = (supplier) => {
+  const handleDeleteRole = (role) => {
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this plant!',
@@ -78,26 +78,26 @@ const Supplier = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(supplier);
+        confirmDelete(role);
       }
     });
   };
   
 
-  const confirmDelete = async (supplier) => {
+  const confirmDelete = async (role) => {
     try {
-      await axiosInstance.get(`/supplier-delete/${supplier}`);
+      await axiosInstance.get(`/role-delete/${role}`);
       Swal.fire(
         'Deleted!',
-        'The Supplier has been deleted.',
+        'The Role has been deleted.',
         'success'
       );
-      getSupplier();
+      getRole();
     } catch (error) {
-      console.error('Error deleting supplier:', error);
+      console.error('Error deleting role:', error);
       Swal.fire(
         'Error!',
-        'Failed to delete the supplier.',
+        'Failed to delete the role.',
         'error'
       );
     }
@@ -106,30 +106,30 @@ const Supplier = () => {
   
 
 
-  const handleSaveSupplier = async () => {
+  const handleSaveRole = async () => {
     try {
       if (isEdit) {
-        await axiosInstance.put(`/supplier/${currentSupplier.id}`, currentSupplier);
+        await axiosInstance.put(`/role/${currentRole.id}`, currentRole);
         Swal.fire(
           'Updated!',
-          'The Supplier has been updated.',
+          'The Role has been updated.',
           'success'
         );
       } else {
-        await axiosInstance.post('/supplier', currentSupplier);
+        await axiosInstance.post('/role', currentRole);
         Swal.fire(
           'Added!',
-          'The supplier has been added.',
+          'The role has been added.',
           'success'
         );
       }
-      setModal(false);
-      getSupplier();
+      setRole(false);
+      getRole();
     } catch (error) {
-      console.error('Error saving supplier:', error);
+      console.error('Error saving role:', error);
       Swal.fire(
         'Error!',
-        'Failed to save the supplier.',
+        'Failed to save the role.',
         'error'
       );
     }
@@ -140,31 +140,31 @@ const Supplier = () => {
     <CRow>
       <CCol>
         <CCard>
-          <CCardHeader>Master Data Supplier</CCardHeader>
+          <CCardHeader>Master Data Role</CCardHeader>
           <CCardBody>  
-            <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
+            <CButton color="primary" onClick={handleAddRole}>Add</CButton>
             <CRow className='mb-3'></CRow>
             <CTable bordered responsive>
               <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Supplier Name</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Role Name</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Action</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody color="light">
-                {suppliers.map((supplier, index) => (
-                  <CTableRow key={supplier.id}>
+                {suppliers.map((role, index) => (
+                  <CTableRow key={role.id}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{supplier.supplierName}</CTableDataCell>
-                    <CTableDataCell>{supplier.createdAt}</CTableDataCell>
-                    <CTableDataCell>{supplier.updatedAt}</CTableDataCell>
+                    <CTableDataCell>{role.roleName}</CTableDataCell>
+                    <CTableDataCell>{role.createdAt}</CTableDataCell>
+                    <CTableDataCell>{role.updatedAt}</CTableDataCell>
                     <CTableDataCell>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditSupplier(supplier)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteSupplier(supplier.id)}>Delete</CButton>
+                        <CButton color="success" onClick={() => handleEditRole(role)}>Edit</CButton>
+                        <CButton color="danger" onClick={() => handleDeleteRole(role.id)}>Delete</CButton>
                       </div>
                     </CTableDataCell>
                   </CTableRow>
@@ -175,28 +175,28 @@ const Supplier = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={modal} onClose={() => setModal(false)}>
+      <CModal visible={role} onClose={() => setRole(false)}>
         <CModalHeader>
-          <CModalTitle>{isEdit ? 'Edit Supplier' : 'Add Supplier'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Role' : 'Add Role'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CFormInput
               type="text"
-              value={currentSupplier.supplierName}
-              onChange={(e) => setCurrentSupplier({ ...currentSupplier, supplierName: e.target.value })}
-              placeholder="Enter supplier name"
-              label="Supplier Name"
+              value={currentRole.roleName}
+              onChange={(e) => setcurrentRole({ ...currentRole, roleName: e.target.value })}
+              placeholder="Enter role name"
+              label="Role Name"
             />
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveSupplier}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="secondary" onClick={() => setRole(false)}>Cancel</CButton>
+          <CButton color="primary" onClick={handleSaveRole}>{isEdit ? 'Update' : 'Save'}</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
   );
 };
 
-export default Supplier;
+export default Role;
