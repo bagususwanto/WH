@@ -64,7 +64,7 @@ const Material = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 1,
+      defaultValue:1,
     },
   },
   {

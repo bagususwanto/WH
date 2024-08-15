@@ -14,7 +14,7 @@ const LogEntry = db.define(
     inventoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue:0,
       references: {
         model: Inventory,
         key: "id",
@@ -27,12 +27,12 @@ const LogEntry = db.define(
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue:0,
     },
     materialId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue:0,
       references: {
         model: Material,
         key: "id",
@@ -49,20 +49,20 @@ const LogEntry = db.define(
     detailOrderId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
-      references: {
-        model: DetailOrder,
-        key: "id",
-      },
+      defaultValue:0,
+      // references: {
+      //   model: DetailOrder,
+      //   key: "id",
+      // },
     },
     incomingId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
-      references: {
-        model: Incoming,
-        key: "id",
-      },
+      defaultValue:0,
+      // references: {
+      //   model: Incoming,
+      //   key: "id",
+      // },
     },
   },
   {
@@ -70,19 +70,20 @@ const LogEntry = db.define(
   }
 );
 
-// Inventory.hasMany(LogEntry, { foreignKey: "inventoryId" });
-// LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId" });
+Inventory.hasMany(LogEntry, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
+LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
 
-User.hasMany(LogEntry, { foreignKey: "userId" });
-LogEntry.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(LogEntry, { foreignKey: "userId", onDelete: "NO ACTION" });
+LogEntry.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
-// DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId" });
-// LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId" });
+Material.hasMany(LogEntry, { foreignKey: "materialId", onDelete: "NO ACTION" });
+LogEntry.belongsTo(Material, { foreignKey: "materialId", onDelete: "NO ACTION" });
 
-// Incoming.hasMany(LogEntry, { foreignKey: "incomingId" });
-// LogEntry.belongsTo(Incoming, { foreignKey: "incomingId" });
+// DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
+// LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
 
-Material.hasMany(LogEntry, { foreignKey: "materialId" });
-LogEntry.belongsTo(Material, { foreignKey: "materialId" });
+// Incoming.hasMany(LogEntry, { foreignKey: "incomingId", onDelete: "NO ACTION" });
+// LogEntry.belongsTo(Incoming, { foreignKey: "incomingId", onDelete: "NO ACTION" });
+
 
 export default LogEntry;

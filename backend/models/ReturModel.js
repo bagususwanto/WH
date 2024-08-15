@@ -20,7 +20,7 @@ const Retur = db.define(
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
     },
     remarks: {
       type: DataTypes.TEXT,

@@ -16,7 +16,7 @@ const Shop = db.define(
       allowNull: false,
       references: {
         model: Plant,
-        key: "Id",
+        key: "id",
       },
     },
     flag: {
