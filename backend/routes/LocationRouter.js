@@ -1,5 +1,5 @@
 import express from "express";
-import { getLocation, getLocationById, createLocation, updateLocation, deleteLocation } from "../controllers/Location.js";
+import { getLocation, getLocationById, createLocation, updateLocation, deleteLocation, getLocationByShop } from "../controllers/Location.js";
 import { verifyToken } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
@@ -9,5 +9,6 @@ router.get("/location/:id", getLocationById);
 router.post("/location", createLocation);
 router.put("/location/:id", updateLocation);
 router.get("/location-delete/:id", deleteLocation);
+router.get("/location-shop/:id", getLocationByShop);
 
 export default router;

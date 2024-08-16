@@ -8,10 +8,12 @@ import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
 import LogEntry from "../models/LogEntryModel.js";
+import User from "../models/UserModel.js";
 
 export const getInventory = async (req, res) => {
   try {
     const response = await Inventory.findAll({
+      attributes: ["id", "quantity", "quantityActual", "createdAt", "updatedAt"],
       include: [
         {
           model: Material,
@@ -47,6 +49,18 @@ export const getInventory = async (req, res) => {
               model: Supplier,
               attributes: ["id", "supplierName", "createdAt", "updatedAt"],
             },
+            {
+              model: LogEntry,
+              attributes: ["id", "userId", "createdAt", "updatedAt"],
+              limit: 1,
+              order: [["createdAt", "DESC"]],
+              include: [
+                {
+                  model: User,
+                  attributes: ["id", "userName", "createdAt", "updatedAt"],
+                },
+              ],
+            },
           ],
         },
       ],
@@ -73,17 +87,17 @@ export const updateInventory = async (req, res) => {
       },
     });
 
-    // const inventory = await Inventory.findOne({
-    //   where: { id: inventoryId },
-    // });
+    const inventory = await Inventory.findOne({
+      where: { id: inventoryId },
+    });
 
-    // await LogEntry.create({
-    //   inventoryId: inventoryId,
-    //   typeLogEntry: "update",
-    //   quantity: req.body.quantityActual,
-    //   materialId: inventory.materialId,
-    //   userId: 2,
-    // });
+    await LogEntry.create({
+      inventoryId: inventoryId,
+      typeLogEntry: "update",
+      quantity: req.body.quantityActual,
+      materialId: inventory.materialId,
+      userId: 1,
+    });
     res.status(200).json({ msg: "Inventory Updated" });
   } catch (error) {
     console.log(error.message);

@@ -10,7 +10,6 @@ const CostCenter = db.define(
     costCenterCode: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     costCenterName: {
       type: DataTypes.STRING,
@@ -19,14 +18,13 @@ const CostCenter = db.define(
     wbsNumber: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     shopId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: Shop,
-        key: "Id",
+        key: "id",
       },
     },
     ext: {

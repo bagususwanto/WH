@@ -12,10 +12,5 @@
     background-color: #ffffff;
     font-size: 10pt;
     text-transform: uppercase;
-}
-
-.header-right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    white-space: nowrap;
 }

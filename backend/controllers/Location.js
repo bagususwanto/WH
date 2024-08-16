@@ -66,6 +66,32 @@ export const getLocationById = async (req, res) => {
   }
 };
 
+export const getLocationByShop = async (req, res) => {
+  try {
+    const shopId = req.params.id;
+
+    const shop = await Location.findOne({
+      where: { shopId: shopId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ msg: "Location not found" });
+    }
+
+    const response = await Location.findAll({
+      where: {
+        shopId: shopId,
+        flag: 1,
+      },
+      attributes: ["id", "locationName", "createdAt", "updatedAt"],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
 export const createLocation = async (req, res) => {
   try {
     await Location.create(req.body);

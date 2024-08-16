@@ -18,12 +18,12 @@ const Inventory = db.define(
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue:0,
     },
     quantityActual: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue:0,
     },
   },
   {
