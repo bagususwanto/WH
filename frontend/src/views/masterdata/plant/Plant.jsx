@@ -145,8 +145,8 @@ const Plant = () => {
         <CCard>
           <CCardHeader>Master Data Plant</CCardHeader>
           <CCardBody>
-            
             <CButton color="primary" onClick={handleAddPlant}>Add</CButton>
+            <CRow className= 'mb-3'></CRow>
             <CTable bordered responsive>
               <CTableHead>
                 <CTableRow>
@@ -167,8 +167,10 @@ const Plant = () => {
                     <CTableDataCell>{plant.createdAt}</CTableDataCell>
                     <CTableDataCell>{plant.updatedAt}</CTableDataCell>
                     <CTableDataCell>
-                      <CButton color="success" onClick={() => handleEditPlant(plant)}>Edit</CButton>
-                      <CButton color="danger" onClick={() => handleDeletePlant(plant.id)}>Delete</CButton>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                       <CButton color="success" onClick={() => handleEditPlant(plant)}>Edit</CButton>
+                       <CButton color="danger" onClick={() => handleDeletePlant(plant.id)}>Delete</CButton>
+                    </div>
                     </CTableDataCell>
                   </CTableRow>
                 ))}

@@ -1,0 +1,241 @@
+import React, { useState, useEffect } from 'react';
+import {
+  CCard,
+  CCardHeader,
+  CCardBody,
+  CCol,
+  CRow,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,   
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CFormInput,
+  CForm,
+  
+} from '@coreui/react';
+import axiosInstance from '../../../utils/AxiosInstance';
+import Swal from 'sweetalert2'; 
+
+
+const User = () => {
+  const [users, setUsers] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentUser, setCurrentUser] = useState({
+    id: '',
+    userName: '',
+    password: '',
+    name: '',
+    roleId: '',
+    costCenterId: '',
+  });
+  
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    try {
+      const response = await axiosInstance.get('/user');
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
+
+  const handleAddUser = () => {
+    setIsEdit(false);
+    setCurrentUser({
+      id: '',
+      userName: '',
+      password: '',
+      name: '',
+      roleId: '',
+      costCenterId: '',
+    });
+    setModal(true);
+  };
+
+  const handleEditUser= (user) => {
+    setIsEdit(true);
+    setCurrentUser({
+      id: user.id,
+      userName: user.userName,
+      password: user.password,
+      name: user.name,
+      roleId: user.roleId,
+      costCenterId: user.costCenterId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    });
+    setModal(true);
+  };
+
+  const handleDeleteUser = (user) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this plant!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmDelete(user);
+      }
+    });
+  };
+  
+
+  const confirmDelete = async (user) => {
+    try {
+      await axiosInstance.get(`/user-delete/${user}`);
+      Swal.fire(
+        'Deleted!',
+        'The Supplier has been deleted.',
+        'success'
+      );
+      getUser();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to delete the user.',
+        'error'
+      );
+    }
+  };
+  
+  
+
+
+  const handleSaveUser = async () => {
+    try {
+      if (isEdit) {
+        await axiosInstance.put(`/user/${currentUser.id}`, currentUser);
+        Swal.fire(
+          'Updated!',
+          'The Supplier has been updated.',
+          'success'
+        );
+      } else {
+        await axiosInstance.post('/user', currentUser);
+        Swal.fire(
+          'Added!',
+          'The user has been added.',
+          'success'
+        );
+      }
+      setModal(false);
+      getUser();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to save the user.',
+        'error'
+      );
+    }
+  };
+  
+
+  return (
+    <CRow>
+      <CCol>
+        <CCard>
+          <CCardHeader>Master Data Supplier</CCardHeader>
+          <CCardBody>  
+            <CButton color="primary" onClick={handleAddUser}>Add</CButton>
+            <CRow className='mb-3'></CRow>
+            <CTable bordered responsive>
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Username</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Password</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Role ID</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody color="light">
+                {users.map((user, index) => (
+                  <CTableRow key={user.id}>
+                   <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
+                    <CTableDataCell>{user.userName}</CTableDataCell>
+                    <CTableDataCell>{user.password}</CTableDataCell>
+                    <CTableDataCell>{user.name}</CTableDataCell>
+                    <CTableDataCell>{user.roleId}</CTableDataCell>
+                    <CTableDataCell>{user.createdAt}</CTableDataCell>
+                    <CTableDataCell>{user.updatedAt}</CTableDataCell>
+                    <CTableDataCell>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <CButton color="success" onClick={() => handleEditUser(user)}>Edit</CButton>
+                        <CButton color="danger" onClick={() => handleDeleteUser(user.id)}>Delete</CButton>
+                      </div>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+          </CCardBody>
+        </CCard>
+      </CCol>
+
+      <CModal visible={modal} onClose={() => setModal(false)}>
+        <CModalHeader>
+          <CModalTitle>{isEdit ? 'Edit Supplier' : 'Add User'}</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm>
+            <CFormInput
+              type="text"
+              value={currentUser.userName}
+              onChange={(e) => setCurrentUser({ ...currentUser, userName: e.target.value })}
+              placeholder="Enter user name"
+              label="User Name"
+            />
+             <CFormInput
+              type="text"
+              value={currentUser.password}
+              onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
+              placeholder="Enter user name"
+              label="Password"
+            />
+             <CFormInput
+              type="text"
+              value={currentUser.name}
+              onChange={(e) => setCurrentUser({ ...currentUser, name: e.target.value })}
+              placeholder="Enter user name"
+              label="Name"
+            />
+             <CFormInput
+              type="text"
+              value={currentUser.roleId}
+              onChange={(e) => setCurrentUser({ ...currentUser, roleId: e.target.value })}
+              placeholder="Enter user name"
+              label="Role ID"
+            />
+          </CForm>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
+          <CButton color="primary" onClick={handleSaveUser}>{isEdit ? 'Update' : 'Save'}</CButton>
+        </CModalFooter>
+      </CModal>
+    </CRow>
+  );
+};
+
+export default User;

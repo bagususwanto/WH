@@ -87,6 +87,7 @@ const Category = () => {
           <CCardHeader>Inventory Table</CCardHeader>
           <CCardBody>
             <CButton color="primary" onClick={handleAddCategory}>Add</CButton>
+            <CRow className='mb-3'></CRow>
             <CTable bordered responsive>
               <CTableHead>
                 <CTableRow>
@@ -105,8 +106,10 @@ const Category = () => {
                     <CTableDataCell>{category.createdAt}</CTableDataCell>
                     <CTableDataCell>{category.updatedAt}</CTableDataCell>
                     <CTableDataCell>
+                      <div style={{ display: 'flex', gap: '10px' }}>
                       <CButton color="success" onClick={() => handleEditCategory(category)}>Edit</CButton>
-                      <CButton color="danger" onClick={() => handleDeleteCategory(category.id)}>Delete</CButton>
+                      <CButton color="danger" onClick={() => handleDeleteCategory(category.id)}>Delete</CButton> 
+                      </div>
                     </CTableDataCell>
                   </CTableRow>
                 ))}

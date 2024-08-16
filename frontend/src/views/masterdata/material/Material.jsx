@@ -219,14 +219,14 @@ const Material = () => {
             <CFormInput
               type="text"
               value={currentMaterial.materialNo}
-              onChange={(e) => setCurrentSupplier({ ...currentMaterial, materialNo: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
               placeholder="Enter Material name"
               label="Material No"
             />
             <CFormInput
               type="text"
               value={currentMaterial.description}
-              onChange={(e) => setCurrentSupplier({ ...currentMaterial, description: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
               placeholder="Enter Material code"
               label="Description"
             />
@@ -240,7 +240,7 @@ const Material = () => {
             <CFormInput
               type="text"
               value={currentMaterial.price}
-              onChange={(e) => setCurrentMater({ ...currentMaterial, price: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
               placeholder="Enter Material code"
               label="Price"
             />

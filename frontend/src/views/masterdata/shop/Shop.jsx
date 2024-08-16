@@ -25,13 +25,14 @@ import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'; 
 
 
-const Supplier = () => {
+const Shop = () => {
   const [shops, setShops] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentShop, setCurrentShop] = useState({
     id: '',
     shopName: '',
+    plantId: '',
   });
   
   useEffect(() => {
@@ -41,7 +42,7 @@ const Supplier = () => {
   const getShop = async () => {
     try {
       const response = await axiosInstance.get('/shop');
-      setShop(response.data);
+      setShops(response.data);
     } catch (error) {
       console.error('Error fetching shop:', error);
     }
@@ -52,23 +53,24 @@ const Supplier = () => {
     setCurrentShop({
       id: '',
       shopName: '',
+      plantId: '',
     });
     setModal(true);
   };
 
   const handleEditShop= (shop) => {
     setIsEdit(true);
-    setCurrentSupplier({
+    setCurrentShop({
       id: shop.id,
       shopName: shop.shopName,
-      plantId
+      plantId: shop.plantId,
       createdAt: shop.createdAt,
       updatedAt: shop.updatedAt,
     });
     setModal(true);
   };
 
-  const handleDeleteSupplier = (shop) => {
+  const handleDeleteShop = (shop) => {
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this plant!',
@@ -93,7 +95,7 @@ const Supplier = () => {
         'The Supplier has been deleted.',
         'success'
       );
-      getSupplier();
+      getShop();
     } catch (error) {
       console.error('Error deleting shop:', error);
       Swal.fire(
@@ -107,17 +109,17 @@ const Supplier = () => {
   
 
 
-  const handleSaveSupplier = async () => {
+  const handleSaveShop = async () => {
     try {
       if (isEdit) {
-        await axiosInstance.put(`/shop/${currentSupplier.id}`, currentSupplier);
+        await axiosInstance.put(`/shop/${currentShop.id}`, currentShop);
         Swal.fire(
           'Updated!',
           'The Supplier has been updated.',
           'success'
         );
       } else {
-        await axiosInstance.post('/shop', currentSupplier);
+        await axiosInstance.post('/shop', currentShop);
         Swal.fire(
           'Added!',
           'The shop has been added.',
@@ -125,7 +127,7 @@ const Supplier = () => {
         );
       }
       setModal(false);
-      getSupplier();
+      getShop();
     } catch (error) {
       console.error('Error saving shop:', error);
       Swal.fire(
@@ -141,31 +143,33 @@ const Supplier = () => {
     <CRow>
       <CCol>
         <CCard>
-          <CCardHeader>Master Data Supplier</CCardHeader>
+          <CCardHeader>Master Data Shop</CCardHeader>
           <CCardBody>  
-            <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
+            <CButton color="primary" onClick={handleAddShop}>Add</CButton>
             <CRow className='mb-3'></CRow>
             <CTable bordered responsive>
               <CTableHead>
                 <CTableRow>
                   <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Supplier Name</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Shop Name</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Plant Id</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Action</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody color="light">
-                {suppliers.map((shop, index) => (
+                {shops.map((shop, index) => (
                   <CTableRow key={shop.id}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                     <CTableDataCell>{shop.shopName}</CTableDataCell>
+                    <CTableDataCell>{shop.plantId}</CTableDataCell>
                     <CTableDataCell>{shop.createdAt}</CTableDataCell>
                     <CTableDataCell>{shop.updatedAt}</CTableDataCell>
                     <CTableDataCell>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditSupplier(shop)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteSupplier(shop.id)}>Delete</CButton>
+                        <CButton color="success" onClick={() => handleEditShop(shop)}>Edit</CButton>
+                        <CButton color="danger" onClick={() => handleDeleteShop(shop.id)}>Delete</CButton>
                       </div>
                     </CTableDataCell>
                   </CTableRow>
@@ -184,27 +188,27 @@ const Supplier = () => {
           <CForm>
             <CFormInput
               type="text"
-              value={currentSupplier.SupplierName}
-              onChange={(e) => setCurrentSupplier({ ...currentSupplier, shopName: e.target.value })}
+              value={currentShop.shopName}
+              onChange={(e) => setCurrentShop({ ...currentShop, shopName: e.target.value })}
               placeholder="Enter shop name"
-              label="Supplier Name"
+              label="Shop Name"
             />
             <CFormInput
               type="text"
-              value={currentSupplier.supplierCode}
-              onChange={(e) => setCurrentSupplier({ ...currentSupplier, supplierCode: e.target.value })}
+              value={currentShop.plantId}
+              onChange={(e) => setCurrentShop({ ...currentShop, plantId: e.target.value })}
               placeholder="Enter shop code"
-              label="Supplier Code"
+              label="Plant Id"
             />
           </CForm>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveSupplier}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="primary" onClick={handleSaveShop}>{isEdit ? 'Update' : 'Save'}</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
   );
 };
 
-export default Supplier;
+export default Shop;

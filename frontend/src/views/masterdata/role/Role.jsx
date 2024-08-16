@@ -25,8 +25,8 @@ import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'; 
 
 
-const Supplier = () => {
-  const [Roles, setRoles] = useState([]);
+const Role = () => {
+  const [roles, setRoles] = useState([]);
   const [role, setRole] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentRole, setcurrentRole] = useState({
@@ -41,7 +41,7 @@ const Supplier = () => {
   const getRole = async () => {
     try {
       const response = await axiosInstance.get('/supplier');
-      setRole(response.data);
+      setRoles(response.data);
     } catch (error) {
       console.error('Error fetching role:', error);
     }
@@ -155,7 +155,7 @@ const Supplier = () => {
                 </CTableRow>
               </CTableHead>
               <CTableBody color="light">
-                {suppliers.map((role, index) => (
+                {roles.map((role, index) => (
                   <CTableRow key={role.id}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                     <CTableDataCell>{role.roleName}</CTableDataCell>
