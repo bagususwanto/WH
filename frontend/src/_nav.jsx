@@ -40,14 +40,14 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Tracking Item',
-        to: '/buttons/buttons',
+        to: '/tracking',
         icon: <CIcon icon={cilAlarm} customClassName="nav-icon" />,
       },
 
       {
         component: CNavItem,
         name: 'Good Issue',
-        to: '/buttons/button-groups',
+        to: '/goodissue',
         icon: <CIcon icon={cilAsterisk} customClassName="nav-icon" />,
       },
 

@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
 import {
   CCard,
   CCardHeader,
@@ -34,6 +39,14 @@ const Category = () => {
     getCategories();
   }, []);
 
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditCategory(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteCategory(rowData.id)} />
+        </div>
+       );
+    };
   const getCategories = async () => {
     try {
       const response = await axiosInstance.get('/category');
@@ -88,33 +101,13 @@ const Category = () => {
           <CCardBody>
             <CButton color="primary" onClick={handleAddCategory}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <CTable bordered responsive>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Category Name</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody color="light">
-                {categories.map((category, index) => (
-                  <CTableRow key={category.id}>
-                    <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{category.categoryName}</CTableDataCell>
-                    <CTableDataCell>{category.createdAt}</CTableDataCell>
-                    <CTableDataCell>{category.updatedAt}</CTableDataCell>
-                    <CTableDataCell>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                      <CButton color="success" onClick={() => handleEditCategory(category)}>Edit</CButton>
-                      <CButton color="danger" onClick={() => handleDeleteCategory(category.id)}>Delete</CButton> 
-                      </div>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            <DataTable value={categories} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column field="categoryName" header="Nama Category" style={{ width: '25%' }}></Column>
+                <Column field="CreatedAt" header="Crate At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
           </CCardBody>
         </CCard>
       </CCol>

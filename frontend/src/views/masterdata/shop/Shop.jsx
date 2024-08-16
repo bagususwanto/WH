@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
 import {
   CCard,
   CCardHeader,
@@ -38,6 +43,15 @@ const Shop = () => {
   useEffect(() => {
     getShop();
   }, []);
+
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditShop(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteShop(rowData.id)} />
+        </div>
+       );
+    };
 
   const getShop = async () => {
     try {
@@ -145,37 +159,16 @@ const Shop = () => {
         <CCard>
           <CCardHeader>Master Data Shop</CCardHeader>
           <CCardBody>  
-            <CButton color="primary" onClick={handleAddShop}>Add</CButton>
+              <CButton color="primary" onClick={handleAddShop}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <CTable bordered responsive>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Shop Name</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Plant Id</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody color="light">
-                {shops.map((shop, index) => (
-                  <CTableRow key={shop.id}>
-                    <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{shop.shopName}</CTableDataCell>
-                    <CTableDataCell>{shop.plantId}</CTableDataCell>
-                    <CTableDataCell>{shop.createdAt}</CTableDataCell>
-                    <CTableDataCell>{shop.updatedAt}</CTableDataCell>
-                    <CTableDataCell>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditShop(shop)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteShop(shop.id)}>Delete</CButton>
-                      </div>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            <DataTable value={shops} paginator rows={10} rowsPerPageOptions={[10,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column field="shopName" header="Nama Supplier" style={{ width: '25%' }}></Column>\
+                <Column field="plantId" header="Plant Id" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
           </CCardBody>
         </CCard>
       </CCol>

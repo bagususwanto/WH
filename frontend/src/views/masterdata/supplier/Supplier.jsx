@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
 import {
   CCard,
   CCardHeader,
   CCardBody,
   CCol,
-  CRow,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,   
+  CRow, 
   CButton,
   CModal,
   CModalHeader,
@@ -37,6 +36,15 @@ const Supplier = () => {
   useEffect(() => {
     getSupplier();
   }, []);
+
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditSupplier(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteSupplier(rowData.id)} />
+        </div>
+       );
+    };
 
   const getSupplier = async () => {
     try {
@@ -144,33 +152,13 @@ const Supplier = () => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <CTable bordered responsive>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Supplier Name</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody color="light">
-                {suppliers.map((supplier, index) => (
-                  <CTableRow key={supplier.id}>
-                    <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{supplier.supplierName}</CTableDataCell>
-                    <CTableDataCell>{supplier.createdAt}</CTableDataCell>
-                    <CTableDataCell>{supplier.updatedAt}</CTableDataCell>
-                    <CTableDataCell>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditSupplier(supplier)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteSupplier(supplier.id)}>Delete</CButton>
-                      </div>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            <DataTable value={suppliers} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column field="supplierName" header="Nama Supplier" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
           </CCardBody>
         </CCard>
       </CCol>

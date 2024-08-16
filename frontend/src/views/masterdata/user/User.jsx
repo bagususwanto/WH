@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
 import {
   CCard,
   CCardHeader,
@@ -41,6 +46,16 @@ const User = () => {
   useEffect(() => {
     getUser();
   }, []);
+
+  
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditUser(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteUser(rowData.id)} />
+        </div>
+       );
+    };
 
   const getUser = async () => {
     try {
@@ -156,39 +171,16 @@ const User = () => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddUser}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <CTable bordered responsive>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Username</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Password</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Name</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Role ID</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody color="light">
-                {users.map((user, index) => (
-                  <CTableRow key={user.id}>
-                   <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{user.userName}</CTableDataCell>
-                    <CTableDataCell>{user.password}</CTableDataCell>
-                    <CTableDataCell>{user.name}</CTableDataCell>
-                    <CTableDataCell>{user.roleId}</CTableDataCell>
-                    <CTableDataCell>{user.createdAt}</CTableDataCell>
-                    <CTableDataCell>{user.updatedAt}</CTableDataCell>
-                    <CTableDataCell>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditUser(user)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteUser(user.id)}>Delete</CButton>
-                      </div>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            <DataTable value={users} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column field="userName" header="Username" style={{ width: '25%' }}></Column>
+                <Column field="password" header="Password" style={{ width: '25%' }}></Column>
+                <Column field="name" header="Nama" style={{ width: '25%' }}></Column>
+                <Column field="roleId" header="Role" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
           </CCardBody>
         </CCard>
       </CCol>
