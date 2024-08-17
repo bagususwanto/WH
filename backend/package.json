@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon App.js"
+    "dev": "npx nodemon App.js",
+    "m": "npx sequelize-cli db:migrate --env development",
+    "mu": " npx sequelize-cli db:migrate:undo --env development"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +25,8 @@
     "mysql2": "^3.11.0",
     "sequelize": "^6.37.3",
     "tedious": "^18.2.4"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.2"
   }
 }

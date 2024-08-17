@@ -14,3 +14,18 @@
     text-transform: uppercase;
     white-space: nowrap;
 }
+
+input.p-inputnumber-input.p-inputtext.p-component.p-filled {
+    width: 90px;
+    height: 24px;
+    font-size: 10pt;
+}
+
+td input.p-inputtext.p-component {
+    height: 24px;
+    font-size: 10pt;
+}
+
+button.p-row-editor-save.p-link {
+    margin-right: 10px;
+}

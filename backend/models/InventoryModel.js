@@ -25,6 +25,10 @@ const Inventory = db.define(
       allowNull: false,
       defaultValue:0,
     },
+    remarks: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

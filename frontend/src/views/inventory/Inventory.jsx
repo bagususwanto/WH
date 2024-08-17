@@ -11,10 +11,11 @@ import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
 import { InputNumber } from 'primereact/inputnumber'
 import { Button } from 'primereact/button'
+import { Tag } from 'primereact/tag'
 import { format, parseISO } from 'date-fns'
-import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
-import '../inventory/Inventory.css'
+import Swal from 'sweetalert2'
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
@@ -24,7 +25,7 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
-  console.log(inventory.Material)
+
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     'Material.Address_Rack.Location.locationName': {
@@ -41,8 +42,6 @@ const Inventory = () => {
     },
   })
 
-  const dt = useRef(null)
-
   useEffect(() => {
     getInventory()
     getPlant()
@@ -52,6 +51,19 @@ const Inventory = () => {
   useEffect(() => {
     applyFilters()
   }, [filters, globalFilterValue, inventory])
+
+  const getSeverity = (status) => {
+    switch (status) {
+      case 'shortage':
+        return 'danger'
+
+      case 'ok':
+        return 'success'
+
+      case 'over':
+        return 'warning'
+    }
+  }
 
   const getInventory = async () => {
     try {
@@ -109,6 +121,16 @@ const Inventory = () => {
     }
   }
 
+  const updateInventory = async (updateItem) => {
+    try {
+      await axiosInstance.put(`/inventory/${updateItem.id}`, updateItem)
+      getInventory()
+      Swal.fire('Updated!', 'Data has been updated.', 'success')
+    } catch (error) {
+      console.error('Error fetching inventory:', error)
+    }
+  }
+
   const handleLocationChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
@@ -152,11 +174,11 @@ const Inventory = () => {
     let filteredData = [...inventory]
 
     if (filters['global'].value) {
-      filteredData = filteredData.filter((item) =>
-        Object.values(item).some((val) =>
-          String(val).toLowerCase().includes(filters['global'].value.toLowerCase()),
-        ),
-      )
+      const globalFilterValue = filters['global'].value.toLowerCase()
+      filteredData = filteredData.filter((item) => {
+        const searchString = JSON.stringify(item).toLowerCase()
+        return searchString.includes(globalFilterValue)
+      })
     }
 
     if (filters['Material.Address_Rack.Location.locationName'].value) {
@@ -195,6 +217,7 @@ const Inventory = () => {
             value={globalFilterValue}
             onChange={onGlobalFilterChange}
             placeholder="Keyword Search"
+            style={{ width: '100%', borderRadius: '5px' }}
           />
         </IconField>
       </div>
@@ -204,19 +227,34 @@ const Inventory = () => {
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
-      const mappedData = visibleData.map((item) => ({
-        'Material No': item.Material.materialNo,
-        Description: item.Material.description,
-        Address: item.Material.Address_Rack.addressRackName,
-        UOM: item.Material.uom,
-        'Standar Stock': item.Material.stdStock,
-        'Actual Stock': item.quantityActual,
-        Plant: item.Material.Address_Rack.Location.Shop.Plant.plantName,
-        Shop: item.Material.Address_Rack.Location.Shop.shopName,
-        Location: item.Material.Address_Rack.Location.locationName,
-        'Update By': item.Material.Log_Entries[0]?.User?.userName || '',
-        'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
-      }))
+      const mappedData = visibleData.map((item) => {
+        const { quantityActual, Material } = item
+        const stdStock = Material?.stdStock
+
+        let evaluation
+        if (quantityActual < stdStock) {
+          evaluation = 'shortage'
+        } else if (quantityActual > stdStock) {
+          evaluation = 'over'
+        } else {
+          evaluation = 'ok'
+        }
+
+        return {
+          'Material No': Material.materialNo,
+          Description: Material.description,
+          Address: Material.Address_Rack.addressRackName,
+          UoM: Material.uom,
+          'Standar Stock': Material.stdStock,
+          'Actual Stock': quantityActual,
+          Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
+          Plant: Material.Address_Rack.Location.Shop.Plant.plantName,
+          Shop: Material.Address_Rack.Location.Shop.shopName,
+          Location: Material.Address_Rack.Location.locationName,
+          'Update By': Material.Log_Entries[0]?.User?.userName || '',
+          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+        }
+      })
 
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
@@ -248,15 +286,47 @@ const Inventory = () => {
     let _inventory = [...inventory]
     let { newData, index } = e
 
-    _inventory[index] = newData
-
-    setInventory(_inventory)
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to update the data. Do you want to proceed?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, update it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        _inventory[index] = newData
+        setInventory(_inventory)
+        updateInventory(_inventory[index])
+      }
+    })
   }
 
   const qtyActualEditor = (options) => {
     return (
       <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />
     )
+  }
+
+  const remarksEditor = (options) => {
+    return (
+      <InputText
+        type="text"
+        value={options.value || ''}
+        onChange={(e) => options.editorCallback(e.target.value)}
+      />
+    )
+  }
+
+  const statusBodyTemplate = (rowData) => {
+    const { quantityActual, Material } = rowData
+    const stdStock = Material?.stdStock
+
+    if (quantityActual < stdStock)
+      return <Tag value="shortage" severity={getSeverity('shortage')} />
+    if (quantityActual > stdStock) return <Tag value="over" severity={getSeverity('over')} />
+    return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
   return (
@@ -274,7 +344,7 @@ const Inventory = () => {
                   placeholder="Select Plant"
                   className="p-column-filter mb-2"
                   showClear
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
               <CCol xs={12} sm={6} md={4}>
@@ -285,7 +355,7 @@ const Inventory = () => {
                   placeholder="Select Shop"
                   className="p-column-filter mb-2"
                   showClear
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
               <CCol xs={12} sm={6} md={4}>
@@ -296,7 +366,7 @@ const Inventory = () => {
                   placeholder="Select Location"
                   className="p-column-filter mb-2"
                   showClear
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
             </CRow>
@@ -323,12 +393,11 @@ const Inventory = () => {
               </CCol>
             </CRow>
             <DataTable
-              ref={dt}
               value={visibleData}
               tableStyle={{ minWidth: '100rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable"
+              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
-              rowsPerPageOptions={[10, 50, 100, 500, 1000]}
+              rowsPerPageOptions={[10, 50, 100, 500]}
               rows={10}
               dataKey="id"
               filters={filters}
@@ -338,36 +407,75 @@ const Inventory = () => {
               scrollable
               editMode="row"
               onRowEditComplete={onRowEditComplete}
+              removableSort
             >
-              <Column field="Material.materialNo" header="Material No"></Column>
-              <Column field="Material.description" header="Description"></Column>
-              <Column field="Material.Address_Rack.addressRackName" header="Address"></Column>
-              <Column field="Material.uom" header="UoM"></Column>
-              <Column field="Material.stdStock" header="Standar Stock"></Column>
+              <Column
+                field="Material.materialNo"
+                header="Material No"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              ></Column>
+              <Column
+                field="Material.description"
+                header="Description"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              ></Column>
+              <Column
+                field="Material.Address_Rack.addressRackName"
+                header="Address"
+                sortable
+              ></Column>
+              <Column field="Material.uom" header="UoM" sortable></Column>
+              <Column field="Material.stdStock" header="Standar Stock" sortable></Column>
               <Column
                 field="quantityActual"
                 header="Actual Stock"
                 editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
+                sortable
               ></Column>
               <Column
-                field="Material.Address_Rack.Location.Shop.Plant.plantName"
-                header="Plant"
+                field="evaluation"
+                header="Evaluation"
+                body={statusBodyTemplate} // Menggunakan fungsi evaluasi
+                bodyStyle={{ textAlign: 'center' }}
+                sortable
               ></Column>
-              <Column field="Material.Address_Rack.Location.Shop.shopName" header="Shop"></Column>
               <Column
-                field="Material.Address_Rack.Location.locationName"
-                header="Location"
+                field="remarks"
+                header="Remarks"
+                editor={(options) => remarksEditor(options)}
+                sortable
               ></Column>
               <Column
                 field="Material.Log_Entries[0].User.userName"
                 header="Update By"
                 body={(rowData) => rowData.Material.Log_Entries[0]?.User?.userName || ''}
+                sortable
               ></Column>
               <Column
                 field="updatedAt"
                 header="Update At"
                 body={(rowData) => format(parseISO(rowData.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+                sortable
+              ></Column>
+              <Column
+                field="Material.Address_Rack.Location.Shop.Plant.plantName"
+                header="Plant"
+                sortable
+              ></Column>
+              <Column
+                field="Material.Address_Rack.Location.Shop.shopName"
+                header="Shop"
+                sortable
+              ></Column>
+              <Column
+                field="Material.Address_Rack.Location.locationName"
+                header="Location"
+                sortable
               ></Column>
               <Column
                 header="Action"
