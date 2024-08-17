@@ -40,14 +40,14 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Tracking Item',
-        to: '/buttons/buttons',
+        to: '/tracking',
         icon: <CIcon icon={cilAlarm} customClassName="nav-icon" />,
       },
 
       {
         component: CNavItem,
         name: 'Good Issue',
-        to: '/buttons/button-groups',
+        to: '/goodissue',
         icon: <CIcon icon={cilAsterisk} customClassName="nav-icon" />,
       },
 
@@ -125,28 +125,15 @@ const _nav = [
         to: '/cost',
         icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
       },
-  {
-    component: CNavGroup,
-    name: 'User',
-    to: '/master/user',
-    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Recipent',
-        to: '/buttons/buttons',
-      },
-      {
-        component: CNavItem,
-        name: 'Leader',
-        to: '/buttons/button-groups',
-      },
-
-    ],
-  },
+     {
+          component: CNavItem,
+          name: 'User',
+          to: '/user',
+          icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+     },
   {
     component: CNavTitle,
-    name: 'User',
+    name: 'Profile',
   },
   {
     component: CNavItem,

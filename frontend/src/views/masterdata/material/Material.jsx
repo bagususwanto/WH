@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
 import {
   CCard,
   CCardHeader,
@@ -43,6 +48,16 @@ const Material = () => {
   useEffect(() => {
     getMaterial();
   }, []);
+
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
+        </div>
+       );
+    };
+  
 
   const getMaterial = async () => {
     try {
@@ -164,48 +179,20 @@ const Material = () => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddMaterial}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <CTable bordered responsive>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Material No</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Description</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">UoM</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Price</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Standart Stock</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Addres</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">category</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Supplier</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Created at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Updated at</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Action</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody color="light">
-                {materials.map((material, index) => (
-                  <CTableRow key={material.id}>
- 
-                    <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
-                    <CTableDataCell>{material.materialNo}</CTableDataCell>
-                    <CTableDataCell>{material.description}</CTableDataCell>
-                    <CTableDataCell>{material.uom}</CTableDataCell>
-                    <CTableDataCell>{material.price}</CTableDataCell>
-                    <CTableDataCell>{material.stdStock}</CTableDataCell>
-                    <CTableDataCell>{material.addresId}</CTableDataCell>
-                    <CTableDataCell>{material.categoryId}</CTableDataCell>
-                    <CTableDataCell>{material.supplierId}</CTableDataCell>
-                    <CTableDataCell>{material.createdAt}</CTableDataCell>
-                    <CTableDataCell>{material.updatedAt}</CTableDataCell>
-                    <CTableDataCell>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <CButton color="success" onClick={() => handleEditMaterial(material)}>Edit</CButton>
-                        <CButton color="danger" onClick={() => handleDeleteMaterial(material.id)}>Delete</CButton>
-                      </div>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            <DataTable value={materials} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column field="materialNo" header="No Material" style={{ width: '25%' }}></Column>\
+                <Column field="description" header="description" style={{ width: '25%' }}></Column>
+                <Column field="uom" header="uom" style={{ width: '25%' }}></Column>
+                <Column field="price" header="Price" style={{ width: '25%' }}></Column>
+                <Column field="stdstock" header="Standar Stock" style={{ width: '25%' }}></Column>
+                <Column field="addresId" header="Addres" style={{ width: '25%' }}></Column>
+                <Column field="categoryId" header="Category" style={{ width: '25%' }}></Column>
+                <Column field="supplierId" header="Supplier" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
           </CCardBody>
         </CCard>
       </CCol>
@@ -219,14 +206,14 @@ const Material = () => {
             <CFormInput
               type="text"
               value={currentMaterial.materialNo}
-              onChange={(e) => setCurrentSupplier({ ...currentMaterial, materialNo: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
               placeholder="Enter Material name"
               label="Material No"
             />
             <CFormInput
               type="text"
               value={currentMaterial.description}
-              onChange={(e) => setCurrentSupplier({ ...currentMaterial, description: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
               placeholder="Enter Material code"
               label="Description"
             />
@@ -240,7 +227,7 @@ const Material = () => {
             <CFormInput
               type="text"
               value={currentMaterial.price}
-              onChange={(e) => setCurrentMater({ ...currentMaterial, price: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
               placeholder="Enter Material code"
               label="Price"
             />
