@@ -15,7 +15,7 @@ import {
   useColorModes,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilBell, cilContrast, cilMenu, cilMoon, cilSun } from '@coreui/icons'
+import { cilAsteriskCircle, cilBell, cilCheck, cilClearAll, cilContrast, cilMenu, cilMoon, cilReload, cilSun } from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
@@ -48,7 +48,7 @@ const AppHeader = () => {
         <CHeaderNav className="ms-auto">
           <CNavItem>
             <CNavLink href="#">
-              <CIcon icon={cilBell} size="lg" />
+              <CIcon icon={cilReload} size="lg" />
             </CNavLink>
           </CNavItem>
         </CHeaderNav>
