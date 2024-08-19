@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../utils/AxiosInstance'
@@ -58,12 +57,9 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
-=======
-import React, { useEffect, useState } from 'react';
 import { Card } from 'primereact/card';
 // import { Galleria } from 'primereact/galleria';
 // import { PhotoService } from './assets/PictureDashboard';
->>>>>>> 9b80b81a488406f924e909481d82beddc3629773
 
 const Dashboard = () => {
     // const [images, setImages] = useState([]);
@@ -126,44 +122,5 @@ const Dashboard = () => {
         </Card>
     );
 };
-
-<<<<<<< HEAD
-  const [token, setToken] = useState(null)
-  const [users, setUsers] = useState([])
-  const navigate = useNavigate()
-  useEffect(() => {
-    refreshToken()
-    getUser()
-  }, [token])
-  console.log(users)
-  const refreshToken = async () => {
-    try {
-      const response = await axiosInstance.get('/token')
-      setToken(response.data.accessToken)
-      console.log(response.data.accessToken)
-    } catch (error) {
-      if (error.response) {
-        navigate('/login')
-      }
-    }
-  }
-
-  const getUser = async () => {
-    try {
-      const response = await axiosInstance.get('/user')
-      setUsers(response.data)
-    } catch (error) {
-      console.error('Error fetching user:', error)
-    }
-  }
-
-  // Set cookie dengan kedaluwarsa setelah 1 hari
-  Cookies.set('refreshToken', token, { expires: 1, secure: true })
-
-  return <></>
-}
-
 export default Dashboard
-=======
-export default Dashboard;
->>>>>>> 9b80b81a488406f924e909481d82beddc3629773
+
