@@ -1,0 +1,33 @@
+"use strict";
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.removeConstraint("tes1", "FK__tes1__nameId__14270015");
+    await queryInterface.removeColumn("tes1", "nameId");
+  },
+
+  async down(queryInterface, Sequelize) {
+    // Tambahkan kolom foreign key kembali
+    await queryInterface.addColumn("tes1", "nameId", {
+      type: Sequelize.INTEGER,
+      references: {
+        model: "tes2",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    });
+
+    // Tambahkan constraint foreign key kembali
+    await queryInterface.addConstraint("tes1", {
+      fields: ["nameId"],
+      type: "foreign key",
+      name: "FK__tes1__nameId__14270015",
+      references: {
+        table: "tes2",
+        field: "id",
+      },
+      onDelete: "CASCADE",
+    });
+  },
+};

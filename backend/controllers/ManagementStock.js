@@ -13,7 +13,7 @@ import User from "../models/UserModel.js";
 export const getInventory = async (req, res) => {
   try {
     const response = await Inventory.findAll({
-      attributes: ["id", "quantity", "quantityActual", "createdAt", "updatedAt"],
+      attributes: ["id", "quantity", "quantityActual", "remarks",  "createdAt", "updatedAt"],
       include: [
         {
           model: Material,
@@ -97,6 +97,8 @@ export const updateInventory = async (req, res) => {
       quantity: req.body.quantityActual,
       materialId: inventory.materialId,
       userId: 1,
+      detailOrder: null,
+      incomingId: null,
     });
     res.status(200).json({ msg: "Inventory Updated" });
   } catch (error) {
