@@ -161,7 +161,7 @@ const Location = () => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddLocation}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <DataTable value={locations} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+            <DataTable value={locations} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }} className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
                 <Column field="locationName" header="Nama Location" style={{ width: '25%' }}></Column>\
                 <Column field="shopId" header="Id Shop" style={{ width: '25%' }}></Column>

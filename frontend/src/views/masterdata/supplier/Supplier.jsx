@@ -152,7 +152,7 @@ const Supplier = () => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <DataTable value={suppliers} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+            <DataTable value={suppliers} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
                 <Column field="supplierName" header="Nama Supplier" style={{ width: '25%' }}></Column>
                 <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>

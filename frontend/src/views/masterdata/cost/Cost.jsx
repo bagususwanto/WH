@@ -164,7 +164,7 @@ const handleEditCost= (cost) => {
           <CCardBody>  
             <CButton color="primary" onClick={handleAddCost}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <DataTable value={costs} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+            <DataTable value={costs} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
                 <Column field="costCenterCode" header="Cost Cade" style={{ width: '25%' }}></Column>\
                 <Column field="costCenterName" header="Nama Code" style={{ width: '25%' }}></Column>

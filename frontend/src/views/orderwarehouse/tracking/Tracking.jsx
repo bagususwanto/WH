@@ -1,228 +1,216 @@
 import React, { useState, useEffect } from 'react';
-import { classNames } from 'primereact/utils';
-import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
-import { InputIcon } from 'primereact/inputicon';
-import { Dropdown } from 'primereact/dropdown';
-import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
-import { ProgressBar } from 'primereact/progressbar';
-import { Calendar } from 'primereact/calendar';
-import { MultiSelect } from 'primereact/multiselect';
-import { Slider } from 'primereact/slider';
 import { Tag } from 'primereact/tag';
-import { TriStateCheckbox } from 'primereact/tristatecheckbox';
-import { CustomerService } from './service/CustomerService';
-import 'primereact/resources/themes/mira/theme.css';
-import 'primereact/resources/primereact.min.css';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
+import {
+  CCard,
+  CCardHeader,
+  CCardBody,
+  CCol,
+  CRow, 
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CFormInput,
+  CForm,
+  
+} from '@coreui/react';
+import axiosInstance from '../../../utils/AxiosInstance';
+import Swal from 'sweetalert2'; 
 
-const Tracking = () => {
-    const [customers, setCustomers] = useState([]);
-    const [filters, setFilters] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [globalFilterValue, setGlobalFilterValue] = useState('');
-    const [representatives] = useState([
-        { name: 'Amy Elsner', image: 'amyelsner.png' },
-        { name: 'Anna Fali', image: 'annafali.png' },
-        { name: 'Asiya Javayant', image: 'asiyajavayant.png' },
-        { name: 'Bernardo Dominic', image: 'bernardodominic.png' },
-        { name: 'Elwin Sharvill', image: 'elwinsharvill.png' },
-        { name: 'Ioni Bowcher', image: 'ionibowcher.png' },
-        { name: 'Ivan Magalhaes', image: 'ivanmagalhaes.png' },
-        { name: 'Onyama Limba', image: 'onyamalimba.png' },
-        { name: 'Stephen Shaw', image: 'stephenshaw.png' },
-        { name: 'XuXue Feng', image: 'xuxuefeng.png' }
-    ]);
-    const [statuses] = useState(['unqualified', 'qualified', 'new', 'negotiation', 'renewal']);
 
-    useEffect(() => {
-        setLoading(true);
-        CustomerService.getCustomersMedium()
-            .then((data) => {
-                setCustomers(getCustomers(data));
-                setLoading(false);
-            })
-            .catch(() => {
-                setLoading(false);
-                // Tangani kesalahan di sini (misalnya, tampilkan notifikasi)
-            });
-        initFilters();
-    }, []);
+const Supplier = () => {
+  const [suppliers, setSuppliers] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentSupplier, setCurrentSupplier] = useState({
+    id: '',
+    supplierName: '',
+  });
+  
+  useEffect(() => {
+    getSupplier();
+  }, []);
 
-    const getCustomers = (data) => {
-        return (data || []).map((d) => ({
-            ...d,
-            date: new Date(d.date)
-        }));
-    };
-
-    const formatDate = (value) => value.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-
-    const formatCurrency = (value) => value.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
-
-    const clearFilter = () => initFilters();
-
-    const onGlobalFilterChange = (e) => {
-        const value = e.target.value;
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            global: { value, matchMode: FilterMatchMode.CONTAINS }
-        }));
-        setGlobalFilterValue(value);
-    };
-
-    const initFilters = () => {
-        setFilters({
-            global: { value: '', matchMode: FilterMatchMode.CONTAINS },
-            name: { operator: FilterOperator.AND, constraints: [{ value: '', matchMode: FilterMatchMode.STARTS_WITH }] },
-            'country.name': { operator: FilterOperator.AND, constraints: [{ value: '', matchMode: FilterMatchMode.STARTS_WITH }] },
-            representative: { value: null, matchMode: FilterMatchMode.IN },
-            date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
-            balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-            status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-            activity: { value: null, matchMode: FilterMatchMode.BETWEEN },
-            verified: { value: null, matchMode: FilterMatchMode.EQUALS }
-        });
-        setGlobalFilterValue('');
-    };
-
-    const renderHeader = () => (
-        <div className="flex justify-content-between">
-            <Button type="button" icon="pi pi-filter-slash" label="Bersihkan" outlined onClick={clearFilter} />
-            <div className="flex align-items-center gap-2">
-                <InputIcon className="pi pi-search" />
-                <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Cari dengan kata kunci" />
-            </div>
-        </div>
-    );
-
-    const countryBodyTemplate = (rowData) => (
-        <div className="flex align-items-center gap-2">
-            <img alt="flag" src={`https://primefaces.org/cdn/primereact/images/flag/flag_placeholder.png`} className={`flag flag-${rowData.country.code}`} style={{ width: '24px' }} />
-            <span>{rowData.country.name}</span>
-        </div>
-    );
-
-    const filterClearTemplate = (options) => (
-        <Button type="button" icon="pi pi-times" onClick={options.filterClearCallback} severity="secondary"></Button>
-    );
-
-    const filterApplyTemplate = (options) => (
-        <Button type="button" icon="pi pi-check" onClick={options.filterApplyCallback} severity="success"></Button>
-    );
-
-    const filterFooterTemplate = () => (
-        <div className="px-3 pt-0 pb-3 text-center">Filter berdasarkan Negara</div>
-    );
-
-    const representativeBodyTemplate = (rowData) => {
-        const representative = rowData.representative;
-        return (
-            <div className="flex align-items-center gap-2">
-                <img alt={representative.name} src={`https://primefaces.org/cdn/primereact/images/avatar/${representative.image}`} width="32" />
-                <span>{representative.name}</span>
-            </div>
-        );
-    };
-
-    const representativeFilterTemplate = (options) => (
-        <MultiSelect
-            value={options.value}
-            options={representatives}
-            itemTemplate={representativesItemTemplate}
-            onChange={(e) => options.filterCallback(e.value)}
-            optionLabel="name"
-            placeholder="Semua"
-            className="p-column-filter"
-        />
-    );
-
-    const representativesItemTemplate = (option) => (
-        <div className="flex align-items-center gap-2">
-            <img alt={option.name} src={`https://primefaces.org/cdn/primereact/images/avatar/${option.image}`} width="32" />
-            <span>{option.name}</span>
-        </div>
-    );
-
-    const dateBodyTemplate = (rowData) => formatDate(rowData.date);
-
-    const dateFilterTemplate = (options) => (
-        <Calendar
-            value={options.value}
-            onChange={(e) => options.filterCallback(e.value, options.index)}
-            dateFormat="dd/mm/yy"
-            placeholder="dd/mm/yyyy"
-            mask="99/99/9999"
-        />
-    );
-
-    const balanceBodyTemplate = (rowData) => formatCurrency(rowData.balance);
-
-    const balanceFilterTemplate = (options) => (
-        <InputNumber
-            value={options.value}
-            onChange={(e) => options.filterCallback(e.value, options.index)}
-            mode="currency"
-            currency="IDR"
-            locale="id-ID"
-        />
-    );
-
-    const statusBodyTemplate = (rowData) => <Tag value={rowData.status} severity={getSeverity(rowData.status)} />;
-
-    const statusFilterTemplate = (options) => (
-        <Dropdown
-            value={options.value}
-            options={statuses}
-            onChange={(e) => options.filterCallback(e.value)}
-            placeholder="Pilih status"
-        />
-    );
-
-    const getSeverity = (status) => {
-        switch (status) {
-            case 'qualified':
-                return 'success';
-            case 'unqualified':
-                return 'danger';
-            case 'new':
-                return 'warning';
-            case 'negotiation':
-                return 'info';
-            case 'renewal':
-                return 'secondary';
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <div className="datatable-crud-demo">
-            <div className="card">
-                <DataTable
-                    value={customers}
-                    filters={filters}
-                    globalFilterFields={['name', 'country.name', 'representative.name', 'status']}
-                    header={renderHeader()}
-                    loading={loading}
-                >
-                    <Column field="name" header="Name" sortable filter filterPlaceholder="Search by name" />
-                    <Column field="country.name" header="Country" body={countryBodyTemplate} filter filterPlaceholder="Search by country" filterClearTemplate={filterClearTemplate} filterApplyTemplate={filterApplyTemplate} filterFooterTemplate={filterFooterTemplate} />
-                    <Column field="representative" header="Representative" body={representativeBodyTemplate} filter filterElement={representativeFilterTemplate} />
-                    <Column field="date" header="Date" body={dateBodyTemplate} filter filterElement={dateFilterTemplate} />
-                    <Column field="balance" header="Balance" body={balanceBodyTemplate} filter filterElement={balanceFilterTemplate} />
-                    <Column field="status" header="Status" body={statusBodyTemplate} filter filterElement={statusFilterTemplate} />
-                </DataTable>
-                {loading && <ProgressBar mode="indeterminate" style={{ height: '6px' }} />}
-            </div>
-        </div>
-    );
+  const imageBodyTemplate = (product) => {
+    return <img src={'https://cf.shopee.co.id/file/6fe06991e71fe2f51ca77eb729b92e11'} alt={product.image} style={{ width: '100%', height: 'auto' }} className=" shadow-2 border-round" />;
+};
+const statusBodyTemplate = (product) => {
+    return <Tag value={product.inventoryStatus} severity={getSeverity(product)}></Tag>;
 };
 
-export default Tracking;
+const getSeverity = (product) => {
+    switch (product.inventoryStatus) {
+        case 'INSTOCK':
+            return 'success';
+
+        case 'LOWSTOCK':
+            return 'warning';
+
+        case 'OUTOFSTOCK':
+            return 'danger';
+
+        default:
+            return null;
+    }
+};
+
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditSupplier(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteSupplier(rowData.id)} />
+        </div>
+       );
+    };
+
+  const getSupplier = async () => {
+    try {
+      const response = await axiosInstance.get('/supplier');
+      setSuppliers(response.data);
+    } catch (error) {
+      console.error('Error fetching supplier:', error);
+    }
+  };
+
+  const handleAddSupplier = () => {
+    setIsEdit(false);
+    setCurrentSupplier({
+      id: '',
+      supplierName: '',
+    });
+    setModal(true);
+  };
+
+  const handleEditSupplier= (supplier) => {
+    setIsEdit(true);
+    setCurrentSupplier({
+      id: supplier.id,
+      supplierName: supplier.supplierName,
+      createdAt: supplier.createdAt,
+      updatedAt: supplier.updatedAt
+    });
+    setModal(true);
+  };
+
+  const handleDeleteSupplier = (supplier) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this plant!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmDelete(supplier);
+      }
+    });
+  };
+  
+
+  const confirmDelete = async (supplier) => {
+    try {
+      await axiosInstance.get(`/supplier-delete/${supplier}`);
+      Swal.fire(
+        'Deleted!',
+        'The Supplier has been deleted.',
+        'success'
+      );
+      getSupplier();
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to delete the supplier.',
+        'error'
+      );
+    }
+  };
+  
+  
+
+
+  const handleSaveSupplier = async () => {
+    try {
+      if (isEdit) {
+        await axiosInstance.put(`/supplier/${currentSupplier.id}`, currentSupplier);
+        Swal.fire(
+          'Updated!',
+          'The Supplier has been updated.',
+          'success'
+        );
+      } else {
+        await axiosInstance.post('/supplier', currentSupplier);
+        Swal.fire(
+          'Added!',
+          'The supplier has been added.',
+          'success'
+        );
+      }
+      setModal(false);
+      getSupplier();
+    } catch (error) {
+      console.error('Error saving supplier:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to save the supplier.',
+        'error'
+      );
+    }
+  };
+  
+
+  return (
+    <CRow>
+      <CCol>
+        <CCard>
+          <CCardHeader>Master Data Supplier</CCardHeader>
+          <CCardBody>  
+            <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
+            <CRow className='mb-3'></CRow>
+            <DataTable value={suppliers} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column header="Image" body={imageBodyTemplate}></Column>
+                <Column field="supplierName" header="Nama Supplier" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Status" body={statusBodyTemplate}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
+          </CCardBody>
+        </CCard>
+      </CCol>
+
+      <CModal visible={modal} onClose={() => setModal(false)}>
+        <CModalHeader>
+          <CModalTitle>{isEdit ? 'Edit Supplier' : 'Add Supplier'}</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm>
+            <CFormInput
+              type="text"
+              value={currentSupplier.supplierName}
+              onChange={(e) => setCurrentSupplier({ ...currentSupplier, supplierName: e.target.value })}
+              placeholder="Enter supplier name"
+              label="Supplier Name"
+            />
+          </CForm>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
+          <CButton color="primary" onClick={handleSaveSupplier}>{isEdit ? 'Update' : 'Save'}</CButton>
+        </CModalFooter>
+      </CModal>
+    </CRow>
+  );
+};
+
+export default Supplier;
