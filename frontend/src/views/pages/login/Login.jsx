@@ -19,6 +19,7 @@ import axiosInstance from '../../../utils/AxiosInstance'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import Cookies from 'js-cookie'
 
 const MySwal = withReactContent(Swal)
 
@@ -35,12 +36,23 @@ const Login = () => {
         title: 'Oops...',
         text: msg,
       })
-      setMsg(""); 
+      setMsg('')
     }
   }, [msg])
 
   const Auth = async (e) => {
     e.preventDefault()
+
+    if (!username || !password) {
+      setMsg('Username dan password harus diisi')
+      return
+    }
+
+    if (password.length < 6) {
+      setMsg('Password harus lebih dari 6 karakter')
+      return
+    }
+
     try {
       await axiosInstance.post('/login', {
         username: username,
@@ -50,6 +62,8 @@ const Login = () => {
     } catch (error) {
       if (error.response) {
         setMsg(error.response.data.msg)
+      } else {
+        console.error('Error:', error.message)
       }
     }
   }
