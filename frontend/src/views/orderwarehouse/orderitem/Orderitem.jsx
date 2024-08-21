@@ -15,8 +15,8 @@ import 'primeflex/primeflex.css';
 import { InputText } from 'primereact/inputtext';
 import axiosInstance from '../../../utils/AxiosInstance';
 
-const Goodissue = () => {
-  const [orderlist, setOrderlist] = useState([]);
+const Orderitem = () => {
+  const [orderitem, setOrderitem] = useState([]);
   const [layout, setLayout] = useState('grid');
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,11 +41,11 @@ const Goodissue = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [orderlistResponse, categoriesResponse] = await Promise.all([
+        const [orderitemResponse, categoriesResponse] = await Promise.all([
           axiosInstance.get('/inventory'),
           // axiosInstance.get('/category')
         ]);
-        setOrderlist(orderlistResponse.data);
+        setOrderitem(orderitemResponse.data);
         setCategories(categoriesResponse.data);
       } catch (error) {
         setError('Error fetching data');
@@ -179,15 +179,12 @@ const tab3HeaderTemplate = (options) => {
             <p className="m-0">
  
     
-              <DataView value={orderlist} listTemplate={listTemplate} layout={layout} header={header()} />
+              <DataView value={orderitem} listTemplate={listTemplate} layout={layout} header={header()} />
             </p>
         </TabPanel>
         <TabPanel headerTemplate={tab2HeaderTemplate} headerClassName="flex align-items-center">
             <p className="m-0">
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, 
-                eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo
-                enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui 
-                ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius modi.
+                
             </p>
         </TabPanel>
         <TabPanel headerTemplate={tab3HeaderTemplate} headerClassName="flex align-items-center">
@@ -206,4 +203,4 @@ const tab3HeaderTemplate = (options) => {
   );
 };
 
-export default Goodissue
+export default Orderitem;

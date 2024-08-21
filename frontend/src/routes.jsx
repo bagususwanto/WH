@@ -2,7 +2,7 @@ import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Inventory = React.lazy(() => import('./views/inventory/Inventory'))
-const Orderlist = React.lazy(() => import('./views/orderwarehouse/orderlist/Orderlist'))
+const Orderitem = React.lazy(() => import('./views/orderwarehouse/orderitem/Orderitem'))
 const Tracking = React.lazy(() => import('./views/orderwarehouse/tracking/Tracking'))
 const Category = React.lazy(() => import('./views/masterdata/category/Category'))
 const Shop = React.lazy(() => import('./views/masterdata/shop/Shop'))
@@ -14,13 +14,14 @@ const Cost = React.lazy(() => import('./views/masterdata/cost/Cost'))
 const Location = React.lazy(() => import('./views/masterdata/location/Location'))
 const Address = React.lazy(() => import('./views/masterdata/address/Address'))
 const User = React.lazy(() => import('./views/masterdata/user/User'))
+const Goodissue = React.lazy(() => import('./views/orderwarehouse/goodissue/Goodissue'))
 
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/inventory', name: 'Inventory', element: Inventory },
-  { path: '/orderlist', name: 'Orderlist', element: Orderlist },
+  { path: '/orderitem', name: 'Orderitem', element: Orderitem },
   { path: '/tracking', name: 'Tracking', element: Tracking },
   { path: '/category', name: 'Category', element: Category },
   { path: '/shop', name: 'Shop', element: Shop },
@@ -32,6 +33,7 @@ const routes = [
   { path: '/location', name: 'Location', element: Location },
   { path: '/address', name: 'Address', element: Address },
   { path: '/user', name: 'User', element: User },
+  { path: '/goodissue', name: 'Goodissue', element: Goodissue },
 ]
 
 export default routes

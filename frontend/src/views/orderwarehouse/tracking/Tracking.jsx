@@ -26,17 +26,24 @@ import Swal from 'sweetalert2';
 
 
 const Supplier = () => {
-  const [suppliers, setSuppliers] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [currentSupplier, setCurrentSupplier] = useState({
-    id: '',
-    supplierName: '',
-  });
+    const [currentMaterial, setCurrentMaterial] = useState({
+      id: '',
+      materialNo: '',
+      uom: '',
+      price: '',
+      stdStock: '',
+      addressId: '',
+      categoryId: '',
+      supplierId: '',
+    });
+
   
-  useEffect(() => {
-    getSupplier();
-  }, []);
+    useEffect(() => {
+      getMaterial();
+    }, []);;
 
   const imageBodyTemplate = (product) => {
     return <img src={'https://cf.shopee.co.id/file/6fe06991e71fe2f51ca77eb729b92e11'} alt={product.image} style={{ width: '100%', height: 'auto' }} className=" shadow-2 border-round" />;
@@ -61,156 +68,221 @@ const getSeverity = (product) => {
     }
 };
 
-  const actionBodyTemplate = (rowData) => {
-    return (
-        <div style={{ display: 'flex', gap: '10px' }}>
-            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditSupplier(rowData)} />
-            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteSupplier(rowData.id)} />
-        </div>
+const actionBodyTemplate = (rowData) => {
+  return (
+      <div style={{ display: 'flex', gap: '10px' }}>
+          <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
+          <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
+      </div>
        );
     };
 
-  const getSupplier = async () => {
-    try {
-      const response = await axiosInstance.get('/supplier');
-      setSuppliers(response.data);
-    } catch (error) {
-      console.error('Error fetching supplier:', error);
-    }
-  };
 
-  const handleAddSupplier = () => {
-    setIsEdit(false);
-    setCurrentSupplier({
-      id: '',
-      supplierName: '',
-    });
-    setModal(true);
-  };
-
-  const handleEditSupplier= (supplier) => {
-    setIsEdit(true);
-    setCurrentSupplier({
-      id: supplier.id,
-      supplierName: supplier.supplierName,
-      createdAt: supplier.createdAt,
-      updatedAt: supplier.updatedAt
-    });
-    setModal(true);
-  };
-
-  const handleDeleteSupplier = (supplier) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this plant!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        confirmDelete(supplier);
-      }
-    });
-  };
-  
-
-  const confirmDelete = async (supplier) => {
-    try {
-      await axiosInstance.get(`/supplier-delete/${supplier}`);
-      Swal.fire(
-        'Deleted!',
-        'The Supplier has been deleted.',
-        'success'
-      );
-      getSupplier();
-    } catch (error) {
-      console.error('Error deleting supplier:', error);
-      Swal.fire(
-        'Error!',
-        'Failed to delete the supplier.',
-        'error'
-      );
-    }
-  };
-  
-  
-
-
-  const handleSaveSupplier = async () => {
-    try {
-      if (isEdit) {
-        await axiosInstance.put(`/supplier/${currentSupplier.id}`, currentSupplier);
-        Swal.fire(
-          'Updated!',
-          'The Supplier has been updated.',
-          'success'
-        );
-      } else {
-        await axiosInstance.post('/supplier', currentSupplier);
-        Swal.fire(
-          'Added!',
-          'The supplier has been added.',
-          'success'
-        );
-      }
-      setModal(false);
-      getSupplier();
-    } catch (error) {
-      console.error('Error saving supplier:', error);
-      Swal.fire(
-        'Error!',
-        'Failed to save the supplier.',
-        'error'
-      );
-    }
-  };
-  
-
-  return (
-    <CRow>
-      <CCol>
-        <CCard>
-          <CCardHeader>Master Data Supplier</CCardHeader>
-          <CCardBody>  
-            <CButton color="primary" onClick={handleAddSupplier}>Add</CButton>
-            <CRow className='mb-3'></CRow>
-            <DataTable value={suppliers} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
-                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
-                <Column header="Image" body={imageBodyTemplate}></Column>
-                <Column field="supplierName" header="Nama Supplier" style={{ width: '25%' }}></Column>
-                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
-                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
-                <Column header="Status" body={statusBodyTemplate}></Column>
-                <Column header="Action" body={actionBodyTemplate} />
-            </DataTable>
-          </CCardBody>
-        </CCard>
-      </CCol>
-
-      <CModal visible={modal} onClose={() => setModal(false)}>
-        <CModalHeader>
-          <CModalTitle>{isEdit ? 'Edit Supplier' : 'Add Supplier'}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CForm>
-            <CFormInput
-              type="text"
-              value={currentSupplier.supplierName}
-              onChange={(e) => setCurrentSupplier({ ...currentSupplier, supplierName: e.target.value })}
-              placeholder="Enter supplier name"
-              label="Supplier Name"
-            />
-          </CForm>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveSupplier}>{isEdit ? 'Update' : 'Save'}</CButton>
-        </CModalFooter>
-      </CModal>
-    </CRow>
-  );
+const getMaterial = async () => {
+  try {
+    const response = await axiosInstance.get('/material');
+    setMaterials(response.data);
+  } catch (error) {
+    console.error('Error fetching Material:', error);
+  }
 };
 
-export default Supplier;
+const handleAddMaterial = () => {
+  setIsEdit(false);
+  setCurrentMaterial({
+    id: '',
+    materialNo: '',
+    description:'',
+    uom: '',
+    price: '',
+    stdStock: '',
+    addressId: '',
+    categoryId: '',
+    supplierId: '',
+  });
+  setModal(true);
+};
+
+const handleEditMaterial= (material) => {
+  setIsEdit(true);
+  setCurrentMaterial({
+    id: material.id,
+    materialNo: material.materialNo,
+    description: material.description,
+    uom: material.uom,
+    price: material.price,
+    stdStock: material.stdStock,
+    addressId: material.addresId,
+    categoryId: material.categoryId,
+    supplierId: material.supplierId,
+    createdAt: material.createdAt,
+    updatedAt: material.updatedAt,
+  });
+  setModal(true);
+};
+
+const handleDeleteMaterial = (material) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'You will not be able to recover this material!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      confirmDelete(material);
+    }
+  });
+};
+
+
+const confirmDelete = async (material) => {
+  try {
+    await axiosInstance.get(`/material-delete/${material}`);
+    Swal.fire(
+      'Deleted!',
+      'The Material has been deleted.',
+      'success'
+    );
+    getMaterial();
+  } catch (error) {
+    console.error('Error deleting material:', error);
+    Swal.fire(
+      'Error!',
+      'Failed to delete the material.',
+      'error'
+    );
+  }
+};
+
+
+
+
+const handleSaveMaterial = async () => {
+  try {
+    if (isEdit) {
+      await axiosInstance.put(`/material/${currentMaterial.id}`, currentMaterial);
+      Swal.fire(
+        'Updated!',
+        'The Material has been updated.',
+        'success'
+      );
+    } else {
+      await axiosInstance.post('/material', currentMaterial);
+      Swal.fire(
+        'Added!',
+        'The material has been added.',
+        'success'
+      );
+    }
+    setModal(false);
+    getMaterial();
+  } catch (error) {
+    console.error('Error saving material:', error);
+    Swal.fire(
+      'Error!',
+      'Failed to save the material.',
+      'error'
+    );
+  }
+};
+
+
+return (
+  <CRow>
+    <CCol>
+      <CCard>
+        <CCardHeader>Master Data Supplier</CCardHeader>
+        <CCardBody>  
+          <CButton color="primary" onClick={handleAddMaterial}>Add</CButton>
+          <CRow className='mb-3'></CRow>
+          <DataTable value={materials} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
+              <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+              <Column header="Image" body={imageBodyTemplate}></Column>
+              <Column field="materialNo" header="No Material" style={{ width: '25%' }}></Column>\
+              <Column field="description" header="description" style={{ width: '25%' }}></Column>
+              <Column field="uom" header="uom" style={{ width: '25%' }}></Column>
+              <Column field="price" header="Price" style={{ width: '25%' }}></Column>
+              <Column field="stdstock" header="Standar Stock" style={{ width: '25%' }}></Column>
+              <Column field="addressId" header="Addres" style={{ width: '25%' }}></Column>
+              <Column field="categoryId" header="Category" style={{ width: '25%' }}></Column>
+              <Column field="supplierId" header="Supplier" style={{ width: '25%' }}></Column>
+              <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+              <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+              <Column header="Action" body={actionBodyTemplate} />
+          </DataTable>
+        </CCardBody>
+      </CCard>
+    </CCol>
+
+    <CModal visible={modal} onClose={() => setModal(false)}>
+      <CModalHeader>
+        <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
+      </CModalHeader>
+      <CModalBody>
+        <CForm>
+          <CFormInput
+            type="text"
+            value={currentMaterial.materialNo}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
+            placeholder="Enter Material name"
+            label="Material No"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.description}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
+            placeholder="Enter Material code"
+            label="Description"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.uom}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
+            placeholder="Enter Material code"
+            label="uom"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.price}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
+            placeholder="Enter Material code"
+            label="Price"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.stdStock}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, stdStock: e.target.value })}
+            placeholder="Enter material code"
+            label="Standar Stock"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.categoryId}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, categoryId: e.target.value })}
+            placeholder="Enter material code"
+            label="Supplier Code"
+          />
+          <CFormInput
+            type="text"
+            value={currentMaterial.addressId}
+            onChange={(e) => setCurrentMaterial({ ...currentMaterial, addresId: e.target.value })}
+            placeholder="Enter material code"
+            label="Addres Rack"
+          />
+          
+
+        </CForm>
+      </CModalBody>
+      <CModalFooter>
+        <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
+        <CButton color="primary" onClick={handleSaveMaterial}>{isEdit ? 'Update' : 'Save'}</CButton>
+      </CModalFooter>
+    </CModal>
+  </CRow>
+);
+};
+
+export default Tracking;

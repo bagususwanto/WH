@@ -93,7 +93,7 @@ const Material = () => {
       uom: material.uom,
       price: material.price,
       stdStock: material.stdStock,
-      addressId: material.addresId,
+      addressId: material.addressId,
       categoryId: material.categoryId,
       supplierId: material.supplierId,
       createdAt: material.createdAt,
@@ -181,6 +181,7 @@ const Material = () => {
             <CRow className='mb-3'></CRow>
             <DataTable value={materials} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column header="Image" body={imageBodyTemplate}></Column>
                 <Column field="materialNo" header="No Material" style={{ width: '25%' }}></Column>\
                 <Column field="description" header="description" style={{ width: '25%' }}></Column>
                 <Column field="uom" header="uom" style={{ width: '25%' }}></Column>
@@ -220,7 +221,7 @@ const Material = () => {
             <CFormInput
               type="text"
               value={currentMaterial.uom}
-              onChange={(e) => setCurrentMaterial({ ...currentSupplier, uom: e.target.value })}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
               placeholder="Enter Material code"
               label="uom"
             />
@@ -247,7 +248,7 @@ const Material = () => {
             />
             <CFormInput
               type="text"
-              value={currentMaterial.addresId}
+              value={currentMaterial.addressId}
               onChange={(e) => setCurrentMaterial({ ...currentMaterial, addresId: e.target.value })}
               placeholder="Enter material code"
               label="Addres Rack"
