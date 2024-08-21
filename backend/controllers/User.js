@@ -91,8 +91,27 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
+  const { username, password, name, roleId, costCenterId } = req.body;
+  const salt = await bcrypt.genSalt();
+  const hashPassword = await bcrypt.hash(password, salt);
   try {
-    await User.create(req.body);
+    const existingUser = await User.findOne({
+      where: {
+        username,
+      },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ msg: "Username sudah digunakan" });
+    }
+
+    await User.create({
+      username: username,
+      password: hashPassword,
+      name: name,
+      roleId: roleId,
+      costCenterId: costCenterId,
+    });
     res.status(201).json({ msg: "User Created" });
   } catch (error) {
     console.log(error.message);

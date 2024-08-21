@@ -1,5 +1,4 @@
 import Users from "../models/UserModel.js";
-import Shops from "../models/shopModel.js";
 import jwt from "jsonwebtoken";
 
 export const refreshToken = async (req, res) => {
@@ -11,12 +10,6 @@ export const refreshToken = async (req, res) => {
       where: {
         refreshToken: refreshToken,
       },
-      include: [
-        {
-          model: Shops,
-          attributes: ["shopName"],
-        },
-      ],
     });
 
     if (!user) return res.sendStatus(403);
@@ -27,11 +20,10 @@ export const refreshToken = async (req, res) => {
       const userId = user.id;
       const username = user.username;
       const name = user.name;
-      const role = user.role;
-      const shopName = user.Shop ? user.Shop.shopName : null; // Ambil shopName dari asosiasi
+      const roleId = user.roleId;
 
-      const accessToken = jwt.sign({ userId, username, name, role, shopName }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "15s",
+      const accessToken = jwt.sign({ userId, username, name, roleId }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "20s",
       });
 
       res.json({ accessToken });

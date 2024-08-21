@@ -13,8 +13,9 @@ import locationRouter from "./routes/LocationRouter.js";
 import addressRackRouter from "./routes/AddressRackRouter.js";
 import costCenterRouter from "./routes/CostCenterRouter.js";
 import managementStockRouter from "./routes/ManagementStockRouter.js";
-// import authRouter from "./routes/AuthRouter.js";
+import authRouter from "./routes/AuthRouter.js";
 import "./models/index.js";
+import { authenticateUser } from "./middleware/AuthMiddleware.js";
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,12 @@ const port = process.env.PORT || 5000;
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(cookieParser());
 app.use(express.json());
+
+// auth router
+app.use("/api", authRouter);
+app.use(authenticateUser);
+
+// master data router
 app.use("/api", categoryRouter);
 app.use("/api", supplierRouter);
 app.use("/api", materialRouter);
@@ -33,7 +40,8 @@ app.use("/api", userRouter);
 app.use("/api", locationRouter);
 app.use("/api", addressRackRouter);
 app.use("/api", costCenterRouter);
+
+// management stock router
 app.use("/api", managementStockRouter);
-// app.use("/api", authRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));
