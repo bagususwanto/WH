@@ -15,11 +15,11 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser, cibCircleci } from '@coreui/icons'
-import axiosInstance from '../../../utils/AxiosInstance'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Cookies from 'js-cookie'
+import useAuthService from '../../../services/AuthService'
 
 const MySwal = withReactContent(Swal)
 
@@ -27,7 +27,9 @@ const Login = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [msg, setMsg] = useState('')
+
   const navigate = useNavigate()
+  const { login } = useAuthService()
 
   useEffect(() => {
     if (msg) {
@@ -54,10 +56,11 @@ const Login = () => {
     }
 
     try {
-      await axiosInstance.post('/login', {
-        username: username,
-        password: password,
-      })
+      const response = await login(username, password)
+
+      Cookies.set('accessToken', response.data.accessToken, { expires: 1 / 1440 })
+      Cookies.set('refreshToken', response.data.refreshToken, { expires: 1 })
+
       navigate('/dashboard')
     } catch (error) {
       if (error.response) {

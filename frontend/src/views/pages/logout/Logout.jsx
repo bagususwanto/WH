@@ -1,25 +1,20 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../../utils/AxiosInstance';
+import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import useAuthService from '../../../services/AuthService'
 
 const Logout = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const { logout } = useAuthService()
 
   useEffect(() => {
-    const logout = async () => {
-      try {
-        await axiosInstance.delete('/logout');
-        // localStorage.removeItem('token');
-        navigate('/login'); 
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    const logoutHandler = async () => {
+      await logout()
+      navigate('/login')
+    }
+    logoutHandler()
+  }, [navigate])
 
-    logout();
-  }, [navigate]);
+  return <div>Logging out...</div>
+}
 
-  return <div>Logging out...</div>;
-};
-
-export default Logout;
+export default Logout

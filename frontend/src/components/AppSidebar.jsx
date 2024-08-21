@@ -17,12 +17,13 @@ import logo from 'src/assets/brand/deepnest.png'
 import sygnet from 'src/assets/brand/deepnest.png'
 
 // sidebar nav config
-import navigation from '../_nav'
+import useNavigation from '../_nav'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const navigation = useNavigation()
 
   return (
     <CSidebar

@@ -14,50 +14,52 @@ import avatar2 from './../../assets/images/avatars/2.jpg'
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
-import axiosInstance from '../../utils/AxiosInstance'
+// import axiosInstance from '../../utils/AxiosInstance'
+import useAxiosWithAuth from '../../utils/AxiosInstance'
 
 const AppHeaderDropdown = () => {
   const [name, setName] = useState('')
   const [shopName, setShopName] = useState('')
   const [expire, setExpire] = useState('')
   const navigate = useNavigate()
+  const { axiosInstance } = useAxiosWithAuth()
 
   // useEffect(() => {
   //   refreshToken();
   // }, []);
 
-  const refreshToken = async () => {
-    try {
-      const response = await axiosInstance.get('/token')
-      const decoded = jwtDecode(response.data.accessToken)
-      setName(decoded.name)
-      setShopName(decoded.shopName)
-      setExpire(decoded.exp)
-    } catch (error) {
-      if (error.response) {
-        navigate('/login')
-      }
-    }
-  }
+  // const refreshToken = async () => {
+  //   try {
+  //     const response = await axiosInstance.get('/token')
+  //     const decoded = jwtDecode(response.data.accessToken)
+  //     setName(decoded.name)
+  //     setShopName(decoded.shopName)
+  //     setExpire(decoded.exp)
+  //   } catch (error) {
+  //     if (error.response) {
+  //       navigate('/login')
+  //     }
+  //   }
+  // }
 
-  const axiosJWT = axiosInstance.create()
+  // const axiosJWT = axiosInstance.create()
 
-  axiosJWT.interceptors.request.use(
-    async (config) => {
-      const currentDate = new Date()
-      if (expire * 1000 < currentDate.getTime()) {
-        const response = await axiosInstance.get('/token')
-        config.headers.Authorization = `Bearer ${response.data.accessToken}`
-        const decoded = jwtDecode(response.data.accessToken)
-        setName(decoded.name)
-        setExpire(decoded.exp)
-      }
-      return config
-    },
-    (error) => {
-      return Promise.reject(error)
-    },
-  )
+  // axiosJWT.interceptors.request.use(
+  //   async (config) => {
+  //     const currentDate = new Date()
+  //     if (expire * 1000 < currentDate.getTime()) {
+  //       const response = await axiosInstance.get('/token')
+  //       config.headers.Authorization = `Bearer ${response.data.accessToken}`
+  //       const decoded = jwtDecode(response.data.accessToken)
+  //       setName(decoded.name)
+  //       setExpire(decoded.exp)
+  //     }
+  //     return config
+  //   },
+  //   (error) => {
+  //     return Promise.reject(error)
+  //   },
+  // )
 
   const handleLogout = () => {
     navigate('/logout')
