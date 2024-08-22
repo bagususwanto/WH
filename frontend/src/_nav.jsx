@@ -24,10 +24,10 @@ import {
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useCookies from './utils/Cookies'
 
-const { getPayloadCookies } = useCookies()
-
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
+
+  const { getPayloadCookies } = useCookies()
 
   useEffect(() => {
     const roleId = getPayloadCookies().roleId
