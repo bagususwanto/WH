@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
+import React, { useState, useEffect } from 'react'
+import { DataTable } from 'primereact/datatable'
+import { Column } from 'primereact/column'
+import { Button } from 'primereact/button'
 import 'primereact/resources/themes/mira/theme.css'
 import 'primereact/resources/primereact.min.css'
 import {
@@ -15,7 +15,7 @@ import {
   CTableRow,
   CTableHeaderCell,
   CTableBody,
-  CTableDataCell,   
+  CTableDataCell,
   CButton,
   CModal,
   CModalHeader,
@@ -24,16 +24,15 @@ import {
   CModalFooter,
   CFormInput,
   CForm,
-  
-} from '@coreui/react';
-import axiosInstance from '../../../utils/AxiosInstance';
-import Swal from 'sweetalert2'; 
-
+} from '@coreui/react'
+// import axiosInstance from '../../../utils/AxiosInstance';
+import Swal from 'sweetalert2'
+import useAuthService from '../../../services/AuthService'
 
 const User = () => {
-  const [users, setUsers] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+  const [users, setUsers] = useState([])
+  const [modal, setModal] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const [currentUser, setCurrentUser] = useState({
     id: '',
     userName: '',
@@ -41,33 +40,39 @@ const User = () => {
     name: '',
     roleId: '',
     costCenterId: '',
-  });
-  
-  useEffect(() => {
-    getUser();
-  }, []);
+  })
+  const { getUser } = useAuthService()
 
-  
+  useEffect(() => {
+    fetchUser()
+  }, [])
+
   const actionBodyTemplate = (rowData) => {
     return (
-        <div style={{ display: 'flex', gap: '10px' }}>
-            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditUser(rowData)} />
-            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteUser(rowData.id)} />
-        </div>
-       );
-    };
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <Button
+          label="Edit"
+          icon="pi pi-pencil"
+          className="p-button-success"
+          onClick={() => handleEditUser(rowData)}
+        />
+        <Button
+          label="Delete"
+          icon="pi pi-trash"
+          className="p-button-danger"
+          onClick={() => handleDeleteUser(rowData.id)}
+        />
+      </div>
+    )
+  }
 
-  const getUser = async () => {
-    try {
-      const response = await axiosInstance.get('/user');
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
-  };
+  const fetchUser = async () => {
+    const response = await getUser()
+    setUsers(response.data)
+  }
 
   const handleAddUser = () => {
-    setIsEdit(false);
+    setIsEdit(false)
     setCurrentUser({
       id: '',
       userName: '',
@@ -75,12 +80,12 @@ const User = () => {
       name: '',
       roleId: '',
       costCenterId: '',
-    });
-    setModal(true);
-  };
+    })
+    setModal(true)
+  }
 
-  const handleEditUser= (user) => {
-    setIsEdit(true);
+  const handleEditUser = (user) => {
+    setIsEdit(true)
     setCurrentUser({
       id: user.id,
       userName: user.userName,
@@ -89,10 +94,10 @@ const User = () => {
       roleId: user.roleId,
       costCenterId: user.costCenterId,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    });
-    setModal(true);
-  };
+      updatedAt: user.updatedAt,
+    })
+    setModal(true)
+  }
 
   const handleDeleteUser = (user) => {
     Swal.fire({
@@ -102,84 +107,67 @@ const User = () => {
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: 'Yes, delete it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(user);
+        confirmDelete(user)
       }
-    });
-  };
-  
+    })
+  }
 
   const confirmDelete = async (user) => {
     try {
-      await axiosInstance.get(`/user-delete/${user}`);
-      Swal.fire(
-        'Deleted!',
-        'The Supplier has been deleted.',
-        'success'
-      );
-      getUser();
+      await axiosInstance.get(`/user-delete/${user}`)
+      Swal.fire('Deleted!', 'The Supplier has been deleted.', 'success')
+      getUser()
     } catch (error) {
-      console.error('Error deleting user:', error);
-      Swal.fire(
-        'Error!',
-        'Failed to delete the user.',
-        'error'
-      );
+      console.error('Error deleting user:', error)
+      Swal.fire('Error!', 'Failed to delete the user.', 'error')
     }
-  };
-  
-  
-
+  }
 
   const handleSaveUser = async () => {
     try {
       if (isEdit) {
-        await axiosInstance.put(`/user/${currentUser.id}`, currentUser);
-        Swal.fire(
-          'Updated!',
-          'The Supplier has been updated.',
-          'success'
-        );
+        await axiosInstance.put(`/user/${currentUser.id}`, currentUser)
+        Swal.fire('Updated!', 'The Supplier has been updated.', 'success')
       } else {
-        await axiosInstance.post('/user', currentUser);
-        Swal.fire(
-          'Added!',
-          'The user has been added.',
-          'success'
-        );
+        await axiosInstance.post('/user', currentUser)
+        Swal.fire('Added!', 'The user has been added.', 'success')
       }
-      setModal(false);
-      getUser();
+      setModal(false)
+      getUser()
     } catch (error) {
-      console.error('Error saving user:', error);
-      Swal.fire(
-        'Error!',
-        'Failed to save the user.',
-        'error'
-      );
+      console.error('Error saving user:', error)
+      Swal.fire('Error!', 'Failed to save the user.', 'error')
     }
-  };
-  
+  }
 
   return (
     <CRow>
       <CCol>
         <CCard>
           <CCardHeader>Master Data Supplier</CCardHeader>
-          <CCardBody>  
-            <CButton color="primary" onClick={handleAddUser}>Add</CButton>
-            <CRow className='mb-3'></CRow>
-            <DataTable value={users} paginator rows={5} rowsPerPageOptions={[5,10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
-                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
-                <Column field="userName" header="Username" style={{ width: '25%' }}></Column>
-                <Column field="password" header="Password" style={{ width: '25%' }}></Column>
-                <Column field="name" header="Nama" style={{ width: '25%' }}></Column>
-                <Column field="roleId" header="Role" style={{ width: '25%' }}></Column>
-                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
-                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
-                <Column header="Action" body={actionBodyTemplate} />
+          <CCardBody>
+            <CButton color="primary" onClick={handleAddUser}>
+              Add
+            </CButton>
+            <CRow className="mb-3"></CRow>
+            <DataTable
+              value={users}
+              paginator
+              rows={5}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              tableStyle={{ minWidth: '50rem' }}
+            >
+              <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+              <Column field="userName" header="Username" style={{ width: '25%' }}></Column>
+              <Column field="password" header="Password" style={{ width: '25%' }}></Column>
+              <Column field="name" header="Nama" style={{ width: '25%' }}></Column>
+              <Column field="roleId" header="Role" style={{ width: '25%' }}></Column>
+              <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+              <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+              <Column header="Action" body={actionBodyTemplate} />
             </DataTable>
           </CCardBody>
         </CCard>
@@ -198,21 +186,21 @@ const User = () => {
               placeholder="Enter user name"
               label="User Name"
             />
-             <CFormInput
+            <CFormInput
               type="text"
               value={currentUser.password}
               onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
               placeholder="Enter user name"
               label="Password"
             />
-             <CFormInput
+            <CFormInput
               type="text"
               value={currentUser.name}
               onChange={(e) => setCurrentUser({ ...currentUser, name: e.target.value })}
               placeholder="Enter user name"
               label="Name"
             />
-             <CFormInput
+            <CFormInput
               type="text"
               value={currentUser.roleId}
               onChange={(e) => setCurrentUser({ ...currentUser, roleId: e.target.value })}
@@ -222,12 +210,16 @@ const User = () => {
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveUser}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="secondary" onClick={() => setModal(false)}>
+            Cancel
+          </CButton>
+          <CButton color="primary" onClick={handleSaveUser}>
+            {isEdit ? 'Update' : 'Save'}
+          </CButton>
         </CModalFooter>
       </CModal>
     </CRow>
-  );
-};
+  )
+}
 
-export default User;
+export default User

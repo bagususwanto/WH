@@ -1,13 +1,11 @@
-// middleware/roleMiddleware.js
-export const checkRole = (roleId) => {
+export const checkRole = (allowedRoles) => {
   return (req, res, next) => {
-    const userRole = req.user?.roleId;
+    const userRoleId = req.user.roleId; // Mengambil roleId dari req.user, yang di-set oleh authenticateUser
 
-    if (roleId.includes(userRole)) {
-      next();
+    if (allowedRoles.includes(userRoleId)) {
+      next(); // Jika roleId sesuai dengan salah satu dari allowedRoles, lanjutkan request
     } else {
-      res.status(403).json({ message: "Access denied. Insufficient permissions." });
+      return res.status(403).json({ message: "Forbidden: You do not have the required permissions" });
     }
   };
 };
-
