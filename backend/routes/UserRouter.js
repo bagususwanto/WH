@@ -6,7 +6,7 @@ import { authenticateUser } from "../middleware/AuthMiddleware.js";
 
 const router = express.Router();
 
-router.get("/user", authenticateUser, checkRole([1]), getUser);
+router.get("/user", verifyToken, checkRole([1]), getUser);
 router.get("/user/:id", getUserById);
 router.post("/user", createUser);
 router.put("/user/:id", updateUser);

@@ -28,7 +28,7 @@ import {
 // import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'
 import useAuthService from '../../../services/AuthService'
-import useAxiosWithAuth from '../../../utils/AxiosInstance'
+import axiosInstance from '../../../utils/AxiosInstance'
 
 const User = () => {
   const [users, setUsers] = useState([])
@@ -43,7 +43,6 @@ const User = () => {
     costCenterId: '',
   })
   const { getUser } = useAuthService()
-  const axiosInstance = useAxiosWithAuth()
 
   useEffect(() => {
     fetchUser()

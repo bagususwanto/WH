@@ -1,12 +1,21 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
+  const authHeader = req.headers.authorization; // Access header directly
+  const token = authHeader?.split(" ")[1]; // Optional chaining for better readability
+
+  if (!token) return res.sendStatus(401); // Simplified null check
+
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
-    req.username = decoded.username;
+
+    // Add decoded information to request object
+    req.user = {
+      username: decoded.username,
+      userId: decoded.userId,
+      roleId: decoded.roleId,
+    };
+
     next();
   });
 };

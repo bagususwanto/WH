@@ -22,15 +22,13 @@ import {
   cilCart,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
-import useCookies from './utils/Cookies'
 
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
 
-  const { getPayloadCookies } = useCookies()
 
   useEffect(() => {
-    const roleId = getPayloadCookies().roleId
+    const roleId = 1
 
     const baseNav = [
       {

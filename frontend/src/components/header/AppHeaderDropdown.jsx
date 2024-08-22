@@ -14,15 +14,13 @@ import avatar2 from './../../assets/images/avatars/2.jpg'
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
-// import axiosInstance from '../../utils/AxiosInstance'
-import useAxiosWithAuth from '../../utils/AxiosInstance'
+import axiosInstance from '../../utils/AxiosInstance'
 
 const AppHeaderDropdown = () => {
   const [name, setName] = useState('')
   const [shopName, setShopName] = useState('')
   const [expire, setExpire] = useState('')
   const navigate = useNavigate()
-  const { axiosInstance } = useAxiosWithAuth()
 
   // useEffect(() => {
   //   refreshToken();
