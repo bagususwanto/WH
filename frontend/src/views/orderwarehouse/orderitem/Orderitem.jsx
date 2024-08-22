@@ -144,8 +144,7 @@ const tab3HeaderTemplate = (options) => {
         </div>
         <div className="flex align-items-center justify-content-between">
           <span className="text-2xl font-semibold">{product.quantityActual}</span>
-
-          <Button icon="pi pi-shopping-cart" className="p-button-rounded" disabled={product.inventoryStatus === 'OUTOFSTOCK'} />
+          <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'}></Button>
         </div>
       </div>
     </div>
@@ -189,10 +188,7 @@ const tab3HeaderTemplate = (options) => {
         </TabPanel>
         <TabPanel headerTemplate={tab3HeaderTemplate} headerClassName="flex align-items-center">
         <p className="m-0">
-                At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti 
-                quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in
-                culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. 
-                Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.
+              
             </p>
         </TabPanel>
     </TabView>

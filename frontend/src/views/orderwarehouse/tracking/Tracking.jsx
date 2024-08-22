@@ -25,7 +25,7 @@ import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'; 
 
 
-const Supplier = () => {
+const Tracking = () => {
   const [materials, setMaterials] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
