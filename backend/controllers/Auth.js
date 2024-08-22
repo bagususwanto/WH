@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 
 const generateTokens = (userId, username, name, roleId) => {
-  const accessToken = jwt.sign({ userId, username, name, roleId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "60s" });
+  const accessToken = jwt.sign({ userId, username, name, roleId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "20s" });
 
   const refreshToken = jwt.sign({ userId, username, name, roleId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1d" });
 
@@ -44,7 +44,7 @@ export const login = async (req, res) => {
     // res.cookie("accessToken", accessToken, {
     //   httpOnly: true,
     //   // maxAge: 1 * 60 * 60 * 1000, // 1 day
-    //   maxAge: 60 * 1000, // 1 menit
+    //   maxAge: 20 * 1000, // 20 detik
     // });
 
     res.json({ accessToken, refreshToken });
