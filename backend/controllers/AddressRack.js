@@ -15,7 +15,7 @@ export const getAddressRack = async (req, res) => {
           include: [
             {
               model: Shop,
-              attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+              attributes: ["id", "shopName", "createdAt", "updatedAt"],
               include: [
                 {
                   model: Plant,
@@ -60,7 +60,7 @@ export const getAddressRackById = async (req, res) => {
           include: [
             {
               model: Shop,
-              attributes: ["id", "shopName", "costCenter", "wbsNumber", "ext", "createdAt", "updatedAt"],
+              attributes: ["id", "shopName", "createdAt", "updatedAt"],
               include: [
                 {
                   model: Plant,
