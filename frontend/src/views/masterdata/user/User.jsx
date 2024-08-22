@@ -25,7 +25,6 @@ import {
   CFormInput,
   CForm,
 } from '@coreui/react'
-// import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'
 import useAuthService from '../../../services/AuthService'
 import axiosInstance from '../../../utils/AxiosInstance'
