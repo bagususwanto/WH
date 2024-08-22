@@ -36,9 +36,10 @@ const useAuthService = () => {
       return response
     } catch (error) {
       console.error('Error during logout:', error)
+      const refreshToken = getCookieRefreshToken()
 
       // Cek apakah refreshToken ada di cookies
-      if (!getCookieRefreshToken()) {
+      if (!refreshToken) {
         navigate('/login')
       }
 
@@ -54,8 +55,10 @@ const useAuthService = () => {
     } catch (error) {
       console.error('Error fetching user:', error)
 
+      const refreshToken = getCookieRefreshToken()
+
       // Cek apakah refreshToken ada di cookies
-      if (!getCookieRefreshToken()) {
+      if (!refreshToken) {
         navigate('/login')
       }
 

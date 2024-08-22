@@ -2,8 +2,19 @@ import Cookies from 'js-cookie'
 import { jwtDecode } from 'jwt-decode'
 
 const useCookies = () => {
+  const getCookieAccessToken = () => {
+    return Cookies.get('accessToken')
+  }
   const getCookieRefreshToken = () => {
     return Cookies.get('refreshToken')
+  }
+
+  const setCookieAccessToken = (accessToken) => {
+    return Cookies.set('accessToken', accessToken, { expires: 20 / (24 * 60 * 60) })
+  }
+
+  const setCookieRefreshToken = (refreshToken) => {
+    return Cookies.set('refreshToken', refreshToken, { expires: 1 })
   }
 
   const getPayloadCookies = () => {
@@ -24,7 +35,13 @@ const useCookies = () => {
     }
   }
 
-  return { getCookieRefreshToken, getPayloadCookies }
+  return {
+    getCookieAccessToken,
+    getCookieRefreshToken,
+    getPayloadCookies,
+    setCookieAccessToken,
+    setCookieRefreshToken,
+  }
 }
 
 export default useCookies

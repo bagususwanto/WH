@@ -18,8 +18,8 @@ import { cilLockLocked, cilUser, cibCircleci } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import Cookies from 'js-cookie'
 import useAuthService from '../../../services/AuthService'
+import useCookies from '../../../utils/Cookies'
 
 const MySwal = withReactContent(Swal)
 
@@ -30,6 +30,7 @@ const Login = () => {
 
   const navigate = useNavigate()
   const { login } = useAuthService()
+  const { setCookieAccessToken, setCookieRefreshToken } = useCookies()
 
   useEffect(() => {
     if (msg) {
@@ -58,8 +59,8 @@ const Login = () => {
     try {
       const response = await login(username, password)
 
-      Cookies.set('accessToken', response.data.accessToken, { expires: 1 / 1440 })
-      Cookies.set('refreshToken', response.data.refreshToken, { expires: 1 })
+      setCookieAccessToken(response.data.accessToken)
+      setCookieRefreshToken(response.data.refreshToken)
 
       navigate('/dashboard')
     } catch (error) {
