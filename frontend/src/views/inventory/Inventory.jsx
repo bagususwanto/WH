@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { CCard, CCardHeader, CCardBody, CCol, CRow } from '@coreui/react'
-import axiosInstance from '../../utils/AxiosInstance'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Dropdown } from 'primereact/dropdown'
@@ -16,6 +15,11 @@ import { format, parseISO } from 'date-fns'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
 import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import useAxiosWithAuth from '../../utils/AxiosInstance'
+
+const MySwal = withReactContent(Swal)
+const axiosInstance = useAxiosWithAuth()
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
@@ -286,13 +290,13 @@ const Inventory = () => {
     let _inventory = [...inventory]
     let { newData, index } = e
 
-    Swal.fire({
+    MySwal.fire({
       title: 'Are you sure?',
       text: 'You are about to update the data. Do you want to proceed?',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      // confirmButtonColor: '#3085d6',
+      // cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, update it!',
     }).then((result) => {
       if (result.isConfirmed) {
