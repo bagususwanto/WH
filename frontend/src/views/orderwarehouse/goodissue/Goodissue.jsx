@@ -1,209 +1,313 @@
-import React, { useState, useEffect } from 'react';
-import { Carousel } from 'primereact/carousel';
-import { Button } from 'primereact/button';
-import { Tag } from 'primereact/tag';
-import { DataView, DataViewLayoutOptions } from 'primereact/dataview';
-import { Rating } from 'primereact/rating';
-import { classNames } from 'primereact/utils';
-import { TabView, TabPanel } from 'primereact/tabview';
+import React from 'react';
+import { Toolbar } from 'primereact/toolbar';
 import { SplitButton } from 'primereact/splitbutton';
-import { Avatar } from 'primereact/avatar';
-import { Badge } from 'primereact/badge';
-import 'primereact/resources/themes/mira/theme.css';
-import 'primereact/resources/primereact.min.css';
-import 'primeflex/primeflex.css';
 import { InputText } from 'primereact/inputtext';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
+import{ useState, useEffect } from 'react';
+import 'primeicons/primeicons.css'
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import 'primereact/resources/themes/mira/theme.css'
+import 'primereact/resources/primereact.min.css'
+import {
+  CCard,
+  CCardHeader,
+  CCardBody,
+  CCol,
+  CRow,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,   
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CFormInput,
+  CForm,
+  
+} from '@coreui/react';
 import axiosInstance from '../../../utils/AxiosInstance';
+import Swal from 'sweetalert2'; 
 
-const Goodissue = () => {
-  const [orderlist, setOrderlist] = useState([]);
-  const [layout, setLayout] = useState('grid');
-  const [categories, setCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
 
-  const responsiveOptions = [
-    { breakpoint: '1400px', numVisible: 2, numScroll: 1 },
-    { breakpoint: '1199px', numVisible: 3, numScroll: 1 },
-    { breakpoint: '767px', numVisible: 2, numScroll: 1 },
-    { breakpoint: '575px', numVisible: 1, numScroll: 1 }
-  ];
+const Material = () => {
+  const [materials, setMaterials] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentMaterial, setCurrentMaterial] = useState({
+    id: '',
+    materialNo: '',
+    uom: '',
+    price: '',
+    stdStock: '',
+    addressId: '',
+    categoryId: '',
+    supplierId: '',
+  });
+  
+  useEffect(() => {
+    getMaterial();
+  }, []);
 
-  const getSeverity = (product) => {
-    switch (product.inventoryStatus) {
-      case 'INSTOCK': return 'success';
-      case 'LOWSTOCK': return 'warning';
-      case 'OUTOFSTOCK': return 'danger';
-      default: return null;
+  const items = [
+    {
+        label: 'Update',
+        icon: 'pi pi-refresh'
+    },
+    {
+        label: 'Delete',
+        icon: 'pi pi-times'
+    }
+];
+
+const startContent = (
+    <React.Fragment>
+        <IconField iconPosition="left">
+        <InputIcon className="pi pi-search" />
+        <InputText placeholder="Search" />
+    </IconField>
+    </React.Fragment>
+);
+
+
+
+const endContent = (
+    <React.Fragment>
+            <Button icon="pi pi-upload" />
+        <SplitButton label="Save" model={items} icon="pi pi-check"></SplitButton>
+    </React.Fragment>
+);
+
+  const imageBodyTemplate = (product) => {
+    return <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`} alt={product.image} className="w-6rem shadow-2 border-round" />;
+};
+
+  const actionBodyTemplate = (rowData) => {
+    return (
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
+        </div>
+       );
+    };
+  
+
+  const getMaterial = async () => {
+    try {
+      const response = await axiosInstance.get('/material');
+      setMaterials(response.data);
+    } catch (error) {
+      console.error('Error fetching Material:', error);
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [orderlistResponse, categoriesResponse] = await Promise.all([
-          axiosInstance.get('/inventory'),
-          // axiosInstance.get('/category')
-        ]);
-        setOrderlist(orderlistResponse.data);
-        setCategories(categoriesResponse.data);
-      } catch (error) {
-        setError('Error fetching data');
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, []);
-
-
-//header tab View
-  const tab1HeaderTemplate = (options) => {
-    return (
-        <div className="flex align-items-center gap-2 p-3" style={{ cursor: 'pointer' }} onClick={options.onClick}>
-            <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/amyelsner.png" shape="circle" />
-            <span className="font-bold white-space-nowrap">Amy Elsner</span>
-        </div>
-    );
-};
-
-const tab2HeaderTemplate = (options) => {
-    return (
-        <div className="flex align-items-center gap-2 p-3" style={{ cursor: 'pointer' }} onClick={options.onClick}>
-            <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/onyamalimba.png" shape="circle" />
-            <span className="font-bold white-space-nowrap">Onyama Limba</span>
-        </div>
-    )
-};
-
-const tab3HeaderTemplate = (options) => {
-    return (
-        <div className="flex align-items-center gap-2 p-3" style={{ cursor: 'pointer' }} onClick={options.onClick}>
-            <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/ionibowcher.png" shape="circle" />
-            <span className="font-bold white-space-nowrap">Ioni Bowcher</span>
-            <Badge value="2" />
-        </div>
-    )
-};
-//search
-  const searchTemplate = () => (
-    <div className="flex align-items-center p-2">
-      <div className="p-inputgroup">
-        <InputText 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search"
-        />
-        <span className="p-inputgroup-addon">
-          <i className="pi pi-search"></i>
-        </span>
-      </div>
-    </div>
-  );
-//Evaluation
-
-
-  const listItem = (product, index) => (
-    <div className="col-12" key={product.id}>
-      <div className={classNames('flex flex-column xl:flex-row xl:align-items-start p-4 gap-4', { 'border-top-1 surface-border': index !== 0 })}>
-        <img className="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" src={product.img || 'https://cf.shopee.co.id/file/6fe06991e71fe2f51ca77eb729b92e11'} alt={product.name} />
-        <div className="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
-          <div className="flex flex-column align-items-center sm:align-items-start gap-3">
-            <div className="text-2xl font-bold text-900">{product.Material.description}</div>
-           
-            <div className="flex align-items-center gap-3">
-              <span className="flex align-items-center gap-2">
-                <i className="pi pi-tag"></i>
-                <span className="font-semibold">{product.category}</span>
-              </span>
-              <Tag value={product.inventoryStatus} severity={getSeverity(product)} />
-            </div>
-          </div>
-          <div className="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
-            <span className="text-2xl font-semibold">{product.quantityActual}</span>
-            <Button icon="pi pi-shopping-cart" className="p-button-rounded" disabled={product.inventoryStatus === 'OUTOFSTOCK'} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const gridItem = (product) => (
-    <div className="col-12 sm:col-6 lg:col-12 xl:col-4 p-2" key={product.id}>
-      <div className="p-4 border-1 surface-border surface-card border-round">
-        <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-          <div className="flex align-items-center gap-2">
-            <i className="pi pi-tag"></i>
-            <span className="font-semibold">{product.category}</span>
-          </div>
-          <Tag value={product.inventoryStatus} severity={getSeverity(product)} />
-        </div>
-        <div className="flex flex-column align-items-center gap-3 py-5">
-          <img className="w-9 shadow-2 border-round" src={product.img || 'https://cf.shopee.co.id/file/6fe06991e71fe2f51ca77eb729b92e11'} alt={product.name} />
-          <div className="text-2xl font-bold">{product.Material.description}</div>
-         
-        </div>
-        <div className="flex align-items-center justify-content-between">
-          <span className="text-2xl font-semibold">{product.quantityActual}</span>
-
-          <Button icon="pi pi-shopping-cart" className="p-button-rounded" disabled={product.inventoryStatus === 'OUTOFSTOCK'} />
-        </div>
-      </div>
-    </div>
-  );
-
-  const itemTemplate = (product, layout, index) => {
-    if (!product) return null;
-    return layout === 'list' ? listItem(product, index) : gridItem(product);
+  const handleAddMaterial = () => {
+    setIsEdit(false);
+    setCurrentMaterial({
+      id: '',
+      materialNo: '',
+      description:'',
+      uom: '',
+      price: '',
+      stdStock: '',
+      addressId: '',
+      categoryId: '',
+      supplierId: '',
+    });
+    setModal(true);
   };
 
-  const listTemplate = (products, layout) => (
-    <div className="grid grid-nogutter">
-      {products.map((product, index) => itemTemplate(product, layout, index))}
-    </div>
-  );
+  const handleEditMaterial= (material) => {
+    setIsEdit(true);
+    setCurrentMaterial({
+      id: material.id,
+      materialNo: material.materialNo,
+      description: material.description,
+      uom: material.uom,
+      price: material.price,
+      stdStock: material.stdStock,
+      addressId: material.addressId,
+      categoryId: material.categoryId,
+      supplierId: material.supplierId,
+      createdAt: material.createdAt,
+      updatedAt: material.updatedAt,
+    });
+    setModal(true);
+  };
 
- 
+  const handleDeleteMaterial = (material) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this material!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmDelete(material);
+      }
+    });
+  };
+  
 
-  const header = () => (
-    <div className="flex justify-content-between">
-      {searchTemplate()}
-      <DataViewLayoutOptions layout={layout} onChange={(e) => setLayout(e.value)} />
-    </div>
-  );
+  const confirmDelete = async (material) => {
+    try {
+      await axiosInstance.get(`/material-delete/${material}`);
+      Swal.fire(
+        'Deleted!',
+        'The Material has been deleted.',
+        'success'
+      );
+      getMaterial();
+    } catch (error) {
+      console.error('Error deleting material:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to delete the material.',
+        'error'
+      );
+    }
+  };
+  
+  
 
+
+  const handleSaveMaterial = async () => {
+    try {
+      if (isEdit) {
+        await axiosInstance.put(`/material/${currentMaterial.id}`, currentMaterial);
+        Swal.fire(
+          'Updated!',
+          'The Material has been updated.',
+          'success'
+        );
+      } else {
+        await axiosInstance.post('/material', currentMaterial);
+        Swal.fire(
+          'Added!',
+          'The material has been added.',
+          'success'
+        );
+      }
+      setModal(false);
+      getMaterial();
+    } catch (error) {
+      console.error('Error saving material:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to save the material.',
+        'error'
+      );
+    }
+  };
+  
 
   return (
-    <div className="card">
-    <TabView>
-        <TabPanel header="Header I" headerTemplate={tab1HeaderTemplate}>
-            <p className="m-0">
- 
     
-              <DataView value={orderlist} listTemplate={listTemplate} layout={layout} header={header()} />
-            </p>
-        </TabPanel>
-        <TabPanel headerTemplate={tab2HeaderTemplate} headerClassName="flex align-items-center">
-            <p className="m-0">
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, 
-                eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo
-                enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui 
-                ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius modi.
-            </p>
-        </TabPanel>
-        <TabPanel headerTemplate={tab3HeaderTemplate} headerClassName="flex align-items-center">
-        <p className="m-0">
-                At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti 
-                quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in
-                culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. 
-                Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.
-            </p>
-        </TabPanel>
-    </TabView>
-</div>
+    <CRow>
+      <CCol>
+        <CCard>
+          <CCardHeader>Master Data Supplier</CCardHeader>
+       
+            <Toolbar start={startContent}  end={endContent} />
+          <CCardBody>  
+            <CRow className='mb-3'></CRow>
+            <DataTable value={materials} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
+                <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
+                <Column header="Image" body={imageBodyTemplate}></Column>
+                <Column field="materialNo" header="No Material" style={{ width: '25%' }}></Column>
+                <Column field="description" header="description" style={{ width: '25%' }}></Column>
+               
+               
+                <Column field="uom" header="uom" style={{ width: '25%' }}></Column>
 
-    
-      
+                <Column field="stdstock" header="Quantity" style={{ width: '25%' }}></Column>
+                <Column field="addresId" header="Addres" style={{ width: '25%' }}></Column>
+                <Column field="categoryId" header="Category" style={{ width: '25%' }}></Column>
+                <Column field="supplierId" header="Supplier" style={{ width: '25%' }}></Column>
+                <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
+                <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} />
+            </DataTable>
+          </CCardBody>
+        </CCard>
+      </CCol>
+
+      <CModal visible={modal} onClose={() => setModal(false)}>
+        <CModalHeader>
+          <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm>
+            <CFormInput
+              type="text"
+              value={currentMaterial.materialNo}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
+              placeholder="Enter Material name"
+              label="Material No"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.description}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
+              placeholder="Enter Material code"
+              label="Description"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.uom}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
+              placeholder="Enter Material code"
+              label="uom"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.price}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
+              placeholder="Enter Material code"
+              label="Price"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.stdStock}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, stdStock: e.target.value })}
+              placeholder="Enter material code"
+              label="Standar Stock"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.categoryId}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, categoryId: e.target.value })}
+              placeholder="Enter material code"
+              label="Supplier Code"
+            />
+            <CFormInput
+              type="text"
+              value={currentMaterial.addressId}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, addresId: e.target.value })}
+              placeholder="Enter material code"
+              label="Addres Rack"
+            />
+            
+
+          </CForm>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
+          <CButton color="primary" onClick={handleSaveMaterial}>{isEdit ? 'Update' : 'Save'}</CButton>
+        </CModalFooter>
+      </CModal>
+    </CRow>
   );
 };
 
-export default Goodissue
+export default Material;

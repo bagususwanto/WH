@@ -27,7 +27,7 @@ app.use(express.json());
 
 // auth router
 app.use("/api", authRouter);
-app.use(authenticateUser);
+// app.use(authenticateUser);
 
 // master data router
 app.use("/api", categoryRouter);

@@ -98,7 +98,7 @@ const Dashboard = () => {
     return (
         <Card title="Halo!!">
             <p className="m-0">
-                Selamat datang di Winner (Warehouse Inventory Order). Silakan pesan barang dan item di gudang.
+                Selamat datang di TWIIS (Toyota Warehouse Inventory integrated System). Silakan pesan barang dan item di gudang.
             </p>
          {/* <CRow className='mb-3'></CRow>
             <div className="card">
