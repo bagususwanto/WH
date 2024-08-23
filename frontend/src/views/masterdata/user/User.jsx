@@ -25,9 +25,9 @@ import {
   CFormInput,
   CForm,
 } from '@coreui/react'
-// import axiosInstance from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'
-import useAuthService from '../../../services/AuthService'
+import axiosInstance from '../../../utils/AxiosInstance'
+import useMasterDataService from '../../../services/MasterDataService'
 
 const User = () => {
   const [users, setUsers] = useState([])
@@ -35,16 +35,17 @@ const User = () => {
   const [isEdit, setIsEdit] = useState(false)
   const [currentUser, setCurrentUser] = useState({
     id: '',
-    userName: '',
+    username: '',
     password: '',
     name: '',
     roleId: '',
     costCenterId: '',
   })
-  const { getUser } = useAuthService()
+  const { getMasterData } = useMasterDataService()
+  const api = 'user'
 
   useEffect(() => {
-    fetchUser()
+    getUser()
   }, [])
 
   const actionBodyTemplate = (rowData) => {
@@ -66,8 +67,8 @@ const User = () => {
     )
   }
 
-  const fetchUser = async () => {
-    const response = await getUser()
+  const getUser = async () => {
+    const response = await getMasterData(api)
     setUsers(response.data)
   }
 
@@ -75,7 +76,7 @@ const User = () => {
     setIsEdit(false)
     setCurrentUser({
       id: '',
-      userName: '',
+      username: '',
       password: '',
       name: '',
       roleId: '',
@@ -88,7 +89,7 @@ const User = () => {
     setIsEdit(true)
     setCurrentUser({
       id: user.id,
-      userName: user.userName,
+      username: user.username,
       password: user.password,
       name: user.name,
       roleId: user.roleId,
@@ -161,7 +162,7 @@ const User = () => {
               tableStyle={{ minWidth: '50rem' }}
             >
               <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
-              <Column field="userName" header="Username" style={{ width: '25%' }}></Column>
+              <Column field="username" header="Username" style={{ width: '25%' }}></Column>
               <Column field="password" header="Password" style={{ width: '25%' }}></Column>
               <Column field="name" header="Nama" style={{ width: '25%' }}></Column>
               <Column field="roleId" header="Role" style={{ width: '25%' }}></Column>
@@ -181,8 +182,8 @@ const User = () => {
           <CForm>
             <CFormInput
               type="text"
-              value={currentUser.userName}
-              onChange={(e) => setCurrentUser({ ...currentUser, userName: e.target.value })}
+              value={currentUser.username}
+              onChange={(e) => setCurrentUser({ ...currentUser, username: e.target.value })}
               placeholder="Enter user name"
               label="User Name"
             />
@@ -201,7 +202,7 @@ const User = () => {
               label="Name"
             />
             <CFormInput
-              type="text"
+              type="number"
               value={currentUser.roleId}
               onChange={(e) => setCurrentUser({ ...currentUser, roleId: e.target.value })}
               placeholder="Enter user name"

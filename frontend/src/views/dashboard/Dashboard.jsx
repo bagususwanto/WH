@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../utils/AxiosInstance'
 import { jwtDecode } from 'jwt-decode'
-import Cookies from 'js-cookie'
 import classNames from 'classnames'
 
 import {

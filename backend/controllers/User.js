@@ -10,7 +10,7 @@ export const getUser = async (req, res) => {
   try {
     const response = await User.findAll({
       where: { flag: 1 },
-      attributes: ["id", "name", "createdAt", "updatedAt"],
+      attributes: ["id", "name", "username", "createdAt", "updatedAt"],
       include: [
         {
           model: Role,
@@ -59,7 +59,7 @@ export const getUserById = async (req, res) => {
         id: userId,
         flag: 1,
       },
-      attributes: ["id", "name", "createdAt", "updatedAt"],
+      attributes: ["id", "name", "username", "createdAt", "updatedAt"],
       include: [
         {
           model: Role,

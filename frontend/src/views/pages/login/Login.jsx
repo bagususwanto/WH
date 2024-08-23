@@ -19,7 +19,6 @@ import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../../services/AuthService'
-import useCookies from '../../../utils/Cookies'
 
 const MySwal = withReactContent(Swal)
 
@@ -30,7 +29,6 @@ const Login = () => {
 
   const navigate = useNavigate()
   const { login } = useAuthService()
-  const { setCookieAccessToken, setCookieRefreshToken } = useCookies()
 
   useEffect(() => {
     if (msg) {
@@ -57,11 +55,7 @@ const Login = () => {
     }
 
     try {
-      const response = await login(username, password)
-
-      setCookieAccessToken(response.data.accessToken)
-      setCookieRefreshToken(response.data.refreshToken)
-
+      await login(username, password)
       navigate('/dashboard')
     } catch (error) {
       if (error.response) {

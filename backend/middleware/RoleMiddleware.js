@@ -1,6 +1,6 @@
 export const checkRole = (allowedRoles) => {
   return (req, res, next) => {
-    const userRoleId = req.user.roleId; // Mengambil roleId dari req.user, yang di-set oleh authenticateUser
+    const userRoleId = req.user.roleId; // Mengambil roleId dari req.user, yang di-set oleh verifyToken
 
     if (allowedRoles.includes(userRoleId)) {
       next(); // Jika roleId sesuai dengan salah satu dari allowedRoles, lanjutkan request

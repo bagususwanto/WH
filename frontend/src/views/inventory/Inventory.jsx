@@ -16,10 +16,11 @@ import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import useAxiosWithAuth from '../../utils/AxiosInstance'
+import { MultiSelect } from 'primereact/multiselect'
+import useManageStockService from '../../services/ManageStockService'
+import useMasterDataService from '../../services/MasterDataService'
 
 const MySwal = withReactContent(Swal)
-const axiosInstance = useAxiosWithAuth()
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
@@ -29,6 +30,35 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
+
+  const { getInventory, updateInventoryById } = useManageStockService()
+  const { getMasterData, getMasterDataById } = useMasterDataService()
+
+  const apiPlant = 'plant'
+  const apiShop = 'shop-plant'
+  const apiLocation = 'location-shop'
+
+  const columns = [
+    {
+      field: 'formattedUpdateBy',
+      header: 'Update By',
+      sortable: true,
+    },
+    {
+      field: 'formattedUpdateAt',
+      header: 'Update At',
+      sortable: true,
+    },
+    {
+      field: 'Material.Address_Rack.Location.Shop.Plant.plantName',
+      header: 'Plant',
+      sortable: true,
+    },
+    { field: 'Material.Address_Rack.Location.Shop.shopName', header: 'Shop', sortable: true },
+    { field: 'Material.Address_Rack.Location.locationName', header: 'Location', sortable: true },
+  ]
+
+  const [visibleColumns, setVisibleColumns] = useState([])
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -46,10 +76,30 @@ const Inventory = () => {
     },
   })
 
+  const initFilters = () => {
+    setFilters({
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      'Material.Address_Rack.Location.locationName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+      'Material.Address_Rack.Location.Shop.Plant.plantName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+      'Material.Address_Rack.Location.Shop.shopName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+    })
+    setGlobalFilterValue('')
+  }
+
   useEffect(() => {
-    getInventory()
+    fetchInventory()
     getPlant()
     setLoading(false)
+    initFilters()
   }, [])
 
   useEffect(() => {
@@ -69,18 +119,41 @@ const Inventory = () => {
     }
   }
 
-  const getInventory = async () => {
+  const fetchInventory = async () => {
     try {
-      const response = await axiosInstance.get('/inventory')
-      setInventory(response.data)
+      const response = await getInventory()
+      const dataWithFormattedFields = response.data.map((item) => {
+        // Evaluasi untuk menentukan status inventory
+        const evaluation =
+          item.quantityActual < item.Material.stdStock
+            ? 'shortage'
+            : item.quantityActual > item.Material.stdStock
+              ? 'over'
+              : 'ok'
+
+        return {
+          ...item,
+          evaluation, // Tambahkan evaluasi ke item yang dikembalikan
+          formattedUpdateBy: item.Material?.Log_Entries?.[0]?.User?.userName || '',
+          formattedUpdateAt: item.updatedAt
+            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+            : '',
+        }
+      })
+      setInventory(dataWithFormattedFields)
     } catch (error) {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch inventory data.',
+      })
       console.error('Error fetching inventory:', error)
     }
   }
 
   const getPlant = async () => {
     try {
-      const response = await axiosInstance.get('/plant')
+      const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
         label: plant.plantName,
         value: plant.plantName,
@@ -97,8 +170,8 @@ const Inventory = () => {
       return
     }
     try {
-      const response = await axiosInstance.get(`/shop-plant/${id}`)
-      const shopOptions = response.data.map((shop) => ({
+      const response = await getMasterDataById(apiShop, id)
+      const shopOptions = response.map((shop) => ({
         label: shop.shopName,
         value: shop.shopName,
         id: shop?.id,
@@ -114,8 +187,8 @@ const Inventory = () => {
       return
     }
     try {
-      const response = await axiosInstance.get(`/location-shop/${id}`)
-      const locationOptions = response.data.map((location) => ({
+      const response = await getMasterDataById(apiLocation, id)
+      const locationOptions = response.map((location) => ({
         label: location.locationName,
         value: location.locationName,
       }))
@@ -125,10 +198,10 @@ const Inventory = () => {
     }
   }
 
-  const updateInventory = async (updateItem) => {
+  const editInventory = async (updateItem) => {
     try {
-      await axiosInstance.put(`/inventory/${updateItem.id}`, updateItem)
-      getInventory()
+      await updateInventoryById(updateItem)
+      fetchInventory()
       Swal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
       console.error('Error fetching inventory:', error)
@@ -302,7 +375,7 @@ const Inventory = () => {
       if (result.isConfirmed) {
         _inventory[index] = newData
         setInventory(_inventory)
-        updateInventory(_inventory[index])
+        editInventory(_inventory[index])
       }
     })
   }
@@ -333,12 +406,51 @@ const Inventory = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
+  const onColumnToggle = (event) => {
+    let selectedColumns = event.value
+    let orderedSelectedColumns = columns.filter((col) =>
+      selectedColumns.some((sCol) => sCol.field === col.field),
+    )
+
+    setVisibleColumns(orderedSelectedColumns)
+  }
+
+  const header = () => (
+    <MultiSelect
+      value={visibleColumns}
+      options={columns}
+      optionLabel="header"
+      onChange={onColumnToggle}
+      className="w-full sm:w-20rem mb-2 mt-2"
+      display="chip"
+      placeholder="Show Hiden Columns"
+      style={{ borderRadius: '5px' }}
+    />
+  )
+
+  const clearFilter = () => {
+    initFilters()
+  }
+
   return (
     <CRow>
       <CCol>
         <CCard className="mb-3">
           <CCardHeader>Filter</CCardHeader>
           <CCardBody>
+            <CRow>
+              <CCol xs={12} sm={6} md={4}>
+                <Button
+                  type="button"
+                  icon="pi pi-filter-slash"
+                  label="Clear Filter"
+                  outlined
+                  onClick={clearFilter}
+                  className="mb-2"
+                  style={{ borderRadius: '5px' }}
+                />
+              </CCol>
+            </CRow>
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
@@ -398,7 +510,7 @@ const Inventory = () => {
             </CRow>
             <DataTable
               value={visibleData}
-              tableStyle={{ minWidth: '100rem' }}
+              tableStyle={{ minWidth: '50rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
               rowsPerPageOptions={[10, 50, 100, 500]}
@@ -412,6 +524,7 @@ const Inventory = () => {
               editMode="row"
               onRowEditComplete={onRowEditComplete}
               removableSort
+              header={header}
             >
               <Column
                 field="Material.materialNo"
@@ -454,33 +567,17 @@ const Inventory = () => {
                 editor={(options) => remarksEditor(options)}
                 sortable
               ></Column>
-              <Column
-                field="Material.Log_Entries[0].User.userName"
-                header="Update By"
-                body={(rowData) => rowData.Material.Log_Entries[0]?.User?.userName || ''}
-                sortable
-              ></Column>
-              <Column
-                field="updatedAt"
-                header="Update At"
-                body={(rowData) => format(parseISO(rowData.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
-                sortable
-              ></Column>
-              <Column
-                field="Material.Address_Rack.Location.Shop.Plant.plantName"
-                header="Plant"
-                sortable
-              ></Column>
-              <Column
-                field="Material.Address_Rack.Location.Shop.shopName"
-                header="Shop"
-                sortable
-              ></Column>
-              <Column
-                field="Material.Address_Rack.Location.locationName"
-                header="Location"
-                sortable
-              ></Column>
+              {visibleColumns.map((col, index) => (
+                <Column
+                  key={index}
+                  field={col.field}
+                  header={col.header}
+                  body={col.body}
+                  sortable={col.sortable}
+                  headerStyle={col.headerStyle}
+                  bodyStyle={col.bodyStyle}
+                />
+              ))}
               <Column
                 header="Action"
                 rowEditor={true}
