@@ -173,7 +173,7 @@ const useNavigation = () => {
     )
 
     setNavigation(baseNav)
-  }, [])
+  }, [roleId])
 
   return navigation
 }
