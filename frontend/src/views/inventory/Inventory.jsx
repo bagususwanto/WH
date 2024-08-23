@@ -16,11 +16,11 @@ import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import useAxiosWithAuth from '../../utils/AxiosInstance'
 import { MultiSelect } from 'primereact/multiselect'
+import useManageStockService from '../../services/ManageStockService'
+import useMasterDataService from '../../services/MasterDataService'
 
 const MySwal = withReactContent(Swal)
-const axiosInstance = useAxiosWithAuth()
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
@@ -31,18 +31,22 @@ const Inventory = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
 
+  const { getInventory, updateInventoryById } = useManageStockService()
+  const { getMasterData, getMasterDataById } = useMasterDataService()
+
+  const apiPlant = 'plant'
+  const apiShop = 'shop-plant'
+  const apiLocation = 'location-shop'
+
   const columns = [
     {
       field: 'formattedUpdateBy',
       header: 'Update By',
-      // body: (rowData) => rowData.Material?.Log_Entries?.[0]?.User?.userName || 'Unknown User',
       sortable: true,
     },
     {
       field: 'formattedUpdateAt',
       header: 'Update At',
-      // body: (rowData) =>
-      //   rowData.updatedAt ? format(parseISO(rowData.updatedAt), 'yyyy-MM-dd HH:mm:ss') : 'No Date',
       sortable: true,
     },
     {
@@ -72,10 +76,30 @@ const Inventory = () => {
     },
   })
 
+  const initFilters = () => {
+    setFilters({
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      'Material.Address_Rack.Location.locationName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+      'Material.Address_Rack.Location.Shop.Plant.plantName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+      'Material.Address_Rack.Location.Shop.shopName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+    })
+    setGlobalFilterValue('')
+  }
+
   useEffect(() => {
-    getInventory()
+    fetchInventory()
     getPlant()
     setLoading(false)
+    initFilters()
   }, [])
 
   useEffect(() => {
@@ -95,25 +119,41 @@ const Inventory = () => {
     }
   }
 
-  const getInventory = async () => {
+  const fetchInventory = async () => {
     try {
-      const response = await axiosInstance.get('/inventory')
-      const dataWithFormattedFields = response.data.map((item) => ({
-        ...item,
-        formattedUpdateBy: item.Material?.Log_Entries?.[0]?.User?.userName || '',
-        formattedUpdateAt: item.updatedAt
-          ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-          : '',
-      }))
+      const response = await getInventory()
+      const dataWithFormattedFields = response.data.map((item) => {
+        // Evaluasi untuk menentukan status inventory
+        const evaluation =
+          item.quantityActual < item.Material.stdStock
+            ? 'shortage'
+            : item.quantityActual > item.Material.stdStock
+              ? 'over'
+              : 'ok'
+
+        return {
+          ...item,
+          evaluation, // Tambahkan evaluasi ke item yang dikembalikan
+          formattedUpdateBy: item.Material?.Log_Entries?.[0]?.User?.userName || '',
+          formattedUpdateAt: item.updatedAt
+            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+            : '',
+        }
+      })
       setInventory(dataWithFormattedFields)
     } catch (error) {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch inventory data.',
+      })
       console.error('Error fetching inventory:', error)
     }
   }
 
   const getPlant = async () => {
     try {
-      const response = await axiosInstance.get('/plant')
+      const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
         label: plant.plantName,
         value: plant.plantName,
@@ -130,8 +170,8 @@ const Inventory = () => {
       return
     }
     try {
-      const response = await axiosInstance.get(`/shop-plant/${id}`)
-      const shopOptions = response.data.map((shop) => ({
+      const response = await getMasterDataById(apiShop, id)
+      const shopOptions = response.map((shop) => ({
         label: shop.shopName,
         value: shop.shopName,
         id: shop?.id,
@@ -147,8 +187,8 @@ const Inventory = () => {
       return
     }
     try {
-      const response = await axiosInstance.get(`/location-shop/${id}`)
-      const locationOptions = response.data.map((location) => ({
+      const response = await getMasterDataById(apiLocation, id)
+      const locationOptions = response.map((location) => ({
         label: location.locationName,
         value: location.locationName,
       }))
@@ -158,10 +198,10 @@ const Inventory = () => {
     }
   }
 
-  const updateInventory = async (updateItem) => {
+  const editInventory = async (updateItem) => {
     try {
-      await axiosInstance.put(`/inventory/${updateItem.id}`, updateItem)
-      getInventory()
+      await updateInventoryById(updateItem)
+      fetchInventory()
       Swal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
       console.error('Error fetching inventory:', error)
@@ -335,7 +375,7 @@ const Inventory = () => {
       if (result.isConfirmed) {
         _inventory[index] = newData
         setInventory(_inventory)
-        updateInventory(_inventory[index])
+        editInventory(_inventory[index])
       }
     })
   }
@@ -383,10 +423,14 @@ const Inventory = () => {
       onChange={onColumnToggle}
       className="w-full sm:w-20rem mb-2 mt-2"
       display="chip"
-      placeholder="Show Hide Columns"
+      placeholder="Show Hiden Columns"
       style={{ borderRadius: '5px' }}
     />
   )
+
+  const clearFilter = () => {
+    initFilters()
+  }
 
   return (
     <CRow>
@@ -394,6 +438,19 @@ const Inventory = () => {
         <CCard className="mb-3">
           <CCardHeader>Filter</CCardHeader>
           <CCardBody>
+            <CRow>
+              <CCol xs={12} sm={6} md={4}>
+                <Button
+                  type="button"
+                  icon="pi pi-filter-slash"
+                  label="Clear Filter"
+                  outlined
+                  onClick={clearFilter}
+                  className="mb-2"
+                  style={{ borderRadius: '5px' }}
+                />
+              </CCol>
+            </CRow>
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown

@@ -18,7 +18,7 @@ import { cilLockLocked, cilUser, cibCircleci } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import axiosInstance from '../../../utils/AxiosInstance'
+import useAuthService from '../../../services/AuthService'
 
 const MySwal = withReactContent(Swal)
 
@@ -28,6 +28,7 @@ const Login = () => {
   const [msg, setMsg] = useState('')
 
   const navigate = useNavigate()
+  const { login } = useAuthService()
 
   useEffect(() => {
     if (msg) {
@@ -54,10 +55,7 @@ const Login = () => {
     }
 
     try {
-      await axiosInstance.post('/login', {
-        username: username,
-        password: password,
-      })
+      await login(username, password)
       navigate('/dashboard')
     } catch (error) {
       if (error.response) {

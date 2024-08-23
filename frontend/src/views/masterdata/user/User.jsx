@@ -26,8 +26,8 @@ import {
   CForm,
 } from '@coreui/react'
 import Swal from 'sweetalert2'
-import useAuthService from '../../../services/AuthService'
 import axiosInstance from '../../../utils/AxiosInstance'
+import useMasterDataService from '../../../services/MasterDataService'
 
 const User = () => {
   const [users, setUsers] = useState([])
@@ -41,10 +41,11 @@ const User = () => {
     roleId: '',
     costCenterId: '',
   })
-  const { getUser } = useAuthService()
+  const { getMasterData } = useMasterDataService()
+  const api = 'user'
 
   useEffect(() => {
-    fetchUser()
+    getUser()
   }, [])
 
   const actionBodyTemplate = (rowData) => {
@@ -66,8 +67,8 @@ const User = () => {
     )
   }
 
-  const fetchUser = async () => {
-    const response = await getUser()
+  const getUser = async () => {
+    const response = await getMasterData(api)
     setUsers(response.data)
   }
 

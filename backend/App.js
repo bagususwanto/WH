@@ -15,7 +15,7 @@ import costCenterRouter from "./routes/CostCenterRouter.js";
 import managementStockRouter from "./routes/ManagementStockRouter.js";
 import authRouter from "./routes/AuthRouter.js";
 import "./models/index.js";
-import { authenticateUser } from "./middleware/AuthMiddleware.js";
+import { verifyToken } from "./middleware/VerifyToken.js";
 
 dotenv.config();
 const app = express();
@@ -27,7 +27,7 @@ app.use(express.json());
 
 // auth router
 app.use("/api", authRouter);
-// app.use(authenticateUser);
+app.use(verifyToken);
 
 // master data router
 app.use("/api", categoryRouter);
