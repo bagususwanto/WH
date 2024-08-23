@@ -26,9 +26,9 @@ import {
   CForm,
   
 } from '@coreui/react';
-import axiosInstance from '../../../utils/AxiosInstance';
+import useAxiosWithAuth from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'; 
-
+const axiosInstance = useAxiosWithAuth()
 
 const Location = () => {
   const [locations, setLocations] = useState([]);
