@@ -22,14 +22,13 @@ import {
   cilCart,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
+import useVerify from './hooks/UseVerify'
 
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
-
+  const { roleId } = useVerify()
 
   useEffect(() => {
-    const roleId = 1
-
     const baseNav = [
       {
         component: CNavItem,
