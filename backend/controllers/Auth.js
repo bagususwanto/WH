@@ -1,11 +1,12 @@
 import Users from "../models/UserModel.js";
+import Role from "../models/RoleModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // Function to generate access and refresh tokens
-const generateTokens = (userId, username, name, roleId) => {
-  const accessToken = jwt.sign({ userId, username, name, roleId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "20s" });
-  const refreshToken = jwt.sign({ userId, username, name, roleId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1d" });
+const generateTokens = (userId, username, name, roleName) => {
+  const accessToken = jwt.sign({ userId, username, name, roleName }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "20s" });
+  const refreshToken = jwt.sign({ userId, username, name, roleName }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1d" });
   return { accessToken, refreshToken };
 };
 
@@ -18,7 +19,14 @@ export const login = async (req, res) => {
   }
 
   try {
-    const user = await Users.findOne({ where: { username, flag: 1 } });
+    const user = await Users.findOne({
+      where: { username, flag: 1 },
+      include: {
+        model: Role,
+        attributes: ["id", "roleName", "createdAt", "updatedAt"],
+      },
+    });
+
     if (!user) {
       return res.status(404).json({ msg: "Username atau password tidak sesuai" });
     }
@@ -28,8 +36,9 @@ export const login = async (req, res) => {
       return res.status(400).json({ msg: "Username atau password tidak sesuai" });
     }
 
-    const { id: userId, name, roleId } = user;
-    const { accessToken, refreshToken } = generateTokens(userId, username, name, roleId);
+    const { id: userId, name } = user;
+    const roleName = user.Role.roleName; // Mengambil roleName dari data user
+    const { accessToken, refreshToken } = generateTokens(userId, username, name, roleName);
 
     await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
 
@@ -74,14 +83,18 @@ export const refreshToken = async (req, res) => {
   if (!refreshToken) return res.sendStatus(401);
 
   try {
-    const user = await Users.findOne({ where: { refreshToken, flag: 1 } });
+    const user = await Users.findOne({
+      where: { refreshToken, flag: 1 },
+      include: { model: Role, attributes: ["id", "roleName", "createdAt", "updatedAt"] },
+    });
     if (!user) return res.sendStatus(403);
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) return res.sendStatus(403);
 
-      const { id: userId, username, name, roleId } = user;
-      const { accessToken } = generateTokens(userId, username, name, roleId);
+      const { id: userId, username, name } = user;
+      const roleName = user.Role.roleName; // Mengambil roleName dari data user
+      const { accessToken } = generateTokens(userId, username, name, roleName);
 
       res.json({ accessToken });
     });

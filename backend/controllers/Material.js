@@ -1,8 +1,4 @@
 import Material from "../models/MaterialModel.js";
-import AddressRack from "../models/AddressRackModel.js";
-import Location from "../models/LocationModel.js";
-import Shop from "../models/ShopModel.js";
-import Plant from "../models/PlantModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 
@@ -47,7 +43,7 @@ export const getMaterialById = async (req, res) => {
         id: materialId,
         flag: 1,
       },
-      attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
       include: [
         {
           model: Category,

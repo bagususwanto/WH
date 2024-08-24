@@ -5,7 +5,7 @@ import axiosInstance from '../utils/AxiosInstance'
 
 const useVerify = () => {
   const [name, setName] = useState('')
-  const [roleId, setRoleId] = useState('')
+  const [roleName, setRoleName] = useState('')
   const [token, setToken] = useState('')
   const [expire, setExpire] = useState(0)
   const navigate = useNavigate()
@@ -20,7 +20,7 @@ const useVerify = () => {
       setToken(response.data.accessToken)
       const decoded = jwtDecode(response.data.accessToken)
       setName(decoded.name)
-      setRoleId(decoded.roleId)
+      setRoleName(decoded.roleName)
       setExpire(decoded.exp)
     } catch (error) {
       console.error('Error refreshing token:', error)
@@ -40,7 +40,7 @@ const useVerify = () => {
           setToken(response.data.accessToken)
           const decoded = jwtDecode(response.data.accessToken)
           setName(decoded.name)
-          setRoleId(decoded.roleId)
+          setRoleName(decoded.roleName)
           setExpire(decoded.exp)
         } catch (error) {
           console.error('Error refreshing token in interceptor:', error)
@@ -56,7 +56,7 @@ const useVerify = () => {
     },
   )
 
-  return { name, roleId, token, axiosJWT }
+  return { name, roleName, token, axiosJWT }
 }
 
 export default useVerify

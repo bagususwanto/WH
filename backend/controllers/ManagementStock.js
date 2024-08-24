@@ -1,46 +1,24 @@
 import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
-import AddressRack from "../models/AddressRackModel.js";
-import Shop from "../models/ShopModel.js";
-import Plant from "../models/PlantModel.js";
-import Location from "../models/LocationModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import User from "../models/UserModel.js";
+import AddressRack from "../models/AddressRackModel.js";
+import Location from "../models/LocationModel.js";
+import Shop from "../models/ShopModel.js";
+import Plant from "../models/PlantModel.js";
 
 export const getInventory = async (req, res) => {
   try {
     const response = await Inventory.findAll({
-      attributes: ["id", "quantity", "quantityActual", "remarks",  "createdAt", "updatedAt"],
+      attributes: ["id", "quantitySistem", "quantityActual", "quantityActualCheck", "remarks", "createdAt", "updatedAt"],
       include: [
         {
           model: Material,
-          attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
+          attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
           include: [
-            {
-              model: AddressRack,
-              attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
-              include: [
-                {
-                  model: Location,
-                  attributes: ["id", "locationName", "createdAt", "updatedAt"],
-                  include: [
-                    {
-                      model: Shop,
-                      attributes: ["id", "shopName", "createdAt", "updatedAt"],
-                      include: [
-                        {
-                          model: Plant,
-                          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
             {
               model: Category,
               attributes: ["id", "categoryName", "createdAt", "updatedAt"],
@@ -49,17 +27,39 @@ export const getInventory = async (req, res) => {
               model: Supplier,
               attributes: ["id", "supplierName", "createdAt", "updatedAt"],
             },
+          ],
+        },
+        {
+          model: AddressRack,
+          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
+          include: [
             {
-              model: LogEntry,
-              attributes: ["id", "userId", "createdAt", "updatedAt"],
-              limit: 1,
-              order: [["createdAt", "DESC"]],
+              model: Location,
+              attributes: ["id", "locationName", "createdAt", "updatedAt"],
               include: [
                 {
-                  model: User,
-                  attributes: ["id", "userName", "createdAt", "updatedAt"],
+                  model: Shop,
+                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
+                  include: [
+                    {
+                      model: Plant,
+                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                    },
+                  ],
                 },
               ],
+            },
+          ],
+        },
+        {
+          model: LogEntry,
+          attributes: ["id", "userId", "createdAt", "updatedAt"],
+          limit: 1,
+          order: [["createdAt", "DESC"]],
+          include: [
+            {
+              model: User,
+              attributes: ["id", "userName", "createdAt", "updatedAt"],
             },
           ],
         },
@@ -68,8 +68,8 @@ export const getInventory = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    console.error("Error fetching inventory:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -96,7 +96,7 @@ export const updateInventory = async (req, res) => {
       typeLogEntry: "update",
       quantity: req.body.quantityActual,
       materialId: inventory.materialId,
-      userId: 1,
+      userId: req.user.userId,
       detailOrder: null,
       incomingId: null,
     });
