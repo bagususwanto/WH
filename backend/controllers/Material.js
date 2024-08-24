@@ -10,30 +10,8 @@ export const getMaterial = async (req, res) => {
   try {
     const response = await Material.findAll({
       where: { flag: 1 },
-      attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
+      attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
       include: [
-        {
-          model: AddressRack,
-          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Location,
-              attributes: ["id", "locationName", "createdAt", "updatedAt"],
-              include: [
-                {
-                  model: Shop,
-                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
-                  include: [
-                    {
-                      model: Plant,
-                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
         {
           model: Category,
           attributes: ["id", "categoryName", "createdAt", "updatedAt"],
@@ -72,28 +50,6 @@ export const getMaterialById = async (req, res) => {
       attributes: ["id", "materialNo", "description", "uom", "price", "type", "stdStock", "img", "createdAt", "updatedAt"],
       include: [
         {
-          model: AddressRack,
-          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Location,
-              attributes: ["id", "locationName", "createdAt", "updatedAt"],
-              include: [
-                {
-                  model: Shop,
-                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
-                  include: [
-                    {
-                      model: Plant,
-                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
           model: Category,
           attributes: ["id", "categoryName", "createdAt", "updatedAt"],
         },
@@ -103,6 +59,20 @@ export const getMaterialById = async (req, res) => {
         },
       ],
     });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const getMaterialIdByMaterialNo = async (req, res) => {
+  try {
+    const response = await Material.findOne({
+      where: { materialNo: req.params.materialno },
+      attributes: ["id"],
+    });
+
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);

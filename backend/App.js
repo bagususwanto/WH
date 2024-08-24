@@ -14,6 +14,8 @@ import addressRackRouter from "./routes/AddressRackRouter.js";
 import costCenterRouter from "./routes/CostCenterRouter.js";
 import managementStockRouter from "./routes/ManagementStockRouter.js";
 import authRouter from "./routes/AuthRouter.js";
+import incomingRouter from "./routes/IncomingRouter.js";
+import uploadRouter from "./routes/UploadRouter.js";
 import "./models/index.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -43,5 +45,11 @@ app.use("/api", costCenterRouter);
 
 // management stock router
 app.use("/api", managementStockRouter);
+
+// incoming router
+app.use("/api", incomingRouter);
+
+// upload router
+app.use("/api", uploadRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));
