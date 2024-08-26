@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../utils/AxiosInstance'
+import swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
+const MySwal = withReactContent(swal)
 
 const useVerify = () => {
   const [name, setName] = useState('')
@@ -24,6 +28,11 @@ const useVerify = () => {
       setExpire(decoded.exp)
     } catch (error) {
       console.error('Error refreshing token:', error)
+      MySwal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Token Expired',
+      })
       navigate('/login')
     }
   }
@@ -44,6 +53,11 @@ const useVerify = () => {
           setExpire(decoded.exp)
         } catch (error) {
           console.error('Error refreshing token in interceptor:', error)
+          MySwal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Token Expired',
+          })
           navigate('/login')
         }
       } else {

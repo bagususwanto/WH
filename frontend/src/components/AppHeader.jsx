@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
   CDropdown,
+  CDropdownHeader,
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
@@ -13,13 +14,22 @@ import {
   CNavLink,
   CNavItem,
   useColorModes,
+  CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilAsteriskCircle, cilBell, cilCheck, cilClearAll, cilContrast, cilMenu, cilMoon, cilReload, cilSun } from '@coreui/icons'
+import {
+  cilAsteriskCircle,
+  cilBell,
+  cilCheck,
+  cilClearAll,
+  cilContrast,
+  cilMenu,
+  cilMoon,
+  cilSun,
+} from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
-
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -35,6 +45,8 @@ const AppHeader = () => {
     })
   }, [])
 
+  const notificationCount = 3
+
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
       <CContainer className="border-bottom px-4" fluid>
@@ -46,11 +58,37 @@ const AppHeader = () => {
         </CHeaderToggler>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
         <CHeaderNav className="ms-auto">
-          <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilReload} size="lg" />
-            </CNavLink>
-          </CNavItem>
+          <CDropdown variant="nav-item">
+            <CDropdownToggle
+              placement="bottom-end"
+              className="py-0 pe-0 d-flex align-items-center"
+              caret={false}
+            >
+              <CIcon icon={cilBell} size="lg" className="me-2" />
+              {notificationCount > 0 && (
+                <CBadge
+                  color="danger"
+                  shape="rounded-pill"
+                  className="position-absolute translate-middle"
+                  style={{
+                    right: '-15px',
+                    padding: '0.35em 0.6em',
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  {notificationCount}
+                </CBadge>
+              )}
+            </CDropdownToggle>
+            <CDropdownMenu className="pt-0" placement="bottom-end">
+              <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
+                You have ({notificationCount}) notifications
+              </CDropdownHeader>
+              <CDropdownItem href="#">notifications 1</CDropdownItem>
+              <CDropdownItem href="#">notifications 2</CDropdownItem>
+              <CDropdownItem href="#">notifications 3</CDropdownItem>
+            </CDropdownMenu>
+          </CDropdown>
         </CHeaderNav>
         <CHeaderNav>
           <li className="nav-item py-1">

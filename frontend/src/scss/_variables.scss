@@ -1,5 +1,9 @@
 // Variable overrides
 //
 // If you want to customize your project please add your variables below.
+$primary: #232946;
+
+// Impor kembali variabel CoreUI setelah melakukan override
+@import '@coreui/coreui/scss/coreui';
 
 $enable-deprecation-messages: false !default;

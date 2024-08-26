@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../../services/AuthService'
+import logo from '../../../assets/brand/Twis.png'
 
 const MySwal = withReactContent(Swal)
 
@@ -112,15 +113,8 @@ const Login = () => {
               </CCard>
               <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
                 <CCardBody className="text-center">
-                  <div>
-                    <h2>Sign up</h2>
-                    <Link to="/register">
-                      <CButton color="primary" className="mt-3" active tabIndex={-1}>
-                        Register Now!
-                      </CButton>
-                    </Link>
-                  </div>
-                  <CIcon className="mt-3" icon={cibCircleci} size="3xl" />
+                  <img src={logo} alt="Logo" className="sidebar-brand-full" height={80} />
+                  <h5>Toyota Warehouse Integrated System</h5>
                 </CCardBody>
               </CCard>
             </CCardGroup>

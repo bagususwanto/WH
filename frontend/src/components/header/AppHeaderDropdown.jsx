@@ -2,62 +2,22 @@ import {
   CAvatar,
   CDropdown,
   CDropdownDivider,
-  CDropdownHeader,
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
+  CDropdownHeader,
 } from '@coreui/react'
 import { cilUser, cilAccountLogout } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import avatar2 from './../../assets/images/avatars/2.jpg'
+import profile from './../../assets/images/avatars/profile.png'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { jwtDecode } from 'jwt-decode'
-import axiosInstance from '../../utils/AxiosInstance'
+import useVerify from '../../hooks/UseVerify'
 
 const AppHeaderDropdown = () => {
-  const [name, setName] = useState('')
-  const [shopName, setShopName] = useState('')
-  const [expire, setExpire] = useState('')
+  const { name } = useVerify()
   const navigate = useNavigate()
-
-  // useEffect(() => {
-  //   refreshToken();
-  // }, []);
-
-  // const refreshToken = async () => {
-  //   try {
-  //     const response = await axiosInstance.get('/token')
-  //     const decoded = jwtDecode(response.data.accessToken)
-  //     setName(decoded.name)
-  //     setShopName(decoded.shopName)
-  //     setExpire(decoded.exp)
-  //   } catch (error) {
-  //     if (error.response) {
-  //       navigate('/login')
-  //     }
-  //   }
-  // }
-
-  // const axiosJWT = axiosInstance.create()
-
-  // axiosJWT.interceptors.request.use(
-  //   async (config) => {
-  //     const currentDate = new Date()
-  //     if (expire * 1000 < currentDate.getTime()) {
-  //       const response = await axiosInstance.get('/token')
-  //       config.headers.Authorization = `Bearer ${response.data.accessToken}`
-  //       const decoded = jwtDecode(response.data.accessToken)
-  //       setName(decoded.name)
-  //       setExpire(decoded.exp)
-  //     }
-  //     return config
-  //   },
-  //   (error) => {
-  //     return Promise.reject(error)
-  //   },
-  // )
 
   const handleLogout = () => {
     navigate('/logout')
@@ -72,7 +32,7 @@ const AppHeaderDropdown = () => {
         className="py-0 pe-0 d-flex align-items-center"
         caret={false}
       >
-        <CAvatar src={avatar2} size="md" />
+        <CAvatar src={profile} size="md" />
         <div className="ms-3 d-flex flex-column">
           <span>{firstName}</span>
           <span>{lastName}</span>
