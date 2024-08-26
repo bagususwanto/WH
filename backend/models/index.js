@@ -16,10 +16,12 @@ import Inventory from "./InventoryModel.js";
 import Retur from "./ReturModel.js";
 import Incoming from "./IncomingModel.js";
 import LogEntry from "./LogEntryModel.js";
+import LogImport from "./LogImportModel.js";
 
 (async () => {
   try {
     // await db.sync();
+    // await LogImport.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

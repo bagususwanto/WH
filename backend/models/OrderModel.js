@@ -1,6 +1,5 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import User from "./UserModel.js";
 import GoodIssue from "./GoodIssueModel.js";
 
 const { DataTypes } = Sequelize;
@@ -30,8 +29,6 @@ const Order = db.define(
   }
 );
 
-User.hasMany(Order, { foreignKey: "userId" });
-Order.belongsTo(User, { foreignKey: "userId" });
 
 Order.belongsTo(GoodIssue, { foreignKey: "goodIssueId" });
 GoodIssue.hasOne(Order, { foreignKey: "goodIssueId" });

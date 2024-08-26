@@ -22,9 +22,9 @@ const useManageStockService = () => {
     }
   }
 
-  const updateInventoryById = async (id) => {
+  const updateInventoryById = async (id, data) => {
     try {
-      const response = await axiosJWT.put(`inventory/${id}`, {
+      const response = await axiosJWT.put(`inventory/${id}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

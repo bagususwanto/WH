@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization; // Access header directly
-  const token = authHeader?.split(" ")[1]; // Optional chaining for better readability
+  const token = authHeader?.split(" ")[1]; 
 
-  if (!token) return res.sendStatus(401); // Simplified null check
+  if (!token) return res.sendStatus(401); 
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
@@ -13,7 +13,7 @@ export const verifyToken = (req, res, next) => {
     req.user = {
       username: decoded.username,
       userId: decoded.userId,
-      roleId: decoded.roleId,
+      roleName: decoded.roleName,
     };
 
     next();

@@ -26,7 +26,7 @@ import useVerify from './hooks/UseVerify'
 
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
-  const { roleId } = useVerify()
+  const { roleName } = useVerify()
 
   useEffect(() => {
     const baseNav = [
@@ -76,7 +76,7 @@ const useNavigation = () => {
       },
     ]
 
-    if (roleId === 1) {
+    if (roleName === 'super admin') {
       baseNav.push(
         {
           component: CNavTitle,
@@ -173,7 +173,7 @@ const useNavigation = () => {
     )
 
     setNavigation(baseNav)
-  }, [roleId])
+  }, [roleName])
 
   return navigation
 }

@@ -1,8 +1,8 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import User from "./UserModel.js";
 import Material from "./MaterialModel.js";
 import AddressRack from "./AddressRackModel.js";
+import LogImport from "./LogImportModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -27,10 +27,21 @@ const Incoming = db.define(
       allowNull: false,
       defaultValue: 0,
     },
-    flag: {
+    addressId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 1,
+      references: {
+        model: AddressRack,
+        key: "id",
+      },
+    },
+    logImportId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: LogImport,
+        key: "id",
+      },
     },
   },
   {
@@ -40,5 +51,12 @@ const Incoming = db.define(
 
 Material.hasMany(Incoming, { foreignKey: "materialId" });
 Incoming.belongsTo(Material, { foreignKey: "materialId" });
+
+AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
+Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
+
+LogImport.hasMany(Incoming, { foreignKey: "logImportId" });
+Incoming.belongsTo(LogImport, { foreignKey: "logImportId" });
+
 
 export default Incoming;

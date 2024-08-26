@@ -50,27 +50,27 @@ const Inventory = () => {
       sortable: true,
     },
     {
-      field: 'Material.Address_Rack.Location.Shop.Plant.plantName',
+      field: 'Address_Rack.Location.Shop.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Material.Address_Rack.Location.Shop.shopName', header: 'Shop', sortable: true },
-    { field: 'Material.Address_Rack.Location.locationName', header: 'Location', sortable: true },
+    { field: 'Address_Rack.Location.Shop.shopName', header: 'Shop', sortable: true },
+    { field: 'Address_Rack.Location.locationName', header: 'Location', sortable: true },
   ]
 
   const [visibleColumns, setVisibleColumns] = useState([])
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'Material.Address_Rack.Location.locationName': {
+    'Address_Rack.Location.locationName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Material.Address_Rack.Location.Shop.Plant.plantName': {
+    'Address_Rack.Location.Shop.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Material.Address_Rack.Location.Shop.shopName': {
+    'Address_Rack.Location.Shop.shopName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -79,15 +79,15 @@ const Inventory = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'Material.Address_Rack.Location.locationName': {
+      'Address_Rack.Location.locationName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Material.Address_Rack.Location.Shop.Plant.plantName': {
+      'Address_Rack.Location.Shop.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Material.Address_Rack.Location.Shop.shopName': {
+      'Address_Rack.Location.Shop.shopName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
@@ -125,16 +125,16 @@ const Inventory = () => {
       const dataWithFormattedFields = response.data.map((item) => {
         // Evaluasi untuk menentukan status inventory
         const evaluation =
-          item.quantityActual < item.Material.stdStock
+          item.quantityActual < item.Material.minStock
             ? 'shortage'
-            : item.quantityActual > item.Material.stdStock
+            : item.quantityActual > item.Material.minStock
               ? 'over'
               : 'ok'
 
         return {
           ...item,
           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
-          formattedUpdateBy: item.Material?.Log_Entries?.[0]?.User?.userName || '',
+          formattedUpdateBy: item.Log_Entries?.[0]?.User?.userName || '',
           formattedUpdateAt: item.updatedAt
             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
@@ -200,7 +200,9 @@ const Inventory = () => {
 
   const editInventory = async (updateItem) => {
     try {
-      await updateInventoryById(updateItem)
+      const { id, ...data } = updateItem
+
+      await updateInventoryById(id, data)
       fetchInventory()
       Swal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
@@ -211,7 +213,7 @@ const Inventory = () => {
   const handleLocationChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
-    _filters['Material.Address_Rack.Location.locationName'].value = value
+    _filters['Address_Rack.Location.locationName'].value = value
     setFilters(_filters)
   }
 
@@ -223,7 +225,7 @@ const Inventory = () => {
     getLocationByShopId(shopId)
 
     let _filters = { ...filters }
-    _filters['Material.Address_Rack.Location.Shop.shopName'].value = selectedShopName
+    _filters['Address_Rack.Location.Shop.shopName'].value = selectedShopName
     setFilters(_filters)
   }
 
@@ -235,7 +237,7 @@ const Inventory = () => {
     getShopByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Material.Address_Rack.Location.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Address_Rack.Location.Shop.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -258,27 +260,27 @@ const Inventory = () => {
       })
     }
 
-    if (filters['Material.Address_Rack.Location.locationName'].value) {
+    if (filters['Address_Rack.Location.locationName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Material.Address_Rack.Location.locationName ===
-          filters['Material.Address_Rack.Location.locationName'].value,
+          item.Address_Rack.Location.locationName ===
+          filters['Address_Rack.Location.locationName'].value,
       )
     }
 
-    if (filters['Material.Address_Rack.Location.Shop.Plant.plantName'].value) {
+    if (filters['Address_Rack.Location.Shop.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Material.Address_Rack.Location.Shop.Plant.plantName ===
-          filters['Material.Address_Rack.Location.Shop.Plant.plantName'].value,
+          item.Address_Rack.Location.Shop.Plant.plantName ===
+          filters['Address_Rack.Location.Shop.Plant.plantName'].value,
       )
     }
 
-    if (filters['Material.Address_Rack.Location.Shop.shopName'].value) {
+    if (filters['Address_Rack.Location.Shop.shopName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Material.Address_Rack.Location.Shop.shopName ===
-          filters['Material.Address_Rack.Location.Shop.shopName'].value,
+          item.Address_Rack.Location.Shop.shopName ===
+          filters['Address_Rack.Location.Shop.shopName'].value,
       )
     }
 
@@ -306,12 +308,12 @@ const Inventory = () => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
         const { quantityActual, Material } = item
-        const stdStock = Material?.stdStock
+        const minStock = Material?.minStock
 
         let evaluation
-        if (quantityActual < stdStock) {
+        if (quantityActual < minStock) {
           evaluation = 'shortage'
-        } else if (quantityActual > stdStock) {
+        } else if (quantityActual > minStock) {
           evaluation = 'over'
         } else {
           evaluation = 'ok'
@@ -320,15 +322,16 @@ const Inventory = () => {
         return {
           'Material No': Material.materialNo,
           Description: Material.description,
-          Address: Material.Address_Rack.addressRackName,
+          Address: Address_Rack.addressRackName,
           UoM: Material.uom,
-          'Standar Stock': Material.stdStock,
-          'Actual Stock': quantityActual,
+          'Min. Stock': Material.minStock,
+          'Max Stock': Material.maxStock,
+          'Inventory Stock': quantityActual,
           Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
-          Plant: Material.Address_Rack.Location.Shop.Plant.plantName,
-          Shop: Material.Address_Rack.Location.Shop.shopName,
-          Location: Material.Address_Rack.Location.locationName,
-          'Update By': Material.Log_Entries[0]?.User?.userName || '',
+          Plant: Address_Rack.Location.Shop.Plant.plantName,
+          Shop: Address_Rack.Location.Shop.shopName,
+          Location: Address_Rack.Location.locationName,
+          'Update By': Log_Entries[0]?.User?.userName || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
@@ -398,11 +401,11 @@ const Inventory = () => {
 
   const statusBodyTemplate = (rowData) => {
     const { quantityActual, Material } = rowData
-    const stdStock = Material?.stdStock
+    const minStock = Material?.minStock
 
-    if (quantityActual < stdStock)
+    if (quantityActual < minStock)
       return <Tag value="shortage" severity={getSeverity('shortage')} />
-    if (quantityActual > stdStock) return <Tag value="over" severity={getSeverity('over')} />
+    if (quantityActual > minStock) return <Tag value="over" severity={getSeverity('over')} />
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
@@ -454,7 +457,7 @@ const Inventory = () => {
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Material.Address_Rack.Location.Shop.Plant.plantName'].value}
+                  value={filters['Address_Rack.Location.Shop.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -465,7 +468,7 @@ const Inventory = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Material.Address_Rack.Location.Shop.shopName'].value}
+                  value={filters['Address_Rack.Location.Shop.shopName'].value}
                   options={shop}
                   onChange={handleShopChange}
                   placeholder="Select Shop"
@@ -476,7 +479,7 @@ const Inventory = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Material.Address_Rack.Location.locationName'].value}
+                  value={filters['Address_Rack.Location.locationName'].value}
                   options={location}
                   onChange={handleLocationChange}
                   placeholder="Select Location"
@@ -540,20 +543,20 @@ const Inventory = () => {
                 alignFrozen="left"
                 sortable
               ></Column>
-              <Column
-                field="Material.Address_Rack.addressRackName"
-                header="Address"
-                sortable
-              ></Column>
+              <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
               <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="Material.stdStock" header="Standar Stock" sortable></Column>
+              <Column field="Material.minStock" header="Min. Stock" sortable></Column>
+              <Column field="Material.maxStock" header="Max Stock" sortable></Column>
+              <Column field="Material.quantitySistem" header="Stock System" sortable></Column>
               <Column
                 field="quantityActual"
-                header="Actual Stock"
+                header="Stock Inventory"
                 editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
                 sortable
               ></Column>
+              <Column field="" header="Discrapency" sortable></Column>
+              <Column field="Material.quantityActualCheck" header="Stock On Hand" sortable></Column>
               <Column
                 field="evaluation"
                 header="Evaluation"

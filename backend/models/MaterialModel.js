@@ -1,6 +1,5 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import AddressRack from "./AddressRackModel.js";
 import Supplier from "./SupplierModel.js";
 import Category from "./CategoryModel.js";
 
@@ -29,21 +28,17 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    stdStock: {
+    minStock: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
+    },
+    maxStock: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     img: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    addressId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: AddressRack,
-        key: "id",
-      },
     },
     categoryId: {
       type: DataTypes.INTEGER,
@@ -72,8 +67,6 @@ const Material = db.define(
   }
 );
 
-AddressRack.hasMany(Material, { foreignKey: "addressId" });
-Material.belongsTo(AddressRack, { foreignKey: "addressId" });
 
 Category.hasMany(Material, { foreignKey: "categoryId" });
 Material.belongsTo(Category, { foreignKey: "categoryId" });
