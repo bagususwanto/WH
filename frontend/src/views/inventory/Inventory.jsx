@@ -324,8 +324,9 @@ const Inventory = () => {
           Description: Material.description,
           Address: Address_Rack.addressRackName,
           UoM: Material.uom,
-          'Standar Stock': Material.minStock,
-          'Actual Stock': quantityActual,
+          'Min. Stock': Material.minStock,
+          'Max Stock': Material.maxStock,
+          'Inventory Stock': quantityActual,
           Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
           Plant: Address_Rack.Location.Shop.Plant.plantName,
           Shop: Address_Rack.Location.Shop.shopName,
@@ -544,14 +545,18 @@ const Inventory = () => {
               ></Column>
               <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
               <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="Material.minStock" header="Standar Stock" sortable></Column>
+              <Column field="Material.minStock" header="Min. Stock" sortable></Column>
+              <Column field="Material.maxStock" header="Max Stock" sortable></Column>
+              <Column field="Material.quantitySistem" header="Stock System" sortable></Column>
               <Column
                 field="quantityActual"
-                header="Actual Stock"
+                header="Stock Inventory"
                 editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
                 sortable
               ></Column>
+              <Column field="" header="Discrapency" sortable></Column>
+              <Column field="Material.quantityActualCheck" header="Stock On Hand" sortable></Column>
               <Column
                 field="evaluation"
                 header="Evaluation"
