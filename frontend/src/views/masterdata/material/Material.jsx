@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
+import { saveAs } from 'file-saver';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
+import { InputText } from 'primereact/inputtext';
+import * as XLSX from 'xlsx';
 import 'primereact/resources/themes/mira/theme.css';
-import 'primeicons/primeicons.css'
+import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.min.css';
 import { MultiSelect } from 'primereact/multiselect';
 import {
@@ -21,20 +26,21 @@ import {
   CFormInput,
   CForm,
 } from '@coreui/react';
-import useAxiosWithAuth from '../../../utils/AxiosInstance';
+import useMasterDataService from '../../../services/MasterDataService';
 import Swal from 'sweetalert2';
 import Select from 'react-select';
-
-const axiosInstance = useAxiosWithAuth();
+import axios from 'axios';
 
 const Material = () => {
   const [materials, setMaterials] = useState([]);
   const [address, setAddress] = useState([]);
   const [modal, setModal] = useState(false);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [isEdit, setIsEdit] = useState(false);
   const [currentMaterial, setCurrentMaterial] = useState({
     id: '',
     materialNo: '',
+    description: '',
     uom: '',
     price: '',
     type: '',
@@ -43,7 +49,14 @@ const Material = () => {
     categoryId: '',
     supplierId: '',
   });
-  
+
+  const { getMasterData } = useMasterDataService();
+  const [filters, setFilters] = useState({
+    global: { value: null }
+  });
+  const apiMaterial = 'material';
+  const apiAddress = 'address-rack';
+
   useEffect(() => {
     getMaterial();
     getAddress();
@@ -59,11 +72,11 @@ const Material = () => {
     menu: (provided) => ({
       ...provided,
       backgroundColor: 'White',
-      color: 'white',
+      color: 'black',
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? '' : 'white',
+      backgroundColor: state.isSelected ? '#e0e0e0' : 'white',
       color: 'black',
     }),
     singleValue: (provided) => ({
@@ -78,16 +91,7 @@ const Material = () => {
 
   const getAddress = async () => {
     try {
-      const response = await axiosInstance.get('/address-rack');
-      setAddress(response.data);
-    } catch (error) {
-      console.error('Error fetching Address:', error);
-    }
-
-  };
-  const getCategory = async () => {
-    try {
-      const response = await axiosInstance.get('/Category');
+      const response = await getMasterData(apiAddress);
       setAddress(response.data);
     } catch (error) {
       console.error('Error fetching Address:', error);
@@ -96,7 +100,7 @@ const Material = () => {
 
   const getMaterial = async () => {
     try {
-      const response = await axiosInstance.get('/material');
+      const response = await getMasterData(apiMaterial);
       setMaterials(response.data);
     } catch (error) {
       console.error('Error fetching Material:', error);
@@ -108,6 +112,7 @@ const Material = () => {
     setCurrentMaterial({
       id: '',
       materialNo: '',
+      description: '',
       uom: '',
       price: '',
       type: '',
@@ -119,16 +124,12 @@ const Material = () => {
     setModal(true);
   };
 
-  const actionBodyTemplate = (rowData) => {
-    return (
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
-        <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
-      </div>
-    );
-  };
-
-
+  const actionBodyTemplate = (rowData) => (
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
+      <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
+    </div>
+  );
 
   const handleEditMaterial = (material) => {
     setIsEdit(true);
@@ -142,15 +143,15 @@ const Material = () => {
       stdStock: material.stdStock,
       categoryId: material.categoryId,
       supplierId: material.supplierId,
-      addressId: material.Address_Rack.id, // Menjaga array jika perlu
+      addressId: material.Address_Rack.id || '', // Handle case when Address_Rack might be null
     });
     setModal(true);
   };
 
-  const handleDeleteMaterial = (material) => {
+  const handleDeleteMaterial = (materialId) => {
     Swal.fire({
       title: 'Are you sure?',
-      text: 'You will not be able to recover this material!',
+      text: 'This material cannot be recovered!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -158,61 +159,109 @@ const Material = () => {
       confirmButtonText: 'Yes, delete it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(material);
+        confirmDelete(materialId);
       }
     });
   };
 
-  const confirmDelete = async (material) => {
+  const confirmDelete = async (materialId) => {
     try {
-      await axiosInstance.delete(`/material/${material}`);
-      Swal.fire('Deleted!', 'The Material has been deleted.', 'success');
+      await axios.delete(`/material/${materialId}`);
+      Swal.fire('Deleted!', 'Material has been deleted.', 'success');
       getMaterial();
     } catch (error) {
       console.error('Error deleting material:', error);
-      Swal.fire('Error!', 'Failed to delete the material.', 'error');
+      Swal.fire('Error!', 'Failed to delete material.', 'error');
     }
   };
 
   const handleSaveMaterial = async () => {
     try {
       if (isEdit) {
-        await axiosInstance.put(`/material/${currentMaterial.id}`, currentMaterial);
-        Swal.fire('Updated!', 'The Material has been updated.', 'success');
+        await axios.put(`/material/${currentMaterial.id}`, currentMaterial);
+        Swal.fire('Updated!', 'Material has been updated.', 'success');
       } else {
-        await axiosInstance.post('/material', currentMaterial);
-        Swal.fire('Added!', 'The material has been added.', 'success');
+        await axios.post('/material', currentMaterial);
+        Swal.fire('Added!', 'Material has been added.', 'success');
       }
       setModal(false);
       getMaterial();
     } catch (error) {
       console.error('Error saving material:', error);
-      Swal.fire('Error!', 'Failed to save the material.', 'error');
+      Swal.fire('Error!', 'Failed to save material.', 'error');
     }
   };
 
+  const onGlobalFilterChange = (e) => {
+    const value = e.target.value;
+    setFilters({
+      ...filters,
+      global: { value }
+    });
+    setGlobalFilterValue(value);
+  };
+
+  const filteredMaterials = useMemo(() => {
+    const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : '';
+    return materials.filter(item => {
+      return Object.values(item).some(val => val && val.toString().toLowerCase().includes(globalFilter));
+    });
+  }, [materials, filters.global.value]);
+
+  const renderHeader = () => {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <div style={{ width: '250px', marginBottom: '10px' }}>
+        <IconField iconPosition="left">
+          <InputIcon className="pi pi-search" />
+          
+          <InputText
+            value={globalFilterValue}
+            onChange={onGlobalFilterChange}
+            placeholder="Keyword Search"
+            style={{ width: '100%', borderRadius: '5px' }}
+          />
+          
+        </IconField>
+        </div>
+        </div>
+    );
+  };
+
+  // Prepare address options for Select
   const selectAddress = address.map(addr => ({
     value: addr.id,
-    label: `${addr.addressRackName}`
+    label: addr.addressRackName,
   }));
 
   const handleAddressChange = (selectedOption) => {
-    // Ensure selectedOption is an object, not an array
     setCurrentMaterial({
       ...currentMaterial,
-      address_Rack: selectedOption ? selectedOption.value : null // Handle single object
+      addressId: selectedOption ? selectedOption.value : '',
     });
   };
 
-  // Find selected address object for setting initial value
-  const selectedAddressOption = selectAddress.find(addr => addr.value === currentMaterial.id);
+  // Find the selected address option for initial value
+  const selectedAddressOption = selectAddress.find(addr => addr.value === currentMaterial.addressId);
+
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      // Mapping data untuk ekspor
-      const mappedData = visibleData.map((item) => {
-        const { quantityActual, Material } = item
-        const stdStock = Material?.stdStock
+      const mappedData = materials.map((item) => ({
+        'id': item.id,
+        materialNo: item.materialNo,
+        description: item.description,
+        uom: item.uom,
+        price: item.price,
+        type: item.type,
+        stdStock: item.stdStock,
+        categoryId: item.categoryId,
+        supplierId: item.supplierId,
+        addressId: item.Address_Rack.id,
+        'Created At': item.createdAt, // Ensure correct date format
+        'Updated At': item.updatedAt, // Ensure correct date format
+      }));
 
+<<<<<<< HEAD
         let evaluation
         if (quantityActual < stdStock) {
           evaluation = 'shortage'
@@ -240,152 +289,162 @@ const Material = () => {
 
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
+=======
+      const worksheet = xlsx.utils.json_to_sheet(mappedData);
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'material');
+>>>>>>> e5d483434ddd492e2506a340cae639d33a3adc1c
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
         type: 'array',
-      })
+      });
 
-      saveAsExcelFile(excelBuffer, 'inventory')
-    })
-  }
+      saveAsExcelFile(excelBuffer, 'material');
+    });
+  };
 
   const saveAsExcelFile = (buffer, fileName) => {
-    import('file-saver').then((module) => {
-      if (module && module.default) {
-        let EXCEL_TYPE =
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
-        let EXCEL_EXTENSION = '.xlsx'
-        const data = new Blob([buffer], {
-          type: EXCEL_TYPE,
-        })
-
-        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION)
-      }
-    })
-  }
-
+    const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    const EXCEL_EXTENSION = '.xlsx';
+    const data = new Blob([buffer], { type: EXCEL_TYPE });
+    saveAs(data, `${fileName}_export_${new Date().getTime()}${EXCEL_EXTENSION}`);
+  };
 
   return (
     <CRow>
-      <CCol>
-   
+      <CCol xs={12}>
         <CCard>
-          <CCardHeader>Master Data Supplier</CCardHeader>
-          <CCardBody>  
-          <CCol xs={6} sm={6} md={3}>
+          <CCardHeader>Master Data Material</CCardHeader>
+          <CCardBody>
+            <CRow className="mb-2">
+              <CCol>
+              <div style={{ display: 'flex', gap: '4px' }}>
                 <Button
-                  type="button"
-                  label="Excel"
-                  icon="pi pi-file-excel"
-                  severity="success"
-                  className="rounded-5"
-                  onClick={exportExcel}
-                  data-pr-tooltip="XLS"
+                  label="Add Material"
+                  icon="pi pi-plus"
+                  className="p-button-success"
+                  onClick={handleAddMaterial}
                 />
+                <Button
+                  label="Export to Excel"
+                  icon="pi pi-file-excel"
+                  className="p-button-info ml-2"
+                  onClick={exportExcel}
+                />
+                </div>
               </CCol>
-            <CButton color="primary" onClick={handleAddMaterial}>Add</CButton>
-            <CRow className='mb-3'></CRow>
-            <DataTable 
-              value={materials} 
-              paginator 
-              rows={10} 
-              rowsPerPageOptions={[10, 25, 50]} 
-              tableStyle={{ minWidth: '50rem' }} 
+            </CRow>
+            <DataTable
+              value={filteredMaterials}
+              paginator
+              rows={10}
+              rowsPerPageOptions={[10, 25, 50]}
+              tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+              scrollable
+              scrollDirection="horizontal"
+              globalFilter={filters.global.value} // Aplikasikan filter global di sini
+              header={renderHeader()} // Render header dengan filter global
             >
-              <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
-              <Column field="materialNo" header="No Material" style={{ width: '25%' }} />
-              <Column field="description" header="Description" style={{ width: '25%' }} />
+              <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} frozen alignFrozen="left" />
+              <Column field="materialNo" header="No Material" style={{ width: '25%' }} frozen alignFrozen="left" />
+              <Column field="description" header="Description" style={{ width: '25%' }} frozen alignFrozen="left" />
               <Column field="uom" header="UOM" style={{ width: '25%' }} />
               <Column field="price" header="Price" style={{ width: '25%' }} />
               <Column field="type" header="Type" style={{ width: '25%' }} />
               <Column field="stdStock" header="Standard Stock" style={{ width: '25%' }} />
-              <Column 
-                header="Address Rack" 
-                body={(rowData) => rowData.Address_Rack ? rowData.Address_Rack.addressRackName : ''} 
-                style={{ width: '25%' }} 
-              />
+              <Column header="Address Rack" body={(rowData) => rowData.Address_Rack ? rowData.Address_Rack.addressRackName : ''} style={{ width: '25%' }} />
               <Column field="categoryId" header="Category" style={{ width: '25%' }} />
               <Column field="supplierId" header="Supplier" style={{ width: '25%' }} />
               <Column field="createdAt" header="Created At" style={{ width: '25%' }} />
               <Column field="updatedAt" header="Updated At" style={{ width: '25%' }} />
-              <Column header="Action" body={actionBodyTemplate} />
+              <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
             </DataTable>
           </CCardBody>
         </CCard>
       </CCol>
 
-      <CModal visible={modal} onClose={() => setModal(false)}>
-        <CModalHeader>
+      {/* Modal form */}
+      <CModal visible={modal}
+       onClose={() => setModal(false)} 
+       size="lg"
+    
+      >
+        <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
-            <CFormInput
-              type="text"
-              value={currentMaterial.materialNo}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
-              placeholder="Enter Material Number"
-              label="Material No"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.description}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
-              placeholder="Enter Description"
-              label="Description"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.uom}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
-              placeholder="Enter UOM"
-              label="UOM"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.price}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
-              placeholder="Enter Price"
-              label="Price"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.type}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
-              placeholder="Enter Type"
-              label="Type"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.stdStock}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, stdStock: e.target.value })}
-              placeholder="Enter Standard Stock"
-              label="Standard Stock"
-            />
-            <CFormInput
-              type="text"
-              value={currentMaterial.categoryId}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, categoryId: e.target.value })}
-              placeholder="Enter Category ID"
-              label="Category"
-            />
-            <div className="mb-3">
-            <label className="form-label">Address Rack</label>
-             <Select
-              value={selectedAddressOption}
-              onChange={handleAddressChange}
-              options={selectAddress}
-              isClearable
-              placeholder="Select Address"
-              styles={customStyles} // Terapkan gaya kustom 
-            />
-            </div>
+            <CRow>
+              <CCol md={6}>
+                <CFormInput
+                  label="Material No"
+                  value={currentMaterial.materialNo}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  label="Description"
+                  value={currentMaterial.description}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
+                />
+              </CCol>
+            </CRow>
+            <CRow>
+              <CCol md={6}>
+                <CFormInput
+                  label="UOM"
+                  value={currentMaterial.uom}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  label="Price"
+                  type="number"
+                  value={currentMaterial.price}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
+                />
+              </CCol>
+            </CRow>
+            <CRow>
+              <CCol md={6}>
+                <CFormInput
+                  label="Type"
+                  value={currentMaterial.type}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormInput
+                  label="Standard Stock"
+                  type="number"
+                  value={currentMaterial.stdStock}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, stdStock: e.target.value })}
+                />
+              </CCol>
+            </CRow>
+            <CRow>
+              <CCol md={6}>
+              <label htmlFor="addressSelect" className="form-label">Address Rack</label>
+                <Select
+                  options={selectAddress}
+                  value={selectedAddressOption}
+                  onChange={handleAddressChange}
+                  placeholder="Select Address Rack"
+                  styles={customStyles}
+                />
+              </CCol>
+              <CCol md={5}>
+                {/* Implement category and supplier dropdowns if necessary */}
+              </CCol>
+            </CRow>
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveMaterial}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="secondary" onClick={() => setModal(false)}>Close</CButton>
+          <CButton color="primary" onClick={handleSaveMaterial}>Save</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
