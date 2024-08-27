@@ -33,7 +33,7 @@ const Address = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [currentAddress, setCurrentAddress] = useState({
     addressRackName: '',
-    locationId: '',
+    storageId: '',
     flag: '',
   });
 
@@ -66,10 +66,10 @@ const Address = () => {
 
   const handleEditAddress= (address) => {
     setIsEdit(true);
-    setCurrentLocation({
+    setCurrentStorage({
       id: address.id,
       addressRackName: address.addressRackName,
-      locationId: address.locationId,
+      storageId: address.storageId,
       flag: address.flag,
       createdAt: address.createdAt,
       updatedAt: address.updatedAt,
@@ -113,7 +113,7 @@ const Address = () => {
             <DataTable value={addriess} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }}>
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
                 <Column field="addressRackName" header="Nama Rack" style={{ width: '25%' }}></Column>
-                <Column field="locationId" header="Location" style={{ width: '25%' }}></Column>
+                <Column field="storageId" header="Storage" style={{ width: '25%' }}></Column>
                 <Column field="flag" header="Flag" style={{ width: '25%' }}></Column>
                 <Column field="CreatedAt" header="Crate At" style={{ width: '25%' }}></Column>
                 <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
@@ -138,8 +138,8 @@ const Address = () => {
             />
              <CFormInput
               type="text"
-              value={currentAddress.locationId}
-              onChange={(e) => setCurrentAddress({ ...currentAddress, locationId: e.target.value })}
+              value={currentAddress.storageId}
+              onChange={(e) => setCurrentAddress({ ...currentAddress, storageId: e.target.value })}
               placeholder="Enter address name"
               label="Address Name"
             />

@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import Location from "./LocationModel.js";
+import Storage from "./StorageModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -11,11 +11,11 @@ const AddressRack = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    locationId: {
+    storageId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Location,
+        model: Storage,
         key: "id",
       },
     },
@@ -30,7 +30,7 @@ const AddressRack = db.define(
   }
 );
 
-Location.hasMany(AddressRack, { foreignKey: "locationId" });
-AddressRack.belongsTo(Location, { foreignKey: "locationId" });
+Storage.hasMany(AddressRack, { foreignKey: "storageId" });
+AddressRack.belongsTo(Storage, { foreignKey: "storageId" });
 
 export default AddressRack;

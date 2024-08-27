@@ -26,7 +26,7 @@ const Inventory = () => {
   const [inventory, setInventory] = useState([])
   const [plant, setPlant] = useState([])
   const [shop, setShop] = useState([])
-  const [location, setLocation] = useState([])
+  const [storage, setStorage] = useState([])
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
@@ -36,7 +36,7 @@ const Inventory = () => {
 
   const apiPlant = 'plant'
   const apiShop = 'shop-plant'
-  const apiLocation = 'location-shop'
+  const apiStorage = 'storage-shop'
 
   const columns = [
     {
@@ -50,27 +50,27 @@ const Inventory = () => {
       sortable: true,
     },
     {
-      field: 'Address_Rack.Location.Shop.Plant.plantName',
+      field: 'Address_Rack.Storage.Shop.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Address_Rack.Location.Shop.shopName', header: 'Shop', sortable: true },
-    { field: 'Address_Rack.Location.locationName', header: 'Location', sortable: true },
+    { field: 'Address_Rack.Storage.Shop.shopName', header: 'Shop', sortable: true },
+    { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
   ]
 
   const [visibleColumns, setVisibleColumns] = useState([])
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'Address_Rack.Location.locationName': {
+    'Address_Rack.Storage.storageName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Location.Shop.Plant.plantName': {
+    'Address_Rack.Storage.Shop.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Location.Shop.shopName': {
+    'Address_Rack.Storage.Shop.shopName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -79,15 +79,15 @@ const Inventory = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'Address_Rack.Location.locationName': {
+      'Address_Rack.Storage.storageName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Location.Shop.Plant.plantName': {
+      'Address_Rack.Storage.Shop.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Location.Shop.shopName': {
+      'Address_Rack.Storage.Shop.shopName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
@@ -182,19 +182,19 @@ const Inventory = () => {
     }
   }
 
-  const getLocationByShopId = async (id) => {
+  const getStorageByShopId = async (id) => {
     if (!id) {
       return
     }
     try {
-      const response = await getMasterDataById(apiLocation, id)
-      const locationOptions = response.map((location) => ({
-        label: location.locationName,
-        value: location.locationName,
+      const response = await getMasterDataById(apiStorage, id)
+      const storageOptions = response.map((storage) => ({
+        label: storage.storageName,
+        value: storage.storageName,
       }))
-      setLocation(locationOptions)
+      setStorage(storageOptions)
     } catch (error) {
-      console.error('Error fetching location by ID:', error)
+      console.error('Error fetching storage by ID:', error)
     }
   }
 
@@ -210,10 +210,10 @@ const Inventory = () => {
     }
   }
 
-  const handleLocationChange = (e) => {
+  const handleStorageChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
-    _filters['Address_Rack.Location.locationName'].value = value
+    _filters['Address_Rack.Storage.storageName'].value = value
     setFilters(_filters)
   }
 
@@ -222,10 +222,10 @@ const Inventory = () => {
     const selectedShop = shop.find((s) => s.value === selectedShopName) // Cari objek shop berdasarkan shopName
     const shopId = selectedShop?.id // Dapatkan shop.id
 
-    getLocationByShopId(shopId)
+    getStorageByShopId(shopId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Location.Shop.shopName'].value = selectedShopName
+    _filters['Address_Rack.Storage.Shop.shopName'].value = selectedShopName
     setFilters(_filters)
   }
 
@@ -237,7 +237,7 @@ const Inventory = () => {
     getShopByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Location.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -260,27 +260,27 @@ const Inventory = () => {
       })
     }
 
-    if (filters['Address_Rack.Location.locationName'].value) {
+    if (filters['Address_Rack.Storage.storageName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Location.locationName ===
-          filters['Address_Rack.Location.locationName'].value,
+          item.Address_Rack.Storage.storageName ===
+          filters['Address_Rack.Storage.storageName'].value,
       )
     }
 
-    if (filters['Address_Rack.Location.Shop.Plant.plantName'].value) {
+    if (filters['Address_Rack.Storage.Shop.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Location.Shop.Plant.plantName ===
-          filters['Address_Rack.Location.Shop.Plant.plantName'].value,
+          item.Address_Rack.Storage.Shop.Plant.plantName ===
+          filters['Address_Rack.Storage.Shop.Plant.plantName'].value,
       )
     }
 
-    if (filters['Address_Rack.Location.Shop.shopName'].value) {
+    if (filters['Address_Rack.Storage.Shop.shopName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Location.Shop.shopName ===
-          filters['Address_Rack.Location.Shop.shopName'].value,
+          item.Address_Rack.Storage.Shop.shopName ===
+          filters['Address_Rack.Storage.Shop.shopName'].value,
       )
     }
 
@@ -307,13 +307,14 @@ const Inventory = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
-        const { quantityActual, Material } = item
+        const { quantityActualCheck, Material } = item
         const minStock = Material?.minStock
+        const maxStock = Material?.maxStock
 
         let evaluation
-        if (quantityActual < minStock) {
+        if (quantityActualCheck < minStock) {
           evaluation = 'shortage'
-        } else if (quantityActual > minStock) {
+        } else if (quantityActualCheck > maxStock) {
           evaluation = 'over'
         } else {
           evaluation = 'ok'
@@ -326,11 +327,13 @@ const Inventory = () => {
           UoM: Material.uom,
           'Min. Stock': Material.minStock,
           'Max Stock': Material.maxStock,
-          'Inventory Stock': quantityActual,
-          Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
-          Plant: Address_Rack.Location.Shop.Plant.plantName,
-          Shop: Address_Rack.Location.Shop.shopName,
-          Location: Address_Rack.Location.locationName,
+          'Stock System': quantitySistem,
+          'Stock Inventory': quantityActual,
+          'Stock On Hand': quantityActualCheck,
+          Evaluation: evaluation,
+          Plant: Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: Address_Rack.Storage.Shop.shopName,
+          Storage: Address_Rack.Storage.storageName,
           'Update By': Log_Entries[0]?.User?.userName || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
@@ -400,13 +403,23 @@ const Inventory = () => {
   }
 
   const statusBodyTemplate = (rowData) => {
-    const { quantityActual, Material } = rowData
+    const { quantityActualCheck, Material } = rowData
     const minStock = Material?.minStock
+    const maxStock = Material?.maxStock
 
-    if (quantityActual < minStock)
+    if (quantityActualCheck < minStock)
       return <Tag value="shortage" severity={getSeverity('shortage')} />
-    if (quantityActual > minStock) return <Tag value="over" severity={getSeverity('over')} />
+    if (quantityActualCheck > maxStock) return <Tag value="over" severity={getSeverity('over')} />
     return <Tag value="ok" severity={getSeverity('ok')} />
+  }
+
+  const discrapencyBodyTemplate = (rowData) => {
+    const { quantityActual, quantitySistem, Material } = rowData
+
+    const discrapency = quantityActual - quantitySistem
+
+    if (discrapency < 0) return <Tag value={discrapency} severity={getSeverity('shortage')} />
+    if (discrapency > 0) return <Tag value={discrapency} severity={getSeverity('over')} />
   }
 
   const onColumnToggle = (event) => {
@@ -457,7 +470,7 @@ const Inventory = () => {
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Address_Rack.Location.Shop.Plant.plantName'].value}
+                  value={filters['Address_Rack.Storage.Shop.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -468,7 +481,7 @@ const Inventory = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Address_Rack.Location.Shop.shopName'].value}
+                  value={filters['Address_Rack.Storage.Shop.shopName'].value}
                   options={shop}
                   onChange={handleShopChange}
                   placeholder="Select Shop"
@@ -479,10 +492,10 @@ const Inventory = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Address_Rack.Location.locationName'].value}
-                  options={location}
-                  onChange={handleLocationChange}
-                  placeholder="Select Location"
+                  value={filters['Address_Rack.Storage.storageName'].value}
+                  options={storage}
+                  onChange={handleStorageChange}
+                  placeholder="Select Storage"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
@@ -547,7 +560,7 @@ const Inventory = () => {
               <Column field="Material.uom" header="UoM" sortable></Column>
               <Column field="Material.minStock" header="Min. Stock" sortable></Column>
               <Column field="Material.maxStock" header="Max Stock" sortable></Column>
-              <Column field="Material.quantitySistem" header="Stock System" sortable></Column>
+              <Column field="quantitySistem" header="Stock System" sortable></Column>
               <Column
                 field="quantityActual"
                 header="Stock Inventory"
@@ -555,8 +568,14 @@ const Inventory = () => {
                 style={{ width: '5%' }}
                 sortable
               ></Column>
-              <Column field="" header="Discrapency" sortable></Column>
-              <Column field="Material.quantityActualCheck" header="Stock On Hand" sortable></Column>
+              <Column
+                field=""
+                header="Discrapency"
+                body={discrapencyBodyTemplate}
+                bodyStyle={{ textAlign: 'center' }}
+                sortable
+              ></Column>
+              <Column field="quantityActualCheck" header="Stock On Hand" sortable></Column>
               <Column
                 field="evaluation"
                 header="Evaluation"

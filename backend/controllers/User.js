@@ -1,6 +1,5 @@
 import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import Role from "../models/RoleModel.js";
 import CostCenter from "../models/CostCenterModel.js";
 import Shop from "../models/ShopModel.js";
@@ -94,6 +93,15 @@ export const createUser = async (req, res) => {
   const { username, password, name, roleId, costCenterId } = req.body;
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
+
+  if (!username || !password || !name || !roleId || !costCenterId) {
+    return res.status(400).json({ msg: "Please fill in all fields" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ msg: "Password must be at least 6 characters" });
+  }
+
   try {
     const existingUser = await User.findOne({
       where: {

@@ -114,8 +114,8 @@ const useNavigation = () => {
             },
             {
               component: CNavItem,
-              name: 'Location',
-              to: '/location',
+              name: 'Storage',
+              to: '/storage',
               icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
             },
             {

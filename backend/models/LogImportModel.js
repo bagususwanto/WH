@@ -24,7 +24,7 @@ const LogImport = db.define(
       },
     },
     importDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
   },

@@ -304,9 +304,39 @@ const Material = () => {
         'Updated At': item.updatedAt, // Ensure correct date format
       }));
 
+<<<<<<< HEAD
+        let evaluation
+        if (quantityActual < stdStock) {
+          evaluation = 'shortage'
+        } else if (quantityActual > stdStock) {
+          evaluation = 'over'
+        } else {
+          evaluation = 'ok'
+        }
+
+        return {
+          'Material No': Material.materialNo,
+          Description: Material.description,
+          Address: Material.Address_Rack.addressRackName,
+          UoM: Material.uom,
+          'Standar Stock': Material.stdStock,
+          'Actual Stock': quantityActual,
+          Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
+          Plant: Material.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: Material.Address_Rack.Storage.Shop.shopName,
+          Storage: Material.Address_Rack.Storage.storageName,
+          'Update By': Material.Log_Entries[0]?.User?.userName || '',
+          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+        }
+      })
+
+      const worksheet = xlsx.utils.json_to_sheet(mappedData)
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
+=======
       const worksheet = xlsx.utils.json_to_sheet(mappedData);
       const workbook = xlsx.utils.book_new();
       xlsx.utils.book_append_sheet(workbook, worksheet, 'material');
+>>>>>>> e5d483434ddd492e2506a340cae639d33a3adc1c
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
         type: 'array',

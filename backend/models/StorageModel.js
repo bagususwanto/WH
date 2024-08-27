@@ -4,10 +4,10 @@ import Shop from "./ShopModel.js";
 
 const { DataTypes } = Sequelize;
 
-const Location = db.define(
-  "Location",
+const Storage = db.define(
+  "Storage",
   {
-    locationName: {
+    storageName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -30,7 +30,7 @@ const Location = db.define(
   }
 );
 
-Shop.hasMany(Location, { foreignKey: "shopId" });
-Location.belongsTo(Shop, { foreignKey: "shopId" });
+Shop.hasMany(Storage, { foreignKey: "shopId" });
+Storage.belongsTo(Shop, { foreignKey: "shopId" });
 
-export default Location;
+export default Storage;

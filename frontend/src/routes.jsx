@@ -12,7 +12,7 @@ const Supplier = React.lazy(() => import('./views/masterdata/supplier/Supplier')
 const Material = React.lazy(() => import('./views/masterdata/material/Material'))
 const Role = React.lazy(() => import('./views/masterdata/role/Role'))
 const Cost = React.lazy(() => import('./views/masterdata/cost/Cost'))
-const Location = React.lazy(() => import('./views/masterdata/location/Location'))
+const Storage = React.lazy(() => import('./views/masterdata/storage/Storage'))
 const Address = React.lazy(() => import('./views/masterdata/address/Address'))
 const User = React.lazy(() => import('./views/masterdata/user/User'))
 const Goodissue = React.lazy(() => import('./views/orderwarehouse/goodissue/Goodissue'))
@@ -31,7 +31,7 @@ const routes = [
   { path: '/material', name: 'Material', element: Material },
   { path: '/role', name: 'Role', element: Role },
   { path: '/cost', name: 'Cost', element: Cost },
-  { path: '/location', name: 'Location', element: Location },
+  { path: '/storage', name: 'Storage', element: Storage },
   { path: '/address', name: 'Address', element: Address },
   { path: '/user', name: 'User', element: User },
   { path: '/goodissue', name: 'Goodissue', element: Goodissue },
