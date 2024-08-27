@@ -6,6 +6,7 @@ import { saveAs } from 'file-saver';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { InputText } from 'primereact/inputtext';
+import { read, utils } from 'xlsx';
 import * as XLSX from 'xlsx';
 import 'primereact/resources/themes/mira/theme.css';
 import 'primeicons/primeicons.css';
@@ -33,7 +34,8 @@ import axios from 'axios';
 
 const Material = () => {
   const [materials, setMaterials] = useState([]);
-  const [address, setAddress] = useState([]);
+  const [supplier, setSupplier] = useState([]);
+  const [category, setCategory] = useState([]);
   const [modal, setModal] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [isEdit, setIsEdit] = useState(false);
@@ -44,22 +46,24 @@ const Material = () => {
     uom: '',
     price: '',
     type: '',
-    stdStock: '',
-    addressId: '',
-    categoryId: '',
-    supplierId: '',
+    Category: '',
+    Supplier: '',
+    minStock: '',
+    maxStock: '',
   });
 
-  const { getMasterData } = useMasterDataService();
+  const { getMasterData, updateMasterDataById } = useMasterDataService();
   const [filters, setFilters] = useState({
     global: { value: null }
   });
   const apiMaterial = 'material';
-  const apiAddress = 'address-rack';
+  const apiSupplier = 'Supplier';
+  const apiCategory = 'Category';
 
   useEffect(() => {
     getMaterial();
-    getAddress();
+    getSupplier();
+    getCategory();
   }, []);
 
   const customStyles = {
@@ -89,12 +93,21 @@ const Material = () => {
     }),
   };
 
-  const getAddress = async () => {
+  const getCategory = async () => {
     try {
-      const response = await getMasterData(apiAddress);
-      setAddress(response.data);
+      const response = await getMasterData(apiCategory);
+      setCategory(response.data);
     } catch (error) {
-      console.error('Error fetching Address:', error);
+      console.error('Error fetching Category:', error);
+    }
+  };
+
+  const getSupplier = async () => {
+    try {
+      const response = await getMasterData(apiSupplier);
+      setSupplier(response.data);
+    } catch (error) {
+      console.error('Error fetching Supplier:', error);
     }
   };
 
@@ -116,22 +129,34 @@ const Material = () => {
       uom: '',
       price: '',
       type: '',
-      stdStock: '',
       addressId: '',
-      categoryId: '',
-      supplierId: '',
+      Category: '',
+      Supplier: '',
+      minStock: '',
+      maxStock: '',
     });
     setModal(true);
   };
 
   const actionBodyTemplate = (rowData) => (
     <div style={{ display: 'flex', gap: '10px' }}>
-      <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditMaterial(rowData)} />
-      <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteMaterial(rowData.id)} />
+      <Button
+        label="Edit"
+        icon="pi pi-pencil"
+        className="p-button-success"
+        onClick={() => handleEditMaterial(rowData)}
+      />
+      <Button
+        label="Delete"
+        icon="pi pi-trash"
+        className="p-button-danger"
+        onClick={() => handleDeleteMaterial(rowData.id)}
+      />
     </div>
   );
 
   const handleEditMaterial = (material) => {
+    console.log('Editing material:', material); // Debugging
     setIsEdit(true);
     setCurrentMaterial({
       id: material.id,
@@ -140,13 +165,14 @@ const Material = () => {
       uom: material.uom,
       price: material.price,
       type: material.type,
-      stdStock: material.stdStock,
-      categoryId: material.categoryId,
-      supplierId: material.supplierId,
-      addressId: material.Address_Rack.id || '', // Handle case when Address_Rack might be null
+      Category: material.Category ? material.categoryName:'',
+      Supplier: material.Supplier ? material.supplierName:'',
+      minStock: material.minStock,
+      maxStock: material.maxStock,
     });
     setModal(true);
   };
+    
 
   const handleDeleteMaterial = (materialId) => {
     Swal.fire({
@@ -175,22 +201,24 @@ const Material = () => {
     }
   };
 
-  const handleSaveMaterial = async () => {
-    try {
-      if (isEdit) {
-        await axios.put(`/material/${currentMaterial.id}`, currentMaterial);
-        Swal.fire('Updated!', 'Material has been updated.', 'success');
-      } else {
-        await axios.post('/material', currentMaterial);
-        Swal.fire('Added!', 'Material has been added.', 'success');
-      }
-      setModal(false);
-      getMaterial();
-    } catch (error) {
-      console.error('Error saving material:', error);
-      Swal.fire('Error!', 'Failed to save material.', 'error');
+ const handleSaveMaterial = async () => {
+  try {
+    if (isEdit) {
+      // Update existing material
+      updateMasterDataById(apiMaterial, currentMaterial.id, currentMaterial)
+      Swal.fire('Updated!', 'Material has been updated.', 'success');
+    } else {
+      // Create new material
+      updateMasterDataById(apiMaterial, currentMaterial.id, currentMaterial)
+      Swal.fire('Added!', 'Material has been added.', 'success');
     }
-  };
+    setModal(false);
+    getMaterial(); // Refresh the list
+  } catch (error) {
+    console.error('Error saving material:', error);
+    Swal.fire('Error!', 'Failed to save material.', 'error');
+  }
+};
 
   const onGlobalFilterChange = (e) => {
     const value = e.target.value;
@@ -228,35 +256,50 @@ const Material = () => {
     );
   };
 
-  // Prepare address options for Select
-  const selectAddress = address.map(addr => ({
-    value: addr.id,
-    label: addr.addressRackName,
+  const selectCategory = category.map(cat => ({
+    value: cat.id,
+    label: cat.categoryName,
   }));
 
-  const handleAddressChange = (selectedOption) => {
-    setCurrentMaterial({
+  const handleCategoryChange = (selectedOption) => {
+    setCurrentCategory({
       ...currentMaterial,
-      addressId: selectedOption ? selectedOption.value : '',
+      Category: selectedOption ? selectedOption.value : '',
     });
   };
 
   // Find the selected address option for initial value
-  const selectedAddressOption = selectAddress.find(addr => addr.value === currentMaterial.addressId);
+  const selectedCategoryOption = selectCategory.find(cat => cat.value === currentMaterial.Category);
+
+  // Prepare address options for Select
+  const selectSupplier = supplier.map(supp => ({
+    value: supp.id,
+    label: supp.supplierName,
+  }));
+
+  const handleSupplierChange = (selectedOption) => {
+    setCurrentSupplier({
+      ...currentMaterial,
+      Supplier: selectedOption ? selectedOption.value : '',
+    });
+  };
+
+  // Find the selected address option for initial value
+  const selectedSupplierOption = selectSupplier.find(supp => supp.value === currentMaterial.Supplier);
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = materials.map((item) => ({
-        'id': item.id,
+        id: item.id,
         materialNo: item.materialNo,
         description: item.description,
         uom: item.uom,
         price: item.price,
         type: item.type,
-        stdStock: item.stdStock,
-        categoryId: item.categoryId,
-        supplierId: item.supplierId,
-        addressId: item.Address_Rack.id,
+        Category: item.Category,
+        Supplier: item.Supplier,
+        minStock: item.minStock,
+        maxStock: item.maxStock,
         'Created At': item.createdAt, // Ensure correct date format
         'Updated At': item.updatedAt, // Ensure correct date format
       }));
@@ -280,6 +323,34 @@ const Material = () => {
     saveAs(data, `${fileName}_export_${new Date().getTime()}${EXCEL_EXTENSION}`);
   };
 
+  const handleImportExcel = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = read(data);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const json = utils.sheet_to_json(sheet);
+      
+      // Anda bisa menyesuaikan struktur data sesuai kebutuhan
+      const materialsFromExcel = json.map(item => ({
+        ...item,
+        id: item.id || '', // Pastikan ID ada jika diperlukan
+      }));
+  
+      // Kirim data ke backend untuk diupdate
+      await axios.post('/import/material', materialsFromExcel);
+      
+      Swal.fire('Success!', 'Materials have been imported and updated.', 'success');
+      getMaterial(); // Refresh the material list
+    } catch (error) {
+      console.error('Error importing materials:', error);
+      Swal.fire('Error!', 'Failed to import materials.', 'error');
+    }
+  };
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -301,6 +372,14 @@ const Material = () => {
                   className="p-button-info ml-2"
                   onClick={exportExcel}
                 />
+                 <label htmlFor="importExcel">
+                    <Button
+                      label="Import from Excel"
+                      icon="pi pi-file-excel"
+                      className="p-button-info"
+                      onClick={() => document.getElementById('importExcel').click()}
+                    />
+                  </label>
                 </div>
               </CCol>
             </CRow>
@@ -322,10 +401,10 @@ const Material = () => {
               <Column field="uom" header="UOM" style={{ width: '25%' }} />
               <Column field="price" header="Price" style={{ width: '25%' }} />
               <Column field="type" header="Type" style={{ width: '25%' }} />
-              <Column field="stdStock" header="Standard Stock" style={{ width: '25%' }} />
-              <Column header="Address Rack" body={(rowData) => rowData.Address_Rack ? rowData.Address_Rack.addressRackName : ''} style={{ width: '25%' }} />
-              <Column field="categoryId" header="Category" style={{ width: '25%' }} />
-              <Column field="supplierId" header="Supplier" style={{ width: '25%' }} />
+              <Column header="Category" body={(rowData) => rowData.Category ? rowData.Category.categoryName : ''} style={{ width: '25%' }} />
+              <Column header="Supplier" body={(rowData) => rowData.Supplier ? rowData.Supplier.supplierName : ''} style={{ width: '25%' }} />   
+              <Column field="minStock" header="Min Stock" style={{ width: '25%' }} />
+              <Column field="maxStock" header="Max stock" style={{ width: '25%' }} />
               <Column field="createdAt" header="Created At" style={{ width: '25%' }} />
               <Column field="updatedAt" header="Updated At" style={{ width: '25%' }} />
               <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
@@ -334,87 +413,77 @@ const Material = () => {
         </CCard>
       </CCol>
 
-      {/* Modal form */}
-      <CModal visible={modal}
-       onClose={() => setModal(false)} 
-       size="lg"
-    
-      >
-        <CModalHeader onClose={() => setModal(false)}>
-          <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
-        </CModalHeader>
+      <CModal visible={modal} onClose={() => setModal(false)} size="lg">
+  <CModalHeader onClose={() => setModal(false)}>
+    <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
+  </CModalHeader>
         <CModalBody>
-          <CForm>
-            <CRow>
-              <CCol md={6}>
-                <CFormInput
-                  label="Material No"
-                  value={currentMaterial.materialNo}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormInput
-                  label="Description"
-                  value={currentMaterial.description}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol md={6}>
-                <CFormInput
-                  label="UOM"
-                  value={currentMaterial.uom}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormInput
-                  label="Price"
-                  type="number"
-                  value={currentMaterial.price}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol md={6}>
-                <CFormInput
-                  label="Type"
-                  value={currentMaterial.type}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormInput
-                  label="Standard Stock"
-                  type="number"
-                  value={currentMaterial.stdStock}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, stdStock: e.target.value })}
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol md={6}>
-              <label htmlFor="addressSelect" className="form-label">Address Rack</label>
-                <Select
-                  options={selectAddress}
-                  value={selectedAddressOption}
-                  onChange={handleAddressChange}
-                  placeholder="Select Address Rack"
-                  styles={customStyles}
-                />
-              </CCol>
-              <CCol md={5}>
-                {/* Implement category and supplier dropdowns if necessary */}
-              </CCol>
-            </CRow>
+        <CForm>
+            <CFormInput
+              label="Material No"
+              value={currentMaterial.materialNo}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })}
+            />
+            <CFormInput
+              label="Description"
+              value={currentMaterial.description}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, description: e.target.value })}
+            />
+            <CFormInput
+              label="UOM"
+              value={currentMaterial.uom}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
+            />
+            <CFormInput
+              label="Price"
+              type="number"
+              value={currentMaterial.price}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
+            />
+              <div className="mb-3">
+              <label className="form-label">Supplier</label>
+              <Select
+                value={selectedSupplierOption}
+                onChange={handleSupplierChange}
+                options={selectSupplier}
+                styles={customStyles}
+                placeholder="Select Supplier"
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Category</label>
+              <Select
+                value={selectedCategoryOption}
+                onChange={handleCategoryChange}
+                options={selectCategory}
+                styles={customStyles}
+                placeholder="Select Category"
+              />
+            </div>
+            <CFormInput
+              label="Type"
+              value={currentMaterial.type}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
+            />
+            <CFormInput
+              label="Min Stock"
+              type="number"
+              value={currentMaterial.minStock}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, minStock: e.target.value })}
+            />
+            <CFormInput
+              label="Max Stock"
+              type="number"
+              value={currentMaterial.maxStock}
+              onChange={(e) => setCurrentMaterial({ ...currentMaterial, maxStock: e.target.value })}
+            />
+           
           </CForm>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setModal(false)}>Close</CButton>
-          <CButton color="primary" onClick={handleSaveMaterial}>Save</CButton>
+          <CButton color="primary" onClick={handleSaveMaterial}>{isEdit ? 'Update' : 'Save'}</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
