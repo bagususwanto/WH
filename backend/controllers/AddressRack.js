@@ -1,5 +1,5 @@
 import AddressRack from "../models/AddressRackModel.js";
-import Location from "../models/LocationModel.js";
+import Storage from "../models/StorageModel.js";
 import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 
@@ -10,8 +10,8 @@ export const getAddressRack = async (req, res) => {
       attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
       include: [
         {
-          model: Location,
-          attributes: ["id", "locationName", "createdAt", "updatedAt"],
+          model: Storage,
+          attributes: ["id", "storageName", "createdAt", "updatedAt"],
           include: [
             {
               model: Shop,
@@ -55,8 +55,8 @@ export const getAddressRackById = async (req, res) => {
       attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
       include: [
         {
-          model: Location,
-          attributes: ["id", "locationName", "createdAt", "updatedAt"],
+          model: Storage,
+          attributes: ["id", "storageName", "createdAt", "updatedAt"],
           include: [
             {
               model: Shop,

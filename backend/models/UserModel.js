@@ -41,6 +41,10 @@ const User = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    img: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,

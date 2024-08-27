@@ -18,6 +18,10 @@ export const login = async (req, res) => {
     return res.status(400).json({ msg: "Username dan password harus diisi" });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ msg: "Password harus lebih dari 6 karakter" });
+  }
+
   try {
     const user = await Users.findOne({
       where: { username, flag: 1 },

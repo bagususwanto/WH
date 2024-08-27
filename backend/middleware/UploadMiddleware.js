@@ -26,7 +26,7 @@ const __basedir = path.dirname(new URL(import.meta.url).pathname);
 // Konfigurasi penyimpanan untuk multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, `C:/Project/wh/backend/resources/uploads/excel/`);
+    cb(null, `./resources/uploads/excel`);
   },
   filename: (req, file, cb) => {
     cb(null, `${getUniqueTimestamp()}-bezkoder-${file.originalname}`);

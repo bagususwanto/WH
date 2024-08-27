@@ -230,9 +230,9 @@ const Material = () => {
           'Standar Stock': Material.stdStock,
           'Actual Stock': quantityActual,
           Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
-          Plant: Material.Address_Rack.Location.Shop.Plant.plantName,
-          Shop: Material.Address_Rack.Location.Shop.shopName,
-          Location: Material.Address_Rack.Location.locationName,
+          Plant: Material.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: Material.Address_Rack.Storage.Shop.shopName,
+          Storage: Material.Address_Rack.Storage.storageName,
           'Update By': Material.Log_Entries[0]?.User?.userName || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }

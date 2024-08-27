@@ -1,12 +1,12 @@
-import Location from "../models/LocationModel.js";
+import Storage from "../models/StorageModel.js";
 import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 
-export const getLocation = async (req, res) => {
+export const getStorage = async (req, res) => {
   try {
-    const response = await Location.findAll({
+    const response = await Storage.findAll({
       where: { flag: 1 },
-      attributes: ["id", "locationName", "createdAt", "updatedAt"],
+      attributes: ["id", "storageName", "createdAt", "updatedAt"],
       include: [
         {
           model: Shop,
@@ -28,24 +28,24 @@ export const getLocation = async (req, res) => {
   }
 };
 
-export const getLocationById = async (req, res) => {
+export const getStorageById = async (req, res) => {
   try {
-    const locationId = req.params.id;
+    const storageId = req.params.id;
 
-    const location = await Location.findOne({
-      where: { id: locationId },
+    const storage = await Storage.findOne({
+      where: { id: storageId },
     });
 
-    if (!location) {
-      return res.status(404).json({ msg: "Location not found" });
+    if (!storage) {
+      return res.status(404).json({ msg: "Storage not found" });
     }
 
-    const response = await Location.findOne({
+    const response = await Storage.findOne({
       where: {
-        id: locationId,
+        id: storageId,
         flag: 1,
       },
-      attributes: ["id", "locationName", "createdAt", "updatedAt"],
+      attributes: ["id", "storageName", "createdAt", "updatedAt"],
       include: [
         {
           model: Shop,
@@ -66,24 +66,24 @@ export const getLocationById = async (req, res) => {
   }
 };
 
-export const getLocationByShop = async (req, res) => {
+export const getStorageByShop = async (req, res) => {
   try {
     const shopId = req.params.id;
 
-    const shop = await Location.findOne({
+    const shop = await Storage.findOne({
       where: { shopId: shopId },
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Location not found" });
+      return res.status(404).json({ msg: "Storage not found" });
     }
 
-    const response = await Location.findAll({
+    const response = await Storage.findAll({
       where: {
         shopId: shopId,
         flag: 1,
       },
-      attributes: ["id", "locationName", "createdAt", "updatedAt"],
+      attributes: ["id", "storageName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {
@@ -92,55 +92,55 @@ export const getLocationByShop = async (req, res) => {
   }
 };
 
-export const createLocation = async (req, res) => {
+export const createStorage = async (req, res) => {
   try {
-    await Location.create(req.body);
-    res.status(201).json({ msg: "Location Created" });
+    await Storage.create(req.body);
+    res.status(201).json({ msg: "Storage Created" });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-export const updateLocation = async (req, res) => {
+export const updateStorage = async (req, res) => {
   try {
-    const locationId = req.params.id;
+    const storageId = req.params.id;
 
-    const location = await Location.findOne({
-      where: { id: locationId },
+    const storage = await Storage.findOne({
+      where: { id: storageId },
     });
 
-    if (!location) {
-      return res.status(404).json({ msg: "Location not found" });
+    if (!storage) {
+      return res.status(404).json({ msg: "Storage not found" });
     }
 
-    await Location.update(req.body, {
+    await Storage.update(req.body, {
       where: {
-        id: locationId,
+        id: storageId,
       },
     });
-    res.status(200).json({ msg: "Location Updated" });
+    res.status(200).json({ msg: "Storage Updated" });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-export const deleteLocation = async (req, res) => {
+export const deleteStorage = async (req, res) => {
   try {
-    const locationId = req.params.id;
+    const storageId = req.params.id;
 
-    const location = await Location.findOne({
-      where: { id: locationId },
+    const storage = await Storage.findOne({
+      where: { id: storageId },
     });
 
-    if (!location) {
-      return res.status(404).json({ msg: "Location not found" });
+    if (!storage) {
+      return res.status(404).json({ msg: "Storage not found" });
     }
 
-    await Location.update({ flag: 0 }, { where: { id: locationId } });
+    await Storage.update({ flag: 0 }, { where: { id: storageId } });
 
-    res.status(200).json({ msg: "Location deleted" });
+    res.status(200).json({ msg: "Storage deleted" });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ msg: "Internal server error" });

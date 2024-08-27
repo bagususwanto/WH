@@ -30,61 +30,61 @@ import useAxiosWithAuth from '../../../utils/AxiosInstance';
 import Swal from 'sweetalert2'; 
 const axiosInstance = useAxiosWithAuth()
 
-const Location = () => {
-  const [locations, setLocations] = useState([]);
+const Storage = () => {
+  const [storages, setStorages] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState({
+  const [currentStorage, setCurrentStorage] = useState({
     id: '',
-    locationName: '',
+    storageName: '',
     shopId: '',
   });
   
   useEffect(() => {
-    getLocation();
+    getStorage();
   }, []);
 
   const actionBodyTemplate = (rowData) => {
     return (
         <div style={{ display: 'flex', gap: '10px' }}>
-            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditLocation(rowData)} />
-            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteLocation(rowData.id)} />
+            <Button label="Edit" icon="pi pi-pencil" className="p-button-success" onClick={() => handleEditStorage(rowData)} />
+            <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteStorage(rowData.id)} />
         </div>
        );
     };
 
-  const getLocation = async () => {
+  const getStorage = async () => {
     try {
-      const response = await axiosInstance.get('/location');
-      setLocations(response.data);
+      const response = await axiosInstance.get('/storage');
+      setStorages(response.data);
     } catch (error) {
-      console.error('Error fetching location:', error);
+      console.error('Error fetching storage:', error);
     }
   };
 
-  const handleAddLocation = () => {
+  const handleAddStorage = () => {
     setIsEdit(false);
-    setCurrentLocation({
+    setCurrentStorage({
       id: '',
-      locationName: '',
+      storageName: '',
       shopId: '',
     });
     setModal(true);
   };
 
-  const handleEditLocation= (location) => {
+  const handleEditStorage= (storage) => {
     setIsEdit(true);
-    setCurrentLocation({
-      id: location.id,
-      locationName: location.locationName,
-      shopId: location.shopId,
-      createdAt: location.createdAt,
-      updatedAt: location.updatedAt,
+    setCurrentStorage({
+      id: storage.id,
+      storageName: storage.storageName,
+      shopId: storage.shopId,
+      createdAt: storage.createdAt,
+      updatedAt: storage.updatedAt,
     });
     setModal(true);
   };
 
-  const handleDeleteLocation = (location) => {
+  const handleDeleteStorage = (storage) => {
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this plant!',
@@ -95,26 +95,26 @@ const Location = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(location);
+        confirmDelete(storage);
       }
     });
   };
   
 
-  const confirmDelete = async (location) => {
+  const confirmDelete = async (storage) => {
     try {
-      await axiosInstance.get(`/location-delete/${location}`);
+      await axiosInstance.get(`/storage-delete/${storage}`);
       Swal.fire(
         'Deleted!',
         'The Supplier has been deleted.',
         'success'
       );
-      getLocation();
+      getStorage();
     } catch (error) {
-      console.error('Error deleting location:', error);
+      console.error('Error deleting storage:', error);
       Swal.fire(
         'Error!',
-        'Failed to delete the location.',
+        'Failed to delete the storage.',
         'error'
       );
     }
@@ -123,30 +123,30 @@ const Location = () => {
   
 
 
-  const handleSaveLocation = async () => {
+  const handleSaveStorage = async () => {
     try {
       if (isEdit) {
-        await axiosInstance.put(`/location/${currentLocation.id}`, currentLocation);
+        await axiosInstance.put(`/storage/${currentStorage.id}`, currentStorage);
         Swal.fire(
           'Updated!',
           'The Supplier has been updated.',
           'success'
         );
       } else {
-        await axiosInstance.post('/location', currentLocation);
+        await axiosInstance.post('/storage', currentStorage);
         Swal.fire(
           'Added!',
-          'The location has been added.',
+          'The storage has been added.',
           'success'
         );
       }
       setModal(false);
-      getLocation();
+      getStorage();
     } catch (error) {
-      console.error('Error saving location:', error);
+      console.error('Error saving storage:', error);
       Swal.fire(
         'Error!',
-        'Failed to save the location.',
+        'Failed to save the storage.',
         'error'
       );
     }
@@ -157,13 +157,13 @@ const Location = () => {
     <CRow>
       <CCol>
         <CCard>
-          <CCardHeader>Master Data Location</CCardHeader>
+          <CCardHeader>Master Data Storage</CCardHeader>
           <CCardBody>  
-            <CButton color="primary" onClick={handleAddLocation}>Add</CButton>
+            <CButton color="primary" onClick={handleAddStorage}>Add</CButton>
             <CRow className='mb-3'></CRow>
-            <DataTable value={locations} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }} className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
+            <DataTable value={storages} paginator rows={10} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem' }} className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap">
                 <Column field="id" header="No" body={(data, options) => options.rowIndex + 1} />
-                <Column field="locationName" header="Nama Location" style={{ width: '25%' }}></Column>\
+                <Column field="storageName" header="Nama Storage" style={{ width: '25%' }}></Column>\
                 <Column field="shopId" header="Id Shop" style={{ width: '25%' }}></Column>
                 <Column field="createdAt" header="Created At" style={{ width: '25%' }}></Column>
                 <Column field="updateAt" header="Update At" style={{ width: '25%' }}></Column>
@@ -175,33 +175,33 @@ const Location = () => {
 
       <CModal visible={modal} onClose={() => setModal(false)}>
         <CModalHeader>
-          <CModalTitle>{isEdit ? 'Edit Location' : 'Add Location'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Storage' : 'Add Storage'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CFormInput
               type="text"
-              value={currentLocation.locationName}
-              onChange={(e) => setCurrentLocation({ ...currentLocation, locationName: e.target.value })}
-              placeholder="Enter location name"
+              value={currentStorage.storageName}
+              onChange={(e) => setCurrentStorage({ ...currentStorage, storageName: e.target.value })}
+              placeholder="Enter storage name"
               label="Supplier Name"
             />
             <CFormInput
               type="text"
-              value={currentLocation.shopId}
-              onChange={(e) => setCurrentLocation({ ...currentLocation, shopId: e.target.value })}
-              placeholder="Enter location code"
+              value={currentStorage.shopId}
+              onChange={(e) => setCurrentStorage({ ...currentStorage, shopId: e.target.value })}
+              placeholder="Enter storage code"
               label="Supplier Code"
             />
           </CForm>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setModal(false)}>Cancel</CButton>
-          <CButton color="primary" onClick={handleSaveLocation}>{isEdit ? 'Update' : 'Save'}</CButton>
+          <CButton color="primary" onClick={handleSaveStorage}>{isEdit ? 'Update' : 'Save'}</CButton>
         </CModalFooter>
       </CModal>
     </CRow>
   );
 };
 
-export default Location;
+export default Storage;

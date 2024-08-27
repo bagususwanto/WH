@@ -6,7 +6,7 @@ import Incoming from "../models/IncomingModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import User from "../models/UserModel.js";
 import AddressRack from "../models/AddressRackModel.js";
-import Location from "../models/LocationModel.js";
+import Storage from "../models/StorageModel.js";
 import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 
@@ -34,8 +34,8 @@ export const getInventory = async (req, res) => {
           attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
           include: [
             {
-              model: Location,
-              attributes: ["id", "locationName", "createdAt", "updatedAt"],
+              model: Storage,
+              attributes: ["id", "storageName", "createdAt", "updatedAt"],
               include: [
                 {
                   model: Shop,
@@ -100,6 +100,9 @@ export const updateInventory = async (req, res) => {
       detailOrder: null,
       incomingId: null,
     });
+
+    setQuantityActualCheck(inventory.materialId, inventory.addressId);
+
     res.status(200).json({ msg: "Inventory Updated" });
   } catch (error) {
     console.log(error.message);
@@ -107,20 +110,60 @@ export const updateInventory = async (req, res) => {
   }
 };
 
-export const createIncoming = async (req, res) => {
+export const setQuantityActualCheck = async (materialId, addressId) => {
   try {
-    // barang masuk
+    const quantitySistem = await Inventory.findOne({
+      where: { materialId, addressId },
+      attributes: ["quantitySistem"],
+    });
 
-    // cek apakah sudah ada di inventory atau belum
+    const quantityActual = await Inventory.findOne({
+      where: { materialId, addressId },
+      attributes: ["quantityActual"],
+    });
 
-    // kalau sudah , update quantity
-
-    //kalau belum create new entry
-
-    // insert logEntry
-    res.status(200).json(response);
+    if (quantityActual.quantityActual == null && quantitySistem.quantitySistem != null) {
+      await Inventory.update({ quantityActualCheck: quantitySistem.quantitySistem }, { where: { materialId, addressId } });
+      return quantitySistem.quantitySistem;
+    } else if (quantityActual.quantityActual != null) {
+      await Inventory.update({ quantityActualCheck: quantityActual.quantityActual }, { where: { materialId, addressId } });
+      return quantityActual.quantityActual;
+    } else {
+      await Inventory.update({ quantityActualCheck: 0 }, { where: { materialId, addressId } });
+      return 0;
+    }
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+export const updateStock = async (materialId, addressId, quantity, type) => {
+  try {
+    let quantityActualCheck = null;
+
+    await Inventory.findOne({
+      where: { materialId, addressId },
+      attributes: ["quantityActualCheck"],
+    }).then((response) => {
+      quantityActualCheck = response.quantityActualCheck;
+    });
+
+    if (quantityActualCheck == null) {
+      quantityActualCheck = setQuantityActualCheck(materialId, addressId);
+    }
+
+    if (type === "incoming") {
+      await Inventory.update({ quantitySistem: quantity + quantityActualCheck }, { where: { materialId, addressId } });
+    } else if (type === "order") {
+      await Inventory.update({ quantitySistem: quantityActualCheck - quantity }, { where: { materialId, addressId } });
+    }
+
+    setQuantityActualCheck(materialId, addressId);
+
+    return;
+  } catch (error) {
+    console.log(error.message);
+    return;
   }
 };
