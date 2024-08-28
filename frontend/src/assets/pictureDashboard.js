@@ -3,18 +3,18 @@ export const PhotoService = {
     getImages: async () => {
         return [
             {
-                imageSrc: '/images/E-INVENTORY.jpg',
-                thumbnailImageSrc: '/images/E-INVENTORY.jpg',
+                imageSrc: '/images/1.jpg',
+                thumbnailImageSrc: '/images/1.jpg',
                 alt: 'Gambar 1'
             },
             {
-                imageSrc: '/images/Order.jpg',
-                thumbnailImageSrc: '/images/Order.jpg',
+                imageSrc: '/images/2.jpg',
+                thumbnailImageSrc: '/images/1.jpg',
                 alt: 'Gambar 2'
             },
             {
-                imageSrc: '/images/Warehouse.jpg',
-                thumbnailImageSrc: '/images/Warehouse.jpg',
+                imageSrc: '/images/3.jpg',
+                thumbnailImageSrc: '/images/3.jpg',
                 alt: 'Gambar 3'
             }
         ];

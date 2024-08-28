@@ -45,22 +45,23 @@ const Dashboard = () => {
     const itemTemplate = (item) => {
         return (
             <img
-                src={item.imageSrc} // Pastikan ini adalah sumber gambar yang benar
+                src={item.imageSrc}
                 alt={item.alt}
-                style={{ width: '100%' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }} // Sesuaikan gambar dengan kontainer
             />
         );
     };
-
+    
     const thumbnailTemplate = (item) => {
         return (
             <img
                 src={item.thumbnailImageSrc}
                 alt={item.alt}
-                style={{ width: '20%' }}
+                style={{ width: '100%', height: 'auto' }} // Sesuaikan thumbnail dengan kontainer
             />
         );
     };
+    
 
     return (
         <Card title="Halo!!">
@@ -73,19 +74,20 @@ const Dashboard = () => {
             ) : (
                 <div className="galleria-container">
                     <div className="galleria-wrapper">
-                        <Galleria
-                            value={images}
-                            responsiveOptions={responsiveOptions}
-                            numVisible={5}
-                            style={{ width: '100%' }}
-                            item={itemTemplate}
-                            
-                            showItemNavigators={true}
-                            showThumbnails={true}
-                            circular={true}
-                            autoPlayInterval={2800}
-                            autoPlay={true}
-                        />
+                    <Galleria
+                        value={images}
+                        responsiveOptions={responsiveOptions}
+                        numVisible={5}
+                        style={{ width: '100%', height: '500px' }} // Sesuaikan lebar dan tinggi Galleria
+                        item={itemTemplate}
+                        thumbnail={thumbnailTemplate}
+                        showItemNavigators={true}
+                        showThumbnails={true}
+                        circular={true}
+                        autoPlayInterval={2800}
+                        autoPlay={true}
+                    />
+
                     </div>
                 </div>
             )}
