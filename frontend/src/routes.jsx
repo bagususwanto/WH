@@ -3,6 +3,7 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Inventory = React.lazy(() => import('./views/inventory/Inventory'))
+const Incoming = React.lazy(() => import('./views/incoming/incoming'))
 const Orderitem = React.lazy(() => import('./views/orderwarehouse/orderitem/Orderitem'))
 const Tracking = React.lazy(() => import('./views/orderwarehouse/tracking/Tracking'))
 const Category = React.lazy(() => import('./views/masterdata/category/Category'))
@@ -22,6 +23,7 @@ const routes = [
   { path: '/login', name: 'Login', element: Login },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/inventory', name: 'Inventory', element: Inventory },
+  { path: '/incoming', name: 'Incoming', element: Incoming },
   { path: '/orderitem', name: 'Orderitem', element: Orderitem },
   { path: '/tracking', name: 'Tracking', element: Tracking },
   { path: '/category', name: 'Category', element: Category },

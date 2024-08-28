@@ -22,6 +22,19 @@ const useManageStockService = () => {
     }
   }
 
+  const getIncoming = async () => {
+    try {
+      const response = await axiosJWT.get('/incoming', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   const updateInventoryById = async (id, data) => {
     try {
       const response = await axiosJWT.put(`inventory/${id}`, data, {
@@ -35,9 +48,25 @@ const useManageStockService = () => {
     }
   }
 
+  const postIncomingPlan = async (api, data) => {
+    try {
+      const response = await axiosJWT.post(`/${api}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post user:')
+    }
+  }
+
   return {
     getInventory,
+    getIncoming,
     updateInventoryById,
+    postIncomingPlan,
   }
 }
 
