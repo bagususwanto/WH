@@ -20,6 +20,7 @@ import {
   cilTransfer,
   cilList,
   cilCart,
+  cilStorage,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
@@ -74,12 +75,7 @@ const useNavigation = () => {
         to: '/incoming',
         icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
       },
-      {
-        component: CNavItem,
-        name: 'Tracking Order',
-        to: '/tracking',
-        icon: <CIcon icon={cilBluetooth} customClassName="nav-icon" />,
-      },
+     
     ]
 
     if (roleName === 'super admin') {
@@ -119,16 +115,22 @@ const useNavigation = () => {
               icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
             },
             {
+              component: CNavGroup,
+            name: 'Location',
+            to: '/order',
+            icon: <CIcon icon={cilLocationPin} customClassName="nav-icon" />,
+            items: [
+            {
               component: CNavItem,
               name: 'Storage',
               to: '/storage',
-              icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
             },
             {
               component: CNavItem,
               name: 'Address',
               to: '/address',
-              icon: <CIcon icon={cilLocationPin} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilFlagAlt} customClassName="nav-icon" />,
             },
             {
               component: CNavItem,
@@ -142,6 +144,8 @@ const useNavigation = () => {
               to: '/shop',
               icon: <CIcon icon={cilBank} customClassName="nav-icon" />,
             },
+            ],
+           },
             {
               component: CNavItem,
               name: 'Cost',

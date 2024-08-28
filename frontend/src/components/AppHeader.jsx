@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom' // Import useNavigate
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
@@ -20,6 +20,7 @@ import CIcon from '@coreui/icons-react'
 import {
   cilAsteriskCircle,
   cilBell,
+  cilCart,
   cilCheck,
   cilClearAll,
   cilContrast,
@@ -37,15 +38,23 @@ const AppHeader = () => {
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const navigate = useNavigate() // Inisialisasi useNavigate
 
   useEffect(() => {
-    document.addEventListener('scroll', () => {
+    const handleScroll = () => {
       headerRef.current &&
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
-    })
+    }
+
+    document.addEventListener('scroll', handleScroll)
+    return () => document.removeEventListener('scroll', handleScroll)
   }, [])
 
   const notificationCount = 3
+
+  const handleCartClick = () => {
+    navigate('/views/orderwarehouse/tracking') // Gunakan path absolut
+  }
 
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
@@ -64,7 +73,11 @@ const AppHeader = () => {
               className="py-0 pe-0 d-flex align-items-center"
               caret={false}
             >
-              <CIcon icon={cilBell} size="lg" className="me-2" />
+              <CIcon
+                icon={cilBell}
+                size="lg"
+                style={{ marginRight: '0.5rem' }} // Atur margin untuk pengaturan jarak
+              />
               {notificationCount > 0 && (
                 <CBadge
                   color="danger"
@@ -82,15 +95,23 @@ const AppHeader = () => {
             </CDropdownToggle>
             <CDropdownMenu className="pt-0" placement="bottom-end">
               <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
-                You have ({notificationCount}) notifications
+                Anda memiliki ({notificationCount}) notifikasi
               </CDropdownHeader>
-              <CDropdownItem href="#">notifications 1</CDropdownItem>
-              <CDropdownItem href="#">notifications 2</CDropdownItem>
-              <CDropdownItem href="#">notifications 3</CDropdownItem>
+              <CDropdownItem href="#">Notifikasi 1</CDropdownItem>
+              <CDropdownItem href="#">Notifikasi 2</CDropdownItem>
+              <CDropdownItem href="#">Notifikasi 3</CDropdownItem>
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
         <CHeaderNav>
+          <li className="nav-item py-1">
+            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
+          </li>
+          <CNavItem className="nav-item py-1">
+            <CNavLink className="d-flex align-items-center" onClick={handleCartClick}>
+              <CIcon icon={cilCart} size="lg" />
+            </CNavLink>
+          </CNavItem>
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>

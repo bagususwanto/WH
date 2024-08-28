@@ -9,7 +9,7 @@ export const PhotoService = {
             },
             {
                 imageSrc: '/images/2.jpg',
-                thumbnailImageSrc: '/images/1.jpg',
+                thumbnailImageSrc: '/images/2.jpg',
                 alt: 'Gambar 2'
             },
             {

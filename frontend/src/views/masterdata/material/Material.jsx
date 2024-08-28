@@ -52,13 +52,16 @@ const Material = () => {
     maxStock: '',
   });
 
-  const { getMasterData, getMasterDataById, updateMasterDataById, postMasterData } = useMasterDataService();
+  const { getMasterData, getMasterDataById, deleteMasterDataById, updateMasterDataById, postMasterData } = useMasterDataService();
   const [filters, setFilters] = useState({
     global: { value: null }
   });
   const apiMaterial = 'material';
+  const apiMaterialDelete = 'material-delete';
   const apiSupplier = 'supplier';
   const apiCategory = 'category';
+
+
 
 
   useEffect(() => {
@@ -174,15 +177,16 @@ const Material = () => {
     setModal(true);
   };
 
+ 
   const handleDeleteMaterial = (materialId) => {
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'This material cannot be recovered!',
+      title: 'Apakah Anda yakin?',
+      text: 'Material ini tidak dapat dipulihkan!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Ya, hapus!',
     }).then((result) => {
       if (result.isConfirmed) {
         confirmDelete(materialId);
@@ -192,12 +196,12 @@ const Material = () => {
 
   const confirmDelete = async (materialId) => {
     try {
-      await axios.delete(`/material/${materialId}`);
-      Swal.fire('Deleted!', 'Material has been deleted.', 'success');
-      getMaterial();
+      await deleteMasterDataById(apiMaterialDelete, materialId);
+      Swal.fire('Terhapus!', 'Material telah dihapus.', 'success');
+      await getMaterial(); // Refresh the list after deletion
     } catch (error) {
-      console.error('Error deleting material:', error);
-      Swal.fire('Error!', 'Failed to delete material.', 'error');
+      console.error('Error menghapus material:', error);
+      Swal.fire('Error!', 'Gagal menghapus material.', 'error');
     }
   };
 
