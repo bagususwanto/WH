@@ -46,13 +46,13 @@ const Material = () => {
     uom: '',
     price: '',
     type: '',
-    Category: '',
-    Supplier: '',
+    categoryId: '',
+    supplierId: '',
     minStock: '',
     maxStock: '',
   });
 
-  const { getMasterData, updateMasterDataById } = useMasterDataService();
+  const { getMasterData, updateMasterDataById, postMasterData } = useMasterDataService();
   const [filters, setFilters] = useState({
     global: { value: null }
   });
@@ -119,6 +119,7 @@ const Material = () => {
       console.error('Error fetching Material:', error);
     }
   };
+  
 
   const handleAddMaterial = () => {
     setIsEdit(false);
@@ -129,7 +130,6 @@ const Material = () => {
       uom: '',
       price: '',
       type: '',
-      addressId: '',
       Category: '',
       Supplier: '',
       minStock: '',
@@ -209,7 +209,7 @@ const Material = () => {
       Swal.fire('Updated!', 'Material has been updated.', 'success');
     } else {
       // Create new material
-      updateMasterDataById(apiMaterial, currentMaterial.id, currentMaterial)
+      postMasterData(apiMaterial,  currentMaterial)
       Swal.fire('Added!', 'Material has been added.', 'success');
     }
     setModal(false);
@@ -262,11 +262,11 @@ const Material = () => {
   }));
 
   const handleCategoryChange = (selectedOption) => {
-    setCurrentCategory({
-      ...currentMaterial,
-      Category: selectedOption ? selectedOption.value : '',
+    setCurrentMaterial({
+        ...currentMaterial,
+        Category: selectedOption ? selectedOption.value : '',
     });
-  };
+};
 
   // Find the selected address option for initial value
   const selectedCategoryOption = selectCategory.find(cat => cat.value === currentMaterial.Category);
@@ -278,7 +278,7 @@ const Material = () => {
   }));
 
   const handleSupplierChange = (selectedOption) => {
-    setCurrentSupplier({
+    setCurrentMaterial({
       ...currentMaterial,
       Supplier: selectedOption ? selectedOption.value : '',
     });
@@ -296,90 +296,81 @@ const Material = () => {
         uom: item.uom,
         price: item.price,
         type: item.type,
-        Category: item.Category,
-        Supplier: item.Supplier,
+        Category: item.Category.categoryName,
+        Supplier: item.Supplier.supplierName,
         minStock: item.minStock,
         maxStock: item.maxStock,
-        'Created At': item.createdAt, // Ensure correct date format
-        'Updated At': item.updatedAt, // Ensure correct date format
+        'Created At': item.createdAt, // Pastikan format tanggal benar
+        'Updated At': item.updatedAt, // Pastikan format tanggal benar
       }));
-
-<<<<<<< HEAD
-        let evaluation
-        if (quantityActual < stdStock) {
-          evaluation = 'shortage'
-        } else if (quantityActual > stdStock) {
-          evaluation = 'over'
-        } else {
-          evaluation = 'ok'
-        }
-
-        return {
-          'Material No': Material.materialNo,
-          Description: Material.description,
-          Address: Material.Address_Rack.addressRackName,
-          UoM: Material.uom,
-          'Standar Stock': Material.stdStock,
-          'Actual Stock': quantityActual,
-          Evaluation: evaluation, // Perbaiki typo dari Evalution ke Evaluation
-          Plant: Material.Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: Material.Address_Rack.Storage.Shop.shopName,
-          Storage: Material.Address_Rack.Storage.storageName,
-          'Update By': Material.Log_Entries[0]?.User?.userName || '',
-          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
-        }
-      })
-
-      const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
-=======
+  
+      // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData);
       const workbook = xlsx.utils.book_new();
       xlsx.utils.book_append_sheet(workbook, worksheet, 'material');
->>>>>>> e5d483434ddd492e2506a340cae639d33a3adc1c
+      
+      // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
         type: 'array',
       });
-
+  
+      // Panggil fungsi untuk menyimpan file Excel
       saveAsExcelFile(excelBuffer, 'material');
     });
   };
-
+  
   const saveAsExcelFile = (buffer, fileName) => {
     const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
     const EXCEL_EXTENSION = '.xlsx';
     const data = new Blob([buffer], { type: EXCEL_TYPE });
     saveAs(data, `${fileName}_export_${new Date().getTime()}${EXCEL_EXTENSION}`);
   };
+  
 
   const handleImportExcel = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
   
+    // Validasi jenis file
+    if (!file.type.includes('sheet') && !file.type.includes('excel')) {
+      Swal.fire('Error!', 'Silakan unggah file Excel yang valid.', 'error');
+      return;
+    }
+  
     try {
       const data = await file.arrayBuffer();
-      const workbook = read(data);
+      const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const json = utils.sheet_to_json(sheet);
-      
-      // Anda bisa menyesuaikan struktur data sesuai kebutuhan
+      const json = XLSX.utils.sheet_to_json(sheet);
+  
+      // Debug: Cek data yang dibaca
+      console.log('Data dari file Excel:', json);
+  
+      // Periksa apakah data JSON sesuai format yang diharapkan
+      if (json.length === 0) {
+        Swal.fire('Error!', 'Tidak ada data ditemukan dalam file Excel.', 'error');
+        return;
+      }
+  
+      // Proses dan validasi data sesuai kebutuhan
       const materialsFromExcel = json.map(item => ({
         ...item,
         id: item.id || '', // Pastikan ID ada jika diperlukan
       }));
   
-      // Kirim data ke backend untuk diupdate
+      // Kirim data ke backend
       await axios.post('/import/material', materialsFromExcel);
-      
-      Swal.fire('Success!', 'Materials have been imported and updated.', 'success');
-      getMaterial(); // Refresh the material list
+  
+      Swal.fire('Sukses!', 'Material telah diimpor dan diperbarui.', 'success');
+      getMaterial(); // Segarkan daftar material
     } catch (error) {
-      console.error('Error importing materials:', error);
-      Swal.fire('Error!', 'Failed to import materials.', 'error');
+      console.error('Error saat mengimpor material:', error);
+      Swal.fire('Error!', 'Gagal mengimpor material.', 'error');
     }
   };
+  
 
   return (
     <CRow>
@@ -409,6 +400,12 @@ const Material = () => {
                       className="p-button-info"
                       onClick={() => document.getElementById('importExcel').click()}
                     />
+                    <input
+                    type="file"
+                    id="importExcel"
+                    style={{ display: 'none' }}
+                    onChange={handleImportExcel}
+                  />  
                   </label>
                 </div>
               </CCol>
@@ -438,6 +435,7 @@ const Material = () => {
               <Column field="createdAt" header="Created At" style={{ width: '25%' }} />
               <Column field="updatedAt" header="Updated At" style={{ width: '25%' }} />
               <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
+              
             </DataTable>
           </CCardBody>
         </CCard>
@@ -521,3 +519,4 @@ const Material = () => {
 };
 
 export default Material;
+

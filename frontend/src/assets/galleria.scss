@@ -1,0 +1,18 @@
+/* styles.css atau file CSS Anda yang lain */
+.galleria-container {
+    display: flex;
+    justify-content: center;  /* Center horizontally */
+    align-items: center;      /* Center vertically */
+    width: 100%;
+    height: 70vh;            /* Atur tinggi sesuai kebutuhan */
+}
+
+.galleria-wrapper {
+    width: 98%;
+    max-width: 900px;        /* Maksimal lebar Galleria */
+    margin: 0 auto;           /* Auto margin untuk memusatkan */
+}
+
+.galleria-item img {
+    width: 100%;              /* Pastikan gambar menyesuaikan lebar item */
+}
