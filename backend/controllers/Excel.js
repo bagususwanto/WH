@@ -5,6 +5,7 @@ import AddressRack from "../models/AddressRackModel.js";
 import LogImport from "../models/LogImportModel.js";
 import db from "../utils/Database.js";
 import { updateStock } from "./ManagementStock.js";
+import Inventory from "../models/InventoryModel.js";
 
 export const getMaterialIdByMaterialNo = async (materialNo) => {
   try {
@@ -42,10 +43,10 @@ export const getAddressIdByAddressName = async (addressRackName) => {
   }
 };
 
-export const getLastLogImportIdByUserId = async (userId) => {
+export const getLastLogImportIdByUserId = async (userId, typeLog) => {
   try {
     const logImport = await LogImport.findOne({
-      where: { userId },
+      where: { userId, typeLog },
       attributes: ["id"],
       order: [["id", "DESC"]],
     });
@@ -58,6 +59,29 @@ export const getLastLogImportIdByUserId = async (userId) => {
   } catch (error) {
     console.error(error.message);
     throw new Error("Failed to retrieve logImport ID");
+  }
+};
+
+export const getInventoryIdByMaterialIdAndAddressId = async (materialId, addressId) => {
+  try {
+    const inventory = await Inventory.findOne({
+      where: { materialId, addressId },
+      attributes: ["id"],
+    });
+
+    if (!inventory) {
+      await Inventory.create({ materialId, addressId });
+      const newInventory = await Inventory.findOne({
+        where: { materialId, addressId },
+        attributes: ["id"],
+      });
+      return newInventory.id;
+    } else {
+      return inventory.id;
+    }
+  } catch (error) {
+    console.error(error.message);
+    throw new Error("Failed to retrieve inventory ID");
   }
 };
 
@@ -74,14 +98,12 @@ export const uploadIncomingPlan = async (req, res) => {
     const rows = await readXlsxFile(path);
 
     // Create a log entry before processing the file
-    await LogImport.create(
-      {
-        typeLog: "Incoming Plan",
-        fileName: req.file.originalname,
-        userId: req.user.userId,
-        importDate: req.body.importDate,
-      },
-    );
+    await LogImport.create({
+      typeLog: "Incoming Plan",
+      fileName: req.file.originalname,
+      userId: req.user.userId,
+      importDate: req.body.importDate,
+    });
 
     // Skip header
     rows.shift();
@@ -90,11 +112,11 @@ export const uploadIncomingPlan = async (req, res) => {
     const incomingPlanPromises = rows.map(async (row) => {
       const materialId = await getMaterialIdByMaterialNo(row[0]);
       const addressId = await getAddressIdByAddressName(row[1]);
-      const logImportId = await getLastLogImportIdByUserId(req.user.userId);
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Plan");
+      const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
 
       return {
-        materialId,
-        addressId,
+        inventoryId,
         planning: row[2],
         logImportId,
       };
@@ -167,7 +189,7 @@ export const uploadIncomingActual = async (req, res) => {
 
     const logImportId = await getLogImportIdByDate(req.body.importDate);
     if (logImportId === null) {
-      return res.status(400).send("LogImport not found, please upload an excel plan file first!");
+      return res.status(400).send("Upload incoming plan first");
     }
     const incomings = await getIncomingByLogImportId(logImportId);
 
@@ -182,7 +204,6 @@ export const uploadIncomingActual = async (req, res) => {
         userId: req.user.userId,
         importDate: req.body.importDate,
       },
-      { transaction }
     );
 
     // Skip header
@@ -198,6 +219,8 @@ export const uploadIncomingActual = async (req, res) => {
     for (const row of rows) {
       const materialId = await getMaterialIdByMaterialNo(row[0]);
       const addressId = await getAddressIdByAddressName(row[1]);
+      const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Actual");
       const planningQuantity = row[2];
       const actualQuantity = row[3];
 
@@ -211,10 +234,9 @@ export const uploadIncomingActual = async (req, res) => {
         // Create a new incoming record if material ID is not found
         await Incoming.create(
           {
-            materialId,
-            addressId,
             planning: planningQuantity,
             actual: actualQuantity,
+            inventoryId,
             logImportId,
           },
           { transaction }

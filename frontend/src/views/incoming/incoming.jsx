@@ -58,13 +58,14 @@ const Incoming = () => {
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
 
-  const { getIncoming, postIncomingPlan } = useManageStockService()
+  const { getIncoming, postIncomingPlan, postIncomingActual } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant'
   const apiShop = 'shop-plant'
   const apiStorage = 'storage-shop'
-  const apiIncoming = 'upload-incoming-plan'
+  const apiIncomingPlan = 'upload-incoming-plan'
+  const apiIncomingActual = 'upload-incoming-actual'
 
   const columns = [
     {
@@ -158,17 +159,11 @@ const Incoming = () => {
     try {
       const response = await getIncoming()
       const dataWithFormattedFields = response.data.map((item) => {
-        // Evaluasi untuk menentukan status incoming
-        const evaluation =
-          item.quantityActual < item.Material.minStock
-            ? 'shortage'
-            : item.quantityActual > item.Material.minStock
-              ? 'over'
-              : 'ok'
+        const discrepancy = item.actual - item.planning
 
         return {
           ...item,
-          evaluation, // Tambahkan evaluasi ke item yang dikembalikan
+          discrepancy,
           formattedUpdateBy: item.Log_Entries?.[0]?.User?.userName || '',
           formattedUpdateAt: item.updatedAt
             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
@@ -448,13 +443,15 @@ const Incoming = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
-  const discrapencyBodyTemplate = (rowData) => {
-    const { actual, planning } = rowData
+  const discrepancyBodyTemplate = (rowData) => {
+    const { discrepancy } = rowData
 
-    const discrapency = actual - planning
-
-    if (discrapency < 0) return <Tag value={discrapency} severity={getSeverity('shortage')} />
-    if (discrapency > 0) return <Tag value={discrapency} severity={getSeverity('over')} />
+    if (discrepancy < 0) {
+      return <Tag value={discrepancy} severity={getSeverity('shortage')} />
+    }
+    if (discrepancy > 0) {
+      return <Tag value={discrepancy} severity={getSeverity('over')} />
+    }
   }
 
   const onColumnToggle = (event) => {
@@ -514,10 +511,11 @@ const Incoming = () => {
         }
 
         if (radio === 'plan') {
-          postIncomingPlan(apiIncoming, incomingData)
+          postIncomingPlan(apiIncomingPlan, incomingData)
           MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
         } else if (radio === 'actual') {
-          // postIncomingActual(incomingData) // Fungsi untuk handle actual data
+          postIncomingActual(apiIncomingActual, incomingData) // Fungsi untuk handle actual data
+          MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
         }
 
         setImported(true)
@@ -605,7 +603,6 @@ const Incoming = () => {
                     onClick={exportExcel}
                     data-pr-tooltip="XLS"
                   />
-
                   <Button
                     type="button"
                     label="Upload"
@@ -664,9 +661,9 @@ const Incoming = () => {
                 sortable
               ></Column>
               <Column
-                field=""
-                header="Discrapency"
-                body={discrapencyBodyTemplate}
+                field="discrepancy"
+                header="Discrepancy"
+                body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
               ></Column>
@@ -676,6 +673,7 @@ const Incoming = () => {
                 editor={(options) => remarksEditor(options)}
                 sortable
               ></Column>
+              <Column field="Log_Import.importDate" header="Date" sortable></Column>
               {visibleColumns.map((col, index) => (
                 <Column
                   key={index}
