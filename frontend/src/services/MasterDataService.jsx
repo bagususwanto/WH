@@ -35,9 +35,9 @@ const useMasterDataService = () => {
     }
   }
 
-  const postMasterData = async (api) => {
+  const postMasterData = async (api, data) => {
     try {
-      const response = await axiosJWT.post(`/${api}`, {
+      const response = await axiosJWT.post(`/${api}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,9 +48,9 @@ const useMasterDataService = () => {
     }
   }
 
-  const updateMasterDataById = async (api, id) => {
+  const updateMasterDataById = async (api, id, data) => {
     try {
-      const response = await axiosJWT.put(`/${api}/${id}`, {
+      const response = await axiosJWT.put(`/${api}/${id}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
