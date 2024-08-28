@@ -1,18 +1,37 @@
-/* styles.css atau file CSS Anda yang lain */
+// Kontainer untuk Galleria
 .galleria-container {
-    display: flex;
-    justify-content: center;  /* Center horizontally */
-    align-items: center;      /* Center vertically */
     width: 100%;
-    height: 70vh;            /* Atur tinggi sesuai kebutuhan */
+    max-width: 1200px; // Sesuaikan lebar maksimum sesuai kebutuhan
+    height: 500px; // Atur tinggi kontainer sesuai kebutuhan
+    margin: 0 auto; // Pusatkan kontainer jika diperlukan
+    overflow: hidden; // Menyembunyikan bagian gambar yang melampaui kontainer jika ada
+    display: flex; // Gunakan Flexbox untuk pusatkan gambar
+    justify-content: center; // Pusatkan gambar secara horizontal
+    align-items: center; // Pusatkan gambar secara vertikal
 }
 
+// Gaya untuk wrapper Galleria
 .galleria-wrapper {
-    width: 98%;
-    max-width: 900px;        /* Maksimal lebar Galleria */
-    margin: 0 auto;           /* Auto margin untuk memusatkan */
+    width: 100%;
+    height: 100%;
 }
 
-.galleria-item img {
-    width: 100%;              /* Pastikan gambar menyesuaikan lebar item */
+// Gaya untuk gambar item di Galleria
+.p-galleria-item img {
+    width: 100%; // Sesuaikan lebar gambar dengan lebar kontainer
+    height: 100%; // Sesuaikan tinggi gambar dengan tinggi kontainer
+    object-fit: contain; // Menjaga gambar sepenuhnya terlihat tanpa terpotong
+}
+
+// Gaya untuk thumbnail Galleria
+.p-galleria-thumbnail img {
+    width: 100%; // Sesuaikan lebar thumbnail dengan lebar kontainer thumbnail
+    height: auto; // Tinggi otomatis untuk menjaga rasio aspek
+}
+
+// Menambahkan gaya tambahan jika perlu
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
 }

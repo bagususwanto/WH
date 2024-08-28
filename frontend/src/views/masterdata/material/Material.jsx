@@ -52,13 +52,17 @@ const Material = () => {
     maxStock: '',
   });
 
-  const { getMasterData, updateMasterDataById, postMasterData } = useMasterDataService();
+  const { getMasterData, getMasterDataById, deleteMasterDataById, updateMasterDataById, postMasterData } = useMasterDataService();
   const [filters, setFilters] = useState({
     global: { value: null }
   });
   const apiMaterial = 'material';
-  const apiSupplier = 'Supplier';
-  const apiCategory = 'Category';
+  const apiMaterialDelete = 'material-delete';
+  const apiSupplier = 'supplier';
+  const apiCategory = 'category';
+
+
+
 
   useEffect(() => {
     getMaterial();
@@ -156,7 +160,7 @@ const Material = () => {
   );
 
   const handleEditMaterial = (material) => {
-    console.log('Editing material:', material); // Debugging
+ 
     setIsEdit(true);
     setCurrentMaterial({
       id: material.id,
@@ -165,24 +169,24 @@ const Material = () => {
       uom: material.uom,
       price: material.price,
       type: material.type,
-      Category: material.Category ? material.categoryName:'',
-      Supplier: material.Supplier ? material.supplierName:'',
+      categoryId: material.Category ? material.Category.id:'',
+      supplierId: material.Supplier ? material.Supplier.id:'',
       minStock: material.minStock,
       maxStock: material.maxStock,
     });
     setModal(true);
   };
-    
 
+ 
   const handleDeleteMaterial = (materialId) => {
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'This material cannot be recovered!',
+      title: 'Apakah Anda yakin?',
+      text: 'Material ini tidak dapat dipulihkan!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Ya, hapus!',
     }).then((result) => {
       if (result.isConfirmed) {
         confirmDelete(materialId);
@@ -192,24 +196,28 @@ const Material = () => {
 
   const confirmDelete = async (materialId) => {
     try {
-      await axios.delete(`/material/${materialId}`);
-      Swal.fire('Deleted!', 'Material has been deleted.', 'success');
-      getMaterial();
+      await deleteMasterDataById(apiMaterialDelete, materialId);
+      Swal.fire('Terhapus!', 'Material telah dihapus.', 'success');
+      await getMaterial(); // Refresh the list after deletion
     } catch (error) {
-      console.error('Error deleting material:', error);
-      Swal.fire('Error!', 'Failed to delete material.', 'error');
+      console.error('Error menghapus material:', error);
+      Swal.fire('Error!', 'Gagal menghapus material.', 'error');
     }
   };
 
  const handleSaveMaterial = async () => {
   try {
+    // Prepare the material data for API request
+    const materialToSave = { ...currentMaterial };
+
     if (isEdit) {
       // Update existing material
-      updateMasterDataById(apiMaterial, currentMaterial.id, currentMaterial)
+      updateMasterDataById(apiMaterial, currentMaterial.id, materialToSave)
       Swal.fire('Updated!', 'Material has been updated.', 'success');
     } else {
       // Create new material
-      postMasterData(apiMaterial,  currentMaterial)
+      delete materialToSave.id;
+      postMasterData(apiMaterial,  materialToSave)
       Swal.fire('Added!', 'Material has been added.', 'success');
     }
     setModal(false);
@@ -264,12 +272,12 @@ const Material = () => {
   const handleCategoryChange = (selectedOption) => {
     setCurrentMaterial({
         ...currentMaterial,
-        Category: selectedOption ? selectedOption.value : '',
+        categoryId: selectedOption ? selectedOption.value : '',
     });
 };
 
   // Find the selected address option for initial value
-  const selectedCategoryOption = selectCategory.find(cat => cat.value === currentMaterial.Category);
+  const selectedCategoryOption = selectCategory.find(cat => cat.value === currentMaterial.categoryId);
 
   // Prepare address options for Select
   const selectSupplier = supplier.map(supp => ({
@@ -280,12 +288,12 @@ const Material = () => {
   const handleSupplierChange = (selectedOption) => {
     setCurrentMaterial({
       ...currentMaterial,
-      Supplier: selectedOption ? selectedOption.value : '',
+      supplierId: selectedOption ? selectedOption.value : '',
     });
   };
 
   // Find the selected address option for initial value
-  const selectedSupplierOption = selectSupplier.find(supp => supp.value === currentMaterial.Supplier);
+  const selectedSupplierOption = selectSupplier.find(supp => supp.value === currentMaterial.supplierId);
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
