@@ -2,11 +2,17 @@ import Material from "../models/MaterialModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
+import AddressRack from "../models/AddressRackModel.js";
+import Storage from "../models/StorageModel.js";
+import Shop from "../models/ShopModel.js";
+import Plant from "../models/PlantModel.js";
+import User from "../models/UserModel.js";
+import LogImport from "../models/LogImportModel.js";
+import { Op } from "sequelize";
 
 export const getIncoming = async (req, res) => {
   try {
     const response = await Incoming.findAll({
-      where: { flag: 1 },
       attributes: ["id", "planning", "actual", "createdAt", "updatedAt"],
       include: [
         {
@@ -20,6 +26,39 @@ export const getIncoming = async (req, res) => {
             {
               model: Supplier,
               attributes: ["id", "supplierName", "createdAt", "updatedAt"],
+            },
+          ],
+        },
+        {
+          model: AddressRack,
+          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Storage,
+              attributes: ["id", "storageName", "createdAt", "updatedAt"],
+              include: [
+                {
+                  model: Shop,
+                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
+                  include: [
+                    {
+                      model: Plant,
+                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: LogImport,
+          attributes: ["id", "typeLog", "fileName", "importDate"],
+          where: { typeLog: { [Op.in]: ["Incoming Plan", "Incoming Actual"] } },
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "createdAt", "updatedAt"],
             },
           ],
         },

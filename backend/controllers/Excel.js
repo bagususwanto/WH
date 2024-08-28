@@ -69,9 +69,9 @@ export const uploadIncomingPlan = async (req, res) => {
       return res.status(400).send("Please upload an excel file!");
     }
 
-    const filePath = path.join(__basedir, "resources", "uploads", "excel", req.file.filename);
+    const path = `./resources/uploads/excel/${req.file.filename}`;
 
-    const rows = await readXlsxFile(filePath);
+    const rows = await readXlsxFile(path);
 
     // Create a log entry before processing the file
     await LogImport.create(
@@ -81,7 +81,6 @@ export const uploadIncomingPlan = async (req, res) => {
         userId: req.user.userId,
         importDate: req.body.importDate,
       },
-      { transaction }
     );
 
     // Skip header

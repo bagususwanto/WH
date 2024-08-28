@@ -70,6 +70,12 @@ const useNavigation = () => {
       },
       {
         component: CNavItem,
+        name: 'Incoming',
+        to: '/incoming',
+        icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
         name: 'Tracking Order',
         to: '/tracking',
         icon: <CIcon icon={cilBluetooth} customClassName="nav-icon" />,
