@@ -40,6 +40,11 @@ const Inventory = () => {
 
   const columns = [
     {
+      field: 'quantitySistem',
+      header: 'Stock System',
+      sortable: true,
+    },
+    {
       field: 'formattedUpdateBy',
       header: 'Update By',
       sortable: true,
@@ -131,10 +136,13 @@ const Inventory = () => {
               ? 'over'
               : 'ok'
 
+        const discrepancy = item.quantityActual - item.quantitySistem
+
         return {
           ...item,
+          discrepancy,
           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
-          formattedUpdateBy: item.Log_Entries?.[0]?.User?.userName || '',
+          formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
           formattedUpdateAt: item.updatedAt
             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
@@ -413,13 +421,13 @@ const Inventory = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
-  const discrapencyBodyTemplate = (rowData) => {
+  const discrepancyBodyTemplate = (rowData) => {
     const { quantityActual, quantitySistem } = rowData
 
-    const discrapency = quantityActual - quantitySistem
+    const discrepancy = quantityActual - quantitySistem
 
-    if (discrapency < 0) return <Tag value={discrapency} severity={getSeverity('shortage')} />
-    if (discrapency > 0) return <Tag value={discrapency} severity={getSeverity('over')} />
+    if (discrepancy < 0) return <Tag value={discrepancy} severity={getSeverity('shortage')} />
+    if (discrepancy > 0) return <Tag value={discrepancy} severity={getSeverity('over')} />
   }
 
   const onColumnToggle = (event) => {
@@ -544,7 +552,7 @@ const Inventory = () => {
             >
               <Column
                 field="Material.materialNo"
-                header="Material No"
+                header="Material"
                 frozen={true}
                 alignFrozen="left"
                 sortable
@@ -558,27 +566,26 @@ const Inventory = () => {
               ></Column>
               <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
               <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="Material.minStock" header="Min. Stock" sortable></Column>
-              <Column field="Material.maxStock" header="Max Stock" sortable></Column>
-              <Column field="quantitySistem" header="Stock System" sortable></Column>
+              <Column field="Material.minStock" header="Min" sortable></Column>
+              <Column field="Material.maxStock" header="Max" sortable></Column>
               <Column
                 field="quantityActual"
-                header="Stock Inventory"
+                header="Stock Inv."
                 editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
                 sortable
               ></Column>
               <Column
-                field=""
-                header="Discrapency"
-                body={discrapencyBodyTemplate}
+                field="discrepancy"
+                header="Disc."
+                body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
               ></Column>
-              <Column field="quantityActualCheck" header="Stock On Hand" sortable></Column>
+              <Column field="quantityActualCheck" header="SoH" sortable></Column>
               <Column
                 field="evaluation"
-                header="Evaluation"
+                header="Eval."
                 body={statusBodyTemplate} // Menggunakan fungsi evaluasi
                 bodyStyle={{ textAlign: 'center' }}
                 sortable

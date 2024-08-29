@@ -164,7 +164,7 @@ const Incoming = () => {
         return {
           ...item,
           discrepancy,
-          formattedUpdateBy: item.Log_Entries?.[0]?.User?.userName || '',
+          formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
           formattedUpdateAt: item.updatedAt
             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
@@ -637,25 +637,29 @@ const Incoming = () => {
               header={header}
             >
               <Column
-                field="Material.materialNo"
-                header="Material No"
+                field="Inventory.Material.materialNo"
+                header="Material"
                 frozen={true}
                 alignFrozen="left"
                 sortable
               ></Column>
               <Column
-                field="Material.description"
+                field="Inventory.Material.description"
                 header="Description"
                 frozen={true}
                 alignFrozen="left"
                 sortable
               ></Column>
-              <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
-              <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="planning" header="Planning Incoming" sortable></Column>
+              <Column
+                field="Inventory.Address_Rack.addressRackName"
+                header="Address"
+                sortable
+              ></Column>
+              <Column field="Inventory.Material.uom" header="UoM" sortable></Column>
+              <Column field="planning" header="Plan." sortable></Column>
               <Column
                 field="actual"
-                header="Actual Incoming"
+                header="Act."
                 editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
                 sortable
@@ -674,6 +678,7 @@ const Incoming = () => {
                 sortable
               ></Column>
               <Column field="Log_Import.importDate" header="Date" sortable></Column>
+              <Column field="Log_Import.User.username" header="Import By" sortable></Column>
               {visibleColumns.map((col, index) => (
                 <Column
                   key={index}
