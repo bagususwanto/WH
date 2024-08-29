@@ -21,6 +21,7 @@ import {
   cilList,
   cilCart,
   cilStorage,
+  cilGraph,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
@@ -34,8 +35,14 @@ const useNavigation = () => {
       {
         component: CNavItem,
         name: 'Home',
-        to: '/dashboard',
+        to: '/home ',
         icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Dasboard',
+        to: '/dashboard',
+        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
       },
       {
         component: CNavGroup,
