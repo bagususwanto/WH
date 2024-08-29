@@ -1,6 +1,5 @@
 import React from 'react'
 
-
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Home = React.lazy(() => import('./views/home/Home'))
 const Login = React.lazy(() => import('./views/pages/login/Login'))
@@ -21,25 +20,24 @@ const User = React.lazy(() => import('./views/masterdata/user/User'))
 const Goodissue = React.lazy(() => import('./views/orderwarehouse/goodissue/Goodissue'))
 
 const routes = [
-
   { path: '/login', name: '', element: Login },
-  { path: '/dashboard', name: '', element: Dashboard },
   { path: '/home', name: '', element: Home },
-  { path: '/inventory', name: '', element: Inventory },
-  { path: '/incoming', name: '', element: Incoming },
-  { path: '/orderitem', name: '', element: Orderitem },
-  { path: '/tracking', name: '', element: Tracking },
-  { path: '/category', name: '', element: Category },
-  { path: '/shop', name: '', element: Shop },
-  { path: '/plant', name: '', element: Plant },
-  { path: '/supplier', name: '', element: Supplier },
-  { path: '/material', name: '', element: Material },
-  { path: '/role', name: '', element: Role },
-  { path: '/cost', name: '', element: Cost },
-  { path: '/storage', name: '', element: Storage },
-  { path: '/address', name: '', element: Address },
-  { path: '/user', name: '', element: User },
-  { path: '/goodissue', name: '', element: Goodissue },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/inventory', name: 'Inventory', element: Inventory },
+  { path: '/incoming', name: 'Incoming', element: Incoming },
+  { path: '/orderitem', name: 'Orderitem', element: Orderitem },
+  { path: '/tracking', name: 'Tracking', element: Tracking },
+  { path: '/category', name: 'Category', element: Category },
+  { path: '/shop', name: 'Shop', element: Shop },
+  { path: '/plant', name: 'Plant', element: Plant },
+  { path: '/supplier', name: 'Supplier', element: Supplier },
+  { path: '/material', name: 'Material', element: Material },
+  { path: '/role', name: 'Role', element: Role },
+  { path: '/cost', name: 'Cost', element: Cost },
+  { path: '/storage', name: 'Storage', element: Storage },
+  { path: '/address', name: 'Address', element: Address },
+  { path: '/user', name: 'User', element: User },
+  { path: '/goodissue', name: 'Goodissue', element: Goodissue },
 ]
 
 export default routes

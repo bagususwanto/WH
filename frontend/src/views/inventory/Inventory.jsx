@@ -575,13 +575,13 @@ const Inventory = () => {
                 style={{ width: '5%' }}
                 sortable
               ></Column>
-              <Column
+              {/* <Column
                 field="discrepancy"
                 header="Disc."
                 body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
-              ></Column>
+              ></Column> */}
               <Column field="quantityActualCheck" header="SoH" sortable></Column>
               <Column
                 field="evaluation"

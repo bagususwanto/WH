@@ -36,7 +36,7 @@ const useNavigation = () => {
       {
         component: CNavItem,
         name: 'Home',
-        to: '/home ',
+        to: '/home',
         icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
       },
       {
@@ -73,15 +73,15 @@ const useNavigation = () => {
       },
       {
         component: CNavItem,
-        name: 'Inventory',
-        to: '/inventory',
-        icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
         name: 'Incoming',
         to: '/incoming',
         icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Inventory',
+        to: '/inventory',
+        icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
       },
     ]
 
