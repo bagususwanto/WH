@@ -62,11 +62,26 @@ const useManageStockService = () => {
     }
   }
 
+  const postIncomingActual = async (api, data) => {
+    try {
+      const response = await axiosJWT.post(`/${api}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post user:')
+    }
+  }
+
   return {
     getInventory,
     getIncoming,
     updateInventoryById,
     postIncomingPlan,
+    postIncomingActual,
   }
 }
 

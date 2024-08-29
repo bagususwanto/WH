@@ -21,8 +21,8 @@ import LogImport from "./LogImportModel.js";
 (async () => {
   try {
     // await db.sync();
-    // await db.sync({force: true});
-    // await LogImport.sync({ alter: true });
+    // await Incoming.sync({ force: true });
+    // await Incoming.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

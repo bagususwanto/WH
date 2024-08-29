@@ -414,7 +414,7 @@ const Inventory = () => {
   }
 
   const discrapencyBodyTemplate = (rowData) => {
-    const { quantityActual, quantitySistem, Material } = rowData
+    const { quantityActual, quantitySistem } = rowData
 
     const discrapency = quantityActual - quantitySistem
 

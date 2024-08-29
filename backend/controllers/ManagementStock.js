@@ -9,6 +9,13 @@ import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
 import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
+import { Op } from "sequelize";
+
+const startOfToday = new Date();
+startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
+
+const endOfToday = new Date();
+endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventory = async (req, res) => {
   try {
@@ -62,6 +69,17 @@ export const getInventory = async (req, res) => {
               attributes: ["id", "userName", "createdAt", "updatedAt"],
             },
           ],
+        },
+        {
+          model: Incoming,
+          attributes: ["id", "planning", "actual", "createdAt", "updatedAt"],
+          limit: 1,
+          order: [["createdAt", "DESC"]],
+          where: {
+            createdAt: {
+              [Op.between]: [startOfToday, endOfToday],
+            },
+          },
         },
       ],
     });
@@ -142,12 +160,12 @@ export const updateStock = async (materialId, addressId, quantity, type) => {
   try {
     let quantityActualCheck = null;
 
-    await Inventory.findOne({
+    const inventory = await Inventory.findOne({
       where: { materialId, addressId },
       attributes: ["quantityActualCheck"],
-    }).then((response) => {
-      quantityActualCheck = response.quantityActualCheck;
     });
+
+    quantityActualCheck = inventory.quantityActualCheck;
 
     if (quantityActualCheck == null) {
       quantityActualCheck = setQuantityActualCheck(materialId, addressId);

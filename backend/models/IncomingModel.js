@@ -1,22 +1,13 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import Material from "./MaterialModel.js";
-import AddressRack from "./AddressRackModel.js";
 import LogImport from "./LogImportModel.js";
+import Inventory from "./InventoryModel.js";
 
 const { DataTypes } = Sequelize;
 
 const Incoming = db.define(
   "Incoming",
   {
-    materialId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Material,
-        key: "id",
-      },
-    },
     planning: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -27,11 +18,12 @@ const Incoming = db.define(
       allowNull: false,
       defaultValue: 0,
     },
-    addressId: {
+    inventoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
       references: {
-        model: AddressRack,
+        model: Inventory,
         key: "id",
       },
     },
@@ -49,14 +41,10 @@ const Incoming = db.define(
   }
 );
 
-Material.hasMany(Incoming, { foreignKey: "materialId" });
-Incoming.belongsTo(Material, { foreignKey: "materialId" });
+LogImport.hasMany(Incoming, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+Incoming.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
 
-AddressRack.hasMany(Incoming, { foreignKey: "addressId" });
-Incoming.belongsTo(AddressRack, { foreignKey: "addressId" });
-
-LogImport.hasMany(Incoming, { foreignKey: "logImportId" });
-Incoming.belongsTo(LogImport, { foreignKey: "logImportId" });
-
+Inventory.hasMany(Incoming, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
+Incoming.belongsTo(Inventory, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
 
 export default Incoming;

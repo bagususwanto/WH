@@ -9,6 +9,8 @@ import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
 import LogImport from "../models/LogImportModel.js";
 import { Op } from "sequelize";
+import Inventory from "../models/InventoryModel.js";
+import LogEntry from "../models/LogEntryModel.js";
 
 export const getIncoming = async (req, res) => {
   try {
@@ -16,34 +18,40 @@ export const getIncoming = async (req, res) => {
       attributes: ["id", "planning", "actual", "createdAt", "updatedAt"],
       include: [
         {
-          model: Material,
-          attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
+          model: Inventory,
+          attributes: ["id", "quantitySistem", "quantityActual", "quantityActualCheck", "remarks", "createdAt", "updatedAt"],
           include: [
             {
-              model: Category,
-              attributes: ["id", "categoryName", "createdAt", "updatedAt"],
-            },
-            {
-              model: Supplier,
-              attributes: ["id", "supplierName", "createdAt", "updatedAt"],
-            },
-          ],
-        },
-        {
-          model: AddressRack,
-          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Storage,
-              attributes: ["id", "storageName", "createdAt", "updatedAt"],
+              model: Material,
+              attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
               include: [
                 {
-                  model: Shop,
-                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
+                  model: Category,
+                  attributes: ["id", "categoryName", "createdAt", "updatedAt"],
+                },
+                {
+                  model: Supplier,
+                  attributes: ["id", "supplierName", "createdAt", "updatedAt"],
+                },
+              ],
+            },
+            {
+              model: AddressRack,
+              attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
+              include: [
+                {
+                  model: Storage,
+                  attributes: ["id", "storageName", "createdAt", "updatedAt"],
                   include: [
                     {
-                      model: Plant,
-                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                      model: Shop,
+                      attributes: ["id", "shopName", "createdAt", "updatedAt"],
+                      include: [
+                        {
+                          model: Plant,
+                          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                        },
+                      ],
                     },
                   ],
                 },
@@ -55,6 +63,18 @@ export const getIncoming = async (req, res) => {
           model: LogImport,
           attributes: ["id", "typeLog", "fileName", "importDate"],
           where: { typeLog: { [Op.in]: ["Incoming Plan", "Incoming Actual"] } },
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "createdAt", "updatedAt"],
+            },
+          ],
+        },
+        {
+          model: LogEntry,
+          attributes: ["id", "userId", "createdAt", "updatedAt"],
+          limit: 1,
+          order: [["createdAt", "DESC"]],
           include: [
             {
               model: User,
