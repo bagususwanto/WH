@@ -22,6 +22,7 @@ import {
   cilCart,
   cilStorage,
   cilGraph,
+  cilTruck,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
@@ -80,7 +81,7 @@ const useNavigation = () => {
         component: CNavItem,
         name: 'Incoming',
         to: '/incoming',
-        icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
       },
     ]
 
