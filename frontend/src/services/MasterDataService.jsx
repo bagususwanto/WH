@@ -5,8 +5,7 @@ const useMasterDataService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    // Handle error as needed (e.g., show message to user)
-    throw error
+    throw new Error(message + error.message)
   }
 
   const getMasterData = async (api) => {

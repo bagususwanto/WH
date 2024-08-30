@@ -85,6 +85,11 @@ export const getInventoryIdByMaterialIdAndAddressId = async (materialId, address
   }
 };
 
+const validateHeader = (header) => {
+  const expectedHeader = ["materialNo", "addressRackName", "planning", "actual"];
+  return header.every((value, index) => value === expectedHeader[index]);
+};
+
 export const uploadIncomingPlan = async (req, res) => {
   const transaction = await db.transaction();
 
@@ -107,6 +112,12 @@ export const uploadIncomingPlan = async (req, res) => {
 
     // Skip header
     rows.shift();
+
+    const header = rows.shift();
+
+    if (!validateHeader(header)) {
+      return res.status(400).send("Invalid header!");
+    }
 
     // Fetch material and address IDs for all rows
     const incomingPlanPromises = rows.map(async (row) => {
@@ -197,14 +208,12 @@ export const uploadIncomingActual = async (req, res) => {
     const rows = await readXlsxFile(path);
 
     // Create a log entry before processing the file
-    await LogImport.create(
-      {
-        typeLog: "Incoming Actual",
-        fileName: req.file.originalname,
-        userId: req.user.userId,
-        importDate: req.body.importDate,
-      },
-    );
+    await LogImport.create({
+      typeLog: "Incoming Actual",
+      fileName: req.file.originalname,
+      userId: req.user.userId,
+      importDate: req.body.importDate,
+    });
 
     // Skip header
     rows.shift();

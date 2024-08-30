@@ -49,7 +49,7 @@ const Incoming = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
   const [visible, setVisible] = useState(false)
-  const [date, setDate] = useState(new Date())
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const [radio, setRadio] = useState('plan')
   const [incomingData, setIncomingData] = useState({
     importDate: date,
@@ -91,9 +91,13 @@ const Incoming = () => {
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'Address_Rack.Storage.storageName': {
+    'Log_Import.importDate': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
+    },
+    'Address_Rack.Storage.storageName': {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
     },
     'Address_Rack.Storage.Shop.Plant.plantName': {
       value: null,
@@ -108,6 +112,10 @@ const Incoming = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      'Log_Import.importDate': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
       'Address_Rack.Storage.storageName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
@@ -288,6 +296,12 @@ const Incoming = () => {
         const searchString = JSON.stringify(item).toLowerCase()
         return searchString.includes(globalFilterValue)
       })
+    }
+
+    if (filters['Log_Import.importDate'].value) {
+      filteredData = filteredData.filter(
+        (item) => item.Log_Import.importDate === filters['Log_Import.importDate'].value,
+      )
     }
 
     if (filters['Address_Rack.Storage.storageName'].value) {
@@ -503,32 +517,36 @@ const Incoming = () => {
 
   const handleImport = async () => {
     setLoadingImport(true)
-    setTimeout(() => {
-      try {
-        if (!incomingData.file) {
-          MySwal.fire('Error', 'Please select a file', 'error')
-          return
-        }
-
-        if (radio === 'plan') {
-          postIncomingPlan(apiIncomingPlan, incomingData)
-          MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
-        } else if (radio === 'actual') {
-          postIncomingActual(apiIncomingActual, incomingData) // Fungsi untuk handle actual data
-          MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
-        }
-
-        setImported(true)
-      } catch (error) {
-        console.error('Error during import:', error)
-        MySwal.fire('Error', 'Error during import', 'error')
-      } finally {
-        setTimeout(() => {
-          setLoadingImport(false)
-        }, 3000)
-        setVisible(false)
+    try {
+      if (!incomingData.file) {
+        MySwal.fire('Error', 'Please select a file', 'error')
+        return
       }
-    }, 3000)
+
+      if (radio === 'plan') {
+        await postIncomingPlan(apiIncomingPlan, incomingData)
+        MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
+      } else if (radio === 'actual') {
+        await postIncomingActual(apiIncomingActual, incomingData)
+        MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
+      }
+
+      setImported(true)
+    } catch (error) {
+      console.error('Error during import:', error)
+      MySwal.fire('Error', `Error during import: ${error.message}`, 'error')
+    } finally {
+      setLoadingImport(false)
+      setVisible(false)
+    }
+  }
+
+  const handleFilterDate = (selectedDate) => {
+    const formattedDate = new Date(selectedDate[0]).toLocaleDateString('en-CA')
+
+    let _filters = { ...filters }
+    _filters['Log_Import.importDate'].value = formattedDate
+    setFilters(_filters)
   }
 
   return (
@@ -551,7 +569,26 @@ const Incoming = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
+                <Flatpickr
+                  value={null}
+                  options={{
+                    dateFormat: 'Y-m-d',
+                    maxDate: new Date(),
+                    allowInput: true,
+                  }}
+                  onChange={handleFilterDate}
+                  className="form-control mb-2"
+                  placeholder="Select a date"
+                  style={{
+                    width: '100%',
+                    borderRadius: '5px',
+                    border: '1px solid #a5acb3',
+                    height: '33px',
+                  }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['Address_Rack.Storage.Shop.Plant.plantName'].value}
                   options={plant}
@@ -562,7 +599,7 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['Address_Rack.Storage.Shop.shopName'].value}
                   options={shop}
@@ -573,7 +610,7 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['Address_Rack.Storage.storageName'].value}
                   options={storage}
@@ -666,8 +703,8 @@ const Incoming = () => {
               ></Column>
               <Column
                 field="discrepancy"
-                header="Discrepancy"
-                body={discrepancyBodyTemplate}
+                header="Disc."
+                // body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
               ></Column>
@@ -711,7 +748,6 @@ const Incoming = () => {
           <div className="mb-3">
             <CFormLabel>Date</CFormLabel>
             <Flatpickr
-              id="date-picker"
               value={date}
               options={{
                 dateFormat: 'Y-m-d',

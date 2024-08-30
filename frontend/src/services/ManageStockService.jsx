@@ -4,10 +4,10 @@ const useManageStockService = () => {
   const { token, axiosJWT } = useVerify()
 
   const handleError = (error, message) => {
-    console.error(message, error)
-    // Handle error as needed (e.g., show message to user)
-    throw error
-  }
+    console.error(message, error);
+    throw new Error(message + error.message); 
+  };
+  
 
   const getInventory = async () => {
     try {

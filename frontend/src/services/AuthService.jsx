@@ -3,8 +3,7 @@ import axiosInstance from '../utils/AxiosInstance'
 const useAuthService = () => {
   const handleError = (error, message) => {
     console.error(message, error)
-    // Handle error as needed (e.g., show message to user)
-    throw error
+    throw new Error(message + error.message)
   }
 
   const login = async (username, password) => {
