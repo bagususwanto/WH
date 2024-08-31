@@ -6,6 +6,7 @@ import LogImport from "../models/LogImportModel.js";
 import db from "../utils/Database.js";
 import { updateStock } from "./ManagementStock.js";
 import Inventory from "../models/InventoryModel.js";
+import LogEntry from "../models/LogEntryModel.js";
 
 export const getMaterialIdByMaterialNo = async (materialNo) => {
   try {
@@ -86,8 +87,9 @@ export const getInventoryIdByMaterialIdAndAddressId = async (materialId, address
 };
 
 const validateHeader = (header) => {
+  console.log("masuk fungsi header");
   const expectedHeader = ["materialNo", "addressRackName", "planning", "actual"];
-  return header.every((value, index) => value === expectedHeader[index]);
+  return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
 };
 
 export const uploadIncomingPlan = async (req, res) => {
@@ -98,9 +100,20 @@ export const uploadIncomingPlan = async (req, res) => {
       return res.status(400).send("Please upload an excel file!");
     }
 
+    const logImportId = await getLogImportIdByDate(req.body.importDate);
+    if (logImportId) {
+      return res.status(400).send("Incoming Plan already exists for this date!");
+    }
+
     const path = `./resources/uploads/excel/${req.file.filename}`;
 
     const rows = await readXlsxFile(path);
+
+    const header = rows.shift();
+
+    if (!validateHeader(header)) {
+      return res.status(400).send("Invalid header!");
+    }
 
     // Create a log entry before processing the file
     await LogImport.create({
@@ -109,15 +122,6 @@ export const uploadIncomingPlan = async (req, res) => {
       userId: req.user.userId,
       importDate: req.body.importDate,
     });
-
-    // Skip header
-    rows.shift();
-
-    const header = rows.shift();
-
-    if (!validateHeader(header)) {
-      return res.status(400).send("Invalid header!");
-    }
 
     // Fetch material and address IDs for all rows
     const incomingPlanPromises = rows.map(async (row) => {
@@ -147,12 +151,8 @@ export const uploadIncomingPlan = async (req, res) => {
   } catch (error) {
     // Rollback the transaction in case of error
     await transaction.rollback();
-
     console.error(error);
-    res.status(500).send({
-      message: `Could not upload the file: ${req.file?.originalname}`,
-      error: error.message,
-    });
+    res.status(500).send(`Could not upload the file: ${req.file?.originalname}, not matched with expected header!`);
   }
 };
 

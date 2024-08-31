@@ -1,13 +1,17 @@
 import useVerify from '../hooks/UseVerify'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
+const MySwal = withReactContent(Swal)
 
 const useManageStockService = () => {
   const { token, axiosJWT } = useVerify()
 
   const handleError = (error, message) => {
-    console.error(message, error);
-    throw new Error(message + error.message); 
-  };
-  
+    console.error(message, error)
+    MySwal.fire('Error', `Error during import: ${error.response.data}`, 'error')
+    throw new Error(message + error.message)
+  }
 
   const getInventory = async () => {
     try {
@@ -58,7 +62,7 @@ const useManageStockService = () => {
       })
       return response
     } catch (error) {
-      handleError(error, 'Error post user:')
+      handleError(error, 'Error post incoming:')
     }
   }
 

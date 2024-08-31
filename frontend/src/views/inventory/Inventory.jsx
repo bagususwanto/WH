@@ -311,6 +311,7 @@ const Inventory = () => {
     )
   }
 
+
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
@@ -331,18 +332,20 @@ const Inventory = () => {
         return {
           'Material No': Material.materialNo,
           Description: Material.description,
-          Address: Address_Rack.addressRackName,
+          Address: item.Address_Rack.addressRackName,
           UoM: Material.uom,
-          'Min. Stock': Material.minStock,
+          'Min Stock': Material.minStock,
           'Max Stock': Material.maxStock,
-          'Stock System': quantitySistem,
-          'Stock Inventory': quantityActual,
+          'Stock System': item.quantitySistem,
+          'Stock Inventory': item.quantityActual,
+          Discrepancy: item.discrepancy,
           'Stock On Hand': quantityActualCheck,
           Evaluation: evaluation,
-          Plant: Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: Address_Rack.Storage.Shop.shopName,
-          Storage: Address_Rack.Storage.storageName,
-          'Update By': Log_Entries[0]?.User?.userName || '',
+          Remarks: item.remarks,
+          Plant: item.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: item.Address_Rack.Storage.Shop.shopName,
+          Storage: item.Address_Rack.Storage.storageName,
+          'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })

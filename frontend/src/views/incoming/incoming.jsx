@@ -57,6 +57,7 @@ const Incoming = () => {
   })
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(null)
 
   const { getIncoming, postIncomingPlan, postIncomingActual } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -95,15 +96,15 @@ const Incoming = () => {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.storageName': {
+    'Inventory.Address_Rack.Storage.storageName': {
       value: null,
       matchMode: FilterMatchMode.CONTAINS,
     },
-    'Address_Rack.Storage.Shop.Plant.plantName': {
+    'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.Shop.shopName': {
+    'Inventory.Address_Rack.Storage.Shop.shopName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -116,20 +117,21 @@ const Incoming = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.storageName': {
+      'Inventory.Address_Rack.Storage.storageName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.Plant.plantName': {
+      'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.shopName': {
+      'Inventory.Address_Rack.Storage.Shop.shopName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
     })
     setGlobalFilterValue('')
+    setSelectedDate(null)
   }
 
   useEffect(() => {
@@ -251,7 +253,7 @@ const Incoming = () => {
   const handleStorageChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.storageName'].value = value
+    _filters['Inventory.Address_Rack.Storage.storageName'].value = value
     setFilters(_filters)
   }
 
@@ -263,7 +265,7 @@ const Incoming = () => {
     getStorageByShopId(shopId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.Shop.shopName'].value = selectedShopName
+    _filters['Inventory.Address_Rack.Storage.Shop.shopName'].value = selectedShopName
     setFilters(_filters)
   }
 
@@ -275,7 +277,7 @@ const Incoming = () => {
     getShopByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -304,27 +306,27 @@ const Incoming = () => {
       )
     }
 
-    if (filters['Address_Rack.Storage.storageName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.storageName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.storageName ===
-          filters['Address_Rack.Storage.storageName'].value,
+          item.Inventory.Address_Rack.Storage.storageName ===
+          filters['Inventory.Address_Rack.Storage.storageName'].value,
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.Plant.plantName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.Shop.Plant.plantName ===
-          filters['Address_Rack.Storage.Shop.Plant.plantName'].value,
+          item.Inventory.Address_Rack.Storage.Shop.Plant.plantName ===
+          filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value,
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.shopName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.Shop.shopName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.Shop.shopName ===
-          filters['Address_Rack.Storage.Shop.shopName'].value,
+          item.Inventory.Address_Rack.Storage.Shop.shopName ===
+          filters['Inventory.Address_Rack.Storage.Shop.shopName'].value,
       )
     }
 
@@ -351,34 +353,20 @@ const Incoming = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
-        const { quantityActualCheck, Material } = item
-        const minStock = Material?.minStock
-        const maxStock = Material?.maxStock
-
-        let evaluation
-        if (quantityActualCheck < minStock) {
-          evaluation = 'shortage'
-        } else if (quantityActualCheck > maxStock) {
-          evaluation = 'over'
-        } else {
-          evaluation = 'ok'
-        }
-
         return {
-          'Material No': Material.materialNo,
-          Description: Material.description,
-          Address: Address_Rack.addressRackName,
-          UoM: Material.uom,
-          'Min. Stock': Material.minStock,
-          'Max Stock': Material.maxStock,
-          'Stock System': quantitySistem,
-          'Stock Incoming': quantityActual,
-          'Stock On Hand': quantityActualCheck,
-          Evaluation: evaluation,
-          Plant: Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: Address_Rack.Storage.Shop.shopName,
-          Storage: Address_Rack.Storage.storageName,
-          'Update By': Log_Entries[0]?.User?.userName || '',
+          'Material No': item.Inventory.Material.materialNo,
+          Description: item.Inventory.Material.description,
+          Address: item.Inventory.Address_Rack.addressRackName,
+          UoM: item.Inventory.Material.uom,
+          'Planning Incoming': item.planning,
+          'Actual Incoming': item.actual,
+          Discrepancy: item.discrepancy,
+          Date: item.Log_Import.importDate,
+          'Import By': item.Log_Import?.User?.username || '',
+          Plant: item.Inventory.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: item.Inventory.Address_Rack.Storage.Shop.shopName,
+          Storage: item.Inventory.Address_Rack.Storage.storageName,
+          'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
@@ -433,16 +421,6 @@ const Incoming = () => {
   const qtyActualEditor = (options) => {
     return (
       <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />
-    )
-  }
-
-  const remarksEditor = (options) => {
-    return (
-      <InputText
-        type="text"
-        value={options.value || ''}
-        onChange={(e) => options.editorCallback(e.target.value)}
-      />
     )
   }
 
@@ -534,18 +512,18 @@ const Incoming = () => {
       setImported(true)
     } catch (error) {
       console.error('Error during import:', error)
-      MySwal.fire('Error', `Error during import: ${error.message}`, 'error')
     } finally {
       setLoadingImport(false)
       setVisible(false)
     }
   }
 
-  const handleFilterDate = (selectedDate) => {
-    const formattedDate = new Date(selectedDate[0]).toLocaleDateString('en-CA')
+  const handleFilterDate = (date) => {
+    setSelectedDate(date)
+    const fornmattedDate = date[0].toLocaleDateString('en-CA')
 
     let _filters = { ...filters }
-    _filters['Log_Import.importDate'].value = formattedDate
+    _filters['Log_Import.importDate'].value = fornmattedDate
     setFilters(_filters)
   }
 
@@ -571,7 +549,7 @@ const Incoming = () => {
             <CRow>
               <CCol xs={12} sm={6} md={3}>
                 <Flatpickr
-                  value={null}
+                  value={selectedDate}
                   options={{
                     dateFormat: 'Y-m-d',
                     maxDate: new Date(),
@@ -590,7 +568,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.Plant.plantName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -601,7 +579,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.shopName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.Shop.shopName'].value}
                   options={shop}
                   onChange={handleShopChange}
                   placeholder="Select Shop"
@@ -612,7 +590,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.storageName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.storageName'].value}
                   options={storage}
                   onChange={handleStorageChange}
                   placeholder="Select Storage"
@@ -706,12 +684,6 @@ const Incoming = () => {
                 header="Disc."
                 // body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column>
-              <Column
-                field="remarks"
-                header="Remarks"
-                editor={(options) => remarksEditor(options)}
                 sortable
               ></Column>
               <Column field="Log_Import.importDate" header="Date" sortable></Column>
