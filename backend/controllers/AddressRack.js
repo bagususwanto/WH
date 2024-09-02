@@ -81,6 +81,14 @@ export const getAddressRackById = async (req, res) => {
 
 export const createAddressRack = async (req, res) => {
   try {
+    const addressRackName = AddressRack.findOne({
+      where: { addressRackName: req.body.addressRackName },
+    });
+
+    if (addressRackName) {
+      return res.status(404).json({ msg: "AddressRack already exist" });
+    }
+
     await AddressRack.create(req.body);
     res.status(201).json({ msg: "AddressRack Created" });
   } catch (error) {

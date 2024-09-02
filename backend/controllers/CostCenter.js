@@ -71,6 +71,14 @@ export const getCostCenterById = async (req, res) => {
 
 export const createCostCenter = async (req, res) => {
   try {
+    const constCenterCode = await CostCenter.findOne({
+      where: { costCenterCode: req.body.costCenterCode },
+    });
+
+    if (constCenterCode) {
+      return res.status(400).json({ msg: "CostCenter already exists" });
+    }
+
     await CostCenter.create(req.body);
     res.status(201).json({ msg: "CostCenter Created" });
   } catch (error) {

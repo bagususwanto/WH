@@ -87,6 +87,12 @@ export const getShopByPlant = async (req, res) => {
 
 export const createShop = async (req, res) => {
   try {
+    const shopName = Shop.findOne({ where: { shopName: req.body.shopName } });
+
+    if (shopName) {
+      return res.status(400).json({ msg: "Shop name already exists" });
+    }
+
     await Shop.create(req.body);
     res.status(201).json({ msg: "Shop Created" });
   } catch (error) {
