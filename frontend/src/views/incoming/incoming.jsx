@@ -382,6 +382,29 @@ const Incoming = () => {
     })
   }
 
+  const downloadTemplate = () => {
+    import('xlsx').then((xlsx) => {
+      // Mapping data untuk ekspor
+      const mappedData = [
+        {
+          materialNo: '',
+          addressRackNames: '',
+          planning: '',
+          actual: '',
+        },
+      ]
+
+      const worksheet = xlsx.utils.json_to_sheet(mappedData)
+      const workbook = { Sheets: { template: worksheet }, SheetNames: ['template'] }
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array',
+      })
+
+      saveAsExcelFile(excelBuffer, 'template_incoming')
+    })
+  }
+
   const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
       if (module && module.default) {
@@ -392,7 +415,17 @@ const Incoming = () => {
           type: EXCEL_TYPE,
         })
 
-        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION)
+        if (fileName === 'template_incoming') {
+          module.default.saveAs(
+            data,
+            fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
+          )
+        } else {
+          module.default.saveAs(
+            data,
+            fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION,
+          )
+        }
       }
     })
   }
@@ -607,7 +640,7 @@ const Incoming = () => {
           <CCardHeader>Incoming Table</CCardHeader>
           <CCardBody>
             <CRow className="mb-2">
-              <CCol xs={12} md={8} lg={8} xl={8}>
+              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
                 <div className="d-flex flex-wrap justify-content-start">
                   <Button
                     type="button"
@@ -621,15 +654,24 @@ const Incoming = () => {
                   <Button
                     type="button"
                     label="Upload"
-                    icon="pi pi-file-excel"
+                    icon="pi pi-file-import"
                     severity="primary"
-                    className="rounded-5 mb-2" // Menambahkan margin-bottom agar tombol tidak terlalu rapat di bawah
+                    className="rounded-5 me-2 mb-2"
                     onClick={showModalUpload}
+                    data-pr-tooltip="XLS"
+                  />
+                  <Button
+                    type="button"
+                    label="Template"
+                    icon="pi pi-download"
+                    severity="primary"
+                    className="rounded-5 mb-2"
+                    onClick={downloadTemplate}
                     data-pr-tooltip="XLS"
                   />
                 </div>
               </CCol>
-              <CCol xs={12} md={4} lg={4} xl={4}>
+              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
                 <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
               </CCol>
             </CRow>
