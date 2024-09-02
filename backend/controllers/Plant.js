@@ -42,6 +42,14 @@ export const getPlantById = async (req, res) => {
 
 export const createPlant = async (req, res) => {
   try {
+    const plantCode = Plant.findOne({
+      where: { plantCode: req.body.plantCode },
+    });
+
+    if (plantCode) {
+      return res.status(400).json({ msg: "Plant Code already exist" });
+    }
+
     await Plant.create(req.body);
     res.status(201).json({ msg: "Plant Created" });
   } catch (error) {

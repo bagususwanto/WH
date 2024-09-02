@@ -49,7 +49,7 @@ const Incoming = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
   const [visible, setVisible] = useState(false)
-  const [date, setDate] = useState(new Date())
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const [radio, setRadio] = useState('plan')
   const [incomingData, setIncomingData] = useState({
     importDate: date,
@@ -57,6 +57,7 @@ const Incoming = () => {
   })
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(null)
 
   const { getIncoming, postIncomingPlan, postIncomingActual } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -91,15 +92,19 @@ const Incoming = () => {
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'Address_Rack.Storage.storageName': {
+    'Log_Import.importDate': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.Shop.Plant.plantName': {
+    'Inventory.Address_Rack.Storage.storageName': {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.Shop.shopName': {
+    'Inventory.Address_Rack.Storage.Shop.shopName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -108,20 +113,25 @@ const Incoming = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'Address_Rack.Storage.storageName': {
+      'Log_Import.importDate': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.Plant.plantName': {
+      'Inventory.Address_Rack.Storage.storageName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.shopName': {
+      'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+      'Inventory.Address_Rack.Storage.Shop.shopName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
     })
     setGlobalFilterValue('')
+    setSelectedDate(null)
   }
 
   useEffect(() => {
@@ -243,7 +253,7 @@ const Incoming = () => {
   const handleStorageChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.storageName'].value = value
+    _filters['Inventory.Address_Rack.Storage.storageName'].value = value
     setFilters(_filters)
   }
 
@@ -255,7 +265,7 @@ const Incoming = () => {
     getStorageByShopId(shopId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.Shop.shopName'].value = selectedShopName
+    _filters['Inventory.Address_Rack.Storage.Shop.shopName'].value = selectedShopName
     setFilters(_filters)
   }
 
@@ -267,7 +277,7 @@ const Incoming = () => {
     getShopByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -290,27 +300,33 @@ const Incoming = () => {
       })
     }
 
-    if (filters['Address_Rack.Storage.storageName'].value) {
+    if (filters['Log_Import.importDate'].value) {
       filteredData = filteredData.filter(
-        (item) =>
-          item.Address_Rack.Storage.storageName ===
-          filters['Address_Rack.Storage.storageName'].value,
+        (item) => item.Log_Import.importDate === filters['Log_Import.importDate'].value,
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.Plant.plantName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.storageName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.Shop.Plant.plantName ===
-          filters['Address_Rack.Storage.Shop.Plant.plantName'].value,
+          item.Inventory.Address_Rack.Storage.storageName ===
+          filters['Inventory.Address_Rack.Storage.storageName'].value,
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.shopName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.Shop.shopName ===
-          filters['Address_Rack.Storage.Shop.shopName'].value,
+          item.Inventory.Address_Rack.Storage.Shop.Plant.plantName ===
+          filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value,
+      )
+    }
+
+    if (filters['Inventory.Address_Rack.Storage.Shop.shopName'].value) {
+      filteredData = filteredData.filter(
+        (item) =>
+          item.Inventory.Address_Rack.Storage.Shop.shopName ===
+          filters['Inventory.Address_Rack.Storage.Shop.shopName'].value,
       )
     }
 
@@ -337,34 +353,20 @@ const Incoming = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
-        const { quantityActualCheck, Material } = item
-        const minStock = Material?.minStock
-        const maxStock = Material?.maxStock
-
-        let evaluation
-        if (quantityActualCheck < minStock) {
-          evaluation = 'shortage'
-        } else if (quantityActualCheck > maxStock) {
-          evaluation = 'over'
-        } else {
-          evaluation = 'ok'
-        }
-
         return {
-          'Material No': Material.materialNo,
-          Description: Material.description,
-          Address: Address_Rack.addressRackName,
-          UoM: Material.uom,
-          'Min. Stock': Material.minStock,
-          'Max Stock': Material.maxStock,
-          'Stock System': quantitySistem,
-          'Stock Incoming': quantityActual,
-          'Stock On Hand': quantityActualCheck,
-          Evaluation: evaluation,
-          Plant: Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: Address_Rack.Storage.Shop.shopName,
-          Storage: Address_Rack.Storage.storageName,
-          'Update By': Log_Entries[0]?.User?.userName || '',
+          'Material No': item.Inventory.Material.materialNo,
+          Description: item.Inventory.Material.description,
+          Address: item.Inventory.Address_Rack.addressRackName,
+          UoM: item.Inventory.Material.uom,
+          'Planning Incoming': item.planning,
+          'Actual Incoming': item.actual,
+          Discrepancy: item.discrepancy,
+          Date: item.Log_Import.importDate,
+          'Import By': item.Log_Import?.User?.username || '',
+          Plant: item.Inventory.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: item.Inventory.Address_Rack.Storage.Shop.shopName,
+          Storage: item.Inventory.Address_Rack.Storage.storageName,
+          'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
@@ -380,6 +382,29 @@ const Incoming = () => {
     })
   }
 
+  const downloadTemplate = () => {
+    import('xlsx').then((xlsx) => {
+      // Mapping data untuk ekspor
+      const mappedData = [
+        {
+          materialNo: '',
+          addressRackNames: '',
+          planning: '',
+          actual: '',
+        },
+      ]
+
+      const worksheet = xlsx.utils.json_to_sheet(mappedData)
+      const workbook = { Sheets: { template: worksheet }, SheetNames: ['template'] }
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array',
+      })
+
+      saveAsExcelFile(excelBuffer, 'template_incoming')
+    })
+  }
+
   const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
       if (module && module.default) {
@@ -390,7 +415,17 @@ const Incoming = () => {
           type: EXCEL_TYPE,
         })
 
-        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION)
+        if (fileName === 'template_incoming') {
+          module.default.saveAs(
+            data,
+            fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
+          )
+        } else {
+          module.default.saveAs(
+            data,
+            fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION,
+          )
+        }
       }
     })
   }
@@ -419,16 +454,6 @@ const Incoming = () => {
   const qtyActualEditor = (options) => {
     return (
       <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />
-    )
-  }
-
-  const remarksEditor = (options) => {
-    return (
-      <InputText
-        type="text"
-        value={options.value || ''}
-        onChange={(e) => options.editorCallback(e.target.value)}
-      />
     )
   }
 
@@ -503,32 +528,36 @@ const Incoming = () => {
 
   const handleImport = async () => {
     setLoadingImport(true)
-    setTimeout(() => {
-      try {
-        if (!incomingData.file) {
-          MySwal.fire('Error', 'Please select a file', 'error')
-          return
-        }
-
-        if (radio === 'plan') {
-          postIncomingPlan(apiIncomingPlan, incomingData)
-          MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
-        } else if (radio === 'actual') {
-          postIncomingActual(apiIncomingActual, incomingData) // Fungsi untuk handle actual data
-          MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
-        }
-
-        setImported(true)
-      } catch (error) {
-        console.error('Error during import:', error)
-        MySwal.fire('Error', 'Error during import', 'error')
-      } finally {
-        setTimeout(() => {
-          setLoadingImport(false)
-        }, 3000)
-        setVisible(false)
+    try {
+      if (!incomingData.file) {
+        MySwal.fire('Error', 'Please select a file', 'error')
+        return
       }
-    }, 3000)
+
+      if (radio === 'plan') {
+        await postIncomingPlan(apiIncomingPlan, incomingData)
+        MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
+      } else if (radio === 'actual') {
+        await postIncomingActual(apiIncomingActual, incomingData)
+        MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
+      }
+
+      setImported(true)
+    } catch (error) {
+      console.error('Error during import:', error)
+    } finally {
+      setLoadingImport(false)
+      setVisible(false)
+    }
+  }
+
+  const handleFilterDate = (date) => {
+    setSelectedDate(date)
+    const fornmattedDate = date[0].toLocaleDateString('en-CA')
+
+    let _filters = { ...filters }
+    _filters['Log_Import.importDate'].value = fornmattedDate
+    setFilters(_filters)
   }
 
   return (
@@ -551,9 +580,28 @@ const Incoming = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
+                <Flatpickr
+                  value={selectedDate}
+                  options={{
+                    dateFormat: 'Y-m-d',
+                    maxDate: new Date(),
+                    allowInput: true,
+                  }}
+                  onChange={handleFilterDate}
+                  className="form-control mb-2"
+                  placeholder="Select a date"
+                  style={{
+                    width: '100%',
+                    borderRadius: '5px',
+                    border: '1px solid #a5acb3',
+                    height: '33px',
+                  }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.Plant.plantName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -562,9 +610,9 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.shopName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.Shop.shopName'].value}
                   options={shop}
                   onChange={handleShopChange}
                   placeholder="Select Shop"
@@ -573,9 +621,9 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.storageName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.storageName'].value}
                   options={storage}
                   onChange={handleStorageChange}
                   placeholder="Select Storage"
@@ -592,7 +640,7 @@ const Incoming = () => {
           <CCardHeader>Incoming Table</CCardHeader>
           <CCardBody>
             <CRow className="mb-2">
-              <CCol xs={12} md={8} lg={8} xl={8}>
+              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
                 <div className="d-flex flex-wrap justify-content-start">
                   <Button
                     type="button"
@@ -606,15 +654,24 @@ const Incoming = () => {
                   <Button
                     type="button"
                     label="Upload"
-                    icon="pi pi-file-excel"
+                    icon="pi pi-file-import"
                     severity="primary"
-                    className="rounded-5 mb-2" // Menambahkan margin-bottom agar tombol tidak terlalu rapat di bawah
+                    className="rounded-5 me-2 mb-2"
                     onClick={showModalUpload}
+                    data-pr-tooltip="XLS"
+                  />
+                  <Button
+                    type="button"
+                    label="Template"
+                    icon="pi pi-download"
+                    severity="primary"
+                    className="rounded-5 mb-2"
+                    onClick={downloadTemplate}
                     data-pr-tooltip="XLS"
                   />
                 </div>
               </CCol>
-              <CCol xs={12} md={4} lg={4} xl={4}>
+              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
                 <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
               </CCol>
             </CRow>
@@ -666,15 +723,9 @@ const Incoming = () => {
               ></Column>
               <Column
                 field="discrepancy"
-                header="Discrepancy"
-                body={discrepancyBodyTemplate}
+                header="Disc."
+                // body={discrepancyBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column>
-              <Column
-                field="remarks"
-                header="Remarks"
-                editor={(options) => remarksEditor(options)}
                 sortable
               ></Column>
               <Column field="Log_Import.importDate" header="Date" sortable></Column>
@@ -711,7 +762,6 @@ const Incoming = () => {
           <div className="mb-3">
             <CFormLabel>Date</CFormLabel>
             <Flatpickr
-              id="date-picker"
               value={date}
               options={{
                 dateFormat: 'Y-m-d',

@@ -78,6 +78,14 @@ export const getMaterialIdByMaterialNo = async (req, res) => {
 
 export const createMaterial = async (req, res) => {
   try {
+    const materialNo = await Material.findOne({
+      where: { materialNo: req.body.materialNo },
+    });
+
+    if (materialNo) {
+      return res.status(400).json({ msg: "Material No. already exists" });
+    }
+
     await Material.create(req.body);
     res.status(201).json({ msg: "Material Created" });
   } catch (error) {

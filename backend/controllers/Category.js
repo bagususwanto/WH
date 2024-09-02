@@ -42,6 +42,13 @@ export const getCategoryById = async (req, res) => {
 
 export const createCategory = async (req, res) => {
   try {
+    const categoryName = Category.findOne({
+      where: { categoryName: req.body.categoryName },
+    });
+    if (categoryName) {
+      return res.status(400).json({ msg: "Category already exists" });
+    }
+
     await Category.create(req.body);
     res.status(201).json({ msg: "Category Created" });
   } catch (error) {

@@ -45,6 +45,11 @@ const Inventory = () => {
       sortable: true,
     },
     {
+      field: 'discrepancy',
+      header: 'Discrepancy',
+      sortable: true,
+    },
+    {
       field: 'formattedUpdateBy',
       header: 'Update By',
       sortable: true,
@@ -113,7 +118,7 @@ const Inventory = () => {
 
   const getSeverity = (status) => {
     switch (status) {
-      case 'shortage':
+      case 'minim':
         return 'danger'
 
       case 'ok':
@@ -131,7 +136,7 @@ const Inventory = () => {
         // Evaluasi untuk menentukan status inventory
         const evaluation =
           item.quantityActual < item.Material.minStock
-            ? 'shortage'
+            ? 'minim'
             : item.quantityActual > item.Material.minStock
               ? 'over'
               : 'ok'
@@ -150,11 +155,6 @@ const Inventory = () => {
       })
       setInventory(dataWithFormattedFields)
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch inventory data.',
-      })
       console.error('Error fetching inventory:', error)
     }
   }
@@ -311,6 +311,7 @@ const Inventory = () => {
     )
   }
 
+
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
@@ -321,7 +322,7 @@ const Inventory = () => {
 
         let evaluation
         if (quantityActualCheck < minStock) {
-          evaluation = 'shortage'
+          evaluation = 'minim'
         } else if (quantityActualCheck > maxStock) {
           evaluation = 'over'
         } else {
@@ -331,18 +332,20 @@ const Inventory = () => {
         return {
           'Material No': Material.materialNo,
           Description: Material.description,
-          Address: Address_Rack.addressRackName,
+          Address: item.Address_Rack.addressRackName,
           UoM: Material.uom,
-          'Min. Stock': Material.minStock,
+          'Min Stock': Material.minStock,
           'Max Stock': Material.maxStock,
-          'Stock System': quantitySistem,
-          'Stock Inventory': quantityActual,
+          'Stock System': item.quantitySistem,
+          'Stock Inventory': item.quantityActual,
+          Discrepancy: item.discrepancy,
           'Stock On Hand': quantityActualCheck,
           Evaluation: evaluation,
-          Plant: Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: Address_Rack.Storage.Shop.shopName,
-          Storage: Address_Rack.Storage.storageName,
-          'Update By': Log_Entries[0]?.User?.userName || '',
+          Remarks: item.remarks,
+          Plant: item.Address_Rack.Storage.Shop.Plant.plantName,
+          Shop: item.Address_Rack.Storage.Shop.shopName,
+          Storage: item.Address_Rack.Storage.storageName,
+          'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
@@ -415,8 +418,7 @@ const Inventory = () => {
     const minStock = Material?.minStock
     const maxStock = Material?.maxStock
 
-    if (quantityActualCheck < minStock)
-      return <Tag value="shortage" severity={getSeverity('shortage')} />
+    if (quantityActualCheck < minStock) return <Tag value="minim" severity={getSeverity('minim')} />
     if (quantityActualCheck > maxStock) return <Tag value="over" severity={getSeverity('over')} />
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
@@ -426,7 +428,7 @@ const Inventory = () => {
 
     const discrepancy = quantityActual - quantitySistem
 
-    if (discrepancy < 0) return <Tag value={discrepancy} severity={getSeverity('shortage')} />
+    if (discrepancy < 0) return <Tag value={discrepancy} severity={getSeverity('minim')} />
     if (discrepancy > 0) return <Tag value={discrepancy} severity={getSeverity('over')} />
   }
 
@@ -575,13 +577,6 @@ const Inventory = () => {
                 style={{ width: '5%' }}
                 sortable
               ></Column>
-              {/* <Column
-                field="discrepancy"
-                header="Disc."
-                body={discrepancyBodyTemplate}
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column> */}
               <Column field="quantityActualCheck" header="SoH" sortable></Column>
               <Column
                 field="evaluation"

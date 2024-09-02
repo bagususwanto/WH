@@ -42,6 +42,14 @@ export const getSupplierById = async (req, res) => {
 
 export const createSupplier = async (req, res) => {
   try {
+    const supplierName = Supplier.findOne({
+      where: { supplierName: req.body.supplierName },
+    });
+
+    if (supplierName) {
+      return res.status(400).json({ msg: "Supplier already exists" });
+    }
+
     await Supplier.create(req.body);
     res.status(201).json({ msg: "Supplier Created" });
   } catch (error) {

@@ -6,7 +6,7 @@ export const getRole = async (req, res) => {
       where: { flag: 1 },
       attributes: ["id", "roleName", "createdAt", "updatedAt"],
     });
-    
+
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
@@ -42,6 +42,14 @@ export const getRoleById = async (req, res) => {
 
 export const createRole = async (req, res) => {
   try {
+    const roleName = Role.findOne({
+      where: { roleName: req.body.roleName },
+    });
+
+    if (roleName) {
+      return res.status(400).json({ msg: "Role already exists" });
+    }
+
     await Role.create(req.body);
     res.status(201).json({ msg: "Role Created" });
   } catch (error) {

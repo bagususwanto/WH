@@ -94,6 +94,12 @@ export const getStorageByShop = async (req, res) => {
 
 export const createStorage = async (req, res) => {
   try {
+    const storageName = Storage.findOne({ where: { storageName: req.body.storageName } });
+
+    if (storageName) {
+      return res.status(400).json({ msg: "Storage name already exists" });
+    }
+
     await Storage.create(req.body);
     res.status(201).json({ msg: "Storage Created" });
   } catch (error) {

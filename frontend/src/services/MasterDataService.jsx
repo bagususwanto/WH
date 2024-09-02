@@ -1,12 +1,16 @@
 import useVerify from '../hooks/UseVerify'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
+const MySwal = withReactContent(Swal)
 
 const useMasterDataService = () => {
   const { token, axiosJWT } = useVerify()
 
   const handleError = (error, message) => {
     console.error(message, error)
-    // Handle error as needed (e.g., show message to user)
-    throw error
+    MySwal.fire('Error', `${error.response.data.msg}`, 'error')
+    throw new Error(message + error.message)
   }
 
   const getMasterData = async (api) => {
@@ -18,7 +22,7 @@ const useMasterDataService = () => {
       })
       return response
     } catch (error) {
-      handleError(error, 'Error fetching user:')
+      handleError(error, 'Error fetching:')
     }
   }
 
@@ -44,7 +48,7 @@ const useMasterDataService = () => {
       })
       return response
     } catch (error) {
-      handleError(error, 'Error post user:')
+      handleError(error, 'Error post:')
     }
   }
 

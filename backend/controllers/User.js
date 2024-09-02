@@ -110,7 +110,7 @@ export const createUser = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ msg: "Username sudah digunakan" });
+      return res.status(400).json({ msg: "Username already exists" });
     }
 
     await User.create({
