@@ -9,7 +9,7 @@ const useManageStockService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    MySwal.fire('Error', `Error during import: ${error.response.data}`, 'error')
+    MySwal.fire('Error', `${error.response.data}`, 'error')
     throw new Error(message + error.message)
   }
 

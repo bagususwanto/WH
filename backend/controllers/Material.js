@@ -83,7 +83,7 @@ export const createMaterial = async (req, res) => {
     });
 
     if (materialNo) {
-      return res.status(400).json({ msg: "Material No already exists" });
+      return res.status(400).json({ msg: "Material No. already exists" });
     }
 
     await Material.create(req.body);
