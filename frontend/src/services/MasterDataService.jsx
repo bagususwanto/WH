@@ -52,6 +52,20 @@ const useMasterDataService = () => {
     }
   }
 
+  const uploadMasterData = async (api, data) => {
+    try {
+      const response = await axiosJWT.post(`/${api}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
+
   const updateMasterDataById = async (api, id, data) => {
     try {
       const response = await axiosJWT.put(`/${api}/${id}`, data, {
@@ -84,6 +98,7 @@ const useMasterDataService = () => {
     postMasterData,
     updateMasterDataById,
     deleteMasterDataById,
+    uploadMasterData,
   }
 }
 

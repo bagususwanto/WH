@@ -152,6 +152,7 @@ const Incoming = () => {
     }
   }, [imported])
 
+
   const getSeverity = (status) => {
     switch (status) {
       case 'shortage':

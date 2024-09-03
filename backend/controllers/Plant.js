@@ -19,7 +19,7 @@ export const getPlantById = async (req, res) => {
     const plantId = req.params.id;
 
     const plant = await Plant.findOne({
-      where: { id: plantId },
+      where: { id: plantId, flag: 1 },
     });
 
     if (!plant) {
@@ -43,7 +43,7 @@ export const getPlantById = async (req, res) => {
 export const createPlant = async (req, res) => {
   try {
     const plantCode = Plant.findOne({
-      where: { plantCode: req.body.plantCode },
+      where: { plantCode: req.body.plantCode, flag: 1 },
     });
 
     if (plantCode) {
@@ -63,7 +63,7 @@ export const updatePlant = async (req, res) => {
     const plantId = req.params.id;
 
     const plant = await Plant.findOne({
-      where: { id: plantId },
+      where: { id: plantId, flag: 1 },
     });
 
     if (!plant) {
@@ -73,6 +73,7 @@ export const updatePlant = async (req, res) => {
     await Plant.update(req.body, {
       where: {
         id: plantId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Plant Updated" });
@@ -87,14 +88,14 @@ export const deletePlant = async (req, res) => {
     const plantId = req.params.id;
 
     const plant = await Plant.findOne({
-      where: { id: plantId },
+      where: { id: plantId, flag: 1 },
     });
 
     if (!plant) {
       return res.status(404).json({ msg: "Plant not found" });
     }
 
-    await Plant.update({ flag: 0 }, { where: { id: plantId } });
+    await Plant.update({ flag: 0 }, { where: { id: plantId, flag: 1 } });
 
     res.status(200).json({ msg: "Plant deleted" });
   } catch (error) {

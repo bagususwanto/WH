@@ -26,7 +26,7 @@ export const getShopById = async (req, res) => {
     const shopId = req.params.id;
 
     const shop = await Shop.findOne({
-      where: { id: shopId },
+      where: { id: shopId, flag: 1 },
     });
 
     if (!shop) {
@@ -58,7 +58,7 @@ export const getShopByPlant = async (req, res) => {
     const plantId = req.params.id;
 
     const shop = await Shop.findOne({
-      where: { plantId: plantId },
+      where: { plantId: plantId, flag: 1 },
     });
 
     if (!shop) {
@@ -87,7 +87,7 @@ export const getShopByPlant = async (req, res) => {
 
 export const createShop = async (req, res) => {
   try {
-    const shopName = Shop.findOne({ where: { shopName: req.body.shopName } });
+    const shopName = Shop.findOne({ where: { shopName: req.body.shopName, flag: 1  } });
 
     if (shopName) {
       return res.status(400).json({ msg: "Shop name already exists" });
@@ -106,7 +106,7 @@ export const updateShop = async (req, res) => {
     const shopId = req.params.id;
 
     const shop = await Shop.findOne({
-      where: { id: shopId },
+      where: { id: shopId, flag: 1 },
     });
 
     if (!shop) {
@@ -116,6 +116,7 @@ export const updateShop = async (req, res) => {
     await Shop.update(req.body, {
       where: {
         id: shopId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Shop Updated" });
@@ -130,14 +131,14 @@ export const deleteShop = async (req, res) => {
     const shopId = req.params.id;
 
     const shop = await Shop.findOne({
-      where: { id: shopId },
+      where: { id: shopId, flag: 1 },
     });
 
     if (!shop) {
       return res.status(404).json({ msg: "Shop not found" });
     }
 
-    await Shop.update({ flag: 0 }, { where: { id: shopId } });
+    await Shop.update({ flag: 0 }, { where: { id: shopId, flag: 1 } });
 
     res.status(200).json({ msg: "Shop deleted" });
   } catch (error) {

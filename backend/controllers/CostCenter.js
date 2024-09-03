@@ -36,7 +36,7 @@ export const getCostCenterById = async (req, res) => {
     const costCenterId = req.params.id;
 
     const costCenter = await CostCenter.findOne({
-      where: { id: costCenterId },
+      where: { id: costCenterId, flag: 1 },
     });
 
     if (!costCenter) {
@@ -72,7 +72,7 @@ export const getCostCenterById = async (req, res) => {
 export const createCostCenter = async (req, res) => {
   try {
     const constCenterCode = await CostCenter.findOne({
-      where: { costCenterCode: req.body.costCenterCode },
+      where: { costCenterCode: req.body.costCenterCode, flag: 1 },
     });
 
     if (constCenterCode) {
@@ -92,7 +92,7 @@ export const updateCostCenter = async (req, res) => {
     const costCenterId = req.params.id;
 
     const costCenter = await CostCenter.findOne({
-      where: { id: costCenterId },
+      where: { id: costCenterId, flag: 1 },
     });
 
     if (!costCenter) {
@@ -102,6 +102,7 @@ export const updateCostCenter = async (req, res) => {
     await CostCenter.update(req.body, {
       where: {
         id: costCenterId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "CostCenter Updated" });
@@ -116,14 +117,14 @@ export const deleteCostCenter = async (req, res) => {
     const costCenterId = req.params.id;
 
     const costCenter = await CostCenter.findOne({
-      where: { id: costCenterId },
+      where: { id: costCenterId, flag: 1 },
     });
 
     if (!costCenter) {
       return res.status(404).json({ msg: "CostCenter not found" });
     }
 
-    await CostCenter.update({ flag: 0 }, { where: { id: costCenterId } });
+    await CostCenter.update({ flag: 0 }, { where: { id: costCenterId, flag: 1 } });
 
     res.status(200).json({ msg: "CostCenter deleted" });
   } catch (error) {

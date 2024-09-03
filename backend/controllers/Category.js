@@ -19,7 +19,7 @@ export const getCategoryById = async (req, res) => {
     const categoryId = req.params.id;
 
     const category = await Category.findOne({
-      where: { id: categoryId },
+      where: { id: categoryId, flag: 1 },
     });
 
     if (!category) {
@@ -43,7 +43,7 @@ export const getCategoryById = async (req, res) => {
 export const createCategory = async (req, res) => {
   try {
     const categoryName = Category.findOne({
-      where: { categoryName: req.body.categoryName },
+      where: { categoryName: req.body.categoryName, flag: 1 },
     });
     if (categoryName) {
       return res.status(400).json({ msg: "Category already exists" });
@@ -62,7 +62,7 @@ export const updateCategory = async (req, res) => {
     const categoryId = req.params.id;
 
     const category = await Category.findOne({
-      where: { id: categoryId },
+      where: { id: categoryId, flag: 1 },
     });
 
     if (!category) {
@@ -72,6 +72,7 @@ export const updateCategory = async (req, res) => {
     await Category.update(req.body, {
       where: {
         id: categoryId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Category Updated" });
@@ -86,14 +87,14 @@ export const deleteCategory = async (req, res) => {
     const categoryId = req.params.id;
 
     const category = await Category.findOne({
-      where: { id: categoryId },
+      where: { id: categoryId, flag: 1 },
     });
 
     if (!category) {
       return res.status(404).json({ msg: "Category not found" });
     }
 
-    await Category.update({ flag: 0 }, { where: { id: categoryId } });
+    await Category.update({ flag: 0 }, { where: { id: categoryId, flag: 1 } });
 
     res.status(200).json({ msg: "Category deleted" });
   } catch (error) {
