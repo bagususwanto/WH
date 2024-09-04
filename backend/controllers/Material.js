@@ -31,7 +31,7 @@ export const getMaterialById = async (req, res) => {
     const materialId = req.params.id;
 
     const material = await Material.findOne({
-      where: { id: materialId },
+      where: { id: materialId, flag: 1 }, 
     });
 
     if (!material) {
@@ -65,7 +65,7 @@ export const getMaterialById = async (req, res) => {
 export const getMaterialIdByMaterialNo = async (req, res) => {
   try {
     const response = await Material.findOne({
-      where: { materialNo: req.params.materialno },
+      where: { materialNo: req.params.materialno, flag: 1 },
       attributes: ["id"],
     });
 
@@ -79,7 +79,7 @@ export const getMaterialIdByMaterialNo = async (req, res) => {
 export const createMaterial = async (req, res) => {
   try {
     const materialNo = await Material.findOne({
-      where: { materialNo: req.body.materialNo },
+      where: { materialNo: req.body.materialNo, flag: 1 },
     });
 
     if (materialNo) {
@@ -99,7 +99,7 @@ export const updateMaterial = async (req, res) => {
     const materialId = req.params.id;
 
     const material = await Material.findOne({
-      where: { id: materialId },
+      where: { id: materialId, flag: 1 },
     });
 
     if (!material) {
@@ -109,6 +109,7 @@ export const updateMaterial = async (req, res) => {
     await Material.update(req.body, {
       where: {
         id: materialId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Material Updated" });
@@ -123,14 +124,14 @@ export const deleteMaterial = async (req, res) => {
     const materialId = req.params.id;
 
     const material = await Material.findOne({
-      where: { id: materialId },
+      where: { id: materialId, flag: 1 },
     });
 
     if (!material) {
       return res.status(404).json({ msg: "Material not found" });
     }
 
-    await Material.update({ flag: 0 }, { where: { id: materialId } });
+    await Material.update({ flag: 0 }, { where: { id: materialId, flag: 1 } });
 
     res.status(200).json({ msg: "Material deleted" });
   } catch (error) {

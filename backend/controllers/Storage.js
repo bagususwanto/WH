@@ -33,7 +33,7 @@ export const getStorageById = async (req, res) => {
     const storageId = req.params.id;
 
     const storage = await Storage.findOne({
-      where: { id: storageId },
+      where: { id: storageId, flag: 1 },
     });
 
     if (!storage) {
@@ -71,7 +71,7 @@ export const getStorageByShop = async (req, res) => {
     const shopId = req.params.id;
 
     const shop = await Storage.findOne({
-      where: { shopId: shopId },
+      where: { shopId: shopId, flag: 1 },
     });
 
     if (!shop) {
@@ -94,7 +94,7 @@ export const getStorageByShop = async (req, res) => {
 
 export const createStorage = async (req, res) => {
   try {
-    const storageName = Storage.findOne({ where: { storageName: req.body.storageName } });
+    const storageName = Storage.findOne({ where: { storageName: req.body.storageName, flag: 1 } });
 
     if (storageName) {
       return res.status(400).json({ msg: "Storage name already exists" });
@@ -113,7 +113,7 @@ export const updateStorage = async (req, res) => {
     const storageId = req.params.id;
 
     const storage = await Storage.findOne({
-      where: { id: storageId },
+      where: { id: storageId, flag: 1 },
     });
 
     if (!storage) {
@@ -123,6 +123,7 @@ export const updateStorage = async (req, res) => {
     await Storage.update(req.body, {
       where: {
         id: storageId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Storage Updated" });
@@ -137,14 +138,14 @@ export const deleteStorage = async (req, res) => {
     const storageId = req.params.id;
 
     const storage = await Storage.findOne({
-      where: { id: storageId },
+      where: { id: storageId, flag: 1 },
     });
 
     if (!storage) {
       return res.status(404).json({ msg: "Storage not found" });
     }
 
-    await Storage.update({ flag: 0 }, { where: { id: storageId } });
+    await Storage.update({ flag: 0 }, { where: { id: storageId, flag: 1 } });
 
     res.status(200).json({ msg: "Storage deleted" });
   } catch (error) {

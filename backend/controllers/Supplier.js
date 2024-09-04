@@ -19,7 +19,7 @@ export const getSupplierById = async (req, res) => {
     const supplierId = req.params.id;
 
     const supplier = await Supplier.findOne({
-      where: { id: supplierId },
+      where: { id: supplierId,  flag: 1 },
     });
 
     if (!supplier) {
@@ -43,7 +43,7 @@ export const getSupplierById = async (req, res) => {
 export const createSupplier = async (req, res) => {
   try {
     const supplierName = Supplier.findOne({
-      where: { supplierName: req.body.supplierName },
+      where: { supplierName: req.body.supplierName, flag: 1 },
     });
 
     if (supplierName) {
@@ -63,7 +63,7 @@ export const updateSupplier = async (req, res) => {
     const supplierId = req.params.id;
 
     const supplier = await Supplier.findOne({
-      where: { id: supplierId },
+      where: { id: supplierId, flag: 1 },
     });
 
     if (!supplier) {
@@ -73,6 +73,7 @@ export const updateSupplier = async (req, res) => {
     await Supplier.update(req.body, {
       where: {
         id: supplierId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Supplier Updated" });
@@ -87,14 +88,14 @@ export const deleteSupplier = async (req, res) => {
     const supplierId = req.params.id;
 
     const supplier = await Supplier.findOne({
-      where: { id: supplierId },
+      where: { id: supplierId, flag: 1 },
     });
 
     if (!supplier) {
       return res.status(404).json({ msg: "Supplier not found" });
     }
 
-    await Supplier.update({ flag: 0 }, { where: { id: supplierId } });
+    await Supplier.update({ flag: 0 }, { where: { id: supplierId, flag: 1 } });
 
     res.status(200).json({ msg: "Supplier deleted" });
   } catch (error) {

@@ -64,8 +64,13 @@ const Material = () => {
   })
   const [imported, setImported] = useState(false)
 
-  const { getMasterData, deleteMasterDataById, updateMasterDataById, postMasterData } =
-    useMasterDataService()
+  const {
+    getMasterData,
+    deleteMasterDataById,
+    updateMasterDataById,
+    postMasterData,
+    uploadMasterData,
+  } = useMasterDataService()
   const [filters, setFilters] = useState({
     global: { value: null },
   })
@@ -74,12 +79,20 @@ const Material = () => {
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
   const apiCategory = 'category'
+  const apiUpload = 'upload-master-material'
 
   useEffect(() => {
     getMaterial()
     getSupplier()
     getCategory()
   }, [])
+
+  useEffect(() => {
+    if (imported) {
+      getMaterial()
+      setImported(false) // Reset state
+    }
+  }, [imported])
 
   const customStyles = {
     control: (provided) => ({
@@ -430,25 +443,20 @@ const Material = () => {
   const handleImport = async () => {
     setLoadingImport(true)
     try {
-      if (!incomingData.file) {
+      if (!uploadData.file) {
         MySwal.fire('Error', 'Please select a file', 'error')
         return
       }
 
-      if (radio === 'plan') {
-        await postIncomingPlan(apiIncomingPlan, incomingData)
-        MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
-      } else if (radio === 'actual') {
-        await postIncomingActual(apiIncomingActual, incomingData)
-        MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
-      }
+      await uploadMasterData(apiUpload, uploadData)
+      MySwal.fire('Success', 'File uploaded successfully', 'success')
 
       setImported(true)
     } catch (error) {
       console.error('Error during import:', error)
     } finally {
       setLoadingImport(false)
-      setVisible(false)
+      setModalUpload(false)
     }
   }
 

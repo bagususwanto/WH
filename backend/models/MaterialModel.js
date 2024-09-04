@@ -59,14 +59,13 @@ const Material = db.define(
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:1,
+      defaultValue: 1,
     },
   },
   {
     freezeTableName: true,
   }
 );
-
 
 Category.hasMany(Material, { foreignKey: "categoryId" });
 Material.belongsTo(Category, { foreignKey: "categoryId" });

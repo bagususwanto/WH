@@ -46,7 +46,7 @@ export const getUserById = async (req, res) => {
     const userId = req.params.id;
 
     const user = await User.findOne({
-      where: { id: userId },
+      where: { id: userId, flag: 1 },
     });
 
     if (!user) {
@@ -106,6 +106,7 @@ export const createUser = async (req, res) => {
     const existingUser = await User.findOne({
       where: {
         username,
+        flag: 1,
       },
     });
 
@@ -132,7 +133,7 @@ export const updateUser = async (req, res) => {
     const userId = req.params.id;
 
     const user = await User.findOne({
-      where: { id: userId },
+      where: { id: userId, flag: 1 },
     });
 
     if (!user) {
@@ -142,6 +143,7 @@ export const updateUser = async (req, res) => {
     await User.update(req.body, {
       where: {
         id: userId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "User Updated" });
@@ -156,14 +158,14 @@ export const deleteUser = async (req, res) => {
     const userId = req.params.id;
 
     const user = await User.findOne({
-      where: { id: userId },
+      where: { id: userId, flag: 1 },
     });
 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    await User.update({ flag: 0 }, { where: { id: userId } });
+    await User.update({ flag: 0 }, { where: { id: userId, flag: 1 } });
 
     res.status(200).json({ msg: "User deleted" });
   } catch (error) {

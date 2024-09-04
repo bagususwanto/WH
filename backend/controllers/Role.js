@@ -19,7 +19,7 @@ export const getRoleById = async (req, res) => {
     const roleId = req.params.id;
 
     const role = await Role.findOne({
-      where: { id: roleId },
+      where: { id: roleId, flag: 1 },
     });
 
     if (!role) {
@@ -43,7 +43,7 @@ export const getRoleById = async (req, res) => {
 export const createRole = async (req, res) => {
   try {
     const roleName = Role.findOne({
-      where: { roleName: req.body.roleName },
+      where: { roleName: req.body.roleName, flag: 1 },
     });
 
     if (roleName) {
@@ -63,7 +63,7 @@ export const updateRole = async (req, res) => {
     const roleId = req.params.id;
 
     const role = await Role.findOne({
-      where: { id: roleId },
+      where: { id: roleId , flag: 1 },
     });
 
     if (!role) {
@@ -73,6 +73,7 @@ export const updateRole = async (req, res) => {
     await Role.update(req.body, {
       where: {
         id: roleId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "Role Updated" });
@@ -87,14 +88,14 @@ export const deleteRole = async (req, res) => {
     const roleId = req.params.id;
 
     const role = await Role.findOne({
-      where: { id: roleId },
+      where: { id: roleId, flag: 1 },
     });
 
     if (!role) {
       return res.status(404).json({ msg: "Role not found" });
     }
 
-    await Role.update({ flag: 0 }, { where: { id: roleId } });
+    await Role.update({ flag: 0 }, { where: { id: roleId, flag: 1 } });
 
     res.status(200).json({ msg: "Role deleted" });
   } catch (error) {

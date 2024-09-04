@@ -40,7 +40,7 @@ export const getAddressRackById = async (req, res) => {
     const addressRackId = req.params.id;
 
     const addressRack = await AddressRack.findOne({
-      where: { id: addressRackId },
+      where: { id: addressRackId, flag: 1 },
     });
 
     if (!addressRack) {
@@ -82,7 +82,7 @@ export const getAddressRackById = async (req, res) => {
 export const createAddressRack = async (req, res) => {
   try {
     const addressRackName = AddressRack.findOne({
-      where: { addressRackName: req.body.addressRackName },
+      where: { addressRackName: req.body.addressRackName, flag: 1 },
     });
 
     if (addressRackName) {
@@ -102,7 +102,7 @@ export const updateAddressRack = async (req, res) => {
     const addressRackId = req.params.id;
 
     const addressRack = await AddressRack.findOne({
-      where: { id: addressRackId },
+      where: { id: addressRackId, flag: 1 },
     });
 
     if (!addressRack) {
@@ -112,6 +112,7 @@ export const updateAddressRack = async (req, res) => {
     await AddressRack.update(req.body, {
       where: {
         id: addressRackId,
+        flag: 1,
       },
     });
     res.status(200).json({ msg: "AddressRack Updated" });
@@ -126,14 +127,14 @@ export const deleteAddressRack = async (req, res) => {
     const addressRackId = req.params.id;
 
     const addressRack = await AddressRack.findOne({
-      where: { id: addressRackId },
+      where: { id: addressRackId, flag: 1 },
     });
 
     if (!addressRack) {
       return res.status(404).json({ msg: "AddressRack not found" });
     }
 
-    await AddressRack.update({ flag: 0 }, { where: { id: addressRackId } });
+    await AddressRack.update({ flag: 0 }, { where: { id: addressRackId, flag: 1 } });
 
     res.status(200).json({ msg: "AddressRack deleted" });
   } catch (error) {
