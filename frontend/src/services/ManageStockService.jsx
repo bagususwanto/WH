@@ -52,6 +52,19 @@ const useManageStockService = () => {
     }
   }
 
+  const updateIncomingById = async (id, data) => {
+    try {
+      const response = await axiosJWT.put(`incoming/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response.data // Returning the data instead of the whole response
+    } catch (error) {
+      handleError(error, `Error update data for ID ${id}:`)
+    }
+  }
+
   const postIncomingPlan = async (api, data) => {
     try {
       const response = await axiosJWT.post(`/${api}`, data, {
@@ -86,6 +99,7 @@ const useManageStockService = () => {
     updateInventoryById,
     postIncomingPlan,
     postIncomingActual,
+    updateIncomingById,
   }
 }
 

@@ -311,7 +311,6 @@ const Inventory = () => {
     )
   }
 
-
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
@@ -379,10 +378,11 @@ const Inventory = () => {
   const onRowEditComplete = (e) => {
     let _inventory = [...inventory]
     let { newData, index } = e
-
+    
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'You are about to update the data. Do you want to proceed?',
+      html: `You are about to update the data <span style="color: red;">${newData.Material.materialNo}</span>
+       with quantity <span style="color: blue;">${newData.quantityActual}</span>. Do you want to proceed?`,
       icon: 'question',
       showCancelButton: true,
       // confirmButtonColor: '#3085d6',

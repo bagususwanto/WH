@@ -37,7 +37,7 @@ export const getUser = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -50,7 +50,7 @@ export const getUserById = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const response = await User.findOne({
@@ -85,7 +85,7 @@ export const getUserById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -95,11 +95,11 @@ export const createUser = async (req, res) => {
   const hashPassword = await bcrypt.hash(password, salt);
 
   if (!username || !password || !name || !roleId || !costCenterId) {
-    return res.status(400).json({ msg: "Please fill in all fields" });
+    return res.status(400).json({ message: "Please fill in all fields" });
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ msg: "Password must be at least 6 characters" });
+    return res.status(400).json({ message: "Password must be at least 6 characters" });
   }
 
   try {
@@ -111,7 +111,7 @@ export const createUser = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ msg: "Username already exists" });
+      return res.status(400).json({ message: "Username already exists" });
     }
 
     await User.create({
@@ -121,10 +121,10 @@ export const createUser = async (req, res) => {
       roleId: roleId,
       costCenterId: costCenterId,
     });
-    res.status(201).json({ msg: "User Created" });
+    res.status(201).json({ message: "User Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -137,7 +137,7 @@ export const updateUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     await User.update(req.body, {
@@ -146,10 +146,10 @@ export const updateUser = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "User Updated" });
+    res.status(200).json({ message: "User Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -162,14 +162,14 @@ export const deleteUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     await User.update({ flag: 0 }, { where: { id: userId, flag: 1 } });
 
-    res.status(200).json({ msg: "User deleted" });
+    res.status(200).json({ message: "User deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

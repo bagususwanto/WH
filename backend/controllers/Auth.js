@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 // Function to generate access and refresh tokens
 const generateTokens = (userId, username, name, roleName) => {
-  const accessToken = jwt.sign({ userId, username, name, roleName }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "20s" });
+  const accessToken = jwt.sign({ userId, username, name, roleName }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
   const refreshToken = jwt.sign({ userId, username, name, roleName }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1d" });
   return { accessToken, refreshToken };
 };
@@ -15,11 +15,11 @@ export const login = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ msg: "Username dan password harus diisi" });
+    return res.status(400).json({ message: "Username dan password harus diisi" });
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ msg: "Password harus lebih dari 6 karakter" });
+    return res.status(400).json({ message: "Password harus lebih dari 6 karakter" });
   }
 
   try {
@@ -32,12 +32,12 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "Username atau password tidak sesuai" });
+      return res.status(404).json({ message: "Username atau password tidak sesuai" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ msg: "Username atau password tidak sesuai" });
+      return res.status(400).json({ message: "Username atau password tidak sesuai" });
     }
 
     const { id: userId, name } = user;
@@ -56,7 +56,7 @@ export const login = async (req, res) => {
     res.json({ accessToken });
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
@@ -73,10 +73,10 @@ export const logout = async (req, res) => {
     await Users.update({ refreshToken: null }, { where: { id: user.id, flag: 1 } });
 
     res.clearCookie("refreshToken");
-    res.status(200).json({ msg: "Berhasil logout" });
+    res.status(200).json({ message: "Berhasil logout" });
   } catch (error) {
     console.error("Error during logout:", error);
-    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
@@ -104,6 +104,6 @@ export const refreshToken = async (req, res) => {
     });
   } catch (error) {
     console.error("Error refreshing token:", error);
-    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };

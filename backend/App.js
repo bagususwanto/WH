@@ -16,6 +16,7 @@ import managementStockRouter from "./routes/ManagementStockRouter.js";
 import authRouter from "./routes/AuthRouter.js";
 import incomingRouter from "./routes/IncomingRouter.js";
 import uploadRouter from "./routes/UploadRouter.js";
+import chartRouter from "./routes/ChartRouter.js";
 import "./models/index.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -51,5 +52,8 @@ app.use("/api", incomingRouter);
 
 // upload router
 app.use("/api", uploadRouter);
+
+// chart router
+app.use("/api", chartRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));

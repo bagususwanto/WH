@@ -145,6 +145,9 @@ const Material = () => {
       const dataWithFormattedFields = response.data.map((item) => {
         return {
           ...item,
+          formatedPrice: item.price
+            ? `Rp. ${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.00`
+            : '',
           formattedCreatedAt: item.createdAt
             ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
@@ -563,7 +566,7 @@ const Material = () => {
                 alignFrozen="left"
               />
               <Column field="uom" header="UOM" style={{ width: '25%' }} />
-              <Column field="price" header="Price" style={{ width: '25%' }} />
+              <Column field="formatedPrice" header="Price" style={{ width: '25%' }} />
               <Column field="type" header="Type" style={{ width: '25%' }} />
               <Column
                 header="Category"

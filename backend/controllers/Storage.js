@@ -24,7 +24,7 @@ export const getStorage = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -37,7 +37,7 @@ export const getStorageById = async (req, res) => {
     });
 
     if (!storage) {
-      return res.status(404).json({ msg: "Storage not found" });
+      return res.status(404).json({ message: "Storage not found" });
     }
 
     const response = await Storage.findOne({
@@ -62,7 +62,7 @@ export const getStorageById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -75,7 +75,7 @@ export const getStorageByShop = async (req, res) => {
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Storage not found" });
+      return res.status(404).json({ message: "Storage not found" });
     }
 
     const response = await Storage.findAll({
@@ -88,23 +88,23 @@ export const getStorageByShop = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createStorage = async (req, res) => {
   try {
-    const storageName = Storage.findOne({ where: { storageName: req.body.storageName, flag: 1 } });
+    const storageName = await Storage.findOne({ where: { storageName: req.body.storageName, flag: 1 } });
 
     if (storageName) {
-      return res.status(400).json({ msg: "Storage name already exists" });
+      return res.status(400).json({ message: "Storage name already exists" });
     }
 
     await Storage.create(req.body);
-    res.status(201).json({ msg: "Storage Created" });
+    res.status(201).json({ message: "Storage Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -117,7 +117,7 @@ export const updateStorage = async (req, res) => {
     });
 
     if (!storage) {
-      return res.status(404).json({ msg: "Storage not found" });
+      return res.status(404).json({ message: "Storage not found" });
     }
 
     await Storage.update(req.body, {
@@ -126,10 +126,10 @@ export const updateStorage = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Storage Updated" });
+    res.status(200).json({ message: "Storage Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -142,14 +142,14 @@ export const deleteStorage = async (req, res) => {
     });
 
     if (!storage) {
-      return res.status(404).json({ msg: "Storage not found" });
+      return res.status(404).json({ message: "Storage not found" });
     }
 
     await Storage.update({ flag: 0 }, { where: { id: storageId, flag: 1 } });
 
-    res.status(200).json({ msg: "Storage deleted" });
+    res.status(200).json({ message: "Storage deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

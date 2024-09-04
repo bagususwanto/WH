@@ -9,7 +9,7 @@ const useMasterDataService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    MySwal.fire('Error', `${error.response.data.msg}`, 'error')
+    MySwal.fire('Error', `${error.response.data.message}`, 'error')
     throw new Error(message + error.message)
   }
 

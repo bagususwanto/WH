@@ -10,7 +10,7 @@ export const getSupplier = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -19,11 +19,11 @@ export const getSupplierById = async (req, res) => {
     const supplierId = req.params.id;
 
     const supplier = await Supplier.findOne({
-      where: { id: supplierId,  flag: 1 },
+      where: { id: supplierId, flag: 1 },
     });
 
     if (!supplier) {
-      return res.status(404).json({ msg: "Supplier not found" });
+      return res.status(404).json({ message: "Supplier not found" });
     }
 
     const response = await Supplier.findOne({
@@ -36,25 +36,25 @@ export const getSupplierById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createSupplier = async (req, res) => {
   try {
-    const supplierName = Supplier.findOne({
+    const supplierName = await Supplier.findOne({
       where: { supplierName: req.body.supplierName, flag: 1 },
     });
 
     if (supplierName) {
-      return res.status(400).json({ msg: "Supplier already exists" });
+      return res.status(400).json({ message: "Supplier already exists" });
     }
 
     await Supplier.create(req.body);
-    res.status(201).json({ msg: "Supplier Created" });
+    res.status(201).json({ message: "Supplier Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -67,7 +67,7 @@ export const updateSupplier = async (req, res) => {
     });
 
     if (!supplier) {
-      return res.status(404).json({ msg: "Supplier not found" });
+      return res.status(404).json({ message: "Supplier not found" });
     }
 
     await Supplier.update(req.body, {
@@ -76,10 +76,10 @@ export const updateSupplier = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Supplier Updated" });
+    res.status(200).json({ message: "Supplier Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -92,14 +92,14 @@ export const deleteSupplier = async (req, res) => {
     });
 
     if (!supplier) {
-      return res.status(404).json({ msg: "Supplier not found" });
+      return res.status(404).json({ message: "Supplier not found" });
     }
 
     await Supplier.update({ flag: 0 }, { where: { id: supplierId, flag: 1 } });
 
-    res.status(200).json({ msg: "Supplier deleted" });
+    res.status(200).json({ message: "Supplier deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

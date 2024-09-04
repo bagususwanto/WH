@@ -45,10 +45,18 @@ export const getAddressIdByAddressName = async (addressRackName) => {
   }
 };
 
-export const getLastLogImportIdByUserId = async (userId, typeLog) => {
+export const getLastLogImportIdByUserId = async (userId, typeLog, importDate = null) => {
   try {
+    // Buat kondisi where yang akan digunakan dalam pencarian
+    const whereCondition = { userId, typeLog };
+
+    // Tambahkan kondisi untuk importDate jika diberikan
+    if (importDate) {
+      whereCondition.importDate = importDate;
+    }
+
     const logImport = await LogImport.findOne({
-      where: { userId, typeLog },
+      where: whereCondition,
       attributes: ["id"],
       order: [["id", "DESC"]],
     });
@@ -87,9 +95,63 @@ export const getInventoryIdByMaterialIdAndAddressId = async (materialId, address
   }
 };
 
+const checkMaterialNo = async (materialNo) => {
+  const existingMaterial = await Material.findOne({
+    where: { materialNo, flag: 1 },
+  });
+
+  if (!existingMaterial) {
+    return false;
+  }
+
+  return true;
+};
+
+const checkAddressRackName = async (addressRackName) => {
+  const existingAddress = await AddressRack.findOne({
+    where: { addressRackName, flag: 1 },
+  });
+
+  if (!existingAddress) {
+    return false;
+  }
+
+  return true;
+};
+
 const validateHeaderIncoming = (header) => {
   const expectedHeader = ["materialNo", "addressRackName", "planning", "actual"];
   return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
+};
+
+const checkIncomingActualImport = async (importDate) => {
+  const incomingImportActual = await LogImport.findOne({
+    where: { typeLog: "Incoming Actual", importDate },
+    attributes: ["id"],
+  });
+
+  if (!incomingImportActual) {
+    return false;
+  }
+
+  return true;
+};
+
+const checkIncomingPlanImport = async (importDate) => {
+  const incomingImportPlan = await LogImport.findOne({
+    where: { typeLog: "Incoming Plan", importDate },
+    attributes: ["id"],
+  });
+
+  if (!incomingImportPlan) {
+    return false;
+  }
+
+  return true;
+};
+
+const removeWhitespace = (str) => {
+  return str.replace(/\s+/g, "");
 };
 
 export const uploadIncomingPlan = async (req, res) => {
@@ -100,14 +162,24 @@ export const uploadIncomingPlan = async (req, res) => {
       return res.status(400).send("Please upload an excel file!");
     }
 
-    const logImportId = await getLogImportIdByDate(req.body.importDate);
-    if (logImportId) {
-      return res.status(400).send("Incoming Plan already exists for this date!");
+    // jika sudah ada log import actual, tidak boleh upload plan
+    const logImportActual = await checkIncomingActualImport(req.body.importDate);
+    if (logImportActual == true) {
+      return res.status(400).send("Incoming actual already imported!");
+    }
+
+    // jika sudah ada log import plan  dan tidak ada log import actual, get last log import plan lalu destroy incoming
+    const logImportPlan = await checkIncomingPlanImport(req.body.importDate);
+    if (logImportPlan == true && logImportActual == false) {
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Plan", req.body.importDate);
+      await Incoming.destroy({ where: { logImportId } });
     }
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
 
-    const rows = await readXlsxFile(path);
+    // Specify the sheet name or index you want to read from
+    const sheetName = "incoming";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
 
     const header = rows.shift();
 
@@ -126,8 +198,18 @@ export const uploadIncomingPlan = async (req, res) => {
 
     // Fetch material and address IDs for all rows
     const incomingPlanPromises = rows.map(async (row) => {
-      const materialId = await getMaterialIdByMaterialNo(row[0]);
-      const addressId = await getAddressIdByAddressName(row[1]);
+      const materialNoExists = await checkMaterialNo(row[0]);
+      if (materialNoExists == false) {
+        return res.status(400).send(`Material: ${row[0]} No not found!`);
+      }
+
+      const addressRackNameExists = await checkAddressRackName(row[1]);
+      if (addressRackNameExists == false) {
+        return res.status(400).send(`Address Rack Name: ${row[1]} not found!`);
+      }
+
+      const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
+      const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]));
       const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Plan");
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
 
@@ -161,6 +243,7 @@ export const getLogImportIdByDate = async (importDate) => {
   try {
     const logImport = await LogImport.findOne({
       where: { importDate, typeLog: "Incoming Plan" },
+      order: [["createdAt", "DESC"]],
       attributes: ["id"],
     });
 
@@ -206,7 +289,10 @@ export const uploadIncomingActual = async (req, res) => {
     const incomings = await getIncomingByLogImportId(logImportId);
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
-    const rows = await readXlsxFile(path);
+
+    // Specify the sheet name or index you want to read from
+    const sheetName = "incoming";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
 
     // Create a log entry before processing the file
     await LogImport.create({
@@ -222,13 +308,13 @@ export const uploadIncomingActual = async (req, res) => {
     // Map incoming data by materialId for quick lookup
     const incomingMap = new Map();
     incomings.forEach((incoming) => {
-      incomingMap.set(incoming.materialId, incoming);
+      incomingMap.set(incoming.inventoryId, incoming);
     });
 
     // Process each row from the Excel file
     for (const row of rows) {
-      const materialId = await getMaterialIdByMaterialNo(row[0]);
-      const addressId = await getAddressIdByAddressName(row[1]);
+      const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
+      const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]));
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
       const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Actual");
       const planningQuantity = row[2];
@@ -236,9 +322,9 @@ export const uploadIncomingActual = async (req, res) => {
 
       updateStock(materialId, addressId, actualQuantity, "incoming");
 
-      if (incomingMap.has(materialId)) {
+      if (incomingMap.has(inventoryId)) {
         // Update existing incoming record
-        const existingIncoming = incomingMap.get(materialId);
+        const existingIncoming = incomingMap.get(inventoryId);
         await existingIncoming.update({ actual: actualQuantity }, { transaction });
       } else {
         // Create a new incoming record if material ID is not found
@@ -322,7 +408,11 @@ export const uploadMasterMaterial = async (req, res) => {
     }
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
-    const rows = await readXlsxFile(path);
+
+    // Specify the sheet name or index you want to read from
+    const sheetName = "template";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+
     const header = rows.shift();
 
     if (!validateHeaderMaterial(header)) {
