@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CCard, CCardHeader, CCardBody, CCol, CRow } from '@coreui/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CascadeSelect } from 'primereact/cascadeselect';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/themes/nano/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -18,17 +17,7 @@ const MySwal = withReactContent(Swal);
 
 // Translation object
 const translations = {
-  totAss: 'Total Aset',
-  currAss: 'Aset Lancar',
-  nCurrAss: 'Aset Tidak Lancar',
-  totLia: 'Total Kewajiban',
-  curLia: 'Kewajiban Lancar',
-  nCurLia: 'Kewajiban Tidak Lancar',
-  totEq: 'Total Ekuitas',
-  capStock: 'Saham Modal',
-  retEarn: 'Laba Ditahan',
-  treas: 'Kas',
-  nonAffect: 'Tidak Terpengaruh',
+ 
 };
 
 // Function to add labels
@@ -36,11 +25,9 @@ export function tambahLabel(series) {
   return series.map(item => ({
     ...item,
     label: translations[item.dataKey],
-    valueFormatter: v => (v ? `Rp ${v.toLocaleString()}k` : '-'),
+    valueFormatter: v => (v ? ` ${v.toLocaleString()}` : '-'),
   }));
 }
-
-
 
 // Create dark theme
 const darkTheme = createTheme({
@@ -53,11 +40,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const { getInventory } = useManageStockService(); // Service
   const [inventories, setInventories] = useState([]); // Inventory data
-  const [selectedCity, setSelectedCity] = useState(null);
 
-  
   useEffect(() => {
-    getInventories();
+    fetchInventory();
     setLoading(false);
   }, []);
 
@@ -102,19 +87,35 @@ const Dashboard = () => {
         const evaluation =
           item.quantityActual < item.Material.minStock
             ? 'shortage'
-            : item.quantityActual > item.Material.minStock
+            : item.quantityActual > item.Material.maxStock
               ? 'over'
               : 'ok';
 
-        const discrepancy = item.quantityActual - item.quantitySistem;
+        const stockDifference = item.quantityActual - item.Material.maxStock; // Selisih antara quantityActual dan maxStock
 
         return {
           ...item,
-          discrepancy,
           evaluation,
-        };
+          stockDifference, // Tambahkan stockDifference
+        };    
+      })  
+
+      .filter(item => {
+        // Pastikan semua nilai yang digunakan valid dan tidak kosong
+        return (
+          item.quantityActual != null &&
+          item.Material.maxStock != null &&
+          item.quantityActual !== '' &&
+          item.Material.maxStock !== ''
+        );
       });
-      setInventories(dataWithFormattedFields);
+
+      // Set data berdasarkan penilaian
+      setInventories({
+        critical: dataWithFormattedFields.filter(item => item.evaluation === 'shortage'),
+        lowest: dataWithFormattedFields.filter(item => item.evaluation === 'shortage'),
+        overflow: dataWithFormattedFields.filter(item => item.evaluation === 'over')
+      });
     } catch (error) {
       MySwal.fire({
         icon: 'error',
@@ -125,27 +126,29 @@ const Dashboard = () => {
     }
   };
 
-  // Prepare data for BarChart
-  const prepareBarChartData = () => {
-    return inventories.map(item => ({
+  const prepareBarChartData = (data, type) => {
+    // Ambil hanya 10 item pertama
+    const limitedData = data.slice(0, 10);
+  
+    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
+    return limitedData.map(item => ({
       MaterialNo: item.Material.materialNo,
       quantityActual: item.quantityActual,
-      minStock: item.Material.minStock,
-      maxStock: item.Material.maxStock
+      description: item.Material.description,
+      maxStock: item.Material.maxStock,
+      stockDifference: type === 'overflow'
+        ? item.quantityActual - item.Material.maxStock  // Untuk overflow, actual - maxStock
+        : item.Material.maxStock - item.quantityActual, // Untuk critical dan lowest, maxStock - actual
     }));
   };
+  
 
   return (
     <CRow>
       <CCol>
         <CCard className="mb-3">
-          <CCardHeader>Dashboard</CCardHeader>
+          <CCardHeader>Critical</CCardHeader>
           <CCardBody>
-          <div className="card flex justify-content-center">
-            <CascadeSelect value={evaluation} onChange={e => setSelected(e.value)} options={countries} 
-                optionLabel="cname" optionGroupLabel="name" optionGroupChildren={['states', 'cities']} 
-                className="w-full md:w-14rem" breakpoint="767px" placeholder="Select a City" itemTemplate={countryOptionTemplate} style={{ minWidth: '14rem' }} />
-        </div>
             <ThemeProvider theme={darkTheme}>
               <Box
                 sx={{
@@ -156,29 +159,29 @@ const Dashboard = () => {
                 }}
               >
                 <BarChart
-                  dataset={prepareBarChartData()}
-                  series={tambahLabel([
-                    { dataKey: 'minStock', stack: 'Min-Max' },
-                    { dataKey: 'maxStock', stack: 'Min-Max' },
-                    { dataKey: 'quantityActual', stack: 'Stock Inventory' },
-                  ])}
-                  xAxis={[{ scaleType: 'band', dataKey: 'MaterialNo' }]}
-                  slotProps={{ legend: { hidden: true } }}
-                  width={2000}
-                  height= {300}
-                />
+                dataset={prepareBarChartData(inventories.critical || [])}
+                series={tambahLabel([
+                  { dataKey: 'quantityActual', stack: 'Stock Difference', color: 'blue' },
+                  { dataKey: 'stockDifference', stack: 'Stock Difference', color: 'red' },
+
+                ])}
+                xAxis={[{ scaleType: 'band', dataKey: 'description' }]}  
+                slotProps={{ legend: { hidden: true } }}
+                width={2000}
+                height={400}
+              />
               </Box>
             </ThemeProvider>
             <DataTable
-              value={inventories}
-              tableStyle={{ minWidth: '50rem' }}
+              value={inventories.critical || []}
+              tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
               rowsPerPageOptions={[10, 50, 100, 500]}
               rows={10}
               dataKey="id"
               loading={loading}
-              emptyMessage="No inventory found."
+              emptyMessage="Tidak ada data inventaris."
               size="small"
               scrollable
             >
@@ -191,18 +194,18 @@ const Dashboard = () => {
               />
               <Column
                 field="Material.description"
-                header="Description"
+                header="Deskripsi"
                 frozen={true}
                 alignFrozen="left"
                 sortable
               />
-              <Column field="Address_Rack.addressRackName" header="Address" sortable />
+              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
               <Column field="Material.uom" header="UoM" sortable />
               <Column field="Material.minStock" header="Min" sortable />
               <Column field="Material.maxStock" header="Max" sortable />
               <Column
                 field="quantityActual"
-                header="Stock Inv."
+                header="Stok Inv."
                 style={{ width: '5%' }}
                 sortable
               />
@@ -212,8 +215,182 @@ const Dashboard = () => {
                 sortable
               />
               <Column
+                field="stockDifference" // Kolom baru untuk selisih stock
+                header="Selisih Max Stock"
+                body={(rowData) => rowData.stockDifference.toLocaleString()} // Format sebagai angka
+                sortable
+              />
+              <Column
                 field="evaluation"
-                header="Eval."
+                header="Penilaian"
+                body={statusBodyTemplate}
+                bodyStyle={{ textAlign: 'center' }}
+                sortable
+              />
+            </DataTable>
+          </CCardBody>
+        </CCard>
+        <CCard className="mb-3">
+          <CCardHeader>Lowest</CCardHeader>
+          <CCardBody>
+            <ThemeProvider theme={darkTheme}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              >
+                <BarChart
+                 dataset={prepareBarChartData(inventories.critical || [])}
+                 series={tambahLabel([
+                   { dataKey: 'quantityActual', stack: 'Stock Difference', color: 'blue' },
+                   { dataKey: 'stockDifference', stack: 'Stock Difference', color: 'red' },
+ 
+                 ])}
+                 xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
+                 slotProps={{ legend: { hidden: true } }}
+                 width={2100}
+                 height={400}
+               />
+              </Box>
+            </ThemeProvider>
+            <DataTable
+              value={inventories.lowest || []}
+              tableStyle={{ minWidth: '30rem' }}
+              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+              paginator
+              rowsPerPageOptions={[10, 50, 100, 500]}
+              rows={10}
+              dataKey="id"
+              loading={loading}
+              emptyMessage="Tidak ada data inventaris."
+              size="small"
+              scrollable
+            >
+              <Column
+                field="Material.materialNo"
+                header="Material"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              />
+              <Column
+                field="Material.description"
+                header="Deskripsi"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              />
+              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
+              <Column field="Material.uom" header="UoM" sortable />
+              <Column field="Material.minStock" header="Min" sortable />
+              <Column field="Material.maxStock" header="Max" sortable />
+              <Column
+                field="quantityActual"
+                header="Stok Inv."
+                style={{ width: '5%' }}
+                sortable
+              />
+              <Column
+                field="quantityActualCheck"
+                header="SoH"
+                sortable
+              />
+              <Column
+                field="stockDifference" // Kolom baru untuk selisih stock
+                header="Selisih Max Stock"
+                body={(rowData) => rowData.stockDifference.toLocaleString()} // Format sebagai angka
+                sortable
+              />
+              <Column
+                field="evaluation"
+                header="Penilaian"
+                body={statusBodyTemplate}
+                bodyStyle={{ textAlign: 'center' }}
+                sortable
+              />
+            </DataTable>
+          </CCardBody>
+        </CCard>
+        <CCard className="mb-3">
+          <CCardHeader>Overflow</CCardHeader>
+          <CCardBody>
+            <ThemeProvider theme={darkTheme}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              >
+                <BarChart
+                dataset={prepareBarChartData(inventories.overflow || [], 'overflow')}
+                series={tambahLabel([
+                  { dataKey: 'maxStock', stack: 'Stock Levels', color: 'blue' },
+                  { dataKey: 'stockDifference', stack: 'Stock Levels', color: 'red' },
+                ])}
+                xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
+                slotProps={{ legend: { hidden: true } }}
+                width={2000}
+                height={400}
+              />
+
+              </Box>
+            </ThemeProvider>
+            <DataTable
+              value={inventories.overflow || []}
+              tableStyle={{ minWidth: '30rem' }}
+              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+              paginator
+              rowsPerPageOptions={[10, 50, 100, 500]}
+              rows={10}
+              dataKey="id"
+              loading={loading}
+              emptyMessage="Tidak ada data inventaris."
+              size="small"
+              scrollable
+            >
+              <Column
+                field="Material.materialNo"
+                header="Material"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              />
+              <Column
+                field="Material.description"
+                header="Deskripsi"
+                frozen={true}
+                alignFrozen="left"
+                sortable
+              />
+              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
+              <Column field="Material.uom" header="UoM" sortable />
+              <Column field="Material.minStock" header="Min" sortable />
+              <Column field="Material.maxStock" header="Max" sortable />
+              <Column
+                field="quantityActual"
+                header="Stok Inv."
+                style={{ width: '5%' }}
+                sortable
+              />
+              <Column
+                field="quantityActualCheck"
+                header="SoH"
+                sortable
+              />
+              <Column
+                field="stockDifference" // Kolom baru untuk selisih stock
+                header="Selisih Max Stock"
+                body={(rowData) => rowData.stockDifference.toLocaleString()} // Format sebagai angka
+                sortable
+              />
+              <Column
+                field="evaluation"
+                header="Penilaian"
                 body={statusBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
