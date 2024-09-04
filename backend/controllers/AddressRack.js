@@ -31,7 +31,7 @@ export const getAddressRack = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -44,7 +44,7 @@ export const getAddressRackById = async (req, res) => {
     });
 
     if (!addressRack) {
-      return res.status(404).json({ msg: "AddressRack not found" });
+      return res.status(404).json({ message: "AddressRack not found" });
     }
 
     const response = await AddressRack.findOne({
@@ -75,25 +75,25 @@ export const getAddressRackById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createAddressRack = async (req, res) => {
   try {
-    const addressRackName = AddressRack.findOne({
+    const addressRackName = await AddressRack.findOne({
       where: { addressRackName: req.body.addressRackName, flag: 1 },
     });
 
     if (addressRackName) {
-      return res.status(404).json({ msg: "AddressRack already exist" });
+      return res.status(404).json({ message: "AddressRack already exist" });
     }
 
     await AddressRack.create(req.body);
-    res.status(201).json({ msg: "AddressRack Created" });
+    res.status(201).json({ message: "AddressRack Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -106,7 +106,7 @@ export const updateAddressRack = async (req, res) => {
     });
 
     if (!addressRack) {
-      return res.status(404).json({ msg: "AddressRack not found" });
+      return res.status(404).json({ message: "AddressRack not found" });
     }
 
     await AddressRack.update(req.body, {
@@ -115,10 +115,10 @@ export const updateAddressRack = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "AddressRack Updated" });
+    res.status(200).json({ message: "AddressRack Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -131,14 +131,14 @@ export const deleteAddressRack = async (req, res) => {
     });
 
     if (!addressRack) {
-      return res.status(404).json({ msg: "AddressRack not found" });
+      return res.status(404).json({ message: "AddressRack not found" });
     }
 
     await AddressRack.update({ flag: 0 }, { where: { id: addressRackId, flag: 1 } });
 
-    res.status(200).json({ msg: "AddressRack deleted" });
+    res.status(200).json({ message: "AddressRack deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -10,7 +10,7 @@ export const getRole = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -23,7 +23,7 @@ export const getRoleById = async (req, res) => {
     });
 
     if (!role) {
-      return res.status(404).json({ msg: "Role not found" });
+      return res.status(404).json({ message: "Role not found" });
     }
 
     const response = await Role.findOne({
@@ -36,25 +36,25 @@ export const getRoleById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createRole = async (req, res) => {
   try {
-    const roleName = Role.findOne({
+    const roleName = await Role.findOne({
       where: { roleName: req.body.roleName, flag: 1 },
     });
 
     if (roleName) {
-      return res.status(400).json({ msg: "Role already exists" });
+      return res.status(400).json({ message: "Role already exists" });
     }
 
     await Role.create(req.body);
-    res.status(201).json({ msg: "Role Created" });
+    res.status(201).json({ message: "Role Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -63,11 +63,11 @@ export const updateRole = async (req, res) => {
     const roleId = req.params.id;
 
     const role = await Role.findOne({
-      where: { id: roleId , flag: 1 },
+      where: { id: roleId, flag: 1 },
     });
 
     if (!role) {
-      return res.status(404).json({ msg: "Role not found" });
+      return res.status(404).json({ message: "Role not found" });
     }
 
     await Role.update(req.body, {
@@ -76,10 +76,10 @@ export const updateRole = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Role Updated" });
+    res.status(200).json({ message: "Role Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -92,14 +92,14 @@ export const deleteRole = async (req, res) => {
     });
 
     if (!role) {
-      return res.status(404).json({ msg: "Role not found" });
+      return res.status(404).json({ message: "Role not found" });
     }
 
     await Role.update({ flag: 0 }, { where: { id: roleId, flag: 1 } });
 
-    res.status(200).json({ msg: "Role deleted" });
+    res.status(200).json({ message: "Role deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -4,11 +4,11 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/shop", checkRole(["super admin"]), getShop);
+router.get("/shop", checkRole(["super admin", "warehouse staff"]), getShop);
 router.get("/shop/:id", checkRole(["super admin"]), getShopById);
 router.post("/shop", checkRole(["super admin"]), createShop);
 router.put("/shop/:id", checkRole(["super admin"]), updateShop);
 router.get("/shop-delete/:id", checkRole(["super admin"]), deleteShop);
-router.get("/shop-plant/:id", checkRole(["super admin"]), getShopByPlant);
+router.get("/shop-plant/:id", checkRole(["super admin", "warehouse staff"]), getShopByPlant);
 
 export default router;

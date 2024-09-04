@@ -10,7 +10,7 @@ export const getPlant = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -23,7 +23,7 @@ export const getPlantById = async (req, res) => {
     });
 
     if (!plant) {
-      return res.status(404).json({ msg: "Plant not found" });
+      return res.status(404).json({ message: "Plant not found" });
     }
 
     const response = await Plant.findOne({
@@ -36,25 +36,25 @@ export const getPlantById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createPlant = async (req, res) => {
   try {
-    const plantCode = Plant.findOne({
+    const plantCode = await Plant.findOne({
       where: { plantCode: req.body.plantCode, flag: 1 },
     });
 
     if (plantCode) {
-      return res.status(400).json({ msg: "Plant Code already exist" });
+      return res.status(400).json({ message: "Plant Code already exist" });
     }
 
     await Plant.create(req.body);
-    res.status(201).json({ msg: "Plant Created" });
+    res.status(201).json({ message: "Plant Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -67,7 +67,7 @@ export const updatePlant = async (req, res) => {
     });
 
     if (!plant) {
-      return res.status(404).json({ msg: "Plant not found" });
+      return res.status(404).json({ message: "Plant not found" });
     }
 
     await Plant.update(req.body, {
@@ -76,10 +76,10 @@ export const updatePlant = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Plant Updated" });
+    res.status(200).json({ message: "Plant Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -92,14 +92,14 @@ export const deletePlant = async (req, res) => {
     });
 
     if (!plant) {
-      return res.status(404).json({ msg: "Plant not found" });
+      return res.status(404).json({ message: "Plant not found" });
     }
 
     await Plant.update({ flag: 0 }, { where: { id: plantId, flag: 1 } });
 
-    res.status(200).json({ msg: "Plant deleted" });
+    res.status(200).json({ message: "Plant deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

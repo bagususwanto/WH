@@ -17,7 +17,7 @@ export const getShop = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -30,7 +30,7 @@ export const getShopById = async (req, res) => {
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Shop not found" });
+      return res.status(404).json({ message: "Shop not found" });
     }
 
     const response = await Shop.findOne({
@@ -49,7 +49,7 @@ export const getShopById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -62,7 +62,7 @@ export const getShopByPlant = async (req, res) => {
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Shop not found" });
+      return res.status(404).json({ message: "Shop not found" });
     }
 
     const response = await Shop.findAll({
@@ -81,23 +81,23 @@ export const getShopByPlant = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const createShop = async (req, res) => {
   try {
-    const shopName = Shop.findOne({ where: { shopName: req.body.shopName, flag: 1  } });
+    const shopName = await Shop.findOne({ where: { shopName: req.body.shopName, flag: 1 } });
 
     if (shopName) {
-      return res.status(400).json({ msg: "Shop name already exists" });
+      return res.status(400).json({ message: "Shop name already exists" });
     }
 
     await Shop.create(req.body);
-    res.status(201).json({ msg: "Shop Created" });
+    res.status(201).json({ message: "Shop Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -110,7 +110,7 @@ export const updateShop = async (req, res) => {
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Shop not found" });
+      return res.status(404).json({ message: "Shop not found" });
     }
 
     await Shop.update(req.body, {
@@ -119,10 +119,10 @@ export const updateShop = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Shop Updated" });
+    res.status(200).json({ message: "Shop Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -135,14 +135,14 @@ export const deleteShop = async (req, res) => {
     });
 
     if (!shop) {
-      return res.status(404).json({ msg: "Shop not found" });
+      return res.status(404).json({ message: "Shop not found" });
     }
 
     await Shop.update({ flag: 0 }, { where: { id: shopId, flag: 1 } });
 
-    res.status(200).json({ msg: "Shop deleted" });
+    res.status(200).json({ message: "Shop deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

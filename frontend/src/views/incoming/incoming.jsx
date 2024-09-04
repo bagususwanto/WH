@@ -59,7 +59,8 @@ const Incoming = () => {
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
 
-  const { getIncoming, postIncomingPlan, postIncomingActual } = useManageStockService()
+  const { getIncoming, postIncomingPlan, postIncomingActual, updateIncomingById } =
+    useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant'
@@ -151,7 +152,6 @@ const Incoming = () => {
       setImported(false) // Reset state
     }
   }, [imported])
-
 
   const getSeverity = (status) => {
     switch (status) {
@@ -389,14 +389,14 @@ const Incoming = () => {
       const mappedData = [
         {
           materialNo: '',
-          addressRackNames: '',
+          addressRackName: '',
           planning: '',
           actual: '',
         },
       ]
 
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { template: worksheet }, SheetNames: ['template'] }
+      const workbook = { Sheets: { incoming: worksheet }, SheetNames: ['incoming'] }
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
         type: 'array',
@@ -434,10 +434,11 @@ const Incoming = () => {
   const onRowEditComplete = (e) => {
     let _incoming = [...incoming]
     let { newData, index } = e
-
+    console.log(newData)
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'You are about to update the data. Do you want to proceed?',
+      html: `You are about to update the data <span style="color: red;">${newData.Inventory.Material.materialNo}</span>
+      with quantity <span style="color: blue;">${newData.actual}</span>. Do you want to proceed?`,
       icon: 'question',
       showCancelButton: true,
       // confirmButtonColor: '#3085d6',

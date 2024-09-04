@@ -22,7 +22,7 @@ export const getMaterial = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -31,11 +31,11 @@ export const getMaterialById = async (req, res) => {
     const materialId = req.params.id;
 
     const material = await Material.findOne({
-      where: { id: materialId, flag: 1 }, 
+      where: { id: materialId, flag: 1 },
     });
 
     if (!material) {
-      return res.status(404).json({ msg: "Material not found" });
+      return res.status(404).json({ message: "Material not found" });
     }
 
     const response = await Material.findOne({
@@ -58,7 +58,7 @@ export const getMaterialById = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -72,7 +72,7 @@ export const getMaterialIdByMaterialNo = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -83,14 +83,14 @@ export const createMaterial = async (req, res) => {
     });
 
     if (materialNo) {
-      return res.status(400).json({ msg: "Material No. already exists" });
+      return res.status(400).json({ message: "Material No. already exists" });
     }
 
     await Material.create(req.body);
-    res.status(201).json({ msg: "Material Created" });
+    res.status(201).json({ message: "Material Created" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -103,7 +103,7 @@ export const updateMaterial = async (req, res) => {
     });
 
     if (!material) {
-      return res.status(404).json({ msg: "Material not found" });
+      return res.status(404).json({ message: "Material not found" });
     }
 
     await Material.update(req.body, {
@@ -112,10 +112,10 @@ export const updateMaterial = async (req, res) => {
         flag: 1,
       },
     });
-    res.status(200).json({ msg: "Material Updated" });
+    res.status(200).json({ message: "Material Updated" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -128,14 +128,14 @@ export const deleteMaterial = async (req, res) => {
     });
 
     if (!material) {
-      return res.status(404).json({ msg: "Material not found" });
+      return res.status(404).json({ message: "Material not found" });
     }
 
     await Material.update({ flag: 0 }, { where: { id: materialId, flag: 1 } });
 
-    res.status(200).json({ msg: "Material deleted" });
+    res.status(200).json({ message: "Material deleted" });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ msg: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

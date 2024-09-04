@@ -25,8 +25,7 @@ const LogEntry = db.define(
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue:0,
+      allowNull: true,
     },
     materialId: {
       type: DataTypes.INTEGER,
