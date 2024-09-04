@@ -91,7 +91,7 @@ const Dashboard = () => {
               ? 'over'
               : 'ok';
 
-        const stockDifference = item.quantityActual - item.Material.maxStock; // Selisih antara quantityActual dan maxStock
+        const stockDifference = item.quantityActual - item.Material.minStock; // Selisih antara quantityActual dan maxStock
 
         return {
           ...item,
@@ -138,7 +138,7 @@ const Dashboard = () => {
       maxStock: item.Material.maxStock,
       stockDifference: type === 'overflow'
         ? item.quantityActual - item.Material.maxStock  // Untuk overflow, actual - maxStock
-        : item.Material.maxStock - item.quantityActual, // Untuk critical dan lowest, maxStock - actual
+        : item.Material.minStock - item.quantityActual, // Untuk critical dan lowest, maxStock - actual
     }));
   };
   
@@ -150,26 +150,26 @@ const Dashboard = () => {
           <CCardHeader>Critical</CCardHeader>
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
-              <Box
+            <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '100%',
+                  height: 'auto',
+                  marginBottom: '0.5rem', // Jarak antara grafik dan tabel
                 }}
               >
                 <BarChart
-                dataset={prepareBarChartData(inventories.critical || [])}
-                series={tambahLabel([
-                  { dataKey: 'quantityActual', stack: 'Stock Difference', color: 'blue' },
-                  { dataKey: 'stockDifference', stack: 'Stock Difference', color: 'red' },
-
-                ])}
-                xAxis={[{ scaleType: 'band', dataKey: 'description' }]}  
-                slotProps={{ legend: { hidden: true } }}
-                width={2000}
-                height={400}
-              />
+                  dataset={prepareBarChartData(inventories.critical || [])}
+                  series={tambahLabel([
+                    { dataKey: 'quantityActual', stack: 'Stock Difference', color: 'blue' },
+                    { dataKey: 'stockDifference', stack: 'Stock Difference', color: 'red' },
+                  ])}
+                  xAxis={[{ scaleType: 'band', dataKey: 'description' }]}  
+                  slotProps={{ legend: { hidden: true } }}
+                  width={1400}
+                  height={400}
+                />
               </Box>
             </ThemeProvider>
             <DataTable
@@ -209,17 +209,7 @@ const Dashboard = () => {
                 style={{ width: '5%' }}
                 sortable
               />
-              <Column
-                field="quantityActualCheck"
-                header="SoH"
-                sortable
-              />
-              <Column
-                field="stockDifference" // Kolom baru untuk selisih stock
-                header="Selisih Max Stock"
-                body={(rowData) => rowData.stockDifference.toLocaleString()} // Format sebagai angka
-                sortable
-              />
+              
               <Column
                 field="evaluation"
                 header="Penilaian"
