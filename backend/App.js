@@ -18,6 +18,7 @@ import incomingRouter from "./routes/IncomingRouter.js";
 import uploadRouter from "./routes/UploadRouter.js";
 import chartRouter from "./routes/ChartRouter.js";
 import "./models/index.js";
+import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
 dotenv.config();

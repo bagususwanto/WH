@@ -91,19 +91,81 @@ export const getInventory = async (req, res) => {
   }
 };
 
+export const executeInventory = async (req, res) => {
+  const batchSize = 1000; // Sesuaikan batch size, misal 1000 per batch
+  let offset = 0; // mulai dari baris
+  let hasMoreData = true;
+
+  try {
+    while (hasMoreData) {
+      // Ambil data inventory dalam batch
+      const inventories = await Inventory.findAll({
+        limit: batchSize,
+        offset: offset,
+      });
+
+      // Jika tidak ada data lagi, berhenti looping
+      if (inventories.length === 0) {
+        hasMoreData = false;
+        break;
+      }
+
+      // Proses setiap record dalam batch
+      for (const inventory of inventories) {
+        let updatedQuantityActualCheck = null;
+
+        if (inventory.quantitySistem !== null) {
+          updatedQuantityActualCheck = inventory.quantitySistem;
+        }
+        if (inventory.quantityActual !== null) {
+          updatedQuantityActualCheck = inventory.quantityActual;
+        }
+
+        // Update hanya jika ada perubahan
+        if (inventory.quantityActualCheck !== updatedQuantityActualCheck) {
+          await Inventory.update({ quantityActualCheck: updatedQuantityActualCheck }, { where: { id: inventory.id } });
+        }
+      }
+
+      await Inventory.update({ quantityActual: null }, { where: {} });
+
+      // Increment offset untuk batch berikutnya
+      offset += batchSize;
+    }
+
+    // Kirim respons sukses
+    res.status(200).json({
+      message: "Inventory updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating inventory:", error);
+
+    // Kirim respons error
+    res.status(500).json({
+      message: "Error updating inventory",
+      error: error.message,
+    });
+  }
+};
+
 export const updateInventory = async (req, res) => {
   try {
     const inventoryId = req.params.id;
 
+    const { quantityActual, remarks } = req.body;
+
     if (req.body.quantityActual < 0) {
-      return res.status(200).json({ message: "Quantity not allow under 0" });
+      return res.status(400).json({ message: "Quantity cannot be less than 0" });
     }
 
-    await Inventory.update(req.body, {
-      where: {
-        id: inventoryId,
-      },
-    });
+    await Inventory.update(
+      { quantityActual, remarks },
+      {
+        where: {
+          id: inventoryId,
+        },
+      }
+    );
 
     const inventory = await Inventory.findOne({
       where: { id: inventoryId },
@@ -209,7 +271,6 @@ export const setQuantityActualCheck = async (materialId, addressId) => {
 const updateQuantitySistem = async (inventoryId) => {
   try {
     // Pastikan inventoryId adalah nilai yang valid
-    console.log(inventoryId);
     if (!inventoryId) {
       throw new Error("Invalid inventoryId");
     }

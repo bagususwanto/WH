@@ -9,7 +9,13 @@ const useManageStockService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    MySwal.fire('Error', `${error.response.data}`, 'error')
+    MySwal.fire('Error', `${error.response.data.message}`, 'error')
+    throw new Error(message + error.message)
+  }
+
+  const handleSucces = (error, message) => {
+    console.error(message, error)
+    MySwal.fire('Error', `${error.response.data.message}`, 'error')
     throw new Error(message + error.message)
   }
 
@@ -93,6 +99,19 @@ const useManageStockService = () => {
     }
   }
 
+  const executeInventory = async () => {
+    try {
+      const response = await axiosJWT.get('/inventory-execute', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   return {
     getInventory,
     getIncoming,
@@ -100,6 +119,7 @@ const useManageStockService = () => {
     postIncomingPlan,
     postIncomingActual,
     updateIncomingById,
+    executeInventory,
   }
 }
 

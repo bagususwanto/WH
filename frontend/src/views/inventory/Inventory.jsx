@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { CCard, CCardHeader, CCardBody, CCol, CRow } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
@@ -19,6 +19,16 @@ import withReactContent from 'sweetalert2-react-content'
 import { MultiSelect } from 'primereact/multiselect'
 import useManageStockService from '../../services/ManageStockService'
 import useMasterDataService from '../../services/MasterDataService'
+import {
+  CFormInput,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CSpinner,
+  CButton,
+} from '@coreui/react'
 
 const MySwal = withReactContent(Swal)
 
@@ -30,8 +40,11 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
+  const [editData, setEditData] = useState({})
+  const [modalInventory, setModalInventory] = useState(false)
+  const [loadingSave, setLoadingSave] = useState(false)
 
-  const { getInventory, updateInventoryById } = useManageStockService()
+  const { getInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant'
@@ -206,18 +219,6 @@ const Inventory = () => {
     }
   }
 
-  const editInventory = async (updateItem) => {
-    try {
-      const { id, ...data } = updateItem
-
-      await updateInventoryById(id, data)
-      fetchInventory()
-      Swal.fire('Updated!', 'Data has been updated.', 'success')
-    } catch (error) {
-      console.error('Error fetching inventory:', error)
-    }
-  }
-
   const handleStorageChange = (e) => {
     const value = e.value
     let _filters = { ...filters }
@@ -375,42 +376,34 @@ const Inventory = () => {
     })
   }
 
-  const onRowEditComplete = (e) => {
-    let _inventory = [...inventory]
-    let { newData, index } = e
-    
-    MySwal.fire({
-      title: 'Are you sure?',
-      html: `You are about to update the data <span style="color: red;">${newData.Material.materialNo}</span>
-       with quantity <span style="color: blue;">${newData.quantityActual}</span>. Do you want to proceed?`,
-      icon: 'question',
-      showCancelButton: true,
-      // confirmButtonColor: '#3085d6',
-      // cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, update it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        _inventory[index] = newData
-        setInventory(_inventory)
-        editInventory(_inventory[index])
-      }
-    })
-  }
-
-  const qtyActualEditor = (options) => {
-    return (
-      <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />
-    )
-  }
-
-  const remarksEditor = (options) => {
-    return (
-      <InputText
-        type="text"
-        value={options.value || ''}
-        onChange={(e) => options.editorCallback(e.target.value)}
+  const actionBodyTemplate = (rowData) => (
+    <div className="d-flex justify-content-center align-items-center">
+      <Button
+        icon="pi pi-pencil"
+        className="p-row-editor-init p-link"
+        onClick={() => handleInputInventory(rowData)}
       />
-    )
+    </div>
+  )
+
+  const handleInputInventory = (rowData) => {
+    setEditData(rowData)
+    setModalInventory(true)
+  }
+
+  const handleSave = async () => {
+    setLoadingSave(true)
+    setModalInventory(false)
+    try {
+      await updateInventoryById(editData.id, editData)
+      fetchInventory()
+      MySwal.fire('Updated!', 'Data has been updated.', 'success')
+    } catch (error) {
+      console.error('Error fetching inventory:', error)
+    } finally {
+      setLoadingSave(false)
+      setModalInventory(false)
+    }
   }
 
   const statusBodyTemplate = (rowData) => {
@@ -456,6 +449,40 @@ const Inventory = () => {
 
   const clearFilter = () => {
     initFilters()
+  }
+
+  const confirmExecute = async () => {
+    try {
+      await executeInventory()
+      fetchInventory()
+      MySwal.fire('Success!', 'Data has been executed.', 'success')
+    } catch (error) {
+      console.error('Error fetching inventory:', error)
+    }
+  }
+
+  const handleExecute = () => {
+    MySwal.fire({
+      title: 'Apakah Anda yakin?',
+      text: 'Data ini tidak dapat dikembalikan!',
+      icon: 'question',
+      input: 'text',
+      html: `Ketik "<b>execute</b>" untuk konfirmasi`,
+      inputPlaceholder: 'Ketik "execute"',
+      showCancelButton: true,
+      confirmButtonColor: '#121629',
+      confirmButtonText: 'Ya, execute!',
+      cancelButtonText: 'Batal',
+      preConfirm: (inputValue) => {
+        if (inputValue !== 'execute') {
+          Swal.showValidationMessage('Teks konfirmasi salah. Ketik "execute" untuk melanjutkan.')
+        }
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmExecute()
+      }
+    })
   }
 
   return (
@@ -519,19 +546,29 @@ const Inventory = () => {
           <CCardHeader>Inventory Table</CCardHeader>
           <CCardBody>
             <CRow className="mb-2">
-              <CCol xs={6} sm={6} md={3}>
-                <Button
-                  type="button"
-                  label="Excel"
-                  icon="pi pi-file-excel"
-                  severity="success"
-                  className="rounded-5"
-                  onClick={exportExcel}
-                  data-pr-tooltip="XLS"
-                />
+              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
+                <div className="d-flex flex-wrap justify-content-start">
+                  <Button
+                    type="button"
+                    label="Excel"
+                    icon="pi pi-file-excel"
+                    severity="success"
+                    className="rounded-5 me-2 mb-2"
+                    onClick={exportExcel}
+                    data-pr-tooltip="XLS"
+                  />
+                  <Button
+                    type="button"
+                    label="Execute"
+                    icon="pi pi-play"
+                    severity="warning"
+                    className="rounded-5 mb-2"
+                    onClick={handleExecute}
+                  />
+                </div>
               </CCol>
-              <CCol xs={6} sm={6} md={9} className="d-flex justify-content-end align-items-center">
-                {renderHeader()}
+              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
+                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
               </CCol>
             </CRow>
             <DataTable
@@ -547,8 +584,6 @@ const Inventory = () => {
               emptyMessage="No inventory found."
               size="small"
               scrollable
-              editMode="row"
-              onRowEditComplete={onRowEditComplete}
               removableSort
               header={header}
             >
@@ -573,7 +608,6 @@ const Inventory = () => {
               <Column
                 field="quantityActual"
                 header="Stock Inv."
-                editor={(options) => qtyActualEditor(options)}
                 style={{ width: '5%' }}
                 sortable
               ></Column>
@@ -585,12 +619,7 @@ const Inventory = () => {
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
               ></Column>
-              <Column
-                field="remarks"
-                header="Remarks"
-                editor={(options) => remarksEditor(options)}
-                sortable
-              ></Column>
+              <Column field="remarks" header="Remarks" sortable></Column>
               {visibleColumns.map((col, index) => (
                 <Column
                   key={index}
@@ -604,7 +633,7 @@ const Inventory = () => {
               ))}
               <Column
                 header="Action"
-                rowEditor={true}
+                body={actionBodyTemplate}
                 headerStyle={{ width: '5%' }}
                 bodyStyle={{ textAlign: 'center' }}
                 frozen={true}
@@ -614,6 +643,77 @@ const Inventory = () => {
           </CCardBody>
         </CCard>
       </CCol>
+
+      <CModal visible={modalInventory} onClose={() => setModalInventory(false)}>
+        <CModalHeader>
+          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <div className="mb-3">
+            <CFormInput
+              type="text"
+              value={editData?.Material?.materialNo || ''}
+              label="Material No."
+              disabled
+            />
+          </div>
+          <div className="mb-3">
+            <CFormInput
+              type="text"
+              value={editData?.Material?.description || ''}
+              label="Description"
+              disabled
+            />
+          </div>
+
+          <div className="mb-3">
+            <CRow>
+              <CCol md={8}>
+                <CFormInput
+                  type="text"
+                  value={editData?.Address_Rack?.addressRackName || ''}
+                  label="Address"
+                  disabled
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormInput
+                  type="text"
+                  value={editData?.Material?.uom || ''}
+                  label="UoM"
+                  disabled
+                />
+              </CCol>
+            </CRow>
+          </div>
+          <CFormInput
+            type="number"
+            onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
+            label="Quantity"
+            style={{ width: '50%%' }}
+          />
+        </CModalBody>
+        <CModalFooter>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+            <CButton color="primary" onClick={handleSave}>
+              {loadingSave ? (
+                <>
+                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </CButton>
+          </Suspense>
+        </CModalFooter>
+      </CModal>
     </CRow>
   )
 }
