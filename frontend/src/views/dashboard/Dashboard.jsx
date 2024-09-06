@@ -40,7 +40,7 @@ export function tambahLabel(series) {
 // Create dark theme
 const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
   },
 })
 
@@ -191,7 +191,6 @@ const Dashboard = () => {
           : item.Material.minStock - item.quantityActual, // Untuk critical dan lowest, maxStock - actual
     }))
   }
-  
 
   return (
     <CRow>
