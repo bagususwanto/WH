@@ -42,13 +42,11 @@ const ProductList = () => {
   ]
 
   // State untuk produk yang ditampilkan
-  const [visibleProducts, setVisibleProducts] = useState(productsData.slice(0, 20))
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   // Fungsi untuk menampilkan semua produk
   const handleLoadMore = () => {
-    setVisibleProducts(productsData)
     setAllVisible(true)
   }
 
