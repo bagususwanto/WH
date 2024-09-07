@@ -6,6 +6,7 @@ $sidebar-nav-link-hover-color: #121629;
 $sidebar-nav-link-hover-bg: #b8c1ec;
 $sidebar-nav-link-hover-icon-color: #121629;
 $sidebar-nav-link-active-icon-color: #121629;
+$enable-dark-mode: false;
 
 // Impor kembali variabel CoreUI setelah melakukan override
 @import '@coreui/coreui/scss/coreui';

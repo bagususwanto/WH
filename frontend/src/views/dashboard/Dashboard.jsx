@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { CCard, CCardHeader, CCardBody, CCol, CRow } from '@coreui/react'
+import { CCard, CCardHeader, CCardBody, CCol, CRow,CFormCheck } from '@coreui/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
 import Typography from '@mui/material/Typography'
@@ -40,7 +40,7 @@ export function tambahLabel(series) {
 // Create dark theme
 const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
   },
 })
 
@@ -63,6 +63,7 @@ const Dashboard = () => {
     fetchInventory()
     fetchInventoryCriticalStock(itemNb)
     setLoading(false)
+    console.log(inventoriescritical)
   }, [])
 
   const handleItemNbChange = (newValue) => {
@@ -76,6 +77,7 @@ const Dashboard = () => {
   const fetchInventoryCriticalStock = async (itemNb) => {
     try {
       const response = await getInventoryCriticalStock(itemNb)
+      // console.log(response.data)
       setInventoriesCritical(response.data)
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -127,7 +129,7 @@ const Dashboard = () => {
                 ? 'over'
                 : 'ok'
 
-          const stockDifference =item.quantityActual / item.Material.minStock// Selisih antara quantityActual dan maxStock
+          const stockDifference = item.quantityActual / item.Material.minStock // Selisih antara quantityActual dan maxStock
 
           return {
             ...item,
@@ -164,8 +166,9 @@ const Dashboard = () => {
 
   //Critical Grafik
   const prepareBarChartData1 = (data) => {
-    // Ambil hanya 10 item pertama
-    const limitedData = data.slice(0, 10)
+    // Ambil item sesuai dengan nilai itemNb
+    const limitedData = data.slice(0, itemNb)
+    console.log(limitedData)
 
     // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
     return limitedData.map((item) => ({
@@ -197,19 +200,23 @@ const Dashboard = () => {
       <CCol>
         <CCard className="mb-3">
           <CCardHeader>filter</CCardHeader>
-          {/* <div className="card flex justify-content-center">
-            <MultiSelect
-              value={selectedCategories}
-              onChange={handleChange}
-              options={options}
-              optionLabel="label"
-              placeholder="Pilih kategori"
-              maxSelectedLabels={2}
-              className="w-full md:w-20rem"
-              // Opsional: Nonaktifkan semua opsi kecuali terendah dan tertinggi
-              // disabled={option => option.value !== lowest && option.value !== highest}
-            />
-          </div> */}
+          <CFormCheck 
+      button={{ color: 'primary', variant: 'outline' }} 
+      type="radio" 
+      name="options-outlined" 
+      id="primary-outlined" 
+      autoComplete="off" 
+      label="Radio" 
+      defaultChecked
+    />
+    <CFormCheck 
+      button={{ color: 'primary', variant: 'outline' }} 
+      type="radio" 
+      name="options-outlined" 
+      id="second-outlined" 
+      autoComplete="off" 
+      label="Radio"
+    />
         </CCard>
         <CCard className="mb-3">
           <CCardHeader>Critical</CCardHeader>
@@ -316,7 +323,7 @@ const Dashboard = () => {
           {/* Grafik Lowest */}
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
-            <Box
+              <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
@@ -324,9 +331,9 @@ const Dashboard = () => {
                   height: '100%',
                 }}
               >
-                 <BarChart
-                   dataset={prepareBarChartData2(inventories.overflow || [], 'overflow')}
-                   series={tambahLabel([
+                <BarChart
+                  dataset={prepareBarChartData2(inventories.overflow || [], 'overflow')}
+                  series={tambahLabel([
                     {
                       dataKey: 'maxStock',
                       stack: 'maxStock',
@@ -340,7 +347,7 @@ const Dashboard = () => {
                   width={1400}
                   height={500}
                   barLabel="value"
-                  >
+                >
                   <ChartsReferenceLine
                     y={1}
                     label="1 Shift"
@@ -355,8 +362,6 @@ const Dashboard = () => {
                 Number of items
               </Typography>
               <Slider
-                value={itemNb}
-                onChange={handleItemNbChange}
                 valueLabelDisplay="auto"
                 min={1}
                 max={10}
@@ -416,7 +421,7 @@ const Dashboard = () => {
           <CCardHeader>Overflow</CCardHeader>
           {/* Grafik Overflow */}
           <CCardBody>
-          <ThemeProvider theme={darkTheme}>
+            <ThemeProvider theme={darkTheme}>
               <Box
                 sx={{
                   display: 'flex',
@@ -425,16 +430,17 @@ const Dashboard = () => {
                   height: '100%',
                 }}
               >
-               <BarChart
+                <BarChart
                   dataset={prepareBarChartData2(inventories.overflow || [], 'overflow')}
                   series={tambahLabel([
                     { dataKey: 'maxStock', stack: 'Stock Levels', color: 'orange' },
                   ])}
                   xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
-                  slotProps={{ legend: { hidden: true } }}
-                  width={2000}
+                  yAxis={[{ type: 'number', min: 0, max: 10 }]} // Set min and max values
+                  width={1400}
                   height={500}
-                >
+                  barLabel="value"
+                >
                   <ChartsReferenceLine
                     y={5}
                     label="5 Shift"
@@ -449,8 +455,8 @@ const Dashboard = () => {
                 Number of items
               </Typography>
               <Slider
-                value={itemNb}
-                onChange={handleItemNbChange}
+                // value={itemNb}
+                // onChange={handleItemNbChange}
                 valueLabelDisplay="auto"
                 min={1}
                 max={10}
