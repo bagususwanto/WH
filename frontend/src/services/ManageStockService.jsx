@@ -13,12 +13,6 @@ const useManageStockService = () => {
     throw new Error(message + error.message)
   }
 
-  const handleSucces = (error, message) => {
-    console.error(message, error)
-    MySwal.fire('Error', `${error.response.data.message}`, 'error')
-    throw new Error(message + error.message)
-  }
-
   const getInventory = async () => {
     try {
       const response = await axiosJWT.get('/inventory', {

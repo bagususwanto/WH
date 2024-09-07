@@ -8,7 +8,6 @@ import 'primeicons/primeicons.css'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
-import { InputNumber } from 'primereact/inputnumber'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { format, parseISO } from 'date-fns'
@@ -52,6 +51,11 @@ const Inventory = () => {
   const apiStorage = 'storage-shop'
 
   const columns = [
+    {
+      field: 'quantityActual',
+      header: 'Stock Inv.',
+      sortable: true,
+    },
     {
       field: 'quantitySistem',
       header: 'Stock System',
@@ -464,10 +468,10 @@ const Inventory = () => {
   const handleExecute = () => {
     MySwal.fire({
       title: 'Apakah Anda yakin?',
-      text: 'Data ini tidak dapat dikembalikan!',
       icon: 'question',
       input: 'text',
-      html: `Ketik "<b>execute</b>" untuk konfirmasi`,
+      html: `Data ini tidak dapat dikembalikan! <br/> 
+      Ketik "<b>execute</b>" untuk konfirmasi`,
       inputPlaceholder: 'Ketik "execute"',
       showCancelButton: true,
       confirmButtonColor: '#121629',
@@ -605,12 +609,6 @@ const Inventory = () => {
               <Column field="Material.uom" header="UoM" sortable></Column>
               <Column field="Material.minStock" header="Min" sortable></Column>
               <Column field="Material.maxStock" header="Max" sortable></Column>
-              <Column
-                field="quantityActual"
-                header="Stock Inv."
-                style={{ width: '5%' }}
-                sortable
-              ></Column>
               <Column field="quantityActualCheck" header="SoH" sortable></Column>
               <Column
                 field="evaluation"
@@ -686,12 +684,26 @@ const Inventory = () => {
               </CCol>
             </CRow>
           </div>
-          <CFormInput
-            type="number"
-            onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
-            label="Quantity"
-            style={{ width: '50%%' }}
-          />
+          <div className="mb-3">
+            <CRow>
+              <CCol md={4}>
+                <CFormInput
+                  type="number"
+                  value={editData?.quantityActual || ''}
+                  onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
+                  label="Quantity"
+                />
+              </CCol>
+              <CCol md={8}>
+                <CFormInput
+                  type="text"
+                  value={editData?.remarks || ''}
+                  onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
+                  label="Remarks"
+                />
+              </CCol>
+            </CRow>
+          </div>
         </CModalBody>
         <CModalFooter>
           <Suspense

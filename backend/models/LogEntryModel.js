@@ -29,8 +29,7 @@ const LogEntry = db.define(
     },
     materialId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue:0,
+      allowNull: true,
       references: {
         model: Material,
         key: "id",

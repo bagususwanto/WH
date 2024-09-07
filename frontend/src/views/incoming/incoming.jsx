@@ -434,7 +434,6 @@ const Incoming = () => {
   const onRowEditComplete = (e) => {
     let _incoming = [...incoming]
     let { newData, index } = e
-    console.log(newData)
     MySwal.fire({
       title: 'Are you sure?',
       html: `You are about to update the data <span style="color: red;">${newData.Inventory.Material.materialNo}</span>

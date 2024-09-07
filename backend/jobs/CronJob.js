@@ -47,7 +47,7 @@ const executeInventory = async () => {
         }
       }
 
-      await Inventory.update({ quantityActual: null }, { where: {} });
+      await Inventory.update({ quantityActual: null, remarks: null }, { where: {} });
 
       // Increment offset untuk batch berikutnya
       offset += batchSize;

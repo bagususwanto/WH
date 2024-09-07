@@ -8,6 +8,99 @@ import { updateStock } from "./ManagementStock.js";
 import Inventory from "../models/InventoryModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
+import LogEntry from "../models/LogEntryModel.js";
+
+export const cancelIncomingPlan = async (req, res) => {
+  const transaction = await db.transaction();
+
+  try {
+    const incoming = await Incoming.findOne({
+      where: {
+        id: req.params.id,
+      },
+      transaction, // menjalankan dalam transaksi
+    });
+
+    if (!incoming) {
+      await transaction.rollback(); // rollback jika ada kesalahan
+      return res.status(404).send({
+        status: "error",
+        message: "Incoming plan not found",
+      });
+    }
+
+    const logImport = await LogImport.findOne({
+      where: {
+        id: incoming.logImportId,
+      },
+      transaction, // menjalankan dalam transaksi
+    });
+
+    if (!logImport) {
+      await transaction.rollback(); // rollback jika ada kesalahan
+      return res.status(404).send({
+        status: "error",
+        message: "Log import not found",
+      });
+    }
+
+    const incomingDate = logImport.importDate;
+
+    const checkActual = await checkActualImport(incomingDate);
+
+    // Cek apakah import sudah aktual
+    if (checkActual) {
+      await transaction.rollback(); // rollback jika import sudah aktual
+      return res.status(400).send({
+        status: "error",
+        message: "Cannot cancel import. Import already actual",
+      });
+    } else {
+      await Incoming.destroy({
+        where: {
+          id: req.params.id,
+        },
+        transaction, // menjalankan dalam transaksi
+      });
+
+      await LogEntry.create(
+        {
+          typeLogEntry: "cancel import",
+          userId: req.user.userId,
+        },
+        { transaction }
+      ); // menjalankan dalam transaksi
+    }
+
+    await transaction.commit(); // commit transaksi jika semuanya berhasil
+    return res.status(200).send({
+      status: "success",
+      message: "Import canceled successfully",
+    });
+  } catch (error) {
+    await transaction.rollback(); // rollback jika ada kesalahan
+    console.error(error.message);
+    return res.status(500).send({
+      status: "error",
+      message: "Failed to cancel import",
+    });
+  }
+};
+
+const checkActualImport = async (importDate) => {
+  const logImport = await LogImport.findOne({
+    where: {
+      importDate,
+      typeLog: "incoming actual",
+    },
+  });
+
+  if (logImport != null) {
+    return true;
+  }
+
+  return false;
+};
 
 export const getMaterialIdByMaterialNo = async (materialNo) => {
   try {
@@ -126,7 +219,7 @@ const validateHeaderIncoming = (header) => {
 
 const checkIncomingActualImport = async (importDate) => {
   const incomingImportActual = await LogImport.findOne({
-    where: { typeLog: "Incoming Actual", importDate },
+    where: { typeLog: "incoming actual", importDate },
     attributes: ["id"],
   });
 
@@ -139,7 +232,7 @@ const checkIncomingActualImport = async (importDate) => {
 
 const checkIncomingPlanImport = async (importDate) => {
   const incomingImportPlan = await LogImport.findOne({
-    where: { typeLog: "Incoming Plan", importDate },
+    where: { typeLog: "incoming plan", importDate },
     attributes: ["id"],
   });
 
@@ -159,19 +252,19 @@ export const uploadIncomingPlan = async (req, res) => {
 
   try {
     if (!req.file) {
-      return res.status(400).send("Please upload an excel file!");
+      return res.status(400).send({ message: "Please upload an excel file!" });
     }
 
     // jika sudah ada log import actual, tidak boleh upload plan
     const logImportActual = await checkIncomingActualImport(req.body.importDate);
     if (logImportActual == true) {
-      return res.status(400).send("Incoming actual already imported!");
+      return res.status(400).send({ message: "Incoming actual already imported!" });
     }
 
     // jika sudah ada log import plan  dan tidak ada log import actual, get last log import plan lalu destroy incoming
     const logImportPlan = await checkIncomingPlanImport(req.body.importDate);
     if (logImportPlan == true && logImportActual == false) {
-      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Plan", req.body.importDate);
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "incoming plan", req.body.importDate);
       await Incoming.destroy({ where: { logImportId } });
     }
 
@@ -184,12 +277,12 @@ export const uploadIncomingPlan = async (req, res) => {
     const header = rows.shift();
 
     if (!validateHeaderIncoming(header)) {
-      return res.status(400).send("Invalid header!");
+      return res.status(400).send({ message: "Invalid header!" });
     }
 
     // Create a log entry before processing the file
     await LogImport.create({
-      typeLog: "Incoming Plan",
+      typeLog: "incoming plan",
       fileName: req.file.originalname,
       userId: req.user.userId,
       importDate: req.body.importDate,
@@ -200,17 +293,17 @@ export const uploadIncomingPlan = async (req, res) => {
     const incomingPlanPromises = rows.map(async (row) => {
       const materialNoExists = await checkMaterialNo(row[0]);
       if (materialNoExists == false) {
-        return res.status(400).send(`Material: ${row[0]} No not found!`);
+        return res.status(400).send({ message: `Material: ${row[0]} No not found!` });
       }
 
       const addressRackNameExists = await checkAddressRackName(row[1]);
       if (addressRackNameExists == false) {
-        return res.status(400).send(`Address Rack Name: ${row[1]} not found!`);
+        return res.status(400).send({ message: `Address Rack Name: ${row[1]} not found!` });
       }
 
       const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
       const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]));
-      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Plan");
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "incoming plan");
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
 
       return {
@@ -235,14 +328,14 @@ export const uploadIncomingPlan = async (req, res) => {
     // Rollback the transaction in case of error
     await transaction.rollback();
     console.error(error);
-    res.status(500).send(`Could not upload the file: ${req.file?.originalname}, not matched with expected header!`);
+    res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}, not matched with expected header!` });
   }
 };
 
 export const getLogImportIdByDate = async (importDate) => {
   try {
     const logImport = await LogImport.findOne({
-      where: { importDate, typeLog: "Incoming Plan" },
+      where: { importDate, typeLog: "incoming plan" },
       order: [["createdAt", "DESC"]],
       attributes: ["id"],
     });
@@ -279,12 +372,12 @@ export const uploadIncomingActual = async (req, res) => {
   const transaction = await db.transaction();
   try {
     if (!req.file) {
-      return res.status(400).send("Please upload an excel file!");
+      return res.status(400).send({ message: "Please upload an excel file!" });
     }
 
     const logImportId = await getLogImportIdByDate(req.body.importDate);
     if (logImportId === null) {
-      return res.status(400).send("Upload incoming plan first");
+      return res.status(400).send({ message: "Upload incoming plan first" });
     }
     const incomings = await getIncomingByLogImportId(logImportId);
 
@@ -296,7 +389,7 @@ export const uploadIncomingActual = async (req, res) => {
 
     // Create a log entry before processing the file
     await LogImport.create({
-      typeLog: "Incoming Actual",
+      typeLog: "incoming actual",
       fileName: req.file.originalname,
       userId: req.user.userId,
       importDate: req.body.importDate,
@@ -316,7 +409,7 @@ export const uploadIncomingActual = async (req, res) => {
       const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
       const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]));
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
-      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "Incoming Actual");
+      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "incoming actual");
       const planningQuantity = row[2];
       const actualQuantity = row[3];
 
@@ -404,7 +497,7 @@ export const uploadMasterMaterial = async (req, res) => {
 
   try {
     if (!req.file) {
-      return res.status(400).send("Please upload an excel file!");
+      return res.status(400).send({ message: "Please upload an excel file!" });
     }
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
@@ -416,7 +509,7 @@ export const uploadMasterMaterial = async (req, res) => {
     const header = rows.shift();
 
     if (!validateHeaderMaterial(header)) {
-      return res.status(400).send("Invalid header!");
+      return res.status(400).send({ message: "Invalid header!" });
     }
 
     const masterMaterialPromises = rows.map(async (row) => {
@@ -443,12 +536,12 @@ export const uploadMasterMaterial = async (req, res) => {
       } else {
         const category = await Category.findOne({ where: { categoryName: row[5], flag: 1 } });
         if (!category) {
-          return res.status(400).send(`Category: ${row[5]} not exists`);
+          return res.status(400).send({ message: `Category: ${row[5]} not exists` });
         }
 
         const supplier = await Supplier.findOne({ where: { supplierName: row[6], flag: 1 } });
         if (!supplier) {
-          return res.status(400).send(`Supplier: ${row[6]} not exists`);
+          return res.status(400).send({ message: `Supplier: ${row[6]} not exists` });
         }
 
         return {
@@ -476,7 +569,7 @@ export const uploadMasterMaterial = async (req, res) => {
       for (const material of masterMaterial) {
         await LogImport.create(
           {
-            typeLog: "Master Material",
+            typeLog: "master material",
             fileName: req.file.originalname,
             userId: req.user.userId,
             importDate: req.body.importDate,
@@ -497,6 +590,6 @@ export const uploadMasterMaterial = async (req, res) => {
       await transaction2.rollback();
     }
     console.error(error);
-    res.status(500).send(`Could not upload the file: ${req.file?.originalname}. Error: ${error.message}`);
+    res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. Error: ${error.message}` });
   }
 };

@@ -127,7 +127,12 @@ export const executeInventory = async (req, res) => {
         }
       }
 
-      await Inventory.update({ quantityActual: null }, { where: {} });
+      await Inventory.update({ quantityActual: null, remarks: null }, { where: {} });
+
+      await LogEntry.create({
+        typeLogEntry: "execute inventory",
+        userId: req.user.userId,
+      });
 
       // Increment offset untuk batch berikutnya
       offset += batchSize;
