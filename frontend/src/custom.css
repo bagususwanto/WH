@@ -1,31 +1,31 @@
 /* custom.css */
-.custom-datatable .p-datatable-thead>tr>th,
-.custom-datatable .p-datatable-tbody>tr>td {
-    border: 1px solid #dee2e6;
+.custom-datatable .p-datatable-thead > tr > th,
+.custom-datatable .p-datatable-tbody > tr > td {
+  border: 1px solid #dee2e6;
 }
 
-.custom-datatable .p-datatable-thead>tr>th {
-    background-color: #f8f9fa;
+.custom-datatable .p-datatable-thead > tr > th {
+  background-color: #f8f9fa;
 }
 
-.custom-datatable .p-datatable-tbody>tr>td {
-    background-color: #ffffff;
-    font-size: 10pt;
-    text-transform: uppercase;
-    white-space: nowrap;
+.custom-datatable .p-datatable-tbody > tr > td {
+  background-color: #ffffff;
+  font-size: 10pt;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 input.p-inputnumber-input.p-inputtext.p-component.p-filled {
-    width: 90px;
-    height: 24px;
-    font-size: 10pt;
+  width: 90px;
+  height: 24px;
+  font-size: 10pt;
 }
 
 td input.p-inputtext.p-component {
-    height: 24px;
-    font-size: 10pt;
+  height: 24px;
+  font-size: 10pt;
 }
 
 button.p-row-editor-save.p-link {
-    margin-right: 10px;
+  margin-right: 10px;
 }
