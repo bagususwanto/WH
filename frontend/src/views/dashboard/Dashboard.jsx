@@ -40,7 +40,7 @@ export function tambahLabel(series) {
 // Create dark theme
 const darkTheme = createTheme({
   palette: {
-    mode: 'light',
+    mode: 'dark',
   },
 })
 
@@ -65,7 +65,7 @@ const Dashboard = () => {
     setLoading(false)
   }, [])
 
-  const handleItemNbChange = (event, newValue) => {
+  const handleItemNbChange = (newValue) => {
     if (typeof newValue !== 'number') {
       return
     }
@@ -127,7 +127,7 @@ const Dashboard = () => {
                 ? 'over'
                 : 'ok'
 
-          const stockDifference = item.quantityActual - item.Material.minStock // Selisih antara quantityActual dan maxStock
+          const stockDifference =item.quantityActual / item.Material.minStock// Selisih antara quantityActual dan maxStock
 
           return {
             ...item,
@@ -262,7 +262,6 @@ const Dashboard = () => {
                 aria-labelledby="input-item-number"
               />
             </ThemeProvider>
-
             <DataTable
               value={inventories.critical || []}
               tableStyle={{ minWidth: '30rem' }}
@@ -317,7 +316,7 @@ const Dashboard = () => {
           {/* Grafik Lowest */}
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
-              <Box
+            <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
@@ -325,18 +324,44 @@ const Dashboard = () => {
                   height: '100%',
                 }}
               >
-                <BarChart
-                  dataset={prepareBarChartData2(inventories.critical || [])}
-                  series={tambahLabel([
-                    { dataKey: 'quantityActual', stack: 'Stock Difference', color: 'blue' },
-                    { dataKey: 'stockDifference', stack: 'Stock Difference', color: 'red' },
+                 <BarChart
+                   dataset={prepareBarChartData2(inventories.overflow || [], 'overflow')}
+                   series={tambahLabel([
+                    {
+                      dataKey: 'maxStock',
+                      stack: 'maxStock',
+                      label: 'maxStock',
+                      value: 'maxStock', // Ensure this matches the key in the dataset
+                      type: 'bar',
+                    },
                   ])}
                   xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
-                  slotProps={{ legend: { hidden: true } }}
-                  width={2100}
-                  height={400}
-                />
+                  yAxis={[{ type: 'number', min: 0, max: 1 }]} // Set min and max values
+                  width={1400}
+                  height={500}
+                  barLabel="value"
+                  >
+                  <ChartsReferenceLine
+                    y={1}
+                    label="1 Shift"
+                    labelAlign="end"
+                    lineStyle={{ stroke: 'red' }}
+                  />
+                  <ChartsXAxis />
+                  <ChartsYAxis />
+                </BarChart>
               </Box>
+              <Typography id="input-item-number" gutterBottom>
+                Number of items
+              </Typography>
+              <Slider
+                value={itemNb}
+                onChange={handleItemNbChange}
+                valueLabelDisplay="auto"
+                min={1}
+                max={10}
+                aria-labelledby="input-item-number"
+              />
             </ThemeProvider>
             <DataTable
               value={inventories.lowest || []}
@@ -391,7 +416,7 @@ const Dashboard = () => {
           <CCardHeader>Overflow</CCardHeader>
           {/* Grafik Overflow */}
           <CCardBody>
-            <ThemeProvider theme={darkTheme}>
+          <ThemeProvider theme={darkTheme}>
               <Box
                 sx={{
                   display: 'flex',
@@ -400,18 +425,37 @@ const Dashboard = () => {
                   height: '100%',
                 }}
               >
-                <BarChart
+               <BarChart
                   dataset={prepareBarChartData2(inventories.overflow || [], 'overflow')}
                   series={tambahLabel([
-                    { dataKey: 'maxStock', stack: 'Stock Levels', color: 'blue' },
-                    { dataKey: 'stockDifference', stack: 'Stock Levels', color: 'red' },
+                    { dataKey: 'maxStock', stack: 'Stock Levels', color: 'orange' },
                   ])}
                   xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
                   slotProps={{ legend: { hidden: true } }}
                   width={2000}
-                  height={400}
-                />
+                  height={500}
+                >
+                  <ChartsReferenceLine
+                    y={5}
+                    label="5 Shift"
+                    labelAlign="end"
+                    lineStyle={{ stroke: 'red' }}
+                  />
+                  <ChartsXAxis />
+                  <ChartsYAxis />
+                </BarChart>
               </Box>
+              <Typography id="input-item-number" gutterBottom>
+                Number of items
+              </Typography>
+              <Slider
+                value={itemNb}
+                onChange={handleItemNbChange}
+                valueLabelDisplay="auto"
+                min={1}
+                max={10}
+                aria-labelledby="input-item-number"
+              />
             </ThemeProvider>
             <DataTable
               value={inventories.overflow || []}
