@@ -212,7 +212,7 @@ const Dashboard = () => {
     <CRow>
       <CCol>
         <CCard className="mb-3">
-          <CCardHeader>filter</CCardHeader>
+          <CCardHeader>Filter</CCardHeader>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <CFormCheck
               button={{ color: 'primary', variant: 'outline' }}
@@ -229,7 +229,7 @@ const Dashboard = () => {
               name="options-outlined"
               id="second-outlined"
               autoComplete="off"
-              label="terendah"
+              label="Terendah"
             />
           </div>
         </CCard>
