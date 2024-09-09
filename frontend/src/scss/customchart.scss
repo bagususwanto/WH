@@ -1,0 +1,11 @@
+/* CSS untuk menata label sumbu X */
+.css-1k2u9zb-MuiChartsAxis-root .MuiChartsAxis-tickLabel {
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.66;
+  letter-spacing: 0.03333em;
+  transform: rotate(-45deg); /* Rotasi label sumbu X */
+  transform-origin: bottom left; /* Titik asal rotasi */
+  white-space: nowrap; /* Agar teks tidak terputus di baris berikutnya */
+  overflow: hidden; /* Sembunyikan teks yang meluber */
+}
