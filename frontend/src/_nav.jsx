@@ -51,32 +51,32 @@ const useNavigation = () => {
         to: '/order',
         icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
       },
-      {
-        component: CNavGroup,
-        name: 'Order To Warehouse',
-        to: '/order',
-        icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Order Item',
-            to: '/orderitem',
-            icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-          },
-          {
-            component: CNavItem,
-            name: 'Tracking Item',
-            to: '/tracking',
-            icon: <CIcon icon={cilTransfer} customClassName="nav-icon" />,
-          },
-          {
-            component: CNavItem,
-            name: 'Good Issue',
-            to: '/goodissue',
-            icon: <CIcon icon={cilList} customClassName="nav-icon" />,
-          },
-        ],
-      },
+      // {
+      //   component: CNavGroup,
+      //   name: 'Order To Warehouse',
+      //   to: '/order',
+      //   icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+      //   items: [
+      //     {
+      //       component: CNavItem,
+      //       name: 'Order Item',
+      //       to: '/orderitem',
+      //       icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
+      //     },
+      //     {
+      //       component: CNavItem,
+      //       name: 'Tracking Item',
+      //       to: '/tracking',
+      //       icon: <CIcon icon={cilTransfer} customClassName="nav-icon" />,
+      //     },
+      //     {
+      //       component: CNavItem,
+      //       name: 'Good Issue',
+      //       to: '/goodissue',
+      //       icon: <CIcon icon={cilList} customClassName="nav-icon" />,
+      //     },
+      //   ],
+      // },
       {
         component: CNavItem,
         name: 'Incoming',

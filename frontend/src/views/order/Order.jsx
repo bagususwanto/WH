@@ -1,60 +1,74 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   CCard,
   CCardHeader,
   CCardBody,
   CCardImage,
   CCardTitle,
-  CCardText,
   CButton,
   CRow,
   CCol,
   CBadge,
   CFormInput,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CImage,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCart } from '@coreui/icons'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import Slider from 'react-slick'
+import useManageStockService from '../../services/ManageStockService'
+import useMasterDataService from '../../services/MasterDataService'
 
 const ProductList = () => {
-  // Data produk dummy
-  const productsData = Array.from({ length: 50 }, (_, index) => {
-    const stockStatus = ['In Stock', 'Low Stock', 'Out of Stock'][Math.floor(Math.random() * 3)]
-    return {
-      id: index + 1,
-      name: `Product ${index + 1}`,
-      price: Math.floor(Math.random() * 100000) + 10000,
-      stockStatus, // Keterangan stok
-      imageUrl: 'https://via.placeholder.com/150',
-    }
-  })
-
-  // Data kategori dummy
-  const categories = [
-    { id: 1, name: 'Category 1', imageUrl: 'https://via.placeholder.com/100' },
-    { id: 2, name: 'Category 2', imageUrl: 'https://via.placeholder.com/100' },
-    { id: 3, name: 'Category 3', imageUrl: 'https://via.placeholder.com/100' },
-    { id: 4, name: 'Category 4', imageUrl: 'https://via.placeholder.com/100' },
-    { id: 5, name: 'Category 5', imageUrl: 'https://via.placeholder.com/100' },
-    { id: 6, name: 'Category 6', imageUrl: 'https://via.placeholder.com/100' },
-  ]
-
-  // State untuk produk yang ditampilkan
+  const [productsData, setProductsData] = useState([])
+  const [categoriesData, setCategoriesData] = useState([])
+  const { getInventory } = useManageStockService()
+  const { getMasterData } = useMasterDataService()
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Fungsi untuk menampilkan semua produk
-  const handleLoadMore = () => {
-    setAllVisible(true)
+  const apiCategory = 'category'
+
+  const getProducts = async () => {
+    try {
+      const response = await getInventory()
+      setProductsData(response.data)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
   }
 
-  const handleOrder = (product) => {
-    console.log(`Order product: ${product.name}`)
+  const getCategories = async () => {
+    try {
+      const response = await getMasterData(apiCategory)
+      setCategoriesData(response.data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
   }
 
-  // Fungsi untuk menentukan warna berdasarkan status stok
+  useEffect(() => {
+    getProducts()
+    getCategories()
+  }, [])
+
+  // Fungsi untuk menghitung status stok
+  const calculateStockStatus = (product) => {
+    const { quantityActualCheck } = product
+    const { minStock, maxStock } = product.Material
+    if (quantityActualCheck == null) return 'Out of Stock'
+    if (quantityActualCheck > maxStock) return 'In Stock'
+    if (quantityActualCheck <= minStock) return 'Low Stock'
+    return 'Out of Stock'
+  }
+
   const getStockBadgeColor = (status) => {
     switch (status) {
       case 'In Stock':
@@ -68,9 +82,19 @@ const ProductList = () => {
     }
   }
 
+  // Fungsi untuk menampilkan semua produk
+  const handleLoadMore = () => {
+    setAllVisible(true)
+  }
+
+  const handleAddToCart = (product) => {
+    setSelectedProduct(product)
+    setModalOrder(true)
+  }
+
   // Filter produk berdasarkan query pencarian
   const filteredProducts = productsData.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    product.Material.description.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   // Slider settings
@@ -78,19 +102,19 @@ const ProductList = () => {
     dots: true,
     infinite: false,
     speed: 500,
-    slidesToShow: 3, // Menampilkan 3 kategori sekaligus di layar lebih lebar
+    slidesToShow: 6,
     slidesToScroll: 1,
     responsive: [
       {
-        breakpoint: 768, // Ketika layar lebih kecil dari 768px (mobile)
+        breakpoint: 768,
         settings: {
-          slidesToShow: 2, // Menampilkan 2 kategori sekaligus di layar lebih kecil
+          slidesToShow: 4,
         },
       },
       {
-        breakpoint: 480, // Ketika layar lebih kecil dari 480px
+        breakpoint: 480,
         settings: {
-          slidesToShow: 1, // Menampilkan 1 kategori sekaligus di layar sangat kecil
+          slidesToShow: 3,
         },
       },
     ],
@@ -98,7 +122,6 @@ const ProductList = () => {
 
   const handleCategoryClick = (category) => {
     console.log(`Category clicked: ${category.name}`)
-    // Tambahkan logika yang diperlukan, misalnya filter produk berdasarkan kategori
   }
 
   return (
@@ -117,11 +140,11 @@ const ProductList = () => {
         <CCardHeader>Category</CCardHeader>
         <CCardBody>
           <Slider {...settings} className="mb-4">
-            {categories.map((category) => (
+            {categoriesData.map((category) => (
               <div key={category.id} className="d-flex flex-column align-items-center">
                 <img
-                  src={category.imageUrl}
-                  alt={category.name}
+                  src={category.img || 'https://via.placeholder.com/150'}
+                  alt={category.categoryName}
                   className="rounded-circle"
                   style={{
                     width: '60px',
@@ -132,43 +155,49 @@ const ProductList = () => {
                   }}
                   onClick={() => handleCategoryClick(category)}
                 />
-                <div style={{ fontSize: '12px', textAlign: 'center' }}>{category.name}</div>
+                <div style={{ fontSize: '12px', textAlign: 'center' }}>{category.categoryName}</div>
               </div>
             ))}
           </Slider>
         </CCardBody>
       </CCard>
 
+      {/* Produk yang difilter */}
       <CRow>
         {filteredProducts.slice(0, allVisible ? filteredProducts.length : 20).map((product) => (
-          <CCol xs="12" sm="6" md="4" lg="4" xl="3" key={product.id} className="mb-4">
+          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={product.imageUrl}
-                alt={product.name}
+                src={product.Material.img || 'https://via.placeholder.com/150'}
+                alt={product.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />
-              <CCardBody>
-                <CCardTitle>{product.name}</CCardTitle>
-                <CCardText>Price: Rp {product.price.toLocaleString('id-ID')}</CCardText>
-                <CRow>
+              <CCardBody className="d-flex flex-column justify-content-between">
+                <div>
+                  <CCardTitle style={{ fontSize: '14px' }}>
+                    {product.Material.description}
+                  </CCardTitle>
+                  <CCardTitle style={{ fontSize: '12px' }}>
+                    Rp {product.Material.price.toLocaleString('id-ID')}
+                  </CCardTitle>
+                </div>
+                <CRow className="mt-auto">
                   <CCol sm="12" className="mb-2">
-                    <CBadge color={getStockBadgeColor(product.stockStatus)}>
-                      {product.stockStatus}
-                    </CBadge>
+                    {calculateStockStatus(product) == 'Out of Stock' && (
+                      <CBadge color="primary">{calculateStockStatus(product)}</CBadge>
+                    )}
                   </CCol>
-                  <CCol sm="3">
-                    {product.stockStatus !== 'Out of Stock' ? (
+                  <CCol sm="12" className="text-start">
+                    {calculateStockStatus(product) !== 'Out of Stock' && (
                       <CButton
                         className="rounded-circle"
                         color="primary"
-                        onClick={() => handleOrder(product)}
+                        onClick={() => handleAddToCart(product)}
+                        style={{ position: 'relative', bottom: '0' }}
                       >
                         <CIcon icon={cilCart} />
                       </CButton>
-                    ) : (
-                      ''
                     )}
                   </CCol>
                 </CRow>
@@ -178,13 +207,47 @@ const ProductList = () => {
         ))}
       </CRow>
 
-      {/* Tampilkan tombol "Muat Lebih Banyak" hanya jika belum semua produk ditampilkan */}
+      {/* Tampilkan tombol "Muat Lebih Banyak" */}
       {!allVisible && filteredProducts.length > 20 && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
+      )}
+
+      {/* Modal Add to Cart */}
+      {selectedProduct && (
+        <CModal visible={modalOrder} onClose={() => setModalOrder(false)}>
+          <CModalHeader>Add to Cart</CModalHeader>
+          <CModalBody>
+            <CRow>
+              <CCol md="4">
+                <CImage
+                  src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
+                  alt={selectedProduct.Material.description}
+                  fluid
+                  className="rounded"
+                />
+              </CCol>
+              <CCol md="8">
+                <strong>{selectedProduct.Material.description}</strong>
+                <p>Rp {selectedProduct.Material.price.toLocaleString('id-ID')}</p>
+              </CCol>
+            </CRow>
+          </CModalBody>
+          <CModalFooter>
+            <CButton
+              color="primary"
+              onClick={() => {
+                handleOrder(selectedProduct)
+                closeModal()
+              }}
+            >
+              Add to Cart
+            </CButton>
+          </CModalFooter>
+        </CModal>
       )}
     </>
   )
