@@ -213,7 +213,7 @@ const Dashboard = () => {
       <CCol>
         <CCard className="mb-3">
           <CCardHeader>filter</CCardHeader>
-          <div style={{ display: 'flex', gap: '2rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <CFormCheck
               button={{ color: 'primary', variant: 'outline' }}
               type="radio"
