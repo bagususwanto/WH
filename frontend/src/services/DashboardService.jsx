@@ -13,9 +13,9 @@ const useDashboardService = () => {
     throw new Error(message + error.message)
   }
 
-  const getInventoryCriticalStock = async (limit) => {
+  const getInventoryCriticalStock = async (limit,order) => {
     try {
-      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}`, {
+      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}&order=${order}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
