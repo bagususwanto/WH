@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { CCard, CCardHeader, CCardBody, CCol, CRow,CFormCheck } from '@coreui/react'
+
+import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormCheck } from '@coreui/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
 import Typography from '@mui/material/Typography'
@@ -22,6 +23,7 @@ import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
+//import '../../scss/customchart.scss'
 
 const MySwal = withReactContent(Swal)
 
@@ -44,12 +46,7 @@ const darkTheme = createTheme({
   },
 })
 
-const series = [
-  { type: 'line', dataKey: 'max', color: '#fe5f55' },
-  { type: 'bar', dataKey: 'precip', color: '#bfdbf7', yAxisId: 'rightAxis' },
-]
-
-const xLabels = ['Page A', 'Page B', 'Page C', 'Page D', 'Page E', 'Page F', 'Page G']
+const MAX_NAME_LENGTH = 10 // Maksimal karakter untuk label sumbu X
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
@@ -58,6 +55,14 @@ const Dashboard = () => {
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
   const [itemNb, setItemNb] = React.useState(5)
+  const [chartWidth, setChartWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setChartWidth(window.innerWidth)
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetchInventory()
@@ -66,12 +71,10 @@ const Dashboard = () => {
     console.log(inventoriescritical)
   }, [])
 
-  const handleItemNbChange = (newValue) => {
-    if (typeof newValue !== 'number') {
-      return
+  const handleItemNbChange = (event, newValue) => {
+    if (typeof newValue === 'number') {
+      setItemNb(newValue)
     }
-    setItemNb(newValue)
-    fetchInventoryCriticalStock(newValue)
   }
 
   const fetchInventoryCriticalStock = async (itemNb) => {
@@ -128,16 +131,18 @@ const Dashboard = () => {
               : item.quantityActual > item.Material.maxStock
                 ? 'over'
                 : 'ok'
-
+  
           const stockDifference = item.quantityActual / item.Material.minStock // Selisih antara quantityActual dan maxStock
-
+          const useByShift = (item.quantityActual / item.Material.minStock) * 2 || 0 // Use default value if undefined
+  
           return {
             ...item,
             evaluation,
-            stockDifference, // Tambahkan stockDifference
+            stockDifference,
+            useByShift, // Ensure useByShift is always defined
           }
         })
-
+  
         .filter((item) => {
           // Pastikan semua nilai yang digunakan valid dan tidak kosong
           return (
@@ -147,7 +152,7 @@ const Dashboard = () => {
             item.Material.maxStock !== ''
           )
         })
-
+  
       // Set data berdasarkan penilaian
       setInventories({
         critical: dataWithFormattedFields.filter((item) => item.evaluation === 'shortage'),
@@ -163,16 +168,24 @@ const Dashboard = () => {
       console.error('Error fetching inventory:', error)
     }
   }
-
+  
   //Critical Grafik
   const prepareBarChartData1 = (data) => {
     // Ambil item sesuai dengan nilai itemNb
     const limitedData = data.slice(0, itemNb)
     console.log(limitedData)
 
+    // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
+    const formatName = (name) => {
+      if (name.length > MAX_NAME_LENGTH) {
+        return `${name.substring(0, 50)}...` // Potong name dan tambahkan ellipsis
+      }
+      return name
+    }
+
     // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
     return limitedData.map((item) => ({
-      name: item.name,
+      name: item.name, // Terapkan formatName pada name
       stock: item.stock,
     }))
   }
@@ -199,24 +212,26 @@ const Dashboard = () => {
     <CRow>
       <CCol>
         <CCard className="mb-3">
-          <CCardHeader>filter</CCardHeader>
-          <CFormCheck 
-      button={{ color: 'primary', variant: 'outline' }} 
-      type="radio" 
-      name="options-outlined" 
-      id="primary-outlined" 
-      autoComplete="off" 
-      label="Radio" 
-      defaultChecked
-    />
-    <CFormCheck 
-      button={{ color: 'primary', variant: 'outline' }} 
-      type="radio" 
-      name="options-outlined" 
-      id="second-outlined" 
-      autoComplete="off" 
-      label="Radio"
-    />
+          <CCardHeader>Filter</CCardHeader>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <CFormCheck
+              button={{ color: 'primary', variant: 'outline' }}
+              type="radio"
+              name="options-outlined"
+              id="primary-outlined"
+              autoComplete="off"
+              label="Tertinggi"
+              defaultChecked
+            />
+            <CFormCheck
+              button={{ color: 'primary', variant: 'outline' }}
+              type="radio"
+              name="options-outlined"
+              id="second-outlined"
+              autoComplete="off"
+              label="Terendah"
+            />
+          </div>
         </CCard>
         <CCard className="mb-3">
           <CCardHeader>Critical</CCardHeader>
@@ -227,7 +242,8 @@ const Dashboard = () => {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '100%',
+                  width: '100%',
+                  height: { xs: 170, sm: 270, md: 370 }, // Menyesuaikan tinggi berdasarkan ukuran layar
                 }}
               >
                 <BarChart
@@ -241,8 +257,25 @@ const Dashboard = () => {
                       type: 'bar',
                     },
                   ]}
-                  xAxis={[{ scaleType: 'band', dataKey: 'name' }]}
-                  yAxis={[{ type: 'number', min: 0, max: 2 }]} // Set min and max values
+                  xAxis={[
+                    {
+                      scaleType: 'band',
+                      dataKey: 'name',
+                      tick: {
+                        fontSize: 339, // Ukuran font pada label sumbu X
+                      },
+                    },
+                  ]}
+                  yAxis={[
+                    {
+                      type: 'number',
+                      min: 0,
+                      max: 2,
+                      tick: {
+                        fontSize: 36, // Ukuran font pada label sumbu Y
+                      },
+                    },
+                  ]}
                   width={1400}
                   height={500}
                   barLabel="value"
@@ -300,13 +333,12 @@ const Dashboard = () => {
               <Column field="Material.uom" header="UoM" sortable />
               <Column field="Material.minStock" header="Min" sortable />
               <Column field="quantityActual" header="Stok Inv." style={{ width: '5%' }} sortable />
-              <Column
-                field="stock"
-                header="use By Shift"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
+               <Column
+              field="useByShift" // Kolom baru untuk use by shift
+              header="Use By Shift"
+              body={(rowData) => rowData.useByShift.toFixed(2)} // Format sebagai angka dengan dua desimal
+              sortable
+            />
 
               <Column
                 field="evaluation"
@@ -328,7 +360,8 @@ const Dashboard = () => {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '100%',
+                  width: '100%',
+                  height: { xs: 170, sm: 270, md: 370 }, // Menyesuaikan tinggi berdasarkan ukuran layar
                 }}
               >
                 <BarChart
@@ -407,13 +440,12 @@ const Dashboard = () => {
                 body={(rowData) => rowData.stockDifference.toLocaleString()} // Format sebagai angka
                 sortable
               />
-              <Column
-                field="evaluation"
-                header="Penilaian"
-                body={statusBodyTemplate}
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              />
+             <Column
+              field="useByShift" // Kolom baru untuk use by shift
+              header="Use By Shift"
+              body={(rowData) => (rowData.useByShift ? rowData.useByShift.toFixed(2) : 'N/A')} // Format sebagai angka dengan dua desimal
+              sortable
+            />
             </DataTable>
           </CCardBody>
         </CCard>
@@ -427,7 +459,8 @@ const Dashboard = () => {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '100%',
+                  width: '100%',
+                  height: { xs: 170, sm: 270, md: 370 }, // Menyesuaikan tinggi berdasarkan ukuran layar
                 }}
               >
                 <BarChart

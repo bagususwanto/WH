@@ -11,12 +11,16 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
     const oprt = req.query.oprt || "gt"; // Operator: default gt (greater than), lt (less than), eq (equal to)
     const value = parseFloat(req.query.value) || 0; // Value, default 0
     const status = req.query.status || "critical";
+  
 
     let rumus;
     let whereCondition;
     let operator;
 
-    if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
+    if (
+      (!req.query.oprt && req.query.value) ||
+      (req.query.oprt && !req.query.value)
+    ) {
       return res.status(400).send({
         status: "error",
         message: "Invalid operator or value",
@@ -32,11 +36,14 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
     }
 
     if (status == "critical") {
-      rumus = '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT) * 2)';
+      rumus =
+        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT) * 2)';
     } else if (status == "lowest") {
-      rumus = '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT))';
+      rumus =
+        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT))';
     } else if (status == "overflow") {
-      rumus = '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT))';
+      rumus =
+        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT))';
     }
 
     // Menentukan rumus dan kondisi where berdasarkan status
@@ -83,7 +90,7 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       ],
       where: whereCondition, // Kondisi where dengan operator dinamis
       attributes: [
-        [Sequelize.col("Material.description"), "name"], // Nama material dari tabel Material
+        [Sequelize.literal(`LEFT("Material"."description", 20)`), "name"], // Nama material dari tabel Material, potong hingga 50 karakter
         [Sequelize.literal(`${rumus}`), "stock"],
       ],
       order: [[Sequelize.literal("stock"), order]], // Mengurutkan berdasarkan stok yang dihitung
