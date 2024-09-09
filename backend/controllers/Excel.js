@@ -58,7 +58,7 @@ export const cancelIncomingPlan = async (req, res) => {
     } else {
       await Incoming.destroy({
         where: {
-          id: req.params.id,
+          logImportId: incoming.logImportId,
         },
         transaction, // menjalankan dalam transaksi
       });

@@ -647,24 +647,21 @@ const Inventory = () => {
           <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <div className="mb-3">
             <CFormInput
               type="text"
               value={editData?.Material?.materialNo || ''}
               label="Material No."
               disabled
+              className='mb-3'
             />
-          </div>
-          <div className="mb-3">
             <CFormInput
               type="text"
               value={editData?.Material?.description || ''}
               label="Description"
               disabled
+              className='mb-3'
             />
-          </div>
 
-          <div className="mb-3">
             <CRow>
               <CCol md={8}>
                 <CFormInput
@@ -672,6 +669,7 @@ const Inventory = () => {
                   value={editData?.Address_Rack?.addressRackName || ''}
                   label="Address"
                   disabled
+                  className='mb-3'
                 />
               </CCol>
               <CCol md={4}>
@@ -680,11 +678,10 @@ const Inventory = () => {
                   value={editData?.Material?.uom || ''}
                   label="UoM"
                   disabled
+                  className='mb-3'
                 />
               </CCol>
             </CRow>
-          </div>
-          <div className="mb-3">
             <CRow>
               <CCol md={4}>
                 <CFormInput
@@ -692,6 +689,7 @@ const Inventory = () => {
                   value={editData?.quantityActual || ''}
                   onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
                   label="Quantity"
+                  className='mb-3'
                 />
               </CCol>
               <CCol md={8}>
@@ -700,10 +698,10 @@ const Inventory = () => {
                   value={editData?.remarks || ''}
                   onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
                   label="Remarks"
+                  className='mb-3'
                 />
               </CCol>
             </CRow>
-          </div>
         </CModalBody>
         <CModalFooter>
           <Suspense
