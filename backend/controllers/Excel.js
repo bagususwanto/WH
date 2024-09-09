@@ -487,7 +487,7 @@ export const getSupplierIdBySupplierName = async (supplierName) => {
 };
 
 const validateHeaderMaterial = (header) => {
-  const expectedHeader = ["materialNo", "description", "uom", "price", "type", "category", "supplier", "minStock", "maxStock"];
+  const expectedHeader = ["materialNo", "description", "uom", "price", "type", "category", "supplier", "minStock", "maxStock", "img"];
   return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
 };
 
@@ -528,6 +528,7 @@ export const uploadMasterMaterial = async (req, res) => {
             supplierId: await getSupplierIdBySupplierName(row[6]),
             minStock: row[7],
             maxStock: row[8],
+            img: row[9],
           },
           { transaction }
         );
@@ -554,6 +555,7 @@ export const uploadMasterMaterial = async (req, res) => {
           supplierId: supplier.id,
           minStock: row[7],
           maxStock: row[8],
+          img: row[9],
         };
       }
     });

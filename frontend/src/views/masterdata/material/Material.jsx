@@ -404,6 +404,7 @@ const Material = () => {
           supplier: '',
           minStock: '',
           maxStock: '',
+          img: '',
         },
       ]
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react'
-import { CCard, CCardHeader, CCardBody, CCol, CRow } from '@coreui/react'
+import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormTextarea } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Dropdown } from 'primereact/dropdown'
@@ -647,61 +647,65 @@ const Inventory = () => {
           <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
         </CModalHeader>
         <CModalBody>
-            <CFormInput
-              type="text"
-              value={editData?.Material?.materialNo || ''}
-              label="Material No."
-              disabled
-              className='mb-3'
-            />
-            <CFormInput
-              type="text"
-              value={editData?.Material?.description || ''}
-              label="Description"
-              disabled
-              className='mb-3'
-            />
+          <CFormInput
+            type="text"
+            value={editData?.Material?.materialNo || ''}
+            label="Material No."
+            disabled
+            className="mb-3"
+          />
+          <CFormInput
+            type="text"
+            value={editData?.Material?.description || ''}
+            label="Description"
+            disabled
+            className="mb-3"
+          />
 
-            <CRow>
-              <CCol md={8}>
-                <CFormInput
-                  type="text"
-                  value={editData?.Address_Rack?.addressRackName || ''}
-                  label="Address"
-                  disabled
-                  className='mb-3'
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormInput
-                  type="text"
-                  value={editData?.Material?.uom || ''}
-                  label="UoM"
-                  disabled
-                  className='mb-3'
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol md={4}>
-                <CFormInput
-                  type="number"
-                  value={editData?.quantityActual || ''}
-                  onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
-                  label="Quantity"
-                  className='mb-3'
-                />
-              </CCol>
-              <CCol md={8}>
-                <CFormInput
+          <CRow>
+            <CCol md={12}>
+              <CFormInput
+                type="text"
+                value={editData?.Address_Rack?.addressRackName || ''}
+                label="Address"
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+          </CRow>
+          <CRow>
+            <CCol md={6}>
+              <CFormInput
+                type="number"
+                value={editData?.quantityActual || ''}
+                onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
+                label="Quantity"
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={6}>
+              <CFormInput
+                type="text"
+                value={editData?.Material?.uom || ''}
+                label="UoM"
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+          </CRow>
+          <CRow>
+            <CCol>
+              <CCol md={12}>
+                <CFormTextarea
                   type="text"
                   value={editData?.remarks || ''}
                   onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
                   label="Remarks"
-                  className='mb-3'
+                  className="mb-3"
                 />
               </CCol>
-            </CRow>
+            </CCol>
+          </CRow>
         </CModalBody>
         <CModalFooter>
           <Suspense

@@ -52,10 +52,6 @@ const AppHeader = () => {
 
   const notificationCount = 3
 
-  const handleCartClick = () => {
-    navigate('/views/orderwarehouse/tracking') // Gunakan path absolut
-  }
-
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
       <CContainer className="border-bottom px-4" fluid>
@@ -104,14 +100,6 @@ const AppHeader = () => {
           </CDropdown>
         </CHeaderNav>
         <CHeaderNav>
-          <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
-          <CNavItem className="nav-item py-1">
-            <CNavLink className="d-flex align-items-center" onClick={handleCartClick}>
-              <CIcon icon={cilCart} size="lg" />
-            </CNavLink>
-          </CNavItem>
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>

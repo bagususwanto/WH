@@ -11,16 +11,12 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
     const oprt = req.query.oprt || "gt"; // Operator: default gt (greater than), lt (less than), eq (equal to)
     const value = parseFloat(req.query.value) || 0; // Value, default 0
     const status = req.query.status || "critical";
-  
 
     let rumus;
     let whereCondition;
     let operator;
 
-    if (
-      (!req.query.oprt && req.query.value) ||
-      (req.query.oprt && !req.query.value)
-    ) {
+    if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
       return res.status(400).send({
         status: "error",
         message: "Invalid operator or value",
@@ -35,15 +31,12 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       operator = "=";
     }
 
-    if (status == "critical") {
-      rumus =
-        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT) * 2)';
-    } else if (status == "lowest") {
-      rumus =
-        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT))';
-    } else if (status == "overflow") {
-      rumus =
-        '(CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT))';
+    if (status === "critical") {
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT) * 2), 2)`;
+    } else if (status === "lowest") {
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT)), 2)`;
+    } else if (status === "overflow") {
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT)), 2)`;
     }
 
     // Menentukan rumus dan kondisi where berdasarkan status
