@@ -261,9 +261,21 @@ const Dashboard = () => {
                     {
                       scaleType: 'band',
                       dataKey: 'name',
+                      tick: {
+                        fontSize: 339, // Ukuran font pada label sumbu X
+                      },
                     },
                   ]}
-                  yAxis={[{ type: 'number', min: 0, max: 2 }]} // Set min and max values
+                  yAxis={[
+                    {
+                      type: 'number',
+                      min: 0,
+                      max: 2,
+                      tick: {
+                        fontSize: 36, // Ukuran font pada label sumbu Y
+                      },
+                    },
+                  ]}
                   width={1400}
                   height={500}
                   barLabel="value"

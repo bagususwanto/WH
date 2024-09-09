@@ -11,6 +11,7 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
     const oprt = req.query.oprt || "gt"; // Operator: default gt (greater than), lt (less than), eq (equal to)
     const value = parseFloat(req.query.value) || 0; // Value, default 0
     const status = req.query.status || "critical";
+  
 
     let rumus;
     let whereCondition;
