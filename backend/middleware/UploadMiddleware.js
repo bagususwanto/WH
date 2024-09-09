@@ -1,5 +1,6 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 
 // Filter untuk memastikan file yang diunggah adalah file Excel dengan ekstensi .xlsx
 const excelFilter = (req, file, cb) => {
@@ -26,7 +27,14 @@ const __basedir = path.dirname(new URL(import.meta.url).pathname);
 // Konfigurasi penyimpanan untuk multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, `./resources/uploads/excel`);
+    const uploadDir = `./resources/uploads/excel`;
+
+    // Cek apakah direktori ada, jika tidak ada maka buat direktori tersebut
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, `${getUniqueTimestamp()}-bezkoder-${file.originalname}`);
@@ -34,6 +42,9 @@ const storage = multer.diskStorage({
 });
 
 // Konfigurasi multer dengan penyimpanan dan filter
-const uploadFile = multer({ storage, fileFilter: excelFilter });
+const uploadFile = multer({ 
+  storage: storage, 
+  fileFilter: excelFilter 
+});
 
 export default uploadFile;
