@@ -64,8 +64,8 @@ const Home = () => {
   return (
     <Card title="Halo!!">
       <p className="m-0">
-        Selamat datang di TWIS (Toyota Warehouse Integrated System). Silakan pesan barang dan item
-        di gudang.
+        Selamat datang di TWIS (Toyota Warehouse Inventory Integrated System). Silakan pesan barang
+        dan item di gudang.
       </p>
       <CRow className="mb-2"></CRow>
       {error ? (
