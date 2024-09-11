@@ -52,15 +52,11 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const { getInventory } = useManageStockService() // Service
   const { getInventoryCriticalStock } = useDashboardService() // Service
-  const { getInventoryLowestStock } = useDashboardService() // Service
-  const { getInventoryOverflowStock } = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
-  const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
-  const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(5) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(5) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(5) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = useState(5)
+  const [overflowItemNb, setOverflowItemNb] = useState(5)
+  const [itemNb, setItemNb] = React.useState(5)
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('DESC')
 
@@ -80,28 +76,13 @@ const Dashboard = () => {
   useEffect(() => {
     fetchInventory()
     fetchInventoryCriticalStock(itemNb, order)
-    fetchInventoryLowestStock(lowestItemNb, order)
-    fetchInventoryOverflowStock(overflowItemNb, order)
     setLoading(false)
     console.log(inventoriescritical)
-  }, [itemNb, lowestItemNb, overflowItemNb, order])
+  }, [order])
 
-  //Handle untuk Critical
   const handleItemNbChange = (event, newValue) => {
     if (typeof newValue === 'number') {
       setItemNb(newValue)
-    }
-  }
-  //Handle untuk lowest
-  const handlelowestItemNbChange = (event, newValue) => {
-    if (typeof newValue === 'number') {
-      setLowestItemNb(newValue)
-    }
-  }
-  //handle untuk overflow
-  const handleoverflowItemNbChange = (event, newValue) => {
-    if (typeof newValue === 'number') {
-      setOverflowItemNb(newValue)
     }
   }
 
@@ -110,26 +91,6 @@ const Dashboard = () => {
       const response = await getInventoryCriticalStock(itemNb, order)
       // console.log(response.data)
       setInventoriesCritical(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-
-  const fetchInventoryLowestStock = async (lowestItemNb, order) => {
-    try {
-      const response = await getInventoryLowestStock(lowestItemNb, order)
-      console.log(response.data)
-      setInventoriesLowest(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-
-  const fetchInventoryOverflowStock = async (overflowItemNb, order) => {
-    try {
-      const response = await getInventoryOverflowStock(overflowItemNb, order)
-      // console.log(response.data)
-      setInventoriesOverflow(response.data)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -189,9 +150,11 @@ const Dashboard = () => {
             evaluation,
             stockDifferencelowes,
             stockDifference,
-            useByShift, // Ensure useByShift is always defined
+            useByShift,
           }
         })
+        .filter((item) => item.quantityActual != null && item.Material.maxStock != null)
+        .sort((a, b) => order === 'DESC' ? b.useByShift - a.useByShift : a.useByShift - b.useByShift)
 
         .filter((item) => {
           // Pastikan semua nilai yang digunakan valid dan tidak kosong
@@ -202,6 +165,11 @@ const Dashboard = () => {
             item.Material.maxStock !== ''
           )
         })
+        const sortedData = dataWithFormattedFields.sort((a, b) => {
+          const aValue = order === 'DESC' ? a.quantityActual : b.quantityActual;
+          const bValue = order === 'DESC' ? b.quantityActual : a.quantityActual;
+          return aValue - bValue;
+        });
 
       // Set data berdasarkan penilaian
       setInventories({
@@ -226,19 +194,12 @@ const Dashboard = () => {
     console.log(limitedData)
 
     // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
-
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      name: item.name, // Terapkan formatName pada name
-      stock: item.stock,
-    }))
-  }
-
-  //Critical Grafik
-  const prepareBarChartDataLowest = (data) => {
-    // Ambil item sesuai dengan nilai itemNb
-    const limitedData = data.slice(0, itemNb)
-    console.log(limitedData)
+    const formatName = (name) => {
+      if (name.length > MAX_NAME_LENGTH) {
+        return `${name.substring(0, 50)}...` // Potong name dan tambahkan ellipsis
+      }
+      return name
+    }
 
     // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
     return limitedData.map((item) => ({
@@ -296,13 +257,13 @@ const Dashboard = () => {
           <CCardHeader>Critical</CCardHeader>
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
-              <Box
+            <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
                   width: '100%',
-                  height: { xs: 170, sm: 270, md: 370 }, // Menyesuaikan tinggi berdasarkan ukuran layar
+                  height: { xs: 170, sm: 270, md: 370 },
                 }}
               >
                 <BarChart
@@ -314,6 +275,7 @@ const Dashboard = () => {
                       label: 'Stock',
                       value: 'stock',
                       type: 'bar',
+                      color: 'orange', // Optional: Change the color
                     },
                   ]}
                   xAxis={[
@@ -322,7 +284,7 @@ const Dashboard = () => {
                       dataKey: 'name',
                       tick: {
                         sx: {
-                          fontSize: '20px', // Customize font size
+                          fontSize: '80px', // Increase font size for X-axis labels
                         },
                       },
                     },
@@ -334,7 +296,7 @@ const Dashboard = () => {
                       max: 2,
                       tick: {
                         sx: {
-                          fontSize: '20px', // Customize font size
+                          fontSize: '22px', // Increase font size for Y-axis labels
                         },
                       },
                     },
@@ -349,8 +311,8 @@ const Dashboard = () => {
                     labelAlign="end"
                     lineStyle={{ stroke: 'red' }}
                   />
-                  <ChartsXAxis sx={{ fontSize: '22px' }} />
-                  <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  <ChartsXAxis sx={{ fontSize: '52px' }} />
+                  <ChartsYAxis sx={{ fontSize: '52px' }} />
                 </BarChart>
               </Box>
               <Typography id="input-item-number" gutterBottom>
@@ -428,51 +390,30 @@ const Dashboard = () => {
                 }}
               >
                 <BarChart
-                  dataset={prepareBarChartDataLowest(inventorieslowest)}
-                  series={[
+                  dataset={prepareBarChartData2(inventories.lowest || [], 'lowest', lowestItemNb)}
+                  series={tambahLabel([
                     {
-                      dataKey: 'stock',
-                      stack: 'Stock Difference',
-                      label: 'Stock',
-                      value: 'stock',
-                      type: 'bar',
+                      dataKey: 'stockDifferencelowes',
+                      stack: 'Stock Ratio',
+                      value: 'stockDifferencelowes',
+                      label: 'Stock Difference',
+                      color: 'skyblue',
                     },
-                  ]}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      dataKey: 'name',
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  yAxis={[
-                    {
-                      type: 'number',
-                      min: 0,
-                      max: 2,
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
+                  ])}
+                  xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
+                  yAxis={[{ type: 'number', min: 0, max: 1 }]}
                   width={1400}
                   height={500}
-                  barLabel="value"
+                  barLabel="value" // Ensure that bar labels are enabled
                 >
                   <ChartsReferenceLine
-                    y={2}
-                    label="2 Shift"
+                    y={1}
+                    label="1 shift"
                     labelAlign="end"
                     lineStyle={{ stroke: 'red' }}
                   />
-                  <ChartsXAxis sx={{ fontSize: '22px' }} />
-                  <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  <ChartsXAxis />
+                  <ChartsYAxis />
                 </BarChart>
               </Box>
               <Typography id="input-item-number-lowest" gutterBottom>
@@ -480,7 +421,7 @@ const Dashboard = () => {
               </Typography>
               <Slider
                 value={lowestItemNb}
-                onChange={handlelowestItemNbChange}
+                onChange={(event, newValue) => setLowestItemNb(newValue)}
                 valueLabelDisplay="auto"
                 min={1}
                 max={10}
@@ -522,14 +463,15 @@ const Dashboard = () => {
               <Column field="quantityActualCheck" header="SoH" sortable />
               <Column
                 field="stockDifferencelowes" // Kolom baru untuk selisih stock
-                header="Selisih Max Stock"
+                header="Use by Shift"
                 body={(rowData) => rowData.stockDifferencelowes.toLocaleString()} // Format sebagai angka
                 sortable
               />
-              <Column
-                field="useByShift" // Kolom baru untuk use by shift
-                header="Use By Shift"
-                body={(rowData) => (rowData.useByShift ? rowData.useByShift.toFixed(2) : 'N/A')} // Format sebagai angka dengan dua desimal
+                 <Column
+                field="evaluation"
+                header="Penilaian"
+                body={statusBodyTemplate}
+                bodyStyle={{ textAlign: 'center' }}
                 sortable
               />
             </DataTable>
@@ -549,46 +491,23 @@ const Dashboard = () => {
                 }}
               >
                 <BarChart
-                  dataset={prepareBarChartData1(inventoriesoverflow)}
-                  series={[
-                    {
-                      dataKey: 'stock',
-                      stack: 'Stock Difference',
-                      label: 'Stock',
-                      value: 'stock',
-                      type: 'bar',
-                    },
-                  ]}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      dataKey: 'name',
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  yAxis={[
-                    {
-                      type: 'number',
-                      min: 0,
-                      max: 2,
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
+                  dataset={prepareBarChartData2(
+                    inventories.overflow || [],
+                    'overflow',
+                    overflowItemNb,
+                  )}
+                  series={tambahLabel([
+                    { dataKey: 'stockDifference', value: 'stockDifference', stack: 'Stock Ratio', color: 'orange' },
+                  ])}
+                  xAxis={[{ scaleType: 'band', dataKey: 'description' }]}
+                  yAxis={[{ type: 'number', min: 0, max: 10, tick: { sx: { fontSize: '20px' } } }]}
                   width={1400}
                   height={500}
                   barLabel="value"
                 >
                   <ChartsReferenceLine
-                    y={2}
-                    label="2 Shift"
+                    y={5}
+                    label="5 Shift"
                     labelAlign="end"
                     lineStyle={{ stroke: 'red' }}
                   />
@@ -601,7 +520,7 @@ const Dashboard = () => {
               </Typography>
               <Slider
                 value={overflowItemNb}
-                onChange={handleoverflowItemNbChange}
+                onChange={(event, newValue) => setOverflowItemNb(newValue)}
                 valueLabelDisplay="auto"
                 min={1}
                 max={10}
@@ -643,8 +562,15 @@ const Dashboard = () => {
               <Column field="quantityActualCheck" header="SoH" sortable />
               <Column
                 field="stockDifference"
-                header="Stok Ratio"
+                header="Use by Shift"
                 body={(rowData) => rowData.stockDifference.toFixed(2)}
+                sortable
+              />
+                 <Column
+                field="evaluation"
+                header="Penilaian"
+                body={statusBodyTemplate}
+                bodyStyle={{ textAlign: 'center' }}
                 sortable
               />
             </DataTable>

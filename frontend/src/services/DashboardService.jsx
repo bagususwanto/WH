@@ -15,7 +15,33 @@ const useDashboardService = () => {
 
   const getInventoryCriticalStock = async (limit,order) => {
     try {
-      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}&order=${order}`, {
+      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}&order=${order}&status=critical`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
+  const getInventoryLowestStock = async (limit,order) => {
+    try {
+      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}&order=${order}&status=lowest`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
+  const getInventoryOverflowStock = async (limit,order) => {
+    try {
+      const response = await axiosJWT.get(`/inventory-critical-stock?limit=${limit}&order=${order}&status=overflow`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -28,6 +54,8 @@ const useDashboardService = () => {
 
   return {
     getInventoryCriticalStock,
+    getInventoryLowestStock,
+    getInventoryOverflowStock,
   }
 }
 
