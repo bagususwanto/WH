@@ -135,10 +135,9 @@ const Dashboard = () => {
     }
   }
 
-
   const getSeverity = (status) => {
     switch (status) {
-      case 'shortage':
+      case 'critical':
         return 'danger'
       case 'ok':
         return 'success'
@@ -155,7 +154,7 @@ const Dashboard = () => {
     const maxStock = Material?.maxStock
 
     if (quantityActualCheck < minStock)
-      return <Tag value="shortage" severity={getSeverity('shortage')} />
+      return <Tag value="critical" severity={getSeverity('critical')} />
     if (quantityActualCheck > maxStock) return <Tag value="over" severity={getSeverity('over')} />
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
@@ -167,7 +166,7 @@ const Dashboard = () => {
         .map((item) => {
           const evaluation =
             item.quantityActual < item.Material.minStock
-              ? 'shortage'
+              ? 'critical'
               : item.quantityActual > item.Material.maxStock
                 ? 'over'
                 : 'ok'
@@ -197,8 +196,8 @@ const Dashboard = () => {
 
       // Set data berdasarkan penilaian
       setInventories({
-        critical: dataWithFormattedFields.filter((item) => item.evaluation === 'shortage'),
-        lowest: dataWithFormattedFields.filter((item) => item.evaluation === 'shortage'),
+        critical: dataWithFormattedFields.filter((item) => item.evaluation === 'critical'),
+        lowest: dataWithFormattedFields.filter((item) => item.evaluation === 'critical'),
         overflow: dataWithFormattedFields.filter((item) => item.evaluation === 'over'),
       })
     } catch (error) {
@@ -257,33 +256,30 @@ const Dashboard = () => {
   return (
     <CRow>
       <CCol>
-        <CCard className="mb-3">
-          <CCardHeader>Filter</CCardHeader>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <CFormCheck
-              button={{ color: 'primary', variant: 'outline' }}
-              type="radio"
-              name="options-outlined"
-              id="primary-outlined"
-              autoComplete="off"
-              label="Tertinggi"
-              value="DESC"
-              checked={order === 'DESC'}
-              onChange={handleOrderChange}
-            />
-            <CFormCheck
-              button={{ color: 'primary', variant: 'outline' }}
-              type="radio"
-              name="options-outlined"
-              id="second-outlined"
-              autoComplete="off"
-              label="Terendah"
-              value="ASC"
-              checked={order === 'ASC'}
-              onChange={handleOrderChange}
-            />
-          </div>
-        </CCard>
+        <div className="mb-3" style={{ display: 'flex', gap: '0.5rem' }}>
+          <CFormCheck
+            button={{ color: 'primary', variant: 'outline' }}
+            type="radio"
+            name="options-outlined"
+            id="primary-outlined"
+            autoComplete="off"
+            label="Highest"
+            value="DESC"
+            checked={order === 'DESC'}
+            onChange={handleOrderChange}
+          />
+          <CFormCheck
+            button={{ color: 'primary', variant: 'outline' }}
+            type="radio"
+            name="options-outlined"
+            id="second-outlined"
+            autoComplete="off"
+            label="Lowest"
+            value="ASC"
+            checked={order === 'ASC'}
+            onChange={handleOrderChange}
+          />
+        </div>
         <CCard className="mb-3">
           <CCardHeader>Critical</CCardHeader>
           <CCardBody>
@@ -294,7 +290,7 @@ const Dashboard = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   width: '100%',
-                  height: { xs: 170, sm: 270, md: 370 }, // Menyesuaikan tinggi berdasarkan ukuran layar
+                  height: { xs: 170, sm: 270, md: 420 }, // Menyesuaikan tinggi berdasarkan ukuran layar
                 }}
               >
                 <BarChart
@@ -332,7 +328,7 @@ const Dashboard = () => {
                     },
                   ]}
                   width={1400}
-                  height={500}
+                  height={460}
                   barLabel="value"
                 >
                   <ChartsReferenceLine
@@ -386,11 +382,15 @@ const Dashboard = () => {
               />
               <Column field="Material.uom" header="UoM" sortable />
               <Column field="Material.minStock" header="Min" sortable />
-              <Column field="quantityActualCheck" header="Actual" style={{ width: '5%' }} sortable />
+              <Column
+                field="quantityActualCheck"
+                header="Actual"
+                style={{ width: '5%' }}
+                sortable
+              />
               <Column
                 field="stock" // Kolom baru untuk use by shift
                 header="Remain Stock"
-               
                 sortable
               />
 
@@ -404,7 +404,6 @@ const Dashboard = () => {
             </DataTable>
           </CCardBody>
         </CCard>
-      
       </CCol>
     </CRow>
   )
