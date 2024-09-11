@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CCard,
-  CCardHeader,
   CCardBody,
   CCardImage,
   CCardTitle,
@@ -17,9 +16,13 @@ import {
   CModalHeader,
   CImage,
   CNavLink,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCart, cilClipboard, cilUser } from '@coreui/icons'
+import { cilCart, cilClipboard } from '@coreui/icons'
 import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
 import Slider from 'react-slick'
@@ -36,6 +39,8 @@ const ProductList = () => {
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [cart, setCart] = useState([]) // State untuk menyimpan item keranjang
+  const [cartCount, setCartCount] = useState(0)
 
   const apiCategory = 'category'
 
@@ -134,7 +139,7 @@ const ProductList = () => {
   }
 
   const handleCategoryClick = (category) => {
-    console.log(`Category clicked: ${category.name}`)
+    console.log(`Category clicked: ${category.categoryName}`)
   }
 
   // Fungsi untuk menambah atau mengurangi quantity
@@ -161,20 +166,62 @@ const ProductList = () => {
     }
   }
 
+  // Fungsi untuk menambah item ke keranjang
+  const handleAddToCart = (product, quantity) => {
+    const existingProduct = cart.find((item) => item.id === product.Material.id)
+    if (existingProduct) {
+      // Jika produk sudah ada di keranjang, tambahkan jumlahnya
+      const updatedCart = cart.map((item) =>
+        item.id === product.Material.id ? { ...item, quantity: item.quantity + quantity } : item,
+      )
+      setCart(updatedCart)
+    } else {
+      // Jika produk belum ada di keranjang, tambahkan produk baru
+      setCart([...cart, { ...product, quantity }])
+    }
+
+    // Update jumlah item di keranjang
+    setCartCount(cartCount + quantity)
+    setModalOrder(false) // Tutup modal setelah menambah ke keranjang
+  }
+
   return (
     <>
-      {/* Input pencarian */}
-      <CFormInput
-        type="search"
-        placeholder="Search product..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="mb-4"
-      />
+      <CRow className="align-items-center py-2 border rounded mb-3 sticky-search-bar shadow-sm">
+        {/* Kategori Produk */}
+        <CCol xs={12} sm={2} className="text-center text-sm-start mb-2 mb-sm-0">
+          <CDropdown className="w-100 text-center">
+            <CDropdownToggle style={{ fontSize: '16px', color: '#555' }}>Category</CDropdownToggle>
+            <CDropdownMenu>
+              {categoriesData.map((category) => (
+                <CDropdownItem key={category.id} onClick={() => handleCategoryClick(category)}>
+                  {category.categoryName}
+                </CDropdownItem>
+              ))}
+            </CDropdownMenu>
+          </CDropdown>
+        </CCol>
 
-      <CRow className="align-items-center py-2">
+        {/* Input Pencarian */}
+        <CCol xs={12} sm={8} className="mb-2 mb-sm-0">
+          <CFormInput
+            type="search"
+            placeholder="Search product..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border-0 p-2 mb-2"
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              boxShadow: 'none',
+              width: '100%',
+              outline: '1px solid #ddd', // Outline warna biru (bisa disesuaikan)
+            }}
+          />
+        </CCol>
+
         {/* Icon My Order */}
-        <CCol xs={2} sm={2} md={1} className="text-center mb-3 mb-sm-0">
+        <CCol xs={6} sm={1} className="text-center mb-2 mb-sm-0">
           <CNavLink
             className="d-flex justify-content-center align-items-center"
             style={{ cursor: 'pointer' }}
@@ -182,56 +229,29 @@ const ProductList = () => {
           >
             <CIcon
               icon={cilClipboard}
-              size="xxl"
+              size="lg"
               style={{ transition: 'color 0.3s', color: '#333' }}
             />
           </CNavLink>
         </CCol>
 
-        {/* Kategori produk */}
-        <CCol xs={8} sm={8} md={10}>
-          <CCard className="mb-4 shadow-sm">
-            <CCardHeader className="bg-primary text-white text-center text-sm-start">
-              Category
-            </CCardHeader>
-            <CCardBody>
-              <Slider {...settings} className="mb-4">
-                {categoriesData.map((category) => (
-                  <div key={category.id} className="d-flex flex-column align-items-center">
-                    <img
-                      src={category.img || 'https://via.placeholder.com/150'}
-                      alt={category.categoryName}
-                      className="rounded-circle shadow"
-                      style={{
-                        width: '60px',
-                        height: '60px',
-                        objectFit: 'cover',
-                        marginBottom: '5px',
-                        cursor: 'pointer',
-                        transition: 'transform 0.3s',
-                      }}
-                      onClick={() => handleCategoryClick(category)}
-                      onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
-                      onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    />
-                    <div style={{ fontSize: '12px', textAlign: 'center', color: '#555' }}>
-                      {category.categoryName}
-                    </div>
-                  </div>
-                ))}
-              </Slider>
-            </CCardBody>
-          </CCard>
-        </CCol>
-
         {/* Icon Cart */}
-        <CCol xs={2} sm={2} md={1} className="text-center">
+        <CCol xs={6} sm={1} className="text-center">
           <CNavLink
             className="d-flex justify-content-center align-items-center"
             style={{ cursor: 'pointer' }}
             onClick={() => navigate('/cart')}
           >
-            <CIcon icon={cilCart} size="xxl" style={{ transition: 'color 0.3s', color: '#333' }} />
+            <CIcon icon={cilCart} size="lg" style={{ transition: 'color 0.3s', color: '#333' }} />
+            {cartCount > 0 && (
+              <CBadge
+                color="danger"
+                className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                style={{ fontSize: '0.75rem' }}
+              >
+                {cartCount}
+              </CBadge>
+            )}
           </CNavLink>
         </CCol>
       </CRow>
@@ -326,13 +346,17 @@ const ProductList = () => {
                   </CButton>
 
                   {/* UOM (Unit of Measurement) */}
-                  <span className="mx-3">{selectedProduct.Material.uom}</span>
+                  <span className="mx-3">({selectedProduct.Material.uom})</span>
                 </div>
               </CCol>
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary" onClick={() => handleOrder(selectedProduct, quantity)}>
+            <CButton
+              color="primary"
+              onClick={() => handleAddToCart(selectedProduct, quantity)}
+              disabled={quantity > selectedProduct.quantityActualCheck}
+            >
               Add to Cart
             </CButton>
           </CModalFooter>

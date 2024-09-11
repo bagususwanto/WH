@@ -1,14 +1,14 @@
 /* custom.css */
-.custom-datatable .p-datatable-thead > tr > th,
-.custom-datatable .p-datatable-tbody > tr > td {
+.custom-datatable .p-datatable-thead>tr>th,
+.custom-datatable .p-datatable-tbody>tr>td {
   border: 1px solid #dee2e6;
 }
 
-.custom-datatable .p-datatable-thead > tr > th {
+.custom-datatable .p-datatable-thead>tr>th {
   background-color: #f8f9fa;
 }
 
-.custom-datatable .p-datatable-tbody > tr > td {
+.custom-datatable .p-datatable-tbody>tr>td {
   background-color: #ffffff;
   font-size: 10pt;
   text-transform: uppercase;
@@ -28,4 +28,14 @@ td input.p-inputtext.p-component {
 
 button.p-row-editor-save.p-link {
   margin-right: 10px;
+}
+
+.sticky-search-bar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 114px;
+  z-index: 1020;
+  background-color: white;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
