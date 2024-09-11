@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom' // Import useNavigate
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -40,6 +40,8 @@ const AppHeader = () => {
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const navigate = useNavigate() // Inisialisasi useNavigate
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
   useEffect(() => {
     const handleScroll = () => {
       headerRef.current &&
@@ -49,6 +51,16 @@ const AppHeader = () => {
     document.addEventListener('scroll', handleScroll)
     return () => document.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleDropdownToggle = () => {
+    const dropdownElement = document.querySelector('.order-header')
+    if (!isDropdownOpen) {
+      dropdownElement?.classList.remove('sticky-search-bar')
+    } else {
+      dropdownElement?.classList.add('sticky-search-bar')
+    }
+    setIsDropdownOpen(!isDropdownOpen) // Toggle state
+  }
 
   const notificationCount = 3
 
@@ -63,7 +75,10 @@ const AppHeader = () => {
         </CHeaderToggler>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
         <CHeaderNav className="ms-auto">
-          <CDropdown variant="nav-item">
+          <CDropdown
+            variant="nav-item"
+            onClick={handleDropdownToggle} // Set onClick to toggle dropdown
+          >
             <CDropdownToggle
               placement="bottom-end"
               className="py-0 pe-0 d-flex align-items-center"

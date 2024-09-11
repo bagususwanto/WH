@@ -187,7 +187,7 @@ const ProductList = () => {
 
   return (
     <>
-      <CRow className="align-items-center py-2 border rounded mb-3 sticky-search-bar shadow-sm">
+      <CRow className="order-header align-items-center py-2 border rounded mb-3 sticky-search-bar shadow-sm">
         {/* Kategori Produk */}
         <CCol xs={12} sm={2} className="text-center text-sm-start mb-2 mb-sm-0">
           <CDropdown className="w-100 text-center">
