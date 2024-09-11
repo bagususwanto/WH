@@ -4,7 +4,7 @@ import Material from "../models/MaterialModel.js";
 
 const { Op } = Sequelize;
 
-export const getInventoryByHighCriticalStock = async (req, res) => {
+export const getInventoryDashboard = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10; // Default top 10
     const order = req.query.order || "ASC";
@@ -16,7 +16,10 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
     let whereCondition;
     let operator;
 
-    if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
+    if (
+      (!req.query.oprt && req.query.value) ||
+      (req.query.oprt && !req.query.value)
+    ) {
       return res.status(400).send({
         status: "error",
         message: "Invalid operator or value",
@@ -29,6 +32,11 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       operator = "<";
     } else if (oprt == "eq") {
       operator = "=";
+    } else {
+      return res.status(400).send({
+        status: "error",
+        message: "Invalid operator or value",
+      });
     }
 
     if (status === "critical") {
@@ -37,6 +45,11 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT)), 2)`;
     } else if (status === "overflow") {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT)), 2)`;
+    } else {
+      return res.status(400).send({
+        status: "error",
+        message: "Invalid status",
+      });
     }
 
     // Menentukan rumus dan kondisi where berdasarkan status
@@ -47,7 +60,10 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
           {
             quantityActualCheck: {
               [Op.ne]: null, // Pastikan quantityActualCheck tidak NULL
-              [Op.lt]: Sequelize.col("Material.minStock"), // quantityActualCheck kurang dari minStock
+              [Op.or]: [
+                { [Op.eq]: 0 }, // Include jika quantityActualCheck adalah 0
+                { [Op.lt]: Sequelize.col("Material.minStock") }, // Include jika quantityActualCheck kurang dari minStock
+              ],
             },
           },
           Sequelize.literal(`${rumus} ${operator} ${value}`), // Kondisi dinamis
@@ -73,7 +89,13 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: ["materialNo", "description", "minStock", "maxStock"],
+          attributes: [
+            "materialNo",
+            "uom",
+            "description",
+            "minStock",
+            "maxStock",
+          ],
           where: {
             minStock: {
               [Op.ne]: null, // Pastikan minStock tidak NULL
@@ -85,13 +107,15 @@ export const getInventoryByHighCriticalStock = async (req, res) => {
       attributes: [
         [Sequelize.literal(`LEFT("Material"."description", 20)`), "name"], // Nama material dari tabel Material, potong hingga 50 karakter
         [Sequelize.literal(`${rumus}`), "stock"],
+        "quantityActualCheck",
       ],
       order: [[Sequelize.literal("stock"), order]], // Mengurutkan berdasarkan stok yang dihitung
       group: [
         "Inventory.id", // Tambahkan ID Inventory ke GROUP BY
         "Inventory.quantityActualCheck", // Tambahkan quantityActualCheck ke GROUP BY
         "Material.id", // Group by material ID
-        "Material.description", // Group by material description
+        "Material.description",
+        "Material.uom", // Group by material description
         "Material.minStock", // Group by minStock
         "Material.maxStock", // Group by maxStock
         "Material.materialNo", // Group by materialNo

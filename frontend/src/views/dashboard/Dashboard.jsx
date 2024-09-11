@@ -135,14 +135,6 @@ const Dashboard = () => {
     }
   }
 
-  const getInventories = async () => {
-    try {
-      const response = await getInventory()
-      setInventories(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
 
   const getSeverity = (status) => {
     switch (status) {
@@ -366,7 +358,7 @@ const Dashboard = () => {
               />
             </ThemeProvider>
             <DataTable
-              value={inventories.critical || []}
+              value={inventoriescritical || []}
               tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
@@ -392,14 +384,13 @@ const Dashboard = () => {
                 alignFrozen="left"
                 sortable
               />
-              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
               <Column field="Material.uom" header="UoM" sortable />
               <Column field="Material.minStock" header="Min" sortable />
-              <Column field="quantityActual" header="Stok Inv." style={{ width: '5%' }} sortable />
+              <Column field="quantityActualCheck" header="Actual" style={{ width: '5%' }} sortable />
               <Column
-                field="useByShift" // Kolom baru untuk use by shift
-                header="Use By Shift"
-                body={(rowData) => rowData.useByShift.toFixed(2)} // Format sebagai angka dengan dua desimal
+                field="stock" // Kolom baru untuk use by shift
+                header="Remain Stock"
+               
                 sortable
               />
 
@@ -413,243 +404,7 @@ const Dashboard = () => {
             </DataTable>
           </CCardBody>
         </CCard>
-        <CCard className="mb-3">
-          <CCardHeader>Lowest</CCardHeader>
-          {/* Grafik Lowest */}
-          <CCardBody>
-            <ThemeProvider theme={darkTheme}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: '100%',
-                  height: { xs: 170, sm: 270, md: 370 }, // Responsive height
-                }}
-              >
-                <BarChart
-                  dataset={prepareBarChartDataLowest(inventorieslowest)}
-                  series={[
-                    {
-                      dataKey: 'stock',
-                      stack: 'Stock Difference',
-                      label: 'Stock',
-                      value: 'stock',
-                      type: 'bar',
-                    },
-                  ]}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      dataKey: 'name',
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  yAxis={[
-                    {
-                      type: 'number',
-                      min: 0,
-                      max: 2,
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  width={1400}
-                  height={500}
-                  barLabel="value"
-                >
-                  <ChartsReferenceLine
-                    y={2}
-                    label="2 Shift"
-                    labelAlign="end"
-                    lineStyle={{ stroke: 'red' }}
-                  />
-                  <ChartsXAxis sx={{ fontSize: '22px' }} />
-                  <ChartsYAxis sx={{ fontSize: '22px' }} />
-                </BarChart>
-              </Box>
-              <Typography id="input-item-number-lowest" gutterBottom>
-                Number of items for Lowest
-              </Typography>
-              <Slider
-                value={lowestItemNb}
-                onChange={handlelowestItemNbChange}
-                valueLabelDisplay="auto"
-                min={1}
-                max={10}
-                aria-labelledby="input-item-number-lowest"
-              />
-            </ThemeProvider>
-            <DataTable
-              value={inventories.lowest || []}
-              tableStyle={{ minWidth: '30rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
-              dataKey="id"
-              loading={loading}
-              emptyMessage="Tidak ada data inventaris."
-              size="small"
-              scrollable
-            >
-              <Column
-                field="Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column
-                field="Material.description"
-                header="Deskripsi"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
-              <Column field="Material.uom" header="UoM" sortable />
-              <Column field="Material.minStock" header="Min" sortable />
-              <Column field="Material.maxStock" header="Max" sortable />
-              <Column field="quantityActual" header="Stok Inv." style={{ width: '5%' }} sortable />
-              <Column field="quantityActualCheck" header="SoH" sortable />
-              <Column
-                field="stockDifferencelowes" // Kolom baru untuk selisih stock
-                header="Selisih Max Stock"
-                body={(rowData) => rowData.stockDifferencelowes.toLocaleString()} // Format sebagai angka
-                sortable
-              />
-              <Column
-                field="useByShift" // Kolom baru untuk use by shift
-                header="Use By Shift"
-                body={(rowData) => (rowData.useByShift ? rowData.useByShift.toFixed(2) : 'N/A')} // Format sebagai angka dengan dua desimal
-                sortable
-              />
-            </DataTable>
-          </CCardBody>
-        </CCard>
-        <CCard className="mb-3">
-          <CCardHeader>Overflow</CCardHeader>
-          <CCardBody>
-            <ThemeProvider theme={darkTheme}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: '100%',
-                  height: { xs: 170, sm: 270, md: 370 }, // Responsive height
-                }}
-              >
-                <BarChart
-                  dataset={prepareBarChartData1(inventoriesoverflow)}
-                  series={[
-                    {
-                      dataKey: 'stock',
-                      stack: 'Stock Difference',
-                      label: 'Stock',
-                      value: 'stock',
-                      type: 'bar',
-                    },
-                  ]}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      dataKey: 'name',
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  yAxis={[
-                    {
-                      type: 'number',
-                      min: 0,
-                      max: 2,
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
-                        },
-                      },
-                    },
-                  ]}
-                  width={1400}
-                  height={500}
-                  barLabel="value"
-                >
-                  <ChartsReferenceLine
-                    y={2}
-                    label="2 Shift"
-                    labelAlign="end"
-                    lineStyle={{ stroke: 'red' }}
-                  />
-                  <ChartsXAxis sx={{ fontSize: '22px' }} />
-                  <ChartsYAxis sx={{ fontSize: '22px' }} />
-                </BarChart>
-              </Box>
-              <Typography id="input-item-number-overflow" gutterBottom>
-                Number of items for Overflow
-              </Typography>
-              <Slider
-                value={overflowItemNb}
-                onChange={handleoverflowItemNbChange}
-                valueLabelDisplay="auto"
-                min={1}
-                max={10}
-                aria-labelledby="input-item-number-overflow"
-              />
-            </ThemeProvider>
-            <DataTable
-              value={inventories.overflow || []}
-              tableStyle={{ minWidth: '30rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
-              dataKey="id"
-              loading={loading}
-              emptyMessage="Tidak ada data inventaris."
-              size="small"
-              scrollable
-            >
-              <Column
-                field="Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column
-                field="Material.description"
-                header="Deskripsi"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column field="Address_Rack.addressRackName" header="Alamat" sortable />
-              <Column field="Material.uom" header="UoM" sortable />
-              <Column field="Material.minStock" header="Min" sortable />
-              <Column field="Material.maxStock" header="Max" sortable />
-              <Column field="quantityActual" header="Stok Inv." style={{ width: '5%' }} sortable />
-              <Column field="quantityActualCheck" header="SoH" sortable />
-              <Column
-                field="stockDifference"
-                header="Stok Ratio"
-                body={(rowData) => rowData.stockDifference.toFixed(2)}
-                sortable
-              />
-            </DataTable>
-          </CCardBody>
-        </CCard>
+      
       </CCol>
     </CRow>
   )
