@@ -458,13 +458,14 @@ export const getCategoryIdByCategoryName = async (categoryName) => {
     });
 
     if (!category) {
-      throw new Error("Category not found");
+      console.warn(`Category ${categoryName} not found`);
+      return null;
     }
 
     return category.id;
   } catch (error) {
     console.error(error.message);
-    throw new Error("Failed to retrieve category ID");
+    return null; // Return null in case of an error
   }
 };
 
@@ -476,13 +477,14 @@ export const getSupplierIdBySupplierName = async (supplierName) => {
     });
 
     if (!supplier) {
-      throw new Error("Supplier not found");
+      console.warn(`Supplier ${supplierName} not found`);
+      return null;
     }
 
     return supplier.id;
   } catch (error) {
     console.error(error.message);
-    throw new Error("Failed to retrieve supplier ID");
+    return null; // Return null in case of an error
   }
 };
 
@@ -492,8 +494,7 @@ const validateHeaderMaterial = (header) => {
 };
 
 export const uploadMasterMaterial = async (req, res) => {
-  const transaction = await db.transaction();
-  let transaction2;
+  let transaction, transaction2;
 
   try {
     if (!req.file) {
@@ -501,21 +502,21 @@ export const uploadMasterMaterial = async (req, res) => {
     }
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
-
-    // Specify the sheet name or index you want to read from
     const sheetName = "template";
     const rows = await readXlsxFile(path, { sheet: sheetName });
-
     const header = rows.shift();
 
     if (!validateHeaderMaterial(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
+    transaction = await db.transaction();
+
+    // Process rows
     const masterMaterialPromises = rows.map(async (row) => {
       const materialNo = row[0];
 
-      const existingMaterial = await Material.findOne({ where: { materialNo, flag: "1" } });
+      const existingMaterial = await Material.findOne({ where: { materialNo, flag: "1" }, transaction });
 
       if (existingMaterial) {
         await existingMaterial.update(
@@ -533,16 +534,16 @@ export const uploadMasterMaterial = async (req, res) => {
           { transaction }
         );
 
-        return null; // Return null to exclude this from the insert operation
+        return null; // Skip insert
       } else {
-        const category = await Category.findOne({ where: { categoryName: row[5], flag: 1 } });
+        const category = await Category.findOne({ where: { categoryName: row[5], flag: 1 }, transaction });
         if (!category) {
-          return res.status(400).send({ message: `Category: ${row[5]} not exists` });
+          throw new Error(`Category: ${row[5]} does not exist`);
         }
 
-        const supplier = await Supplier.findOne({ where: { supplierName: row[6], flag: 1 } });
+        const supplier = await Supplier.findOne({ where: { supplierName: row[6], flag: 1 }, transaction });
         if (!supplier) {
-          return res.status(400).send({ message: `Supplier: ${row[6]} not exists` });
+          throw new Error(`Supplier: ${row[6]} does not exist`);
         }
 
         return {
@@ -560,15 +561,16 @@ export const uploadMasterMaterial = async (req, res) => {
       }
     });
 
-    const masterMaterial = (await Promise.all(masterMaterialPromises)).filter((item) => item !== null);
+    const masterMaterial = (await Promise.all(masterMaterialPromises)).filter(Boolean);
 
     if (masterMaterial.length > 0) {
       await Material.bulkCreate(masterMaterial, { transaction });
       await transaction.commit();
 
-      // Membuat transaksi kedua
+      // Create second transaction for logging
       transaction2 = await db.transaction();
-      for (const material of masterMaterial) {
+
+      const logImportPromises = masterMaterial.map(async (material) => {
         await LogImport.create(
           {
             typeLog: "master material",
@@ -579,18 +581,18 @@ export const uploadMasterMaterial = async (req, res) => {
           },
           { transaction: transaction2 }
         );
-      }
+      });
+
+      await Promise.all(logImportPromises);
       await transaction2.commit();
+    } else {
+      await transaction.commit(); // Commit the first transaction even if no new records are created
     }
 
-    res.status(200).send({
-      message: `Uploaded the file successfully: ${req.file.originalname}`,
-    });
+    res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
   } catch (error) {
-    await transaction.rollback();
-    if (transaction2) {
-      await transaction2.rollback();
-    }
+    if (transaction) await transaction.rollback();
+    if (transaction2) await transaction2.rollback();
     console.error(error);
     res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. Error: ${error.message}` });
   }
