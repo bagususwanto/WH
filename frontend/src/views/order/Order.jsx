@@ -203,7 +203,7 @@ const ProductList = () => {
         </CCol>
 
         {/* Input Pencarian */}
-        <CCol xs={12} sm={8} className="mb-2 mb-sm-0">
+        <CCol xs={8} sm={8} className="mb-2 mb-sm-0">
           <CFormInput
             type="search"
             placeholder="Search product..."
@@ -221,38 +221,39 @@ const ProductList = () => {
         </CCol>
 
         {/* Icon My Order */}
-        <CCol xs={6} sm={1} className="text-center mb-2 mb-sm-0">
-          <CNavLink
-            className="d-flex justify-content-center align-items-center"
-            style={{ cursor: 'pointer' }}
-            onClick={() => navigate('/my-order')}
-          >
+        <CCol xs={2} sm={1} className="text-center mb-2 mb-sm-0">
+          <div style={{ cursor: 'pointer' }} onClick={() => navigate('/my-order')}>
             <CIcon
               icon={cilClipboard}
               size="lg"
               style={{ transition: 'color 0.3s', color: '#333' }}
             />
-          </CNavLink>
+          </div>
         </CCol>
 
         {/* Icon Cart */}
-        <CCol xs={6} sm={1} className="text-center">
-          <CNavLink
-            className="d-flex justify-content-center align-items-center"
-            style={{ cursor: 'pointer' }}
+        <CCol xs={2} sm={1} className="text-center">
+          <div
+            style={{ position: 'relative', display: 'inline-block', cursor: 'pointer' }}
             onClick={() => navigate('/cart')}
           >
             <CIcon icon={cilCart} size="lg" style={{ transition: 'color 0.3s', color: '#333' }} />
             {cartCount > 0 && (
               <CBadge
                 color="danger"
-                className="position-absolute top-0 start-100 translate-middle rounded-pill"
-                style={{ fontSize: '0.75rem' }}
+                shape="rounded-pill"
+                className="position-absolute translate-middle"
+                style={{
+                  right: '-20px', // Sesuaikan posisi badge
+                  top: '0', // Sesuaikan posisi badge
+                  padding: '0.35em 0.6em',
+                  fontSize: '0.65rem',
+                }}
               >
                 {cartCount}
               </CBadge>
             )}
-          </CNavLink>
+          </div>
         </CCol>
       </CRow>
 
