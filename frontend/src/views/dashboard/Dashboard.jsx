@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react'
-
-import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormCheck } from '@coreui/react'
+import {
+  CCard,
+  CCardHeader,
+  CCardBody,
+  CCol,
+  CRow,
+  CFormCheck,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem 
+} from '@coreui/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
 import Typography from '@mui/material/Typography'
@@ -60,9 +70,10 @@ const Dashboard = () => {
   const [inventories, setInventories] = useState([]) // Inventory data
   const [lowestItemNb, setLowestItemNb] = React.useState(5) //Item untuk slider lowest
   const [overflowItemNb, setOverflowItemNb] = React.useState(5) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(5) //item untuk critical
+  const [itemNb, setItemNb] = React.useState(7) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('DESC')
+  const [selectedChart, setSelectedChart] = useState('critical')
 
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
@@ -154,8 +165,8 @@ const Dashboard = () => {
     const maxStock = Material?.maxStock
 
     if (quantityActualCheck < minStock)
-      return <Tag value="critical" severity={getSeverity('critical')} />
-    if (quantityActualCheck > maxStock) return <Tag value="over" severity={getSeverity('over')} />
+      return <Tag value="Low" severity={getSeverity('critical')} />
+    if (quantityActualCheck > maxStock) return <Tag value="Over" severity={getSeverity('over')} />
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
@@ -226,32 +237,9 @@ const Dashboard = () => {
   }
 
   //Critical Grafik
-  const prepareBarChartDataLowest = (data) => {
-    // Ambil item sesuai dengan nilai itemNb
-    const limitedData = data.slice(0, itemNb)
-    console.log(limitedData)
 
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      name: item.name, // Terapkan formatName pada name
-      stock: item.stock,
-    }))
-  }
 
-  const prepareBarChartData2 = (data, type, itemNb) => {
-    // Ambil hanya 10 item pertama
-    const limitedData = data.slice(0, itemNb)
 
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      MaterialNo: item.Material.materialNo,
-      quantityActual: item.quantityActual,
-      description: item.Material.description,
-      maxStock: item.Material.maxStock,
-      stockDifference: type === 'overflow' ? item.quantityActual / item.Material.maxStock : 0,
-      stockDifferencelowes: type === 'lowest' ? item.quantityActual / item.Material.minStock : 0,
-    }))
-  }
 
   return (
     <CRow>
@@ -279,9 +267,19 @@ const Dashboard = () => {
             checked={order === 'ASC'}
             onChange={handleOrderChange}
           />
+          <CDropdown className="ml-auto">
+            <CDropdownToggle color="secondary">Status</CDropdownToggle>
+            <CDropdownMenu>
+              <CDropdownItem onClick={() => setSelectedChart('critical')}>Critical</CDropdownItem>
+              <CDropdownItem onClick={() => setSelectedChart('lowest')}>Lowest</CDropdownItem>
+              <CDropdownItem onClick={() => setSelectedChart('overflow')}>Overflow</CDropdownItem>
+            </CDropdownMenu>
+          </CDropdown>
         </div>
+
+        {/* Single Card for Conditional Rendering */}
         <CCard className="mb-3">
-          <CCardHeader>Critical</CCardHeader>
+          <CCardHeader>{selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}</CCardHeader>
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
               <Box
@@ -290,71 +288,215 @@ const Dashboard = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   width: '100%',
-                  height: { xs: 170, sm: 270, md: 420 }, // Menyesuaikan tinggi berdasarkan ukuran layar
+                  height: { xs: 170, sm: 270, md: 370 }, // Responsive height
                 }}
               >
-                <BarChart
-                  dataset={prepareBarChartData1(inventoriescritical)}
-                  series={[
-                    {
-                      dataKey: 'stock',
-                      stack: 'Stock Difference',
-                      label: 'Stock',
-                      value: 'stock',
-                      type: 'bar',
-                    },
-                  ]}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      dataKey: 'name',
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
+                {selectedChart === 'critical' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventoriescritical)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Critical Stock',
+                        value: 'stock',
+                        type: 'bar',
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
                         },
                       },
-                    },
-                  ]}
-                  yAxis={[
-                    {
-                      type: 'number',
-                      min: 0,
-                      max: 2,
-                      tick: {
-                        sx: {
-                          fontSize: '20px', // Customize font size
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 2,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
                         },
                       },
-                    },
-                  ]}
-                  width={1400}
-                  height={460}
-                  barLabel="value"
-                >
-                  <ChartsReferenceLine
-                    y={2}
-                    label="2 Shift"
-                    labelAlign="end"
-                    lineStyle={{ stroke: 'red' }}
-                  />
-                  <ChartsXAxis sx={{ fontSize: '22px' }} />
-                  <ChartsYAxis sx={{ fontSize: '22px' }} />
-                </BarChart>
+                    ]}
+                    width={1400}
+                    height={460}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={2}
+                      label="2 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
+                {selectedChart === 'lowest' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventorieslowest)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Lowest Stock',
+                        value: 'stock',
+                        type: 'bar',
+                        color: 'skyblue',
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 1,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    width={1400}
+                    height={500}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={1}
+                      label="1 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
+                {selectedChart === 'overflow' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventoriesoverflow)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Overflow Stock',
+                        value: 'stock',
+                        type: 'bar',
+                        color: 'lightblue',
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 10,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    width={1400}
+                    height={500}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={5}
+                      label="5 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
               </Box>
-              <Typography id="input-item-number" gutterBottom>
-                Number of items
-              </Typography>
-              <Slider
-                value={itemNb}
-                onChange={handleItemNbChange}
-                valueLabelDisplay="auto"
-                min={1}
-                max={10}
-                aria-labelledby="input-item-number"
-              />
+              {selectedChart === 'critical' && (
+                <>
+                  <Typography id="input-item-number-lowest" gutterBottom>
+                    Number of items for Lowest
+                  </Typography>
+                  <Slider
+                    value={lowestItemNb}
+                    onChange={handlelowestItemNbChange}
+                    valueLabelDisplay="auto"
+                    min={1}
+                    max={10}
+                    aria-labelledby="input-item-number-lowest"
+                  />
+                </>
+              )}
+              {selectedChart === 'lowest' && (
+                <>
+                  <Typography id="input-item-number-lowest" gutterBottom>
+                    Number of items for Lowest
+                  </Typography>
+                  <Slider
+                    value={lowestItemNb}
+                    onChange={handlelowestItemNbChange}
+                    valueLabelDisplay="auto"
+                    min={1}
+                    max={10}
+                    aria-labelledby="input-item-number-lowest"
+                  />
+                </>
+              )}
+              {selectedChart === 'overflow' && (
+                <>
+                  <Typography id="input-item-number-overflow" gutterBottom>
+                    Number of items for Overflow
+                  </Typography>
+                  <Slider
+                    value={overflowItemNb}
+                    onChange={handleoverflowItemNbChange}
+                    valueLabelDisplay="auto"
+                    min={1}
+                    max={10}
+                    aria-labelledby="input-item-number-overflow"
+                  />
+                </>
+              )}
             </ThemeProvider>
             <DataTable
-              value={inventoriescritical || []}
+              value={
+                selectedChart === 'critical'
+                  ? inventoriescritical
+                  : selectedChart === 'lowest'
+                  ? inventorieslowest
+                  : selectedChart === 'overflow'
+                  ? inventoriesoverflow
+                  : []
+              }
               tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
@@ -393,7 +535,6 @@ const Dashboard = () => {
                 header="Remain Stock"
                 sortable
               />
-
               <Column
                 field="evaluation"
                 header="Penilaian"
@@ -406,7 +547,7 @@ const Dashboard = () => {
         </CCard>
       </CCol>
     </CRow>
-  )
-}
+  );
+};
 
 export default Dashboard

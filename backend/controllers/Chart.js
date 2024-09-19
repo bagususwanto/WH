@@ -16,21 +16,18 @@ export const getInventoryDashboard = async (req, res) => {
     let whereCondition;
     let operator;
 
-    if (
-      (!req.query.oprt && req.query.value) ||
-      (req.query.oprt && !req.query.value)
-    ) {
+    if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
       return res.status(400).send({
         status: "error",
         message: "Invalid operator or value",
       });
     }
 
-    if (oprt == "gt") {
+    if (oprt === "gt") {
       operator = ">";
-    } else if (oprt == "lt") {
+    } else if (oprt === "lt") {
       operator = "<";
-    } else if (oprt == "eq") {
+    } else if (oprt === "eq") {
       operator = "=";
     } else {
       return res.status(400).send({
@@ -52,39 +49,40 @@ export const getInventoryDashboard = async (req, res) => {
       });
     }
 
-    // Menentukan rumus dan kondisi where berdasarkan status
-    if (status == "critical" || status == "lowest") {
-      // Kondisi where untuk status critical atau lowest
+    // Determining dynamic length for truncation based on your conditions
+    const dynamicLength = 17; // Set this to any dynamic value you need, or compute based on conditions
+
+    // Determining whereCondition based on status
+    if (status === "critical" || status === "lowest") {
       whereCondition = {
         [Op.and]: [
           {
             quantityActualCheck: {
-              [Op.ne]: null, // Pastikan quantityActualCheck tidak NULL
+              [Op.ne]: null, // Ensure quantityActualCheck is not NULL
               [Op.or]: [
-                { [Op.eq]: 0 }, // Include jika quantityActualCheck adalah 0
-                { [Op.lt]: Sequelize.col("Material.minStock") }, // Include jika quantityActualCheck kurang dari minStock
+                { [Op.eq]: 0 }, // Include if quantityActualCheck is 0
+                { [Op.lt]: Sequelize.col("Material.minStock") }, // Include if quantityActualCheck is less than minStock
               ],
             },
           },
-          Sequelize.literal(`${rumus} ${operator} ${value}`), // Kondisi dinamis
+          Sequelize.literal(`${rumus} ${operator} ${value}`), // Dynamic condition
         ],
       };
-    } else if (status == "overflow") {
-      // Kondisi where untuk status overflow
+    } else if (status === "overflow") {
       whereCondition = {
         [Op.and]: [
           {
             quantityActualCheck: {
-              [Op.ne]: null, // Pastikan quantityActualCheck tidak NULL
-              [Op.gt]: Sequelize.col("Material.maxStock"), // quantityActualCheck lebih dari maxStock
+              [Op.ne]: null, // Ensure quantityActualCheck is not NULL
+              [Op.gt]: Sequelize.col("Material.maxStock"), // quantityActualCheck greater than maxStock
             },
           },
-          Sequelize.literal(`${rumus} ${operator} ${value}`), // Kondisi dinamis
+          Sequelize.literal(`${rumus} ${operator} ${value}`), // Dynamic condition
         ],
       };
     }
 
-    // Query untuk mendapatkan inventory dengan kondisi kritis
+    // Query to get inventory with critical conditions
     const inventoryData = await Inventory.findAll({
       include: [
         {
@@ -98,29 +96,29 @@ export const getInventoryDashboard = async (req, res) => {
           ],
           where: {
             minStock: {
-              [Op.ne]: null, // Pastikan minStock tidak NULL
+              [Op.ne]: null, // Ensure minStock is not NULL
             },
           },
         },
       ],
-      where: whereCondition, // Kondisi where dengan operator dinamis
+      where: whereCondition,
       attributes: [
-        [Sequelize.literal(`LEFT("Material"."description", 20)`), "name"], // Nama material dari tabel Material, potong hingga 50 karakter
-        [Sequelize.literal(`${rumus}`), "stock"],
+        [Sequelize.literal(`LEFT("Material"."description", ${dynamicLength})`), "name"], // Use dynamicLength here
+        [Sequelize.literal(rumus), "stock"], // Calculate stock using dynamic formula
         "quantityActualCheck",
       ],
-      order: [[Sequelize.literal("stock"), order]], // Mengurutkan berdasarkan stok yang dihitung
+      order: [[Sequelize.literal("stock"), order]], // Sort by calculated stock
       group: [
-        "Inventory.id", // Tambahkan ID Inventory ke GROUP BY
-        "Inventory.quantityActualCheck", // Tambahkan quantityActualCheck ke GROUP BY
-        "Material.id", // Group by material ID
+        "Inventory.id", // Include Inventory ID in GROUP BY
+        "Inventory.quantityActualCheck", // Include quantityActualCheck in GROUP BY
+        "Material.id", // Group by Material ID
         "Material.description",
-        "Material.uom", // Group by material description
+        "Material.uom", // Group by Material uom
         "Material.minStock", // Group by minStock
         "Material.maxStock", // Group by maxStock
         "Material.materialNo", // Group by materialNo
       ],
-      limit, // Batasi jumlah hasil berdasarkan limit
+      limit, // Limit number of results
     });
 
     res.json(inventoryData);

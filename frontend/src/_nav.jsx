@@ -51,6 +51,12 @@ const useNavigation = () => {
         to: '/order',
         icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
       },
+      {
+        component: CNavItem,
+        name: 'Cart',
+        to: '/cart',
+        icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
+      },
       // {
       //   component: CNavGroup,
       //   name: 'Order To Warehouse',
