@@ -22,7 +22,7 @@ import LogImport from "./LogImportModel.js";
   try {
     // await db.sync();
     // await LogEntry.sync({ force: true });
-    // await Category.sync({ alter: true });
+    // await Inventory.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

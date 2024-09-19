@@ -21,6 +21,9 @@ import "./models/index.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
+
+
+
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -58,3 +61,5 @@ app.use("/api", uploadRouter);
 app.use("/api", chartRouter);
 
 app.listen(port, () => console.log(`Server running at port ${port}`));
+
+
