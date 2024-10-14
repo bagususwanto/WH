@@ -17,66 +17,88 @@ const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventory = async (req, res) => {
+  const limit = 100; // Tentukan jumlah data per batch
+  let offset = 0;
+  let hasMoreData = true;
+  let allData = []; // Variabel untuk menyimpan semua data
+
   try {
-    const response = await Inventory.findAll({
-      include: [
-        {
-          model: Material,
-          where: { flag: 1 },
-          include: [
-            {
-              model: Category,
-              where: { flag: 1 },
-            },
-            {
-              model: Supplier,
-              where: { flag: 1 },
-            },
-          ],
-        },
-        {
-          model: AddressRack,
-          where: { flag: 1 },
-          include: [
-            {
-              model: Storage,
-              where: { flag: 1 },
-              include: [
-                {
-                  model: Plant,
-                  where: { flag: 1 },
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: LogEntry,
-          attributes: ["id", "createdAt", "updatedAt"],
-          limit: 1,
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: User,
-              where: { flag: 1 },
-              attributes: ["id", "username", "createdAt", "updatedAt"],
-            },
-          ],
-        },
-        {
-          model: Incoming,
-          limit: 1,
-          order: [["createdAt", "DESC"]],
-          where: {
-            createdAt: {
-              [Op.between]: [startOfToday, endOfToday],
+    while (hasMoreData) {
+      // Mengambil data dalam batch
+      const batchData = await Inventory.findAll({
+        include: [
+          {
+            model: Material,
+            where: { flag: 1 },
+            include: [
+              {
+                model: Category,
+                where: { flag: 1 },
+              },
+              {
+                model: Supplier,
+                where: { flag: 1 },
+              },
+            ],
+          },
+          {
+            model: AddressRack,
+            where: { flag: 1 },
+            include: [
+              {
+                model: Storage,
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Plant,
+                    where: { flag: 1 },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: LogEntry,
+            attributes: ["id", "userId", "createdAt", "updatedAt"],
+            limit: 1,
+            order: [["createdAt", "DESC"]],
+            required: false,
+            include: [
+              {
+                model: User,
+                attributes: ["id", "username", "createdAt", "updatedAt"],
+                where: { flag: 1 },
+                required: false,
+              },
+            ],
+          },
+          {
+            model: Incoming,
+            limit: 1,
+            order: [["createdAt", "DESC"]],
+            where: {
+              createdAt: {
+                [Op.between]: [startOfToday, endOfToday],
+              },
             },
           },
-        },
-      ],
-    });
+        ],
+        limit,
+        offset, // Mulai dari batch tertentu
+      });
 
-    res.status(200).json(response);
+      // Tambahkan data batch ke allData
+      allData = allData.concat(batchData);
+
+      // Jika jumlah data yang diambil kurang dari limit, tidak ada lagi data yang tersisa
+      if (batchData.length < limit) {
+        hasMoreData = false;
+      } else {
+        offset += limit; // Tambahkan offset untuk batch berikutnya
+      }
+    }
+
+    res.status(200).json(allData);
   } catch (error) {
     console.error("Error fetching inventory:", error);
     res.status(500).json({ message: error.message });
