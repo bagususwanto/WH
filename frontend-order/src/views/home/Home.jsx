@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import {
@@ -36,9 +36,10 @@ import {
   cilArrowLeft,
 } from '@coreui/icons'
 
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -59,7 +60,7 @@ const iconMap = {
   Tools: cilKeyboard,
 }
 
-const ProductList = () => {
+const Home = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const [wishlistData, setWishlistData] = useState([])
@@ -69,15 +70,17 @@ const ProductList = () => {
   const { getWishlist } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
-  const [allVisible, setAllVisible] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [wishlist, setWishlist] = useState([]) // Add this line
+  const [wishlist, setWishlist] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
   const productsPerPage = 6
-  const [visibleCount, setVisibleCount] = useState(12) // Mulai dengan menampilkan 20 produk
+  const [visibleCount, setVisibleCount] = useState(12)
+  const [filteredProducts, setFilteredProducts] = useState([])
+
+  const { warehouse } = useContext(GlobalContext)
 
   const navigate = useNavigate()
 
@@ -85,8 +88,9 @@ const ProductList = () => {
 
   const getProducts = async () => {
     try {
-      const response = await getProduct()
+      const response = await getProduct(warehouse.id)
       setProductsData(response.data)
+      setFilteredProducts(response.data) // Initially show all products
     } catch (error) {
       console.error('Error fetching products:', error)
     }
@@ -100,14 +104,16 @@ const ProductList = () => {
       console.error('Error fetching categories:', error)
     }
   }
+
   const getFavorite = async () => {
     try {
-      const response = await getWishlist(1)
+      const response = await getWishlist(warehouse.id)
       setWishlistData(response.data)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching wishlist:', error)
     }
   }
+
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item.Material.id === productId)
   }
@@ -116,36 +122,30 @@ const ProductList = () => {
     getProducts()
     getCategories()
     getFavorite()
-  }, [])
+  }, [warehouse])
 
-  const filteredProducts = useMemo(() => {
-    return productsData.filter((product) => {
-      return selectedCategory ? product.Material.categoryId === selectedCategory.id : true
-    })
-  }, [productsData, selectedCategory])
-
-  // Calculate total pages based on filtered products
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
-
-  // Get the products for the current page
   const currentProducts = useMemo(() => {
     const start = currentPage * productsPerPage
     const end = start + productsPerPage
     return filteredProducts.slice(start, end)
   }, [filteredProducts, currentPage, productsPerPage])
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category)
-  }
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
     setModalOrder(true)
   }
 
-  const handleCloseModalOrder = () => {
-    setModalOrder(false)
-    setQuantity(1)
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category)
+
+    if (category) {
+      const filtered = productsData.filter((product) => product.Material.categoryId === category.id)
+      setFilteredProducts(filtered)
+    } else {
+      setFilteredProducts(productsData)
+    }
   }
 
   const handleQuantityChange = (action) => {
@@ -171,16 +171,16 @@ const ProductList = () => {
     setCartCount(cartCount + quantity)
     setModalOrder(false)
   }
+
   const handleToggleWishlist = (productId) => {
     if (isInWishlist(productId)) {
-      // Remove from wishlist
       setWishlist(wishlist.filter((item) => item.Material.id !== productId))
     } else {
-      // Add to wishlist
       const productToAdd = productsData.find((item) => item.Material.id === productId)
       setWishlist([...wishlist, productToAdd])
     }
   }
+
   const calculateStockStatus = (product) => {
     if (product.quantityActualCheck <= 0) {
       return 'Out of Stock'
@@ -188,27 +188,40 @@ const ProductList = () => {
     return 'In Stock'
   }
 
-  const handleViewAll = () => {
-    // Arahkan ke halaman History Order
-    navigate('/history') // 'navigate' adalah fungsi dari react-router atau framework yang Anda gunakan
+  const handleLoadMore = () => {
+    setVisibleCount(visibleCount + 12) // Load 12 more products
   }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount)
+
+  const handleViewAll = () => {
+    navigate('/history')
+  }
+
   const getSeverity = (status) => {
     switch (status) {
       case 'Waiting':
         return 'gray'
-
       case 'On Process':
         return 'warning'
-
       case 'Delivery':
         return 'secondary'
-
       case 'Pickup':
         return 'blue'
-
       case 'Completed':
         return 'success'
-
       case 'Rejected':
         return 'danger'
     }
@@ -218,7 +231,7 @@ const ProductList = () => {
     dots: true,
     infinite: false,
     speed: 500,
-    slidesToShow: 4, // Adjust as needed
+    slidesToShow: 4,
     slidesToScroll: 1,
     responsive: [
       {
@@ -240,22 +253,6 @@ const ProductList = () => {
         },
       },
     ],
-  }
-  const handleNextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1)
-    }
-  }
-
-  const handlePrevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1)
-    }
-  }
-  const visibleProducts = filteredProducts.slice(0, visibleCount)
-
-  const handleLoadMore = () => {
-    navigate('/order') // Arahkan ke halaman order
   }
 
   return (
@@ -521,7 +518,7 @@ const ProductList = () => {
       </CRow> */}
 
       {/* Order By Category */}
-      {/* <CRow className="mt-3">
+      <CRow className="mt-3">
         <CCard className="d-block w-100 responsive-container">
           <CCallout
             color="primary"
@@ -564,11 +561,11 @@ const ProductList = () => {
             ))}
           </CRow>
         </CCard>
-      </CRow> */}
+      </CRow>
 
       {/* Daftar Produk */}
-      {/* <CRow>
-        {visibleProducts.map((product) => (
+      <CRow>
+        {filteredProducts.slice(0, visibleCount).map((product) => (
           <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
             <CCard className="h-100">
               <CCardImage
@@ -597,21 +594,19 @@ const ProductList = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      Show "Out of Stock" badge if applicable
+                      {/* Show "Out of Stock" badge if applicable */}
                       {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="secondary">Out of Stock</CBadge>
                         </CCol>
                       )}
-
-                      Show "Low Stock" badge if applicable
+                      {/* Show "Low Stock" badge if applicable */}
                       {calculateStockStatus(product) === 'Low Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="warning">Low Stock</CBadge>
                         </CCol>
                       )}
-
-                      Show "Add Cart" only if the stock status is not "Out of Stock"
+                      {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
                       {calculateStockStatus(product) !== 'Out of Stock' && (
                         <CCol sm="auto">
                           <CButton
@@ -655,19 +650,19 @@ const ProductList = () => {
             </CCard>
           </CCol>
         ))}
-      </CRow> */}
+      </CRow>
 
       {/* Tombol Load More */}
-      {/* {visibleCount < filteredProducts.length && (
+      {visibleCount < filteredProducts.length && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
-      )} */}
+      )}
 
       {/* Modal for adding product to cart */}
-      {/* {selectedProduct && (
+      {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>
           <CModalBody>
@@ -706,9 +701,9 @@ const ProductList = () => {
             </CButton>
           </CModalFooter>
         </CModal>
-      )} */}
+      )}
     </>
   )
 }
 
-export default ProductList
+export default Home

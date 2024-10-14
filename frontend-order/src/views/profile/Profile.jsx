@@ -31,7 +31,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
 import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import profile from './../../assets/images/avatars/Y.jpg'
 const Profile = () => {
@@ -120,15 +120,21 @@ const Profile = () => {
                   <CCard className="h-80">
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
-                        <label className='fw-bold py-2'>Profil Change</label>
-                        <br/>
-                        <label className='py-2'>Name :  <span>{firstName}{lastName}</span> </label>
-                        <br/>
-                        <label className='py-2'>location :</label>
-                        <br/>
-                        <label className='py-2'>Email:</label>
-                        <br/>
-                        <label className='py-2'>Phone Number :</label>
+                        <label className="fw-bold py-2">Profil Change</label>
+                        <br />
+                        <label className="py-2">
+                          Name :{' '}
+                          <span>
+                            {firstName}
+                            {lastName}
+                          </span>{' '}
+                        </label>
+                        <br />
+                        <label className="py-2">location :</label>
+                        <br />
+                        <label className="py-2">Email:</label>
+                        <br />
+                        <label className="py-2">Phone Number :</label>
                       </CRow>
                     </CCardBody>
                   </CCard>

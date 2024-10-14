@@ -34,17 +34,18 @@ import {
   cilArrowLeft,
   cilTrash,
 } from '@coreui/icons'
-import Carousel from 'react-bootstrap/Carousel'
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import useCartService from '../../services/CartService'
 
 // Icon mapping based on your category names
 
-const ProductList = () => {
+const Cart = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { getCart } = useCartService() 
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -128,16 +129,16 @@ const ProductList = () => {
   }
   // Total harga produk
   // Total harga produk
-useEffect(() => {
-  const newTotal = currentProducts.reduce((acc, product) => {
-    if (checkedItems[product.id]) {
-      const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-      return acc + product.Material.price * quantity
-    }
-    return acc
-  }, 0)
-  setTotalAmount(newTotal)
-}, [checkedItems, quantities, currentProducts]) // Trigger calculation when these change
+  useEffect(() => {
+    const newTotal = currentProducts.reduce((acc, product) => {
+      if (checkedItems[product.id]) {
+        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
+        return acc + product.Material.price * quantity
+      }
+      return acc
+    }, 0)
+    setTotalAmount(newTotal)
+  }, [checkedItems, quantities, currentProducts]) // Trigger calculation when these change
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
@@ -209,9 +210,7 @@ useEffect(() => {
                       <div>
                         <label className="fw-bold fs-6">{product.Material.description}</label>
                         <br></br>
-                        <label >
-                           {product.Material.materialNo}
-                        </label>
+                        <label>{product.Material.materialNo}</label>
                       </div>
                     </CCol>
                     <CCol xs="2">
@@ -256,7 +255,7 @@ useEffect(() => {
 
           {/* Sticky Footer */}
           <div className="p-3 bg-light shadow-sm sticky-bottom d-flex justify-content-between align-items-center">
-          <h5>Total: Rp {totalAmount.toLocaleString('id-ID')}</h5>
+            <h5>Total: Rp {totalAmount.toLocaleString('id-ID')}</h5>
             <CButton color="primary" onClick={handleCheckout}>
               Checkout
             </CButton>
@@ -265,12 +264,12 @@ useEffect(() => {
                 <CModalTitle>Confirm Checkout</CModalTitle>
               </CModalHeader>
               <CModalBody>
-                <label className='fs-6'> Are you sure you want to proceed to checkout?</label>
-                <br/>
-                <label className='fw-bold'>
-                  Total Items: {Object.keys(checkedItems).filter((id) => checkedItems[id]).length} Item
-                  </label>
-                 
+                <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
+                <br />
+                <label className="fw-bold">
+                  Total Items: {Object.keys(checkedItems).filter((id) => checkedItems[id]).length}{' '}
+                  Item
+                </label>
               </CModalBody>
               <CModalFooter>
                 <CButton color="danger" onClick={handleCancel}>
@@ -288,4 +287,4 @@ useEffect(() => {
   )
 }
 
-export default ProductList
+export default Cart

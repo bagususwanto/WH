@@ -23,14 +23,14 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
-import useManageStockService from '../../services/ManageStockService'
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
-  const { getProduct } = useManageStockService()
+  const { getMasterData } = useMasterDataService()
+  const { getProduct } = useProductService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -39,12 +39,13 @@ const ProductList = () => {
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
   const [wishlist, setWishlist] = useState(new Set())
+  const [visibleCount, setVisibleCount] = useState(12)
 
   const apiCategory = 'category'
   const navigate = useNavigate()
 
   const getProducts = async () => {
-    const response = await getProduct()
+    const response = await getProduct(1)
     setProductsData(response.data)
   }
 
@@ -89,6 +90,9 @@ const ProductList = () => {
   const handleCloseModalOrder = () => {
     setModalOrder(false)
     setQuantity(1)
+  }
+  const handleLoadMore = () => {
+    setVisibleCount(visibleCount + 20) // Load 12 more products
   }
 
   const handleAddToCart = (product, quantity) => {
@@ -145,8 +149,6 @@ const ProductList = () => {
                         </CCol>
                       )}
 
-                   
-
                       {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
                       {calculateStockStatus(product) !== 'Out of Stock' && (
                         <CCol sm="auto">
@@ -193,9 +195,10 @@ const ProductList = () => {
         ))}
       </CRow>
 
-      {!allVisible && filteredProducts.length > 20 && (
+    {/* Tombol Load More */}
+    {visibleCount < filteredProducts.length && (
         <div className="text-center mt-4 mb-4">
-          <CButton color="secondary" onClick={() => setAllVisible(true)}>
+          <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
@@ -216,7 +219,7 @@ const ProductList = () => {
               </CCol>
               <CCol md="8">
                 <strong>{selectedProduct.Material.description}</strong>
-                <p>Rp {selectedProduct.Material.price.toLocaleString('id-ID')}</p>
+                <p> {selectedProduct.Material.materialNo}</p>
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"

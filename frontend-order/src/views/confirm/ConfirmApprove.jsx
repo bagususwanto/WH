@@ -42,7 +42,7 @@ import {
 } from '@coreui/icons'
 import Carousel from 'react-bootstrap/Carousel'
 import useVerify from '../../hooks/UseVerify'
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const categoriesData = [
@@ -200,7 +200,6 @@ const Confirm = () => {
     setTotalAmount(newTotal) // Set the total amount
   }, [checkedItems, quantities, currentProducts])
 
-
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
@@ -345,7 +344,7 @@ const Confirm = () => {
                     <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
                     <br />
                     <label className="fw-bold">
-                    Total: Rp {totalAmount.toLocaleString('id-ID')}
+                      Total: Rp {totalAmount.toLocaleString('id-ID')}
                     </label>
                   </CModalBody>
                   <CModalFooter>

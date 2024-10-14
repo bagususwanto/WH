@@ -39,7 +39,7 @@ import {
   cilLocationPin,
 } from '@coreui/icons'
 import Carousel from 'react-bootstrap/Carousel'
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const categoriesData = [
@@ -239,7 +239,6 @@ const ProductList = () => {
                         <label className="fw-bold fs-6">Total: 4 Item</label>
                       </CCol>
                       <CCol className="text-end">
-                 
                         <label className="me-2 ">WBS : 20000000</label>
                       </CCol>
                     </CRow>

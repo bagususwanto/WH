@@ -39,7 +39,7 @@ import {
   cilLocationPin,
 } from '@coreui/icons'
 
-import useManageStockService from '../../services/ManageStockService'
+import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const categoriesData = [
@@ -188,7 +188,6 @@ const ProductList = () => {
             <CButton className="me-2" color="secondary" variant="outline">
               APPROVED
             </CButton>
-           
           </div>
           <CRow className="g-1 mt-2">
             {currentProducts.map((product, index) => (
@@ -209,10 +208,10 @@ const ProductList = () => {
                         <label className=" me-2 fw-light ">X21000000000/20/20</label>
                       </CCol>
                     </div>
-               
+
                     <CRow xs="1" className="d-flex justify-content-between my-2 ">
                       <CCol xs="1">
-                      <CAvatar src={profile} size="md" />
+                        <CAvatar src={profile} size="md" />
                       </CCol>
                       <CCol xs="4">
                         <label>{product.Material.description}</label>
@@ -220,7 +219,6 @@ const ProductList = () => {
                         <label className="fw-bold fs-6">Total: 4 Item</label>
                       </CCol>
                       <CCol className="text-end">
-                 
                         <label className="me-2 ">WBS : 20000000</label>
                       </CCol>
                     </CRow>

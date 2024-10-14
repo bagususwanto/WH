@@ -47,7 +47,6 @@ import {
 } from '@coreui/icons'
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
-import useManageStockService from '../services/ManageStockService'
 import useMasterDataService from '../services/MasterDataService'
 import '../scss/appheader.scss'
 import { GlobalContext } from '../context/GlobalProvider'
@@ -57,7 +56,6 @@ const AppHeader = () => {
   const [productsData, setProductsData] = useState([])
   const [warehouseData, setWarehouseData] = useState([])
   const headerRef = useRef()
-  const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
