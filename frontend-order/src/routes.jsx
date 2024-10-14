@@ -7,7 +7,9 @@ const Profile = React.lazy(() => import('./views/profile/Profile'))
 const Wishlist = React.lazy(() => import('./views/wishllist/Wishlist'))
 const History = React.lazy(() => import('./views/history/History'))
 const HistoryApp = React.lazy(() => import('./views/history/HistoryApprove'))
-const Confirm = React.lazy(() => import('./views/confirm/ConfirmApprove'))
+const ApproveAll = React.lazy(() => import('./views/confirm/ConfirmAllWarehouse'))
+const ConfirmAll = React.lazy(() => import('./views/confirm/ConfirmApprove'))
+const ConfirmApp = React.lazy(() => import('./views/confirm/ConfirmApprove'))
 const ConfirmRec = React.lazy(() => import('./views/confirm/ConfirmRecipent'))
 const Category = React.lazy(() => import('./views/masterdata/category/Category'))
 const Shop = React.lazy(() => import('./views/masterdata/shop/Shop'))
@@ -25,13 +27,15 @@ const Cart = React.lazy(() => import('./views/cart/Cart'))
 const routes = [
   { path: '/login', name: '', element: Login },
   { path: '/home', name: '', element: Home },
-  { path: '/wishllist', name: 'Wishlist', element: Wishlist},
+  { path: '/wishlist', name: 'Wishlist', element: Wishlist},
   { path: '/profile', name: 'Profile', element: Profile},
   { path: '/history', name: 'History', element: History},
   { path: '/historyapp', name: 'HistoryApp', element: HistoryApp},
   { path: '/order', name: 'Order', element: Order },
   { path: '/cart', name: 'Cart', element: Cart },
-  { path: '/confirm', name: 'Confirm', element: Confirm},
+  { path: '/ApproveAll', name: 'Confirm', element: ApproveAll},
+  { path: '/ConfirmAll', name: 'Confirm', element: ConfirmAll},
+  { path: '/confirmapp', name: 'Confirm', element: ConfirmApp},
   { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec},
   { path: '/category', name: 'Category', element: Category },
   { path: '/shop', name: 'Shop', element: Shop },

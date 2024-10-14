@@ -38,6 +38,7 @@ import {
 
 import useManageStockService from '../../services/ManageStockService'
 import useMasterDataService from '../../services/MasterDataService'
+import useOrderService from '../../services/OrderService'
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -61,8 +62,11 @@ const iconMap = {
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
+  const [wishlistData, setWishlistData] = useState([])
+  const { getProduct } = useManageStockService()
+  const { getCategory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { getWishlist } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -81,7 +85,7 @@ const ProductList = () => {
 
   const getProducts = async () => {
     try {
-      const response = await getInventory()
+      const response = await getProduct()
       setProductsData(response.data)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -96,6 +100,14 @@ const ProductList = () => {
       console.error('Error fetching categories:', error)
     }
   }
+  const getFavorite = async () => {
+    try {
+      const response = await getWishlist(1)
+      setWishlistData(response.data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item.Material.id === productId)
   }
@@ -103,6 +115,7 @@ const ProductList = () => {
   useEffect(() => {
     getProducts()
     getCategories()
+    getFavorite()
   }, [])
 
   const filteredProducts = useMemo(() => {
@@ -296,24 +309,32 @@ const ProductList = () => {
             </CButton>
 
             <CRow className="g-2">
-              {currentProducts.map((product) => (
-                <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-3">
+              {wishlistData.map((product) => (
+                <CCol
+                  xs="6"
+                  sm="6"
+                  md="3"
+                  lg="3"
+                  xl="2"
+                  key={product.Inventory.Material.id}
+                  className="mb-3"
+                >
                   <CCard className="h-100">
                     <CCardImage
                       orientation="top"
-                      src={product.Material.img || 'https://via.placeholder.com/150'}
-                      alt={product.Material.description}
+                      src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                      alt={product.Inventory.Material.description}
                       className="img-fluid custom-card-image" // Menggunakan kelas CoreUI dan kelas kustom
                     />
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <div>
                         <CCardTitle style={{ fontSize: '14px' }}>
-                          {product.Material.description}
+                          {product.Inventory.Material.description}
                         </CCardTitle>
                         <CCardTitle style={{ fontSize: '12px' }}>
                           Rp{' '}
-                          {product.Material.price
-                            ? product.Material.price.toLocaleString('id-ID')
+                          {product.Inventory.Material.price
+                            ? product.Inventory.Material.price.toLocaleString('id-ID')
                             : 'Price not available'}
                         </CCardTitle>
                       </div>
@@ -330,20 +351,24 @@ const ProductList = () => {
                                 <CButton
                                   className="box me-4"
                                   color="secondary"
-                                  onClick={() => handleToggleWishlist(product.Material.id)}
+                                  onClick={() =>
+                                    handleToggleWishlist(product.Inventory.Material.id)
+                                  }
                                   style={{
-                                    backgroundColor: isInWishlist(product.Material.id)
+                                    backgroundColor: isInWishlist(product.Inventory.Material.id)
                                       ? 'red'
                                       : 'white',
                                     border: '1px solid white',
-                                    color: isInWishlist(product.Material.id) ? 'white' : 'black',
+                                    color: isInWishlist(product.Inventory.Material.id)
+                                      ? 'white'
+                                      : 'black',
                                     borderRadius: '50%',
                                   }}
                                 >
                                   <CIcon
                                     icon={cilHeart}
                                     className={
-                                      isInWishlist(product.Material.id)
+                                      isInWishlist(product.Inventory.Material.id)
                                         ? ''
                                         : 'border border-secondary rounded-circle'
                                     }
@@ -369,20 +394,24 @@ const ProductList = () => {
                                 <CButton
                                   className="box"
                                   color="secondary"
-                                  onClick={() => handleToggleWishlist(product.Material.id)}
+                                  onClick={() =>
+                                    handleToggleWishlist(product.Inventory.Material.id)
+                                  }
                                   style={{
-                                    backgroundColor: isInWishlist(product.Material.id)
+                                    backgroundColor: isInWishlist(product.Inventory.Material.id)
                                       ? 'red'
                                       : 'white',
                                     border: '1px solid white',
-                                    color: isInWishlist(product.Material.id) ? 'white' : 'black',
+                                    color: isInWishlist(product.Inventory.Material.id)
+                                      ? 'white'
+                                      : 'black',
                                     borderRadius: '50%',
                                   }}
                                 >
                                   <CIcon
                                     icon={cilHeart}
                                     className={
-                                      isInWishlist(product.Material.id)
+                                      isInWishlist(product.Inventory.Material.id)
                                         ? ''
                                         : 'border border-secondary rounded-circle'
                                     }
@@ -421,9 +450,9 @@ const ProductList = () => {
       </CRow>
 
       {/* HISTORY */}
-      <CRow className="mt-3">
+      {/* <CRow className="mt-3">
         <CCard className="d-block w-100 responsive-container">
-          {/* Judul History Order dengan tombol View All */}
+          Judul History Order dengan tombol View All
           <div className="d-flex justify-content-between align-items-center">
             <h3 style={{ fontFamily: 'Arial', fontSize: '24px', fontWeight: 'bold' }}>
               History Order
@@ -437,10 +466,10 @@ const ProductList = () => {
             </CButton>
           </div>
 
-          {/* Kartu produk */}
+          Kartu produk
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
             {currentProducts.map((product) => (
-              <CCard className="d-block w-100 p-3 mb-3" key={product.Material.id}>
+              <CCard className="d-block w-100 p-3 mb-3" key={product.Inventory.Material.id}>
                 <CRow className="align-items-center">
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                     <CCol>
@@ -456,14 +485,8 @@ const ProductList = () => {
                       <label className=" me-2 fw-light ">X21000000000/20/20</label>
                     </CCol>
                   </div>
-                  {/* <CCol xs="5"></CCol> */}
-                  {/* <div>
-                        <label>{product.Material.description}</label>
-                        <br />
-                        <label className="fw-bold fs-6">
-                          Rp {product.Material.price.toLocaleString('id-ID')}
-                        </label>
-                      </div> */}
+                  <CCol xs="5"></CCol>
+                 
                   <CRow xs="1" className="d-flex justify-content-between my-2 ">
                     <CCol xs="1">
                       <CCardImage
@@ -495,10 +518,10 @@ const ProductList = () => {
             ))}
           </div>
         </CCard>
-      </CRow>
+      </CRow> */}
 
       {/* Order By Category */}
-      <CRow className="mt-3">
+      {/* <CRow className="mt-3">
         <CCard className="d-block w-100 responsive-container">
           <CCallout
             color="primary"
@@ -541,10 +564,10 @@ const ProductList = () => {
             ))}
           </CRow>
         </CCard>
-      </CRow>
+      </CRow> */}
 
       {/* Daftar Produk */}
-      <CRow>
+      {/* <CRow>
         {visibleProducts.map((product) => (
           <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
             <CCard className="h-100">
@@ -574,21 +597,21 @@ const ProductList = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      {/* Show "Out of Stock" badge if applicable */}
+                      Show "Out of Stock" badge if applicable
                       {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="secondary">Out of Stock</CBadge>
                         </CCol>
                       )}
 
-                      {/* Show "Low Stock" badge if applicable */}
+                      Show "Low Stock" badge if applicable
                       {calculateStockStatus(product) === 'Low Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="warning">Low Stock</CBadge>
                         </CCol>
                       )}
 
-                      {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
+                      Show "Add Cart" only if the stock status is not "Out of Stock"
                       {calculateStockStatus(product) !== 'Out of Stock' && (
                         <CCol sm="auto">
                           <CButton
@@ -632,19 +655,19 @@ const ProductList = () => {
             </CCard>
           </CCol>
         ))}
-      </CRow>
+      </CRow> */}
 
       {/* Tombol Load More */}
-      {visibleCount < filteredProducts.length && (
+      {/* {visibleCount < filteredProducts.length && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
-      )}
+      )} */}
 
       {/* Modal for adding product to cart */}
-      {selectedProduct && (
+      {/* {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>
           <CModalBody>
@@ -683,7 +706,7 @@ const ProductList = () => {
             </CButton>
           </CModalFooter>
         </CModal>
-      )}
+      )} */}
     </>
   )
 }

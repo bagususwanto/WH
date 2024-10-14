@@ -32,6 +32,7 @@ import {
   COffcanvas,
   COffcanvasHeader,
   COffcanvasTitle,
+  CFormSelect,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -47,15 +48,19 @@ import {
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
 import useManageStockService from '../services/ManageStockService'
+import useMasterDataService from '../services/MasterDataService'
 import '../scss/appheader.scss'
+import { GlobalContext } from '../context/GlobalContext'
 
 // Mock product data
 
 const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [productsData, setProductsData] = useState([])
+  const [warehouseData, setWarehouseData] = useState([])
   const headerRef = useRef()
   const { getInventory } = useManageStockService()
+  const { getMasterData } = useMasterDataService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [searchHistory, setSearchHistory] = useState([])
@@ -66,11 +71,16 @@ const AppHeader = () => {
   const navigate = useNavigate()
   const notificationCount = 3
   const [showCategories, setShowCategories] = useState(false)
-  const [selectedWarehouse, setSelectedWarehouse] = useState('Warehouse Karawang #1-#2')
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false)
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
   const [visible, setVisible] = useState(false)
 
+  const [selectedWarehouse, setSelectedWarehouse] = useState({
+    id: 1,
+    warehouseName: 'Warehouse Issuing Karawang 1 & 2',
+  }) // State untuk menyimpan warehouse yang dipilih
+
+  const apiWarehouse = 'warehouse'
   // Fetch products from API
   const getProducts = async () => {
     try {
@@ -81,8 +91,17 @@ const AppHeader = () => {
     }
   }
 
+  const getWarehouse = async () => {
+    try {
+      const response = await getMasterData(apiWarehouse)
+      setWarehouseData(response.data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
   useEffect(() => {
-    getProducts() // Fetch products on mount
+    getProducts()
+    getWarehouse() // Fetch products on mount
   }, []) // Empty dependency array ensures it only runs once
 
   useEffect(() => {
@@ -196,6 +215,12 @@ const AppHeader = () => {
     setShowCategories(!showCategories)
   }
 
+  const handleSelectChange = (e) => {
+    const selectedId = parseInt(e.target.value)
+    const selectedWarehouseData = warehouseData.find((warehouse) => warehouse.id === selectedId)
+    setSelectedWarehouse(selectedWarehouseData)
+  }
+
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -205,7 +230,7 @@ const AppHeader = () => {
             size="lg"
             style={{ transition: 'color 0.3s', color: '#333', marginRight: '5px' }}
           />
-          <b>{selectedWarehouse}</b>
+          <b>{selectedWarehouse.warehouseName}</b>
           <CLink
             color="primary"
             onClick={handleShowModal}
@@ -219,22 +244,13 @@ const AppHeader = () => {
             <CModalTitle>Select Warehouse</CModalTitle>
           </CModalHeader>
           <CModalBody>
-            <label className="fw-6">Select your Warehouse</label>
-            <br />
-            <CDropdown>
-              <CDropdownToggle color="primary">Warehouse Area</CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem onClick={() => handleSelectWarehouse('Warehouse Karawang #1-#2')}>
-                  Warehouse Karawang #1-#2
-                </CDropdownItem>
-                <CDropdownItem onClick={() => handleSelectWarehouse('Warehouse Karawang #3')}>
-                  Warehouse Karawang #3
-                </CDropdownItem>
-                <CDropdownItem onClick={() => handleSelectWarehouse('Warehouse Sunter #1')}>
-                  Warehouse Sunter #1
-                </CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
+            <CFormSelect size="xs" className="mb-3" onChange={handleSelectChange}>
+              {warehouseData.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.warehouseName}
+                </option>
+              ))}
+            </CFormSelect>
           </CModalBody>
           <CModalFooter>
             <CButton
@@ -276,9 +292,7 @@ const AppHeader = () => {
           </a>
         </CCol>
         <CCol sm={2}>
-          <CButton  onClick={handleToggleCategories}>
-            Category
-          </CButton>
+          <CButton onClick={handleToggleCategories}>Category</CButton>
         </CCol>
         <CCol sm={4}>
           <form onSubmit={handleSubmit} style={{ position: 'relative' }}>
@@ -466,40 +480,40 @@ const AppHeader = () => {
       <CContainer>
         <CRow>
           <CCollapse visible={showCategories}>
-            <div className="p-3" >
-              <label className='fw-bold'>Kategori Utama</label>
+            <div className="p-3">
+              <label className="fw-bold">Kategori Utama</label>
               <CRow>
-            <CCol xs="auto">
-              <CButton className="text-start" onClick={() => navigate('/kategori1')}>
-                <CIcon icon={cilFolder} className="me-2" /> {/* Ikon Kategori 1 */}
-                Kategori 1
-              </CButton>
-            </CCol>
-            <CCol xs="auto">
-              <CButton className="text-start" onClick={() => navigate('/kategori2')}>
-                <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
-                Kategori 2
-              </CButton>
-            </CCol>
-            <CCol xs="auto">
-              <CButton className="text-start" onClick={() => navigate('/kategori3')}>
-                <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
-                Kategori 3
-              </CButton>
-            </CCol>
-            <CCol xs="auto">
-              <CButton className="text-start" onClick={() => navigate('/kategori2')}>
-                <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
-                Kategori 2
-              </CButton>
-            </CCol>
-            <CCol xs="auto">
-              <CButton className="text-start" onClick={() => navigate('/kategori3')}>
-                <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
-                Kategori 3
-              </CButton>
-            </CCol>
-          </CRow>
+                <CCol xs="auto">
+                  <CButton className="text-start" onClick={() => navigate('/kategori1')}>
+                    <CIcon icon={cilFolder} className="me-2" /> {/* Ikon Kategori 1 */}
+                    Kategori 1
+                  </CButton>
+                </CCol>
+                <CCol xs="auto">
+                  <CButton className="text-start" onClick={() => navigate('/kategori2')}>
+                    <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
+                    Kategori 2
+                  </CButton>
+                </CCol>
+                <CCol xs="auto">
+                  <CButton className="text-start" onClick={() => navigate('/kategori3')}>
+                    <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
+                    Kategori 3
+                  </CButton>
+                </CCol>
+                <CCol xs="auto">
+                  <CButton className="text-start" onClick={() => navigate('/kategori2')}>
+                    <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
+                    Kategori 2
+                  </CButton>
+                </CCol>
+                <CCol xs="auto">
+                  <CButton className="text-start" onClick={() => navigate('/kategori3')}>
+                    <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
+                    Kategori 3
+                  </CButton>
+                </CCol>
+              </CRow>
             </div>
           </CCollapse>
         </CRow>

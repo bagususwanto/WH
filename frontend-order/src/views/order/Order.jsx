@@ -30,7 +30,7 @@ const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
-  const { getMasterData } = useMasterDataService()
+  const { getProduct } = useManageStockService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -44,7 +44,7 @@ const ProductList = () => {
   const navigate = useNavigate()
 
   const getProducts = async () => {
-    const response = await getInventory()
+    const response = await getProduct()
     setProductsData(response.data)
   }
 

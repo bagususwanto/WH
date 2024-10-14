@@ -4,7 +4,7 @@ import withReactContent from 'sweetalert2-react-content'
 
 const MySwal = withReactContent(Swal)
 
-const useManageStockService = () => {
+const useOrderService = () => {
   const { token, axiosJWT } = useVerify()
 
   const handleError = (error, message) => {
@@ -13,9 +13,9 @@ const useManageStockService = () => {
     throw new Error(message + error.message)
   }
 
-  const getProduct = async () => {
+  const getWishlist = async (id) => {
     try {
-      const response = await axiosJWT.get('/product', {
+      const response = await axiosJWT.get(`/wishlist/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -25,25 +25,10 @@ const useManageStockService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const getCategory = async () => {
-    try {
-      const response = await axiosJWT.get('/product-category', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      return response
-    } catch (error) {
-      handleError(error, 'Error fetching inventory:')
-    }
-  }
-  
- 
+
   return {
-    getProduct,
-    getCategory
-    
+    getWishlist,
   }
 }
 
-export default useManageStockService
+export default useOrderService
