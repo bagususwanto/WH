@@ -7,7 +7,6 @@ import LogEntry from "../models/LogEntryModel.js";
 import User from "../models/UserModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
-import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 import { Op } from "sequelize";
 
@@ -20,39 +19,32 @@ endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 export const getInventory = async (req, res) => {
   try {
     const response = await Inventory.findAll({
-      attributes: ["id", "quantitySistem", "quantityActual", "quantityActualCheck", "remarks", "createdAt", "updatedAt"],
       include: [
         {
           model: Material,
-          attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
+          where: { flag: 1 },
           include: [
             {
               model: Category,
-              attributes: ["id", "categoryName", "createdAt", "updatedAt"],
+              where: { flag: 1 },
             },
             {
               model: Supplier,
-              attributes: ["id", "supplierName", "createdAt", "updatedAt"],
+              where: { flag: 1 },
             },
           ],
         },
         {
           model: AddressRack,
-          attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
           include: [
             {
               model: Storage,
-              attributes: ["id", "storageName", "createdAt", "updatedAt"],
+              where: { flag: 1 },
               include: [
                 {
-                  model: Shop,
-                  attributes: ["id", "shopName", "createdAt", "updatedAt"],
-                  include: [
-                    {
-                      model: Plant,
-                      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                    },
-                  ],
+                  model: Plant,
+                  where: { flag: 1 },
                 },
               ],
             },
@@ -60,19 +52,19 @@ export const getInventory = async (req, res) => {
         },
         {
           model: LogEntry,
-          attributes: ["id", "userId", "createdAt", "updatedAt"],
+          attributes: ["id", "createdAt", "updatedAt"],
           limit: 1,
           order: [["createdAt", "DESC"]],
           include: [
             {
               model: User,
-              attributes: ["id", "userName", "createdAt", "updatedAt"],
+              where: { flag: 1 },
+              attributes: ["id", "username", "createdAt", "updatedAt"],
             },
           ],
         },
         {
           model: Incoming,
-          attributes: ["id", "planning", "actual", "createdAt", "updatedAt"],
           limit: 1,
           order: [["createdAt", "DESC"]],
           where: {
@@ -180,7 +172,6 @@ export const updateInventory = async (req, res) => {
       inventoryId: inventoryId,
       typeLogEntry: "update inventory",
       quantity: req.body.quantityActual,
-      materialId: inventory.materialId,
       userId: req.user.userId,
       detailOrder: null,
       incomingId: null,
@@ -221,7 +212,6 @@ export const updateIncoming = async (req, res) => {
       incomingId: incomingId,
       typeLogEntry: "update incoming",
       quantity: req.body.actual,
-      materialId: inventory.materialId,
       userId: req.user.userId,
       detailOrder: null,
       incomingId: null,

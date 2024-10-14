@@ -1,28 +1,33 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
-import Shop from "./ShopModel.js";
+import Plant from "./PlantModel.js";
 
 const { DataTypes } = Sequelize;
 
 const Storage = db.define(
   "Storage",
   {
+    storageCode: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique: true,
+    },
     storageName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    shopId: {
+    plantId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Shop,
+        model: Plant,
         key: "id",
       },
     },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:1,
+      defaultValue: 1,
     },
   },
   {
@@ -30,7 +35,7 @@ const Storage = db.define(
   }
 );
 
-Shop.hasMany(Storage, { foreignKey: "shopId" });
-Storage.belongsTo(Shop, { foreignKey: "shopId" });
+Plant.hasMany(Storage, { foreignKey: "plantId" });
+Storage.belongsTo(Plant, { foreignKey: "plantId" });
 
 export default Storage;

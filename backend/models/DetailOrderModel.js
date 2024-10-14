@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import Order from "./OrderModel.js";
-import Material from "./MaterialModel.js";
+import Inventory from "./InventoryModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -16,18 +16,18 @@ const DetailOrder = db.define(
         key: "id",
       },
     },
-    materialId: {
+    inventoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Material,
+        model: Inventory,
         key: "id",
       },
     },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue:0,
+      defaultValue: 0,
     },
     price: {
       type: DataTypes.DECIMAL,
@@ -41,6 +41,11 @@ const DetailOrder = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    isReject: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     freezeTableName: true,
@@ -50,7 +55,7 @@ const DetailOrder = db.define(
 Order.hasMany(DetailOrder, { foreignKey: "orderId" });
 DetailOrder.belongsTo(Order, { foreignKey: "orderId" });
 
-Material.hasMany(DetailOrder, { foreignKey: "materialId" });
-DetailOrder.belongsTo(Material, { foreignKey: "materialId" });
+Inventory.hasMany(DetailOrder, { foreignKey: "inventoryId" });
+DetailOrder.belongsTo(Inventory, { foreignKey: "inventoryId" });
 
 export default DetailOrder;

@@ -6,7 +6,7 @@ dotenv.config({ path: "./.env" });
 const db = new Sequelize(process.env.DB_DATABASE_DEV, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_SERVER_LOCAL,
   dialect: process.env.DIALECT,
-  logging: false,
+  // logging: false,
   timezone: "+07:00",
   dialectOptions: {
     options: {

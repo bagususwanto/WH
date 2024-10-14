@@ -1,22 +1,14 @@
 import Storage from "../models/StorageModel.js";
-import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
 
 export const getStorage = async (req, res) => {
   try {
     const response = await Storage.findAll({
       where: { flag: 1 },
-      attributes: ["id", "storageName", "createdAt", "updatedAt"],
       include: [
         {
-          model: Shop,
-          attributes: ["id", "shopName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-            },
-          ],
+          model: Plant,
+          where: { flag: 1 },
         },
       ],
     });
@@ -45,17 +37,10 @@ export const getStorageById = async (req, res) => {
         id: storageId,
         flag: 1,
       },
-      attributes: ["id", "storageName", "createdAt", "updatedAt"],
       include: [
         {
-          model: Shop,
-          attributes: ["id", "shopName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-            },
-          ],
+          model: Plant,
+          where: { flag: 1 },
         },
       ],
     });
@@ -66,24 +51,23 @@ export const getStorageById = async (req, res) => {
   }
 };
 
-export const getStorageByShop = async (req, res) => {
+export const getStorageByPlant = async (req, res) => {
   try {
-    const shopId = req.params.id;
+    const plantId = req.params.id;
 
     const shop = await Storage.findOne({
-      where: { shopId: shopId, flag: 1 },
+      where: { plantId: plantId, flag: 1 },
     });
 
     if (!shop) {
-      return res.status(404).json({ message: "Storage not found" });
+        return res.status(404).json({ message: "Storage not found" });
     }
 
     const response = await Storage.findAll({
       where: {
-        shopId: shopId,
+        plantId: plantId,
         flag: 1,
       },
-      attributes: ["id", "storageName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {

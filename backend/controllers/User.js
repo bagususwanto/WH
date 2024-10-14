@@ -1,33 +1,51 @@
 import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import Role from "../models/RoleModel.js";
-import CostCenter from "../models/CostCenterModel.js";
-import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
+import Group from "../models/GroupModel.js";
+import Line from "../models/LineModel.js";
+import Section from "../models/SectionModel.js";
+import Department from "../models/DepartmentModel.js";
+import Division from "../models/DivisionModel.js";
+import Organization from "../models/OrganizationModel.js";
 
 export const getUser = async (req, res) => {
   try {
     const response = await User.findAll({
       where: { flag: 1 },
-      attributes: ["id", "name", "username", "createdAt", "updatedAt"],
+      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
       include: [
         {
           model: Role,
-          attributes: ["id", "roleName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
         {
-          model: CostCenter,
-          attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          model: Organization,
+          where: { flag: 1 },
           include: [
             {
-              model: Shop,
-              attributes: ["id", "shopName", "createdAt", "updatedAt"],
-              include: [
-                {
-                  model: Plant,
-                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                },
-              ],
+              model: Group,
+              where: { flag: 1 },
+            },
+            {
+              model: Line,
+              where: { flag: 1 },
+            },
+            {
+              model: Section,
+              where: { flag: 1 },
+            },
+            {
+              model: Department,
+              where: { flag: 1 },
+            },
+            {
+              model: Division,
+              where: { flag: 1 },
+            },
+            {
+              model: Plant,
+              where: { flag: 1 },
             },
           ],
         },
@@ -58,25 +76,39 @@ export const getUserById = async (req, res) => {
         id: userId,
         flag: 1,
       },
-      attributes: ["id", "name", "username", "createdAt", "updatedAt"],
+      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
       include: [
         {
           model: Role,
-          attributes: ["id", "roleName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
         {
-          model: CostCenter,
-          attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
+          model: Organization,
+          where: { flag: 1 },
           include: [
             {
-              model: Shop,
-              attributes: ["id", "shopName", "createdAt", "updatedAt"],
-              include: [
-                {
-                  model: Plant,
-                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-                },
-              ],
+              model: Group,
+              where: { flag: 1 },
+            },
+            {
+              model: Line,
+              where: { flag: 1 },
+            },
+            {
+              model: Section,
+              where: { flag: 1 },
+            },
+            {
+              model: Department,
+              where: { flag: 1 },
+            },
+            {
+              model: Division,
+              where: { flag: 1 },
+            },
+            {
+              model: Plant,
+              where: { flag: 1 },
             },
           ],
         },
@@ -90,12 +122,30 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { username, password, name, roleId, costCenterId } = req.body;
+  const {
+    username,
+    password,
+    name,
+    roleId,
+    position,
+    img,
+    noHandphone,
+    email,
+    groupId,
+    lineId,
+    sectionId,
+    departmentId,
+    divisionId,
+    warehouseId,
+    organizationId,
+    isProduction,
+  } = req.body;
+
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if (!username || !password || !name || !roleId || !costCenterId) {
-    return res.status(400).json({ message: "Please fill in all fields" });
+  if ((!username || !password || !name || !roleId || !position, !organizationId, !isProduction)) {
+    return res.status(400).json({ message: "username, password, name, roleId, position must be filled" });
   }
 
   if (password.length < 6) {
@@ -119,7 +169,18 @@ export const createUser = async (req, res) => {
       password: hashPassword,
       name: name,
       roleId: roleId,
-      costCenterId: costCenterId,
+      position: position,
+      img: img,
+      noHandphone: noHandphone,
+      email: email,
+      groupId: groupId,
+      lineId: lineId,
+      sectionId: sectionId,
+      departmentId: departmentId,
+      divisionId: divisionId,
+      warehouseId: warehouseId,
+      organizationId: organizationId,
+      isProduction: isProduction,
     });
     res.status(201).json({ message: "User Created" });
   } catch (error) {
