@@ -1,9 +1,9 @@
+import db from "../utils/Database.js";
 import Incoming from "../models/IncomingModel.js";
 import readXlsxFile from "read-excel-file/node";
 import Material from "../models/MaterialModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import LogImport from "../models/LogImportModel.js";
-import db from "../utils/Database.js";
 import { updateStock } from "./ManagementStock.js";
 import Inventory from "../models/InventoryModel.js";
 import Category from "../models/CategoryModel.js";
@@ -286,7 +286,6 @@ export const uploadIncomingPlan = async (req, res) => {
       fileName: req.file.originalname,
       userId: req.user.userId,
       importDate: req.body.importDate,
-      materialId: null,
     });
 
     // Fetch material and address IDs for all rows
@@ -516,7 +515,7 @@ export const uploadMasterMaterial = async (req, res) => {
     const masterMaterialPromises = rows.map(async (row) => {
       const materialNo = row[0];
 
-      const existingMaterial = await Material.findOne({ where: { materialNo, flag: "1" }, transaction });
+      const existingMaterial = await Material.findOne({ where: { materialNo, flag: 1 }, transaction });
 
       if (existingMaterial) {
         await existingMaterial.update(

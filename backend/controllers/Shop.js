@@ -5,11 +5,10 @@ export const getShop = async (req, res) => {
   try {
     const response = await Shop.findAll({
       where: { flag: 1 },
-      attributes: ["id", "shopName", "createdAt", "updatedAt"],
       include: [
         {
           model: Plant,
-          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
       ],
     });
@@ -38,11 +37,10 @@ export const getShopById = async (req, res) => {
         id: shopId,
         flag: 1,
       },
-      attributes: ["id", "shopName", "createdAt", "updatedAt"],
       include: [
         {
           model: Plant,
-          attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
       ],
     });
@@ -74,6 +72,7 @@ export const getShopByPlant = async (req, res) => {
       include: [
         {
           model: Plant,
+          where: { flag: 1 },
           attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
         },
       ],

@@ -30,6 +30,7 @@
     "tedious": "^18.2.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.0.3",
     "sequelize-cli": "^6.6.2"
   }
 }

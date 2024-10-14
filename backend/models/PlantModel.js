@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
+import Warehouse from "./WarehouseModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -9,10 +10,19 @@ const Plant = db.define(
     plantCode: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true,
     },
     plantName: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    warehouseId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: Warehouse,
+        key: "id",
+      },
     },
     flag: {
       type: DataTypes.INTEGER,
@@ -24,5 +34,8 @@ const Plant = db.define(
     freezeTableName: true,
   }
 );
+
+Warehouse.hasMany(Plant, { foreignKey: "warehouseId" });
+Plant.belongsTo(Warehouse, { foreignKey: "warehouseId" });
 
 export default Plant;

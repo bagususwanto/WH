@@ -1,25 +1,26 @@
 import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
-import Shop from "../models/ShopModel.js";
 import Plant from "../models/PlantModel.js";
+import Material from "../models/MaterialModel.js";
+import Warehouse from "../models/WarehouseModel.js";
+import User from "../models/UserModel.js";
 
 export const getAddressRack = async (req, res) => {
   try {
     const response = await AddressRack.findAll({
       where: { flag: 1 },
-      attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
       include: [
         {
           model: Storage,
-          attributes: ["id", "storageName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
           include: [
             {
-              model: Shop,
-              attributes: ["id", "shopName", "createdAt", "updatedAt"],
+              model: Plant,
+              where: { flag: 1 },
               include: [
                 {
-                  model: Plant,
-                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                  model: Warehouse,
+                  where: { flag: 1 },
                 },
               ],
             },
@@ -38,6 +39,7 @@ export const getAddressRack = async (req, res) => {
 export const getAddressRackById = async (req, res) => {
   try {
     const addressRackId = req.params.id;
+    const userId = req.user.userId;
 
     const addressRack = await AddressRack.findOne({
       where: { id: addressRackId, flag: 1 },
@@ -52,19 +54,18 @@ export const getAddressRackById = async (req, res) => {
         id: addressRackId,
         flag: 1,
       },
-      attributes: ["id", "addressRackName", "createdAt", "updatedAt"],
       include: [
         {
           model: Storage,
-          attributes: ["id", "storageName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
           include: [
             {
-              model: Shop,
-              attributes: ["id", "shopName", "createdAt", "updatedAt"],
+              model: Plant,
+              where: { flag: 1 },
               include: [
                 {
-                  model: Plant,
-                  attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
+                  model: Warehouse,
+                  where: { flag: 1 },
                 },
               ],
             },
@@ -72,6 +73,7 @@ export const getAddressRackById = async (req, res) => {
         },
       ],
     });
+
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);

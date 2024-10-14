@@ -18,6 +18,14 @@ export const verifyToken = (req, res, next) => {
       username: decoded.username,
       userId: decoded.userId,
       roleName: decoded.roleName,
+      groupId: decoded.groupId,
+      lineId: decoded.lineId,
+      sectionId: decoded.sectionId,
+      departmentId: decoded.departmentId,
+      divisionId: decoded.divisionId,
+      organizationId: decoded.organizationId,
+      warehouseId: decoded.warehouseId,
+      isProduction: decoded.isProduction,
     };
 
     next();

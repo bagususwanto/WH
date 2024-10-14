@@ -95,9 +95,9 @@ const AppHeader = () => {
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
                   style={{
-                    right: '-15px',
+                    right: '-10px',
                     padding: '0.35em 0.6em',
-                    fontSize: '0.75rem',
+                    fontSize: '0.65rem',
                   }}
                 >
                   {notificationCount}

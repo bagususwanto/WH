@@ -4,7 +4,6 @@ export const getSupplier = async (req, res) => {
   try {
     const response = await Supplier.findAll({
       where: { flag: 1 },
-      attributes: ["id", "supplierName", "createdAt", "updatedAt"],
     });
 
     res.status(200).json(response);
@@ -31,7 +30,6 @@ export const getSupplierById = async (req, res) => {
         id: supplierId,
         flag: 1,
       },
-      attributes: ["id", "supplierName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {

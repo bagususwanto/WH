@@ -1,27 +1,9 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import Role from "../models/RoleModel.js";
 import CostCenter from "../models/CostCenterModel.js";
-import Shop from "../models/ShopModel.js";
-import Plant from "../models/PlantModel.js";
 
 export const getCostCenter = async (req, res) => {
   try {
     const response = await CostCenter.findAll({
       where: { flag: 1 },
-      attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
-      include: [
-        {
-          model: Shop,
-          attributes: ["id", "shopName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-            },
-          ],
-        },
-      ],
     });
 
     res.status(200).json(response);
@@ -48,19 +30,6 @@ export const getCostCenterById = async (req, res) => {
         id: costCenterId,
         flag: 1,
       },
-      attributes: ["id", "costCenterCode", "costCenterName", "wbsNumber", "ext", "createdAt", "updatedAt"],
-      include: [
-        {
-          model: Shop,
-          attributes: ["id", "shopName", "createdAt", "updatedAt"],
-          include: [
-            {
-              model: Plant,
-              attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
-            },
-          ],
-        },
-      ],
     });
     res.status(200).json(response);
   } catch (error) {
@@ -71,11 +40,11 @@ export const getCostCenterById = async (req, res) => {
 
 export const createCostCenter = async (req, res) => {
   try {
-    const constCenterCode = await CostCenter.findOne({
-      where: { costCenterCode: req.body.costCenterCode, flag: 1 },
+    const constCenter = await CostCenter.findOne({
+      where: { costCenter: req.body.costCenter, flag: 1 },
     });
 
-    if (constCenterCode) {
+    if (constCenter) {
       return res.status(400).json({ message: "CostCenter already exists" });
     }
 

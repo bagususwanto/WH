@@ -4,7 +4,6 @@ export const getPlant = async (req, res) => {
   try {
     const response = await Plant.findAll({
       where: { flag: 1 },
-      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
     });
 
     res.status(200).json(response);
@@ -31,7 +30,6 @@ export const getPlantById = async (req, res) => {
         id: plantId,
         flag: 1,
       },
-      attributes: ["id", "plantCode", "plantName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {

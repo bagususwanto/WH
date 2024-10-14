@@ -4,7 +4,6 @@ export const getRole = async (req, res) => {
   try {
     const response = await Role.findAll({
       where: { flag: 1 },
-      attributes: ["id", "roleName", "createdAt", "updatedAt"],
     });
 
     res.status(200).json(response);
@@ -31,7 +30,6 @@ export const getRoleById = async (req, res) => {
         id: roleId,
         flag: 1,
       },
-      attributes: ["id", "roleName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {

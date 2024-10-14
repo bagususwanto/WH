@@ -1,6 +1,5 @@
 import express from "express";
 import { getAddressRack, getAddressRackById, createAddressRack, updateAddressRack, deleteAddressRack } from "../controllers/AddressRack.js";
-import { verifyToken } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
 

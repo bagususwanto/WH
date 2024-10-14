@@ -6,15 +6,14 @@ export const getMaterial = async (req, res) => {
   try {
     const response = await Material.findAll({
       where: { flag: 1 },
-      attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
       include: [
         {
           model: Category,
-          attributes: ["id", "categoryName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
         {
           model: Supplier,
-          attributes: ["id", "supplierName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
       ],
     });
@@ -43,15 +42,14 @@ export const getMaterialById = async (req, res) => {
         id: materialId,
         flag: 1,
       },
-      attributes: ["id", "materialNo", "description", "uom", "price", "type", "minStock", "maxStock", "img", "createdAt", "updatedAt"],
       include: [
         {
           model: Category,
-          attributes: ["id", "categoryName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
         {
           model: Supplier,
-          attributes: ["id", "supplierName", "createdAt", "updatedAt"],
+          where: { flag: 1 },
         },
       ],
     });
@@ -65,7 +63,7 @@ export const getMaterialById = async (req, res) => {
 export const getMaterialIdByMaterialNo = async (req, res) => {
   try {
     const response = await Material.findOne({
-      where: { materialNo: req.params.materialno, flag: 1 },
+      where: { materialNo: req.params.materialNo, flag: 1 },
       attributes: ["id"],
     });
 

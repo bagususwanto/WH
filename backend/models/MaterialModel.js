@@ -11,6 +11,7 @@ const Material = db.define(
     materialNo: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     description: {
       type: DataTypes.STRING,
@@ -28,6 +29,10 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    mrpType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     minStock: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -40,6 +45,10 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    minOrder: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -50,7 +59,7 @@ const Material = db.define(
     },
     supplierId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Supplier,
         key: "id",

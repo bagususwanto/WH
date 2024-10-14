@@ -10,7 +10,7 @@ const Role = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    flag: {
+    flag: {   
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,

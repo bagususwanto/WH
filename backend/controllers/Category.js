@@ -4,7 +4,6 @@ export const getCategory = async (req, res) => {
   try {
     const response = await Category.findAll({
       where: { flag: 1 },
-      attributes: ["id", "categoryName", "createdAt", "updatedAt"],
     });
 
     res.status(200).json(response);
@@ -31,7 +30,6 @@ export const getCategoryById = async (req, res) => {
         id: categoryId,
         flag: 1,
       },
-      attributes: ["id", "categoryName", "createdAt", "updatedAt"],
     });
     res.status(200).json(response);
   } catch (error) {

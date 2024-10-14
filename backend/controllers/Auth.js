@@ -4,9 +4,21 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // Function to generate access and refresh tokens
-const generateTokens = (userId, username, name, roleName) => {
-  const accessToken = jwt.sign({ userId, username, name, roleName }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-  const refreshToken = jwt.sign({ userId, username, name, roleName }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1d" });
+const generateTokens = (userId, username, name, groupId, lineId, sectionId, warehouseId, isProduction, roleName) => {
+  const accessToken = jwt.sign(
+    { userId, username, name, groupId, lineId, sectionId, warehouseId, isProduction, roleName },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
+  const refreshToken = jwt.sign(
+    { userId, username, name, groupId, lineId, sectionId, warehouseId, isProduction, roleName },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "1d",
+    }
+  );
   return { accessToken, refreshToken };
 };
 
@@ -27,7 +39,7 @@ export const login = async (req, res) => {
       where: { username, flag: 1 },
       include: {
         model: Role,
-        attributes: ["id", "roleName", "createdAt", "updatedAt"],
+        where: { flag: 1 },
       },
     });
 
@@ -40,9 +52,22 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Username atau password tidak sesuai" });
     }
 
-    const { id: userId, name } = user;
-    const roleName = user.Role.roleName; // Mengambil roleName dari data user
-    const { accessToken, refreshToken } = generateTokens(userId, username, name, roleName);
+    const { id: userId, name, groupId, lineId, sectionId, departmentId, divisionId, warehouseId, organizationId, isProduction } = user;
+    const roleName = user.Role.roleName;
+    const { accessToken, refreshToken } = generateTokens(
+      userId,
+      username,
+      name,
+      groupId,
+      lineId,
+      sectionId,
+      departmentId,
+      divisionId,
+      organizationId,
+      warehouseId,
+      isProduction,
+      roleName
+    );
 
     await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
 
@@ -89,16 +114,32 @@ export const refreshToken = async (req, res) => {
   try {
     const user = await Users.findOne({
       where: { refreshToken, flag: 1 },
-      include: { model: Role, attributes: ["id", "roleName", "createdAt", "updatedAt"] },
+      include: {
+        model: Role,
+        where: { flag: 1 },
+      },
     });
     if (!user) return res.sendStatus(403);
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) return res.sendStatus(403);
 
-      const { id: userId, username, name } = user;
-      const roleName = user.Role.roleName; // Mengambil roleName dari data user
-      const { accessToken } = generateTokens(userId, username, name, roleName);
+      const { id: userId, username, name, groupId, lineId, sectionId, departmentId, divisionId, organizationId, warehouseId, isProduction } = user;
+      const roleName = user.Role.roleName;
+      const { accessToken } = generateTokens(
+        userId,
+        username,
+        name,
+        groupId,
+        lineId,
+        sectionId,
+        departmentId,
+        divisionId,
+        organizationId,
+        warehouseId,
+        isProduction,
+        roleName
+      );
 
       res.json({ accessToken });
     });
