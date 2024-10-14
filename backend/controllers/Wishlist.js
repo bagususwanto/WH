@@ -3,6 +3,7 @@ import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Plant from "../models/PlantModel.js";
+import Storage from "../models/StorageModel.js";
 
 // Menambahkan inventory ke wishlist
 export const addToWishlist = async (req, res) => {
