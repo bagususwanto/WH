@@ -4,6 +4,7 @@ import Material from "../models/MaterialModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Plant from "../models/PlantModel.js";
 import Storage from "../models/StorageModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 // Menambahkan inventory ke wishlist
 export const addToWishlist = async (req, res) => {
@@ -35,12 +36,14 @@ export const addToWishlist = async (req, res) => {
 export const getWishlistByUser = async (req, res) => {
   try {
     const userId = req.user.userId;
+    const warehouseId = req.params.warehouseId;
 
     const wishlist = await Wishlist.findAll({
       where: { userId },
       include: [
         {
           model: Inventory,
+          required: true,
           include: [
             {
               model: Material,
@@ -57,6 +60,12 @@ export const getWishlistByUser = async (req, res) => {
                     {
                       model: Plant,
                       where: { flag: 1 },
+                      include: [
+                        {
+                          model: Warehouse,
+                          where: { id: warehouseId, flag: 1 },
+                        },
+                      ],
                     },
                   ],
                 },
@@ -76,7 +85,7 @@ export const getWishlistByUser = async (req, res) => {
 // Menghapus inventory dari wishlist
 export const removeFromWishlist = async (req, res) => {
   try {
-    const inventoryId = req.params;
+    const inventoryId = req.params.inventoryId;
     const userId = req.user.userId;
 
     const wishlist = await Wishlist.findOne({
@@ -107,9 +116,15 @@ export const removeFromWishlist = async (req, res) => {
 export const clearWishlist = async (req, res) => {
   try {
     const userId = req.user.userId;
+    const inventoryIds = req.body.inventoryIds;
+
+    // Validasi input
+    if (!Array.isArray(inventoryIds) || inventoryIds.length === 0) {
+      return res.status(400).json({ message: "Inventory IDs must be a non-empty array." });
+    }
 
     await Wishlist.destroy({
-      where: { userId },
+      where: { userId, inventoryId: inventoryIds },
     });
 
     return res.status(200).json({ message: "Wishlist cleared." });

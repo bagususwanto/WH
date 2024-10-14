@@ -4,9 +4,9 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/wishlist", checkRole(["super admin"]), getWishlistByUser);
+router.get("/wishlist/:warehouseId", checkRole(["super admin"]), getWishlistByUser);
 router.post("/wishlist", checkRole(["super admin"]), addToWishlist);
 router.delete("/wishlist-clear", checkRole(["super admin"]), clearWishlist);
-router.delete("/wishlist-delete", checkRole(["super admin"]), removeFromWishlist);
+router.delete("/wishlist-delete/:inventoryId", checkRole(["super admin"]), removeFromWishlist);
 
 export default router;
