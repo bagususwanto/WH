@@ -1,0 +1,9 @@
+.carousel-flex {
+  display: 'flex';
+  justify-content: 'center';
+  align-items: 'center';
+}
+.custom-card-image {
+    height: 150px; // Menetapkan tinggi 150px
+    object-fit: cover; // Mengatur cara gambar dipotong
+  }

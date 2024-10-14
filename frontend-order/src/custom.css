@@ -1,0 +1,58 @@
+/* custom.css */
+.custom-datatable .p-datatable-thead>tr>th,
+.custom-datatable .p-datatable-tbody>tr>td {
+  border: 1px solid #dee2e6;
+}
+
+.custom-datatable .p-datatable-thead>tr>th {
+  background-color: #f8f9fa;
+}
+
+.custom-datatable .p-datatable-tbody>tr>td {
+  background-color: #ffffff;
+  font-size: 10pt;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+input.p-inputnumber-input.p-inputtext.p-component.p-filled {
+  width: 90px;
+  height: 24px;
+  font-size: 10pt;
+}
+
+td input.p-inputtext.p-component {
+  height: 24px;
+  font-size: 10pt;
+}
+
+button.p-row-editor-save.p-link {
+  margin-right: 10px;
+}
+
+.sticky-search-bar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 114px;
+  z-index: 1020;
+  background-color: white;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.responsive-container {
+  width: 85%; /* Default for desktop */
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .responsive-container {
+    width: 100%; /* Full width on mobile */
+  }
+}
+
+@media (min-width: 768px) and (max-width: 992px) {
+  .responsive-container {
+    width: 97%; /* 90% width on tablet */
+  }
+}
