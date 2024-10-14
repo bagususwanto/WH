@@ -1,10 +1,14 @@
 import React from 'react'
 
-const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
+const Home = React.lazy(() => import('./views/home/Home'))
 const Login = React.lazy(() => import('./views/pages/login/Login'))
-const Inventory = React.lazy(() => import('./views/inventory/Inventory'))
-const Incoming = React.lazy(() => import('./views/incoming/incoming'))
+const Profile = React.lazy(() => import('./views/profile/Profile'))
+const Wishlist = React.lazy(() => import('./views/wishllist/Wishlist'))
+const History = React.lazy(() => import('./views/history/History'))
+const HistoryApp = React.lazy(() => import('./views/history/HistoryApprove'))
+const Confirm = React.lazy(() => import('./views/confirm/ConfirmApprove'))
+const ConfirmRec = React.lazy(() => import('./views/confirm/ConfirmRecipent'))
 const Category = React.lazy(() => import('./views/masterdata/category/Category'))
 const Shop = React.lazy(() => import('./views/masterdata/shop/Shop'))
 const Plant = React.lazy(() => import('./views/masterdata/plant/Plant'))
@@ -15,17 +19,20 @@ const Cost = React.lazy(() => import('./views/masterdata/cost/Cost'))
 const Storage = React.lazy(() => import('./views/masterdata/storage/Storage'))
 const Address = React.lazy(() => import('./views/masterdata/address/Address'))
 const User = React.lazy(() => import('./views/masterdata/user/User'))
-
-
+const Order = React.lazy(() => import('./views/order/Order'))
+const Cart = React.lazy(() => import('./views/cart/Cart'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
-
-  { path: '/dashboard', name: '', element: Dashboard },
-
-
-  { path: '/inventory', name: 'Inventory', element: Inventory },
-  { path: '/incoming', name: 'Incoming', element: Incoming },
+  { path: '/home', name: '', element: Home },
+  { path: '/wishllist', name: 'Wishlist', element: Wishlist},
+  { path: '/profile', name: 'Profile', element: Profile},
+  { path: '/history', name: 'History', element: History},
+  { path: '/historyapp', name: 'HistoryApp', element: HistoryApp},
+  { path: '/order', name: 'Order', element: Order },
+  { path: '/cart', name: 'Cart', element: Cart },
+  { path: '/confirm', name: 'Confirm', element: Confirm},
+  { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec},
   { path: '/category', name: 'Category', element: Category },
   { path: '/shop', name: 'Shop', element: Shop },
   { path: '/plant', name: 'Plant', element: Plant },

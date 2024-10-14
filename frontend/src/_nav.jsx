@@ -33,30 +33,14 @@ const useNavigation = () => {
 
   useEffect(() => {
     const baseNav = [
-      {
-        component: CNavItem,
-        name: 'Home',
-        to: '/home',
-        icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
-      },
+      
       {
         component: CNavItem,
         name: 'Dasboard',
         to: '/dashboard',
         icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
       },
-      {
-        component: CNavItem,
-        name: 'Order',
-        to: '/order',
-        icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Cart',
-        to: '/cart',
-        icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-      },
+     
       // {
       //   component: CNavGroup,
       //   name: 'Order To Warehouse',
