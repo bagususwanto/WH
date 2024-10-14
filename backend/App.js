@@ -35,6 +35,7 @@ import cartRouter from "./routes/CartRouter.js";
 import wishlistRouter from "./routes/WishlistRouter.js";
 import myOrderRouter from "./routes/MyOrderRouter.js";
 import orderRouter from "./routes/OrderRouter.js";
+import userWarehouseROuter from "./routes/UserWarehouseRouter.js";
 import "./models/index.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
@@ -75,6 +76,7 @@ app.use("/api", organizationRouter);
 app.use("/api", serviceHoursRouter);
 app.use("/api", userPlantRouter);
 app.use("/api", divisionPlantRouter);
+app.use("/api", userWarehouseROuter);
 
 // management stock router
 app.use("/api", managementStockRouter);

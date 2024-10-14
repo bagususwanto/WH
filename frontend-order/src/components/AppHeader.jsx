@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -50,9 +50,7 @@ import { AppHeaderDropdown } from './header/index'
 import useManageStockService from '../services/ManageStockService'
 import useMasterDataService from '../services/MasterDataService'
 import '../scss/appheader.scss'
-import { GlobalContext } from '../context/GlobalContext'
-
-// Mock product data
+import { GlobalContext } from '../context/GlobalProvider'
 
 const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
@@ -74,11 +72,12 @@ const AppHeader = () => {
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false)
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
   const [visible, setVisible] = useState(false)
+  const [warehouseId, setWarehouseId] = useState(0)
 
-  const [selectedWarehouse, setSelectedWarehouse] = useState({
-    id: 1,
-    warehouseName: 'Warehouse Issuing Karawang 1 & 2',
-  }) // State untuk menyimpan warehouse yang dipilih
+  const { warehouse, setWarehouse } = useContext(GlobalContext)
+  console.log('warehouse', warehouse)
+
+  const apiWarehouseUser = 'warehouse-user'
 
   const apiWarehouse = 'warehouse'
   // Fetch products from API
@@ -88,6 +87,15 @@ const AppHeader = () => {
       setProductsData(response.data) // Assuming response.data is an array of products
     } catch (error) {
       console.error('Failed to fetch products:', error) // Log any errors
+    }
+  }
+
+  const getDefaultWarehouse = async () => {
+    try {
+      const response = await getMasterData(apiWarehouseUser)
+      setWarehouse(response.data) // Update warehouse state langsung di sini
+    } catch (error) {
+      console.error('Error fetching products:', error)
     }
   }
 
@@ -102,6 +110,7 @@ const AppHeader = () => {
   useEffect(() => {
     getProducts()
     getWarehouse() // Fetch products on mount
+    getDefaultWarehouse()
   }, []) // Empty dependency array ensures it only runs once
 
   useEffect(() => {
@@ -215,10 +224,17 @@ const AppHeader = () => {
     setShowCategories(!showCategories)
   }
 
-  const handleSelectChange = (e) => {
-    const selectedId = parseInt(e.target.value)
+  const handleSaveLocation = () => {
+    const selectedId = Number(warehouseId) // Convert to number if necessary
     const selectedWarehouseData = warehouseData.find((warehouse) => warehouse.id === selectedId)
-    setSelectedWarehouse(selectedWarehouseData)
+    if (selectedWarehouseData) {
+      // Ensure that the warehouse is found
+      setWarehouse(selectedWarehouseData)
+      setModalVisible(false)
+    } else {
+      // Handle case where no warehouse was selected
+      console.error('No warehouse selected')
+    }
   }
 
   return (
@@ -230,7 +246,7 @@ const AppHeader = () => {
             size="lg"
             style={{ transition: 'color 0.3s', color: '#333', marginRight: '5px' }}
           />
-          <b>{selectedWarehouse.warehouseName}</b>
+          <b>{warehouse.warehouseName}</b>
           <CLink
             color="primary"
             onClick={handleShowModal}
@@ -244,7 +260,11 @@ const AppHeader = () => {
             <CModalTitle>Select Warehouse</CModalTitle>
           </CModalHeader>
           <CModalBody>
-            <CFormSelect size="xs" className="mb-3" onChange={handleSelectChange}>
+            <CFormSelect
+              size="xs"
+              className="mb-3"
+              onChange={(e) => setWarehouseId(e.target.value)}
+            >
               {warehouseData.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.warehouseName}
@@ -253,11 +273,7 @@ const AppHeader = () => {
             </CFormSelect>
           </CModalBody>
           <CModalFooter>
-            <CButton
-              color="primary"
-              disabled={!temporaryWarehouse} // Disable the button if no warehouse is selected
-              onClick={handleShowConfirmationModal}
-            >
+            <CButton color="primary" onClick={handleSaveLocation}>
               Save Changes
             </CButton>
           </CModalFooter>

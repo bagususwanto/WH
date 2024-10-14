@@ -1,3 +1,5 @@
+import User from "../models/UserModel.js";
+import UserWarehouse from "../models/UserWarehouseModel.js";
 import Warehouse from "../models/WarehouseModel.js";
 
 export const getWarehouse = async (req, res) => {
@@ -96,6 +98,46 @@ export const deleteWarehouse = async (req, res) => {
     await Warehouse.update({ flag: 0 }, { where: { id: warehouseId, flag: 1 } });
 
     res.status(200).json({ message: "Warehouse deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getWarehouseByUser = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const warehouse = await UserWarehouse.findOne({
+      where: { userId, flag: 1 },
+    });
+
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
+    }
+
+    const response = await Warehouse.findOne({
+      where: {
+        flag: 1,
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "username"],
+          where: {
+            id: userId,
+            flag: 1,
+          },
+          required: true,
+        },
+      ],
+    });
+
+    if (!response) {
+      return res.status(404).json({ message: "Warehouse user not found" });
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });

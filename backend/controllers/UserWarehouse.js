@@ -17,7 +17,7 @@ export const getUserWarehouse = async (req, res) => {
 
 export const getUserWarehouseByUserId = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.user.userId;
 
     const userWarehouse = await UserWarehouse.findOne({
       where: { userId: userId, flag: 1 },
@@ -32,6 +32,13 @@ export const getUserWarehouseByUserId = async (req, res) => {
         userId: userId,
         flag: 1,
       },
+      include: [
+        {
+          model: Warehouse, // Menyertakan model Warehouse
+          required: true, // Menentukan bahwa Warehouse harus ada
+        },
+      ],
+      // order: [["createdAt", "DESC"]],
     });
     res.status(200).json(response);
   } catch (error) {
@@ -42,24 +49,24 @@ export const getUserWarehouseByUserId = async (req, res) => {
 
 export const createUserWarehouse = async (req, res) => {
   try {
-    const { userId, plantId } = req.body;
+    const { userId, warehouseId } = req.body;
     const user = await User.findOne({
       where: { id: userId, flag: 1 },
     });
-    const plant = await Warehouse.findOne({
-      where: { id: plantId, flag: 1 },
+    const warehouse = await Warehouse.findOne({
+      where: { id: warehouseId, flag: 1 },
     });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!plant) {
+    if (!warehouse) {
       return res.status(404).json({ message: "Warehouse not found" });
     }
 
     const existingUserWarehouse = await UserWarehouse.findOne({
-      where: { userId: userId, plantId: plantId, flag: 1 },
+      where: { userId: userId, warehouseId: warehouseId, flag: 1 },
     });
 
     if (existingUserWarehouse) {
@@ -76,8 +83,8 @@ export const createUserWarehouse = async (req, res) => {
 
 export const updateUserWarehouse = async (req, res) => {
   try {
-    const { id } = req.params; // Mengambil id dari parameter URL
-    const { plantIds } = req.body; // Mendapatkan plantIds dari request body
+    const { id } = req.params.id; // Mengambil id dari parameter URL
+    const { warehouseIds } = req.body; // Mendapatkan warehouseIds dari request body
 
     // Cek apakah User dengan id tersebut ada
     const user = await User.findOne({
@@ -88,19 +95,19 @@ export const updateUserWarehouse = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Cari Warehouse yang sesuai dengan plantIds dari request body
-    const plant = await Warehouse.findAll({
-      where: { id: plantIds, flag: 1 }, // Mendapatkan role berdasarkan id
+    // Cari Warehouse yang sesuai dengan warehouseIds dari request body
+    const warehouse = await Warehouse.findAll({
+      where: { id: warehouseIds, flag: 1 }, // Mendapatkan role berdasarkan id
     });
 
-    if (!plant || plant.length === 0) {
+    if (!warehouse || warehouse.length === 0) {
       return res.status(404).json({ message: "Warehouses not found" });
     }
 
     // Update relasi many-to-many antara User dan Warehouse melalui tabel UserWarehouse
-    await user.setWarehouses(plant); // Mengganti semua relasi existing dengan Warehouse baru
+    await user.setWarehouses(warehouse); // Mengganti semua relasi existing dengan Warehouse baru
 
-    res.status(200).json({ message: "User plant updated successfully" });
+    res.status(200).json({ message: "User warehouse updated successfully" });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
@@ -109,11 +116,11 @@ export const updateUserWarehouse = async (req, res) => {
 
 export const deleteUserWarehouse = async (req, res) => {
   try {
-    const { userId, plantId } = req.params; // Mengambil userId dan plantId dari parameter URL
+    const { userId, warehouseId } = req.params; // Mengambil userId dan warehouseId dari parameter URL
 
     // Cek apakah relasi antara User dan Warehouse dengan flag 1 (aktif) ada
     const userWarehouse = await UserWarehouse.findOne({
-      where: { userId: userId, plantId: plantId, flag: 1 }, // Hanya mencari relasi aktif (flag = 1)
+      where: { userId: userId, warehouseId: warehouseId, flag: 1 }, // Hanya mencari relasi aktif (flag = 1)
     });
 
     if (!userWarehouse) {
@@ -123,7 +130,7 @@ export const deleteUserWarehouse = async (req, res) => {
     // Update flag menjadi 0 (soft delete)
     await UserWarehouse.update(
       { flag: 0 }, // Mengubah flag menjadi 0 (menandai sebagai "dihapus")
-      { where: { userId: userId, plantId: plantId, flag: 1 } }
+      { where: { userId: userId, warehouseId: warehouseId, flag: 1 } }
     );
 
     res.status(200).json({ message: "UserWarehouse relation deleted" });
