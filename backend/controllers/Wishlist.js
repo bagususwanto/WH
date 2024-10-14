@@ -7,7 +7,7 @@ import Plant from "../models/PlantModel.js";
 // Menambahkan inventory ke wishlist
 export const addToWishlist = async (req, res) => {
   try {
-    const inventoryId = req.body;
+    const inventoryId = req.body.inventoryId;
     const userId = req.user.userId;
 
     // Cek jika inventory sudah ada di wishlist
