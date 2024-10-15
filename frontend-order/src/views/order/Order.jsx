@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState, useContext } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   CCard,
   CCardBody,
@@ -25,12 +25,13 @@ import CIcon from '@coreui/icons-react'
 import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getMasterData } = useMasterDataService()
-  const { getProduct } = useProductService()
+  const { getProduct, getProductByQuery } = useProductService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -41,23 +42,54 @@ const ProductList = () => {
   const [wishlist, setWishlist] = useState(new Set())
   const [visibleCount, setVisibleCount] = useState(12)
 
+  const location = useLocation() // Ambil informasi
+  const { warehouse } = useContext(GlobalContext)
+
   const apiCategory = 'category'
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const query = params.get('q') // Ambil parameter 'q'
+    console.log('Query:', query)
+
+    if (query) {
+      getProductByQueries(query)
+    } else {
+      getProducts()
+    }
+
+    getCategories()
+  }, [location])
+
   const getProducts = async () => {
-    const response = await getProduct(1)
-    setProductsData(response.data)
+    try {
+      const response = await getProduct(warehouse.id)
+      setProductsData(response.data)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
+
+  // Fungsi untuk mendapatkan produk berdasarkan query
+  const getProductByQueries = async (query) => {
+    try {
+      const response = await getProductByQuery(warehouse.id, query)
+      if (!response.data) {
+        console.error('No products found')
+        setProductsData([])
+        return
+      }
+      setProductsData(response.data)
+    } catch (error) {
+      console.error('Error fetching products by query:', error)
+    }
   }
 
   const getCategories = async () => {
     const response = await getMasterData(apiCategory)
     setCategoriesData(response.data)
   }
-
-  useEffect(() => {
-    getProducts()
-    getCategories()
-  }, [])
 
   const calculateStockStatus = (product) => {
     const { quantityActualCheck } = product
@@ -112,6 +144,7 @@ const ProductList = () => {
 
   return (
     <>
+      {productsData.length === 0 && <div>Product not found...</div>}
       <CRow>
         {filteredProducts.slice(0, allVisible ? filteredProducts.length : 18).map((product) => (
           <CCol xs="6" sm="6" md="3" lg="4" xl="2" key={product.Material.id} className="mb-3">
@@ -195,8 +228,8 @@ const ProductList = () => {
         ))}
       </CRow>
 
-    {/* Tombol Load More */}
-    {visibleCount < filteredProducts.length && (
+      {/* Tombol Load More */}
+      {visibleCount < filteredProducts.length && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More

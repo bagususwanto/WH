@@ -4,6 +4,7 @@ import Warehouse from "../models/WarehouseModel.js";
 import Material from "../models/MaterialModel.js";
 import Storage from "../models/StorageModel.js";
 import Inventory from "../models/InventoryModel.js";
+import { Op } from "sequelize";
 
 // Get data product by warehouse
 export const getProduct = async (req, res) => {
@@ -35,7 +36,9 @@ export const getProduct = async (req, res) => {
       include: [
         {
           model: Material,
-          where: { flag: 1 },
+          where: {
+            flag: 1,
+          },
         },
         {
           model: AddressRack,
@@ -121,6 +124,79 @@ export const getProductByCategory = async (req, res) => {
     });
 
     res.status(200).json(product);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getProductByQuery = async (req, res) => {
+  try {
+    const warehouseId = req.params.warehouseId;
+    const { page = 1, limit = 20, q } = req.query; // Ambil query pencarian produk
+
+    // Hitung nilai offset berdasarkan halaman
+    const offset = (page - 1) * limit;
+
+    const warehouse = await Warehouse.findOne({
+      where: { id: warehouseId, flag: 1 },
+    });
+
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
+    }
+
+    const plant = await Plant.findOne({
+      where: { warehouseId: warehouseId, flag: 1 },
+    });
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    // Cari data produk dengan paginasi dan filter berdasarkan query pencarian
+    const products = await Inventory.findAll({
+      include: [
+        {
+          model: Material,
+          where: {
+            flag: 1,
+            [Op.or]: [
+              {
+                description: {
+                  [Op.like]: `%${q}%`, // Filter berdasarkan deskripsi yang mengandung q
+                },
+              },
+              {
+                materialNo: {
+                  [Op.like]: `%${q}%`, // Filter berdasarkan nomor material yang mengandung q
+                },
+              },
+            ],
+          },
+        },
+        {
+          model: AddressRack,
+          where: { flag: 1 },
+          include: [
+            {
+              model: Storage,
+              where: { flag: 1 },
+              include: [
+                {
+                  model: Plant,
+                  where: { warehouseId: warehouseId, flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      limit: parseInt(limit), // Tentukan jumlah data yang diambil (limit)
+      offset: parseInt(offset), // Tentukan dari data ke berapa (offset)
+    });
+
+    res.status(200).json(products);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });

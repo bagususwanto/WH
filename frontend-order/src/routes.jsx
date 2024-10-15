@@ -32,6 +32,7 @@ const routes = [
   { path: '/history', name: 'History', element: History},
   { path: '/historyapp', name: 'HistoryApp', element: HistoryApp},
   { path: '/order', name: 'Order', element: Order },
+  { path: '/order/:warehouseId', name: 'Order', element: Order },
   { path: '/cart', name: 'Cart', element: Cart },
   { path: '/ApproveAll', name: 'Confirm', element: ApproveAll},
   { path: '/ConfirmAll', name: 'Confirm', element: ConfirmAll},

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -45,9 +45,9 @@ import {
   cilStar,
   cilHeart,
 } from '@coreui/icons'
-import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
+import useProductService from '../services/ProductService'
 import '../scss/appheader.scss'
 import { GlobalContext } from '../context/GlobalProvider'
 
@@ -55,8 +55,8 @@ const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [productsData, setProductsData] = useState([])
   const [warehouseData, setWarehouseData] = useState([])
-  const headerRef = useRef()
   const { getMasterData } = useMasterDataService()
+  const { getProduct } = useProductService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [searchHistory, setSearchHistory] = useState([])
@@ -73,7 +73,6 @@ const AppHeader = () => {
   const [warehouseId, setWarehouseId] = useState(0)
 
   const { warehouse, setWarehouse } = useContext(GlobalContext)
-  console.log('warehouse', warehouse)
 
   const apiWarehouseUser = 'warehouse-user'
 
@@ -81,7 +80,7 @@ const AppHeader = () => {
   // Fetch products from API
   const getProducts = async () => {
     try {
-      const response = await getInventory()
+      const response = await getProduct(warehouse.id)
       setProductsData(response.data) // Assuming response.data is an array of products
     } catch (error) {
       console.error('Failed to fetch products:', error) // Log any errors
@@ -105,30 +104,19 @@ const AppHeader = () => {
       console.error('Error fetching categories:', error)
     }
   }
+
+  useEffect(() => {
+    getDefaultWarehouse()
+    getWarehouse() // Fetch products on mount
+  }, []) // Empty dependency array ensures it only runs once
+
   useEffect(() => {
     getProducts()
-    getWarehouse() // Fetch products on mount
-    getDefaultWarehouse()
-  }, []) // Empty dependency array ensures it only runs once
+  }, [warehouse])
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem('searchHistory')) || []
     setSearchHistory(savedHistory)
-  }, [])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/data') // Example API call
-        if (!response.ok) throw new Error('Network response was not ok')
-        const json = await response.json()
-        setData(json)
-      } catch (error) {
-        console.error('Fetch data error:', error)
-      }
-    }
-
-    fetchData()
   }, [])
 
   const handleSearchInputChange = (e) => {
@@ -169,15 +157,69 @@ const AppHeader = () => {
   }
 
   const handleSuggestionClick = (query) => {
+    console.log('handleSuggestionClick')
+
+    console.log(query)
+    console.log(searchHistory)
+
     setSearchQuery(query)
     setFilteredSuggestions([])
     addToSearchHistory(query)
+
+    // Contoh query params yang dibutuhkan
+    const warehouseId = warehouse.id // Misalnya ID warehouse
+    const page = 1 // Default halaman pertama
+    const limit = 20 // Default limit produk per halaman
+
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      q: query,
+    })
+
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
-  const handleDeleteSearch = (query) => {
-    const newHistory = searchHistory.filter((item) => item !== query)
+  const handleSearchHistoryClick = (query, e) => {
+    e.preventDefault() // Prevent default button behavior
+    console.log('handleSearchHistoryClick')
+
+    console.log(query)
+    console.log(searchHistory)
+
+    setSearchQuery(query)
+    setFilteredSuggestions([])
+    //addToSearchHistory(query)
+
+    // Contoh query params yang dibutuhkan
+    const warehouseId = warehouse.id // Misalnya ID warehouse
+    const page = 1 // Default halaman pertama
+    const limit = 20 // Default limit produk per halaman
+
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      q: query,
+    })
+    // Debug URL params
+    console.log('URL Params:', params.toString())
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/${warehouseId}?${params.toString()}`)
+  }
+
+  const handleDeleteSearch = (item, e) => {
+    e.preventDefault() // Prevent default button behavior
+    e.stopPropagation() // Prevent event from propagating to parent elements
+
+    // Filter out the deleted item from the searchHistory
+    const newHistory = searchHistory.filter((historyItem) => historyItem !== item)
+
+    // Update the state and local storage with the new history
     setSearchHistory(newHistory)
-    localStorage.setItem('searchHistory', JSON.stringify(newHistory))
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory)) // Change 'searchHistory' to 'recentSearches'
   }
 
   const handleSubmit = (e) => {
@@ -185,14 +227,35 @@ const AppHeader = () => {
     addToSearchHistory(searchQuery)
     setSearchQuery('')
     setShowRecentSearches(false)
+
+    // Contoh query params yang dibutuhkan
+    const warehouseId = warehouse.id // Misalnya ID warehouse
+    const page = 1 // Default halaman pertama
+    const limit = 20 // Default limit produk per halaman
+
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      q: searchQuery,
+    })
+
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
   const handleFocus = () => {
     setShowRecentSearches(searchHistory.length > 0)
   }
 
-  const handleBlur = () => {
-    setShowRecentSearches(false)
+  const handleBlur = (e) => {
+    // Instead of immediately hiding, add a condition or delay
+    setTimeout(() => {
+      // Only close the recent search if the input is truly not focused
+      if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) {
+        setShowRecentSearches(false)
+      }
+    }, 300) // Small delay to allow for delete to work
   }
 
   const handleDropdownToggle = () => {
@@ -236,7 +299,7 @@ const AppHeader = () => {
   }
 
   return (
-    <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
+    <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
         <span>
           <CIcon
@@ -262,6 +325,7 @@ const AppHeader = () => {
               size="xs"
               className="mb-3"
               onChange={(e) => setWarehouseId(e.target.value)}
+              value={warehouseId}
             >
               {warehouseData.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -334,7 +398,7 @@ const AppHeader = () => {
                   borderRadius: '4px',
                   backgroundColor: '#fff',
                   position: 'absolute',
-                  width: '100%',
+                  width: '500px',
                   marginTop: '5px',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                   zIndex: 10,
@@ -376,14 +440,42 @@ const AppHeader = () => {
                               cursor: 'pointer',
                               borderBottom: '1px solid #ddd',
                             }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f0f0f0' // Warna saat hover
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#fff' // Kembalikan ke warna default
+                            }}
                           >
-                            <span onClick={() => handleSuggestionClick(item)}>{item}</span>
-                            <button
-                              onClick={() => handleDeleteSearch(item)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                            <div
+                              className="d-flex justify-content-between align-items-center"
+                              style={{ width: '100%' }}
                             >
-                              &#10005; {/* Cross icon */}
-                            </button>
+                              <button
+                                onClick={(e) => handleSearchHistoryClick(item, e)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '16px',
+                                  width: '100%',
+                                  textAlign: 'left',
+                                }}
+                              >
+                                {item}
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteSearch(item, e)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '16px',
+                                }}
+                              >
+                                &#10005;
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -400,7 +492,7 @@ const AppHeader = () => {
           </CButton>
 
           {/* Button Cart */}
-          <CDropdown variant="nav-item" isOpen={isDropdownOpen}>
+          <CDropdown variant="nav-item">
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
@@ -457,7 +549,7 @@ const AppHeader = () => {
           </CDropdown>
 
           {/* Button Notifications */}
-          <CDropdown variant="nav-item" isOpen={isDropdownOpen} toggle={handleDropdownToggle}>
+          <CDropdown variant="nav-item">
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
