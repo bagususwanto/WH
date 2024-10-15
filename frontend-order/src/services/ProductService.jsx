@@ -25,7 +25,7 @@ const useProductService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const getCategory = async () => {
+  const getCategory = async (id) => {
     try {
       const response = await axiosJWT.get(`/product-category/${id}`, {
         headers: {
@@ -37,12 +37,24 @@ const useProductService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  
- 
+
+  const getProductByQuery = async (id, q) => {
+    try {
+      const response = await axiosJWT.get(`/product/search/${id}?page=1&limit=20&q=${q}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   return {
     getProduct,
     getCategory,
-    
+    getProductByQuery,
   }
 }
 
