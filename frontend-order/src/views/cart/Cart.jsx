@@ -41,11 +41,11 @@ import useCartService from '../../services/CartService'
 // Icon mapping based on your category names
 
 const Cart = () => {
-  const [productsData, setProductsData] = useState([])
+  const [cartData, setCartData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
-  const { getCart } = useCartService() 
+  const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -59,47 +59,20 @@ const Cart = () => {
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
+  const getCarts = async () => {
     try {
-      const response = await getInventory()
-      setProductsData(response.data)
+      const response = await getCart()
+      setCartData(response.data)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('Error fetching cart:', error)
     }
-  }
-
-  const getCategories = async () => {
-    try {
-      const response = await getMasterData(apiCategory)
-      setCategoriesData(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Material.id === productId)
   }
 
   useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-
-    fetchProductsAndCategories()
+    getCarts()
+   
   }, [])
+ 
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -160,7 +133,7 @@ const Cart = () => {
 
   const handleConfirm = () => {
     setModalVisible(false)
-    navigate('/confirmRec') // Use navigate instead of history.push
+    navigate('/app') // Use navigate instead of history.push
   }
 
   const handleCancel = () => {
@@ -188,7 +161,7 @@ const Cart = () => {
           </div>
 
           <CRow className="g-2">
-            {currentProducts.map((product, index) => (
+            {cartData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
@@ -196,21 +169,21 @@ const Cart = () => {
                       <CFormCheck
                         id={`product-checkbox-${product.id}`}
                         checked={checkedItems[product.id] || false}
-                        onChange={() => handleCheckboxChange(product.id, product.Material.price)}
+                        onChange={() => handleCheckboxChange(product.id,product.Iventory.Material.price)}
                       />
                     </CCol>
                     <CCol xs="1">
                       <CCardImage
-                        src={product.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Material.description}
+                        src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                        alt={product.Inventory.Material.description}
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>
                     <CCol xs="6">
                       <div>
-                        <label className="fw-bold fs-6">{product.Material.description}</label>
+                        <label className="fw-bold fs-6">{product.Inventory.Material.description}</label>
                         <br></br>
-                        <label>{product.Material.materialNo}</label>
+                        <label>{product.Inventory.Material.materialNo}</label>
                       </div>
                     </CCol>
                     <CCol xs="2">
@@ -226,7 +199,7 @@ const Cart = () => {
                           -
                         </CButton>
                         <span className="mx-3">
-                          {quantities[product.id] || 1} ({product.Material?.uom || 'UOM'})
+                          {quantities[product.id] || 1} ({product.Inventory.Material?.uom || 'UOM'})
                         </span>
                         <CButton
                           color="secondary"

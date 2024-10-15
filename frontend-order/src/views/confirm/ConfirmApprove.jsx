@@ -40,7 +40,7 @@ import {
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
-import Carousel from 'react-bootstrap/Carousel'
+
 import useVerify from '../../hooks/UseVerify'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
