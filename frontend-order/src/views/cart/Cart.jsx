@@ -68,11 +68,19 @@ const Cart = () => {
     }
   }
 
+  const handleDeleteCart = async (productId) => {
+    try {
+      console.log(productId)
+      await deleteCart(productId)
+      setCartData(cartData.filter((product) => product.id !== productId))
+    } catch (error) {
+      console.error('Error deleting cart:', error)
+    }
+  }
+
   useEffect(() => {
     getCarts()
-   
   }, [])
- 
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -103,27 +111,31 @@ const Cart = () => {
   // Total harga produk
   // Total harga produk
   useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
+    const newTotal = cartData.reduce((acc, product) => {
       if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-        return acc + product.Material.price * quantity
+        const quantity = quantities[product.id] || product.quantity
+        return acc + product.Inventory.Material.price * quantity
       }
       return acc
     }, 0)
     setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts]) // Trigger calculation when these change
+  }, [checkedItems, quantities, cartData])
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: (prevQuantities[productId] || 1) + 1,
+      [productId]:
+        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) + 1,
     }))
   }
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
+      [productId]: Math.max(
+        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) - 1,
+        1,
+      ),
     }))
   }
 
@@ -144,13 +156,13 @@ const Cart = () => {
       <CRow className="mt-3">
         <CCard>
           <h3 className="fw-bold fs-4">Your Cart</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <CFormCheck
+          <div className='ms-auto'style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* <CFormCheck
               id="flexCheckDefault"
               label="Confirm All"
               checked={selectAll}
               onChange={handleSelectAllChange}
-            />
+            /> */}
             <CButton
               color="danger"
               onClick={handleDeleteAll}
@@ -165,14 +177,16 @@ const Cart = () => {
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
-                    <CCol xs="1">
+                    {/* <CCol xs="1">
                       <CFormCheck
                         id={`product-checkbox-${product.id}`}
                         checked={checkedItems[product.id] || false}
-                        onChange={() => handleCheckboxChange(product.id,product.Iventory.Material.price)}
+                        onChange={() =>
+                          handleCheckboxChange(product.id, product.Iventory.Material.price)
+                        }
                       />
-                    </CCol>
-                    <CCol xs="1">
+                    </CCol> */}
+                    <CCol xs="2">
                       <CCardImage
                         src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
                         alt={product.Inventory.Material.description}
@@ -181,7 +195,9 @@ const Cart = () => {
                     </CCol>
                     <CCol xs="6">
                       <div>
-                        <label className="fw-bold fs-6">{product.Inventory.Material.description}</label>
+                        <label className="fw-bold fs-6">
+                          {product.Inventory.Material.description}
+                        </label>
                         <br></br>
                         <label>{product.Inventory.Material.materialNo}</label>
                       </div>
@@ -199,7 +215,8 @@ const Cart = () => {
                           -
                         </CButton>
                         <span className="mx-3">
-                          {quantities[product.id] || 1} ({product.Inventory.Material?.uom || 'UOM'})
+                          {quantities[product.id] || product.quantity} (
+                          {product.Inventory.Material?.uom || 'UOM'})
                         </span>
                         <CButton
                           color="secondary"
@@ -217,7 +234,7 @@ const Cart = () => {
                         icon={cilTrash}
                         className="text-danger"
                         style={{ cursor: 'pointer' }}
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDeleteCart(product.id)}
                       />
                     </CCol>
                   </CRow>

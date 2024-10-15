@@ -26,6 +26,7 @@ import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import useCartService from '../../services/CartService'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
@@ -33,6 +34,7 @@ const ProductList = () => {
   const { getMasterData } = useMasterDataService()
   const { getProduct, getProductByQuery } = useProductService()
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -47,6 +49,18 @@ const ProductList = () => {
 
   const apiCategory = 'category'
   const navigate = useNavigate()
+
+  const getCarts = async () => {
+    try {
+      const response = await getCart()
+      setCart(response.data)
+    } catch (error) {
+      console.error('Error fetching cart:', error)
+    }
+  }
+  useEffect(() => {
+    getCarts()
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -127,20 +141,71 @@ const ProductList = () => {
     setVisibleCount(visibleCount + 20) // Load 12 more products
   }
 
-  const handleAddToCart = (product, quantity) => {
-    const existingProduct = cart.find((item) => item.id === product.Material.id)
-    if (existingProduct) {
-      const updatedCart = cart.map((item) =>
-        item.id === product.Material.id ? { ...item, quantity: item.quantity + quantity } : item,
-      )
-      setCart(updatedCart)
-    } else {
-      setCart([...cart, { ...product, quantity }])
+  // const handleAddToCart = (product, quantity) => {
+  //   const existingProduct = cart.find((item) => item.id === product.Material.id)
+  //   if (existingProduct) {
+  //     const updatedCart = cart.map((item) =>
+  //       item.id === product.Material.id ? { ...item, quantity: item.quantity + quantity } : item,
+  //     )
+  //     setCart(updatedCart)
+  //   } else {
+  //     setCart([...cart, { ...product, quantity }])
+  //   }
+  //   setCartCount(cartCount + quantity)
+  //   setModalOrder(false)
+  //   navigate('/cart') // Navigate to the cart page
+  // }
+
+  const handleAddToCart = async (product, quantity) => {
+    try {
+      console.log(product)
+      // Find the existing product in the cart by matching inventoryId
+      const existingProduct = cart.find((item) => item.Inventory.materialId === product.Material.id)
+  
+      if (existingProduct) {
+        // If product exists in the cart, update the quantity
+        const updatedProduct = {
+          ...existingProduct,
+          quantity: existingProduct.quantity + quantity
+        }
+        console.log(updatedProduct)
+  
+        // Update the cart with the new quantity (use API updateCart)
+        const updatedCartResponse = await updateCart({
+          inventoryId: product.id,
+          quantity: updatedProduct.quantity
+        })
+        if (updatedCartResponse) {
+          // Update the cart state with the updated product
+          setCart(cart.map(item => item.id === updatedProduct.id ? updatedProduct : item))
+        }
+      } else {
+        // If product doesn't exist in the cart, add a new product
+        const newCartItem = {
+          inventoryId: product.id,
+          quantity: quantity
+        }
+  
+        // Post the new cart item to the API (use postCart)
+        const addToCartResponse = await postCart(newCartItem)
+        if (addToCartResponse) {
+          // Add the new product to the cart state
+          setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])
+        }
+      }
+      
+      // Update cart count
+      setCartCount(cartCount + quantity)
+      setModalOrder(false)
+  
+      // Navigate to the cart page
+      navigate('/cart')
+    } catch (error) {
+      // Handle error
+      console.error('Failed to add to cart:', error)
     }
-    setCartCount(cartCount + quantity)
-    setModalOrder(false)
-    navigate('/cart') // Navigate to the cart page
   }
+  
 
   return (
     <>
@@ -236,7 +301,7 @@ const ProductList = () => {
           </CButton>
         </div>
       )}
-
+      {/* modal add to cart */}
       {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>

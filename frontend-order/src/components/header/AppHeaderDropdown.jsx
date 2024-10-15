@@ -29,6 +29,9 @@ const AppHeaderDropdown = () => {
   const handleProfile = () => {
     navigate('/profile')
   }
+  const handleWhislist = () => {
+    navigate('/wishlist')
+  }
 
   const handleLogout = () => {
     navigate('/logout')
@@ -65,6 +68,11 @@ const AppHeaderDropdown = () => {
         <CDropdownItem onClick={handleHistory} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilHistory} className="me-2" />
           History Order
+        </CDropdownItem>
+        <CDropdownDivider />
+        <CDropdownItem onClick={handleWhislist} style={{ cursor: 'pointer' }}>
+          <CIcon icon={cilHistory} className="me-2" />
+          Wishlist
         </CDropdownItem>
         <CDropdownDivider />
         <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>

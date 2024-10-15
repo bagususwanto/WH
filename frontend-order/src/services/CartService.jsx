@@ -49,9 +49,9 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const deleteCart = async (id) => {
+  const deleteCart = async (data) => {
     try {
-      const response = await axiosJWT.get(`/cart/${id}`, {
+      const response = await axiosJWT.get('/cart',data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
