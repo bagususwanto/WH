@@ -41,11 +41,11 @@ import useCartService from '../../services/CartService'
 // Icon mapping based on your category names
 
 const Cart = () => {
-  const [productsData, setProductsData] = useState([])
+  const [cartData, setCartData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
-  const { getCart } = useCartService() 
+  const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -59,46 +59,27 @@ const Cart = () => {
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
+  const getCarts = async () => {
     try {
-      const response = await getInventory()
-      setProductsData(response.data)
+      const response = await getCart()
+      setCartData(response.data)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('Error fetching cart:', error)
     }
   }
 
-  const getCategories = async () => {
+  const handleDeleteCart = async (productId) => {
     try {
-      const response = await getMasterData(apiCategory)
-      setCategoriesData(response.data)
+      console.log(productId)
+      await deleteCart(productId)
+      setCartData(cartData.filter((product) => product.id !== productId))
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error deleting cart:', error)
     }
-  }
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Material.id === productId)
   }
 
   useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-
-    fetchProductsAndCategories()
+    getCarts()
   }, [])
 
   const handleSelectAllChange = () => {
@@ -130,27 +111,31 @@ const Cart = () => {
   // Total harga produk
   // Total harga produk
   useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
+    const newTotal = cartData.reduce((acc, product) => {
       if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-        return acc + product.Material.price * quantity
+        const quantity = quantities[product.id] || product.quantity
+        return acc + product.Inventory.Material.price * quantity
       }
       return acc
     }, 0)
     setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts]) // Trigger calculation when these change
+  }, [checkedItems, quantities, cartData])
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: (prevQuantities[productId] || 1) + 1,
+      [productId]:
+        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) + 1,
     }))
   }
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
+      [productId]: Math.max(
+        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) - 1,
+        1,
+      ),
     }))
   }
 
@@ -160,7 +145,7 @@ const Cart = () => {
 
   const handleConfirm = () => {
     setModalVisible(false)
-    navigate('/confirmRec') // Use navigate instead of history.push
+    navigate('/app') // Use navigate instead of history.push
   }
 
   const handleCancel = () => {
@@ -171,13 +156,13 @@ const Cart = () => {
       <CRow className="mt-3">
         <CCard>
           <h3 className="fw-bold fs-4">Your Cart</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <CFormCheck
+          <div className='ms-auto'style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* <CFormCheck
               id="flexCheckDefault"
               label="Confirm All"
               checked={selectAll}
               onChange={handleSelectAllChange}
-            />
+            /> */}
             <CButton
               color="danger"
               onClick={handleDeleteAll}
@@ -188,29 +173,33 @@ const Cart = () => {
           </div>
 
           <CRow className="g-2">
-            {currentProducts.map((product, index) => (
+            {cartData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
-                    <CCol xs="1">
+                    {/* <CCol xs="1">
                       <CFormCheck
                         id={`product-checkbox-${product.id}`}
                         checked={checkedItems[product.id] || false}
-                        onChange={() => handleCheckboxChange(product.id, product.Material.price)}
+                        onChange={() =>
+                          handleCheckboxChange(product.id, product.Iventory.Material.price)
+                        }
                       />
-                    </CCol>
-                    <CCol xs="1">
+                    </CCol> */}
+                    <CCol xs="2">
                       <CCardImage
-                        src={product.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Material.description}
+                        src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                        alt={product.Inventory.Material.description}
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>
                     <CCol xs="6">
                       <div>
-                        <label className="fw-bold fs-6">{product.Material.description}</label>
+                        <label className="fw-bold fs-6">
+                          {product.Inventory.Material.description}
+                        </label>
                         <br></br>
-                        <label>{product.Material.materialNo}</label>
+                        <label>{product.Inventory.Material.materialNo}</label>
                       </div>
                     </CCol>
                     <CCol xs="2">
@@ -226,7 +215,8 @@ const Cart = () => {
                           -
                         </CButton>
                         <span className="mx-3">
-                          {quantities[product.id] || 1} ({product.Material?.uom || 'UOM'})
+                          {quantities[product.id] || product.quantity} (
+                          {product.Inventory.Material?.uom || 'UOM'})
                         </span>
                         <CButton
                           color="secondary"
@@ -244,7 +234,7 @@ const Cart = () => {
                         icon={cilTrash}
                         className="text-danger"
                         style={{ cursor: 'pointer' }}
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDeleteCart(product.id)}
                       />
                     </CCol>
                   </CRow>

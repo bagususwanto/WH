@@ -14,12 +14,12 @@ import {
   CFormSelect,
   CContainer,
   CFormTextarea,
-  CButtonGroup,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CButtonGroup,
   CImage,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
@@ -40,7 +40,7 @@ import {
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
-
+import Carousel from 'react-bootstrap/Carousel'
 import useVerify from '../../hooks/UseVerify'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -114,13 +114,6 @@ const Confirm = () => {
         const responseProducts = await getInventory()
         setProductsData(responseProducts.data)
         setCurrentProducts(responseProducts.data) // Set currentProducts here
-
-        // Initialize checkedItems with all products set to true
-        const initialCheckedItems = {}
-        responseProducts.data.forEach((product) => {
-          initialCheckedItems[product.id] = true // Set all to true
-        })
-        setCheckedItems(initialCheckedItems) // Update checkedItems state
       } catch (error) {
         console.error('Error fetching products:', error)
       }
@@ -135,17 +128,6 @@ const Confirm = () => {
 
     fetchProductsAndCategories()
   }, [])
-
-  useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Get quantity or default to 1
-        return acc + product.Material.price * quantity
-      }
-      return acc
-    }, 0)
-    setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts])
 
   const handleCheckout = () => {
     setModalVisible(true)
@@ -175,29 +157,26 @@ const Confirm = () => {
   const handleCheckboxChange = (productId) => {
     setCheckedItems((prev) => ({
       ...prev,
-      [productId]: !prev[productId], // Toggle the checked state
+      [productId]: !prev[productId],
     }))
   }
 
   const handleDelete = (productId) => {
     setCurrentProducts(currentProducts.filter((product) => product.id !== productId))
-    setCheckedItems((prev) => {
-      const { [productId]: _, ...newCheckedItems } = prev
-      return newCheckedItems
-    })
   }
-
+  const handleDeleteAll = () => {
+    setCurrentProducts([])
+  }
   // Total harga produk
   useEffect(() => {
     const newTotal = currentProducts.reduce((acc, product) => {
       if (checkedItems[product.id]) {
-        // Check if the product is selected
-        const quantity = quantities[product.id] || 1 // Use the quantity or default to 1
-        return acc + product.Material.price * quantity // Calculate price * quantity
+        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
+        return acc + product.Material.price * quantity
       }
       return acc
     }, 0)
-    setTotalAmount(newTotal) // Set the total amount
+    setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
   const handleIncreaseQuantity = (productId) => {
@@ -223,37 +202,14 @@ const Confirm = () => {
     }
   }
 
+  const totalItems = currentProducts.length
+
   return (
     <CContainer>
       <CRow>
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
-              {roleName === 'super admin' && (
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                  <img
-                    src="path-to-user-photo.jpg"
-                    alt="User Profile"
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      marginRight: '16px',
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                      <strong>FORM:</strong> ANDI (TEAM LEADER)
-                    </div>
-                    <div>
-                      <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                    </div>
-                    <div>
-                      <small>Request at 11:19</small>
-                    </div>
-                  </div>
-                </div>
-              )}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <CFormCheck
@@ -330,9 +286,7 @@ const Confirm = () => {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 className="mt-4"
               >
-                <label className="fw-bold mb-2">
-                  Total: Rp {totalAmount.toLocaleString('id-ID')}
-                </label>
+                <label className="fw-bold">Total Items: {totalItems} Items</label>
                 <CButton color="primary" onClick={handleCheckout}>
                   Order Now
                 </CButton>
@@ -344,7 +298,8 @@ const Confirm = () => {
                     <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
                     <br />
                     <label className="fw-bold">
-                      Total: Rp {totalAmount.toLocaleString('id-ID')}
+                      Total Items:{' '}
+                      {Object.keys(checkedItems).filter((id) => checkedItems[id]).length} Item
                     </label>
                   </CModalBody>
                   <CModalFooter>
@@ -367,7 +322,6 @@ const Confirm = () => {
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
-                    <CCol xs="1"></CCol>
                     <CCol xs="1">
                       <CCardImage
                         src={product.Material.img || 'https://via.placeholder.com/150'}
@@ -375,52 +329,17 @@ const Confirm = () => {
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>
-                    <CCol xs="6">
+                    <CCol xs="10">
                       <div>
-                        <label>
+                        <label className="fw-bold">
                           {product.Material.description} ({product.Material?.uom || 'UOM'}){' '}
                         </label>
                         <br></br>
-                        <label className="fw-bold fs-6">
-                          Rp {product.Material.price.toLocaleString('id-ID')}
-                        </label>
+                        <label className="fw-light fs-6">{product.Material.materialNo}</label>
                       </div>
                     </CCol>
-                    <CCol xs="2">
-                      <CButtonGroup role="group" aria-label="Basic outlined example">
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDecreaseQuantity(product.id)}
-                        >
-                          -
-                        </CButton>
-                        <CFormInput
-                          type="text"
-                          value={quantities[product.id] || 1}
-                          aria-label="Number input"
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        />
-
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleIncreaseQuantity(product.id)}
-                        >
-                          +
-                        </CButton>
-                      </CButtonGroup>
-                    </CCol>
-
-                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                      <CIcon
-                        icon={cilTrash}
-                        className="text-danger"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleDelete(product.id)}
-                      />
+                    <CCol xs="1">
+                      <label> 2 {product.Material.uom}</label>
                     </CCol>
                   </CRow>
                 </CCardBody>

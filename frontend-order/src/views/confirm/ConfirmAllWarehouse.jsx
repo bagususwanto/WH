@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+
 import {
   CCard,
   CCardBody,
@@ -38,8 +39,7 @@ import {
   cilPin,
   cilLocationPin,
 } from '@coreui/icons'
-
-import useManageStockService from '../../services/ProductService'
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const categoriesData = [
@@ -61,10 +61,12 @@ const iconMap = {
   Tools: cilKeyboard,
 }
 
-const ProductList = () => {
+const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
+  const [userData, setUserData] = useState([])
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('')
   const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
+  const { getProduct } = useProductService()
   const { getMasterData } = useMasterDataService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
@@ -76,27 +78,31 @@ const ProductList = () => {
   const navigate = useNavigate()
 
   const apiCategory = 'category'
+  const apiUser = 'user'
+
+  const handleStatusFilterClick = (status) => {
+    setSelectedStatusFilter(status)
+  }
+
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+  }
 
   const getProducts = async () => {
-    try {
-      const response = await getInventory()
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    }
+    const response = await getProduct(1)
+    setProductsData(response.data)
   }
 
-  const getCategories = async () => {
-    try {
-      const response = await getMasterData(apiCategory)
-      setCategoriesData(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
+  const getUsers = async () => {
+    const response = await getMasterData(apiUser)
+    setUserData(response.data)
   }
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Material.id === productId)
-  }
+
+  useEffect(() => {
+    getProducts()
+    getUsers()
+  }, [])
 
   useEffect(() => {
     const fetchProductsAndCategories = async () => {
@@ -173,73 +179,149 @@ const ProductList = () => {
   return (
     <>
       <CRow className="mt-1">
-        <CCard>
-          <h3 className="fw-bold fs-4">Approval Order</h3>
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <CButton className="me-2" color="secondary" variant="outline">
-              ALL
-            </CButton>
-            <CButton className="me-2" color="secondary" variant="outline">
-              Waiting Approve LH
-            </CButton>
-            <CButton className="me-2" color="secondary" variant="outline">
-              Waiting Approve SH
-            </CButton>
-            <CButton className="me-2" color="secondary" variant="outline">
-              APPROVED
-            </CButton>
-          </div>
-          <CRow className="g-1 mt-2">
-            {currentProducts.map((product, index) => (
-              <CCard className="h-80" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between ">
-                  <CRow className="align-items-center">
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <CCard style={{ border: 'none' }}>
+          <CCardBody>
+            {/* Sticky header */}
+            <div className="sticky-top bg-white p-1" style={{ zIndex: 10 }}>
+              <h3 className="fw-bold fs-4">Order Approval</h3>
+              {/* Button group */}
+              <div>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('confirmation')}
+                >
+                  Confirmation
+                </CButton>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('shopping')}
+                >
+                  Shopping
+                </CButton>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('readyToDelivery')}
+                >
+                  Ready To Delivery
+                </CButton>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('readyToPickup')}
+                >
+                  Ready to Pickup
+                </CButton>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('completed')}
+                >
+                  Completed
+                </CButton>
+                <CButton
+                  className="me-2"
+                  color="secondary"
+                  variant="outline"
+                  onClick={() => handleStatusFilterClick('rejected')}
+                >
+                  Rejected
+                </CButton>
+              </div>
+            </div>
+          </CCardBody>
+        </CCard>
+      </CRow>
+
+      {/* Container for product cards with scroll */}
+      <CRow className="mt-1">
+        <CCard style={{ border: 'none' }}>
+          <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+            <CRow className="g-1 mt-1">
+              {productsData.map((product, index) => (
+                <CCard className="h-78 mb-2" key={index}>
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <CRow className="align-items-center">
+                      {/* Informasi pesanan */}
                       <CCol>
                         <CIcon className="me-2" icon={cilCart} />
-                        <label className="me-2 fs-6" size="sm ">
-                          {' '}
-                          3 Oktober 2024
-                        </label>
-                        <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
-                          WAITING APPROVE
+                        <label className="me-2 fs-6">3 Oktober 2024</label>
+                        <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                          ON PROCESS
                         </CBadge>
+                        <label className="me-2 fw-light">X21000000000/20/20</label>
+                      </CCol>
 
-                        <label className=" me-2 fw-light ">X21000000000/20/20</label>
-                      </CCol>
-                    </div>
+                      {/* Product and user information */}
+                      <CRow xs="1">
+                        <CCol xs="1">
+                          {userData.map((user) => (
+                            <CCardImage
+                              key={user.id}
+                              src={user.img}
+                              alt={user.name}
+                              style={{ height: '100%', width: '100%' }}
+                            />
+                          ))}
+                        </CCol>
+                        <CCol xs="4">
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div>
+                              <strong>FORM:</strong> ANDI (TEAM LEADER)
+                            </div>
+                            <div>
+                              <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                            </div>
+                            <div>
+                              <small>Request at 11:19</small>
+                            </div>
+                          </div>
+                        </CCol>
+                        <CCol xs="4">
+                          <label>{product.Material.description}</label>
+                          <br />
+                          <label className="fw-bold fs-6">Total: 4 Item</label>
+                        </CCol>
+                        <CCol className="text-end">
+                          <label className="fw-bold fs-6">
+                            Rp {product.Material.price.toLocaleString('id-ID')}
+                          </label>
+                          <br />
+                          <label className="me-2">WBS : 20000000</label>
+                        </CCol>
+                      </CRow>
 
-                    <CRow xs="1" className="d-flex justify-content-between my-2 ">
-                      <CCol xs="1">
-                        <CAvatar src={profile} size="md" />
-                      </CCol>
-                      <CCol xs="4">
-                        <label>{product.Material.description}</label>
-                        <br />
-                        <label className="fw-bold fs-6">Total: 4 Item</label>
-                      </CCol>
-                      <CCol className="text-end">
-                        <label className="me-2 ">WBS : 20000000</label>
-                      </CCol>
+                      {/* View Detail button */}
+                      <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                        <CCol xs={4} className="d-flex justify-content-end">
+                          <CButton
+                            onClick={() => handleViewProduct(product)}
+                            color="primary"
+                            size="sm"
+                          >
+                            {selectedStatusFilter
+                              ? selectedStatusFilter.charAt(0).toUpperCase() +
+                                selectedStatusFilter.slice(1) +
+                                ' Detail'
+                              : 'View Detail Order'}
+                          </CButton>
+                        </CCol>
+                      </CRow>
                     </CRow>
+                  </CCardBody>
+                </CCard>
+              ))}
+            </CRow>
+          </div>
 
-                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                      <CCol xs={4} className="d-flex justify-content-end">
-                        <CButton
-                          onClick={() => handleViewHistoryOrder(product)}
-                          color="primary"
-                          size="sm"
-                        >
-                          View Detail Order
-                        </CButton>
-                      </CCol>
-                    </CRow>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-          </CRow>
-
+          {/* Modal for product details */}
           <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
             <CModalHeader>
               <CModalTitle>Product Details</CModalTitle>
@@ -277,16 +359,17 @@ const ProductList = () => {
                             <label className="d-flex flex-column justify-content-between fs-6">
                               Status:
                             </label>
-                            <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
+                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                               ON PROCESS
                             </CBadge>
                           </div>
                         </CCol>
-
-                        <hr></hr>
                       </CRow>
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
 
+                      <hr />
+
+                      {/* History Order Timeline */}
+                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
                       <div
                         style={{
                           display: 'flex',
@@ -362,4 +445,4 @@ const ProductList = () => {
   )
 }
 
-export default ProductList
+export default ApproveAll

@@ -38,7 +38,7 @@ import {
   cilPin,
   cilLocationPin,
 } from '@coreui/icons'
-import Carousel from 'react-bootstrap/Carousel'
+
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 

@@ -15,18 +15,6 @@ const useCartService = () => {
 
   const getCart = async (id) => {
     try {
-      const response = await axiosJWT.get(`/product/${id}?page=1&limit=20`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      return response
-    } catch (error) {
-      handleError(error, 'Error fetching inventory:')
-    }
-  }
-  const postCart = async () => {
-    try {
       const response = await axiosJWT.get('/cart', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -37,9 +25,21 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const updateCart = async () => {
+  const postCart = async (data) => {
     try {
-      const response = await axiosJWT.get('/cart', {
+      const response = await axiosJWT.post('/cart', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
+  const updateCart = async (data) => {
+    try {
+      const response = await axiosJWT.put('/cart',data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,26 +49,25 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const deleteCart = async () => {
+  const deleteCart = async (data) => {
     try {
-      const response = await axiosJWT.get('/cart', {
+      const response = await axiosJWT.get('/cart',data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-      return response
+      return response.data // Returning the data instead of the whole response
     } catch (error) {
-      handleError(error, 'Error fetching inventory:')
+      handleError(error, `Error delete data for ID ${id}:`)
     }
   }
-  
- 
+
+
   return {
     getCart,
     postCart,
     updateCart,
     deleteCart,
-
   }
 }
 
