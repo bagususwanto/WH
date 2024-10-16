@@ -34,6 +34,7 @@ import {
   cilHeart,
   cilArrowRight,
   cilArrowLeft,
+  cilLifeRing,
 } from '@coreui/icons'
 
 import useManageStockService from '../../services/ProductService'
@@ -47,7 +48,7 @@ const iconMap = {
   'Oper Supp.': cilCart,
   'Support Oper': cilInbox,
   'Raw.Matr': cilFax,
-  'Spare Part': cilDeaf,
+  'Spare Part': cilLifeRing,
   Tools: cilKeyboard,
 }
 
