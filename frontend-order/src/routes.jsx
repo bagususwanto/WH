@@ -7,6 +7,7 @@ const Profile = React.lazy(() => import('./views/profile/Profile'))
 const Wishlist = React.lazy(() => import('./views/wishllist/Wishlist'))
 const History = React.lazy(() => import('./views/history/History'))
 const HistoryApp = React.lazy(() => import('./views/history/HistoryApprove'))
+const ConfirmDel = React.lazy(() => import('./views/confirm/ConfirmDelivery'))
 const ConfirmAll = React.lazy(() => import('./views/confirm/ConfirmAllWarehouse'))
 const ApproveAll = React.lazy(() => import('./views/confirm/ConfirmAllApprove'))
 const ConfirmApp = React.lazy(() => import('./views/confirm/ConfirmApprove'))
@@ -28,6 +29,7 @@ const routes = [
   { path: '/confirmall', name: 'Confirmall', element: ConfirmAll},
   { path: '/confirmapp', name: 'Confirmapp', element: ConfirmApp},
   { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec},
+  { path: '/confirmdel', name: 'ConfirmDel', element: ConfirmDel},
 
   
 ]
