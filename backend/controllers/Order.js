@@ -439,7 +439,7 @@ export const getCheckoutData = async (cartIds) => {
                 },
                 {
                   model: Plant,
-                  whereL: { flag: 1 },
+                  where: { flag: 1 },
                 },
               ],
             },

@@ -41,15 +41,6 @@ import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
 
-const categoriesData = [
-  { id: 1, categoryName: 'Office Supp.' },
-  { id: 2, categoryName: 'Oper Supp.' },
-  { id: 3, categoryName: 'Support Oper' },
-  { id: 4, categoryName: 'Raw.Matr' },
-  { id: 5, categoryName: 'Spare Part' },
-  { id: 6, categoryName: 'Tools' },
-]
-
 // Icon mapping based on your category names
 const iconMap = {
   'Office Supp.': cilFolder,
@@ -119,9 +110,11 @@ const Home = () => {
   }
 
   useEffect(() => {
-    getProducts()
+    if (warehouse && warehouse.id) {
+      getProducts()
+      getFavorite()
+    }
     getCategories()
-    getFavorite()
   }, [warehouse])
 
   const currentProducts = useMemo(() => {
@@ -227,34 +220,6 @@ const Home = () => {
     }
   }
 
-  const settings = {
-    dots: true,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-    ],
-  }
-
   return (
     <>
       <CRow>
@@ -282,168 +247,162 @@ const Home = () => {
       </CRow>
 
       {/* Your Favorite Item */}
-      <CRow className="mt-3">
-        <CCard className="d-block w-100 responsive-container">
-          <h3 className="fw-bold fs-4">Your Favorite Item</h3>
+      <CRow className="mt-4">
+        <h4>Your Favorite Item</h4>
 
-          {/* Container for displaying product cards */}
-          <CRow className="position-relative p-">
-            <CButton
-              className="position-absolute start-0"
-              color="light"
-              onClick={handlePrevPage}
-              disabled={currentPage === 0}
-              style={{
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10, // Memastikan tombol ini di atas elemen lain
-              }}
-            >
-              <CIcon icon={cilArrowLeft} />
-            </CButton>
+        {/* Container for displaying product cards */}
+        <CRow className="position-relative">
+          <CButton
+            className="position-absolute start-0"
+            color="light"
+            onClick={handlePrevPage}
+            disabled={currentPage === 0}
+            style={{
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10, // Memastikan tombol ini di atas elemen lain
+            }}
+          >
+            <CIcon icon={cilArrowLeft} />
+          </CButton>
 
-            <CRow className="g-2">
-              {wishlistData.map((product) => (
-                <CCol
-                  xs="6"
-                  sm="6"
-                  md="3"
-                  lg="3"
-                  xl="2"
-                  key={product.Inventory.Material.id}
-                  className="mb-3"
-                >
-                  <CCard className="h-100">
-                    <CCardImage
-                      orientation="top"
-                      src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
-                      alt={product.Inventory.Material.description}
-                      className="img-fluid custom-card-image" // Menggunakan kelas CoreUI dan kelas kustom
-                    />
-                    <CCardBody className="d-flex flex-column justify-content-between">
-                      <div>
-                        <CCardTitle style={{ fontSize: '14px' }}>
-                          {product.Inventory.Material.description}
-                        </CCardTitle>
-                        <CCardTitle style={{ fontSize: '12px' }}>
-                          Rp{' '}
-                          {product.Inventory.Material.price
-                            ? product.Inventory.Material.price.toLocaleString('id-ID')
-                            : 'Price not available'}
-                        </CCardTitle>
+          <CRow className="g-2">
+            {wishlistData.map((product) => (
+              <CCol
+                xs="6"
+                sm="6"
+                md="3"
+                lg="3"
+                xl="2"
+                key={product.Inventory.Material.id}
+                className="mb-3"
+              >
+                <CCard className="h-100">
+                  <CCardImage
+                    orientation="top"
+                    src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                    alt={product.Inventory.Material.description}
+                    className="img-fluid custom-card-image" // Menggunakan kelas CoreUI dan kelas kustom
+                  />
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <div>
+                      <CCardTitle style={{ fontSize: '14px' }}>
+                        {product.Inventory.Material.description}
+                      </CCardTitle>
+                      <CCardTitle style={{ fontSize: '12px' }}>
+                        Rp{' '}
+                        {product.Inventory.Material.price
+                          ? product.Inventory.Material.price.toLocaleString('id-ID')
+                          : 'Price not available'}
+                      </CCardTitle>
+                    </div>
+
+                    <CRow className="mt-auto align-items-center">
+                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <CCol sm="Auto" className="mb-2">
+                          {calculateStockStatus(product) === 'Out of Stock' ? (
+                            <>
+                              <CBadge color="secondary" className="me-2">
+                                {calculateStockStatus(product)}
+                              </CBadge>
+
+                              <CButton
+                                className="box me-4"
+                                color="secondary"
+                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
+                                style={{
+                                  backgroundColor: isInWishlist(product.Inventory.Material.id)
+                                    ? 'red'
+                                    : 'white',
+                                  border: '1px solid white',
+                                  color: isInWishlist(product.Inventory.Material.id)
+                                    ? 'white'
+                                    : 'black',
+                                  borderRadius: '50%',
+                                }}
+                              >
+                                <CIcon
+                                  icon={cilHeart}
+                                  className={
+                                    isInWishlist(product.Inventory.Material.id)
+                                      ? ''
+                                      : 'border border-secondary rounded-circle'
+                                  }
+                                  style={{ fontSize: '1rem' }}
+                                />
+                              </CButton>
+                            </>
+                          ) : (
+                            <>
+                              <CButton
+                                className="box btn-sm"
+                                color="primary"
+                                style={{
+                                  padding: '5px 10px',
+                                  fontSize: '12px',
+                                  marginRight: '10px',
+                                }} // Custom styling for smaller button
+                                onClick={() => handleModalCart(product)}
+                              >
+                                Add to Cart
+                              </CButton>
+
+                              <CButton
+                                className="box"
+                                color="secondary"
+                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
+                                style={{
+                                  backgroundColor: isInWishlist(product.Inventory.Material.id)
+                                    ? 'red'
+                                    : 'white',
+                                  border: '1px solid white',
+                                  color: isInWishlist(product.Inventory.Material.id)
+                                    ? 'white'
+                                    : 'black',
+                                  borderRadius: '50%',
+                                }}
+                              >
+                                <CIcon
+                                  icon={cilHeart}
+                                  className={
+                                    isInWishlist(product.Inventory.Material.id)
+                                      ? ''
+                                      : 'border border-secondary rounded-circle'
+                                  }
+                                  style={{ fontSize: '1rem' }}
+                                />
+                              </CButton>
+                            </>
+                          )}
+                        </CCol>
                       </div>
-
-                      <CRow className="mt-auto align-items-center">
-                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                          <CCol sm="Auto" className="mb-2">
-                            {calculateStockStatus(product) === 'Out of Stock' ? (
-                              <>
-                                <CBadge color="secondary" className="me-2">
-                                  {calculateStockStatus(product)}
-                                </CBadge>
-
-                                <CButton
-                                  className="box me-4"
-                                  color="secondary"
-                                  onClick={() =>
-                                    handleToggleWishlist(product.Inventory.Material.id)
-                                  }
-                                  style={{
-                                    backgroundColor: isInWishlist(product.Inventory.Material.id)
-                                      ? 'red'
-                                      : 'white',
-                                    border: '1px solid white',
-                                    color: isInWishlist(product.Inventory.Material.id)
-                                      ? 'white'
-                                      : 'black',
-                                    borderRadius: '50%',
-                                  }}
-                                >
-                                  <CIcon
-                                    icon={cilHeart}
-                                    className={
-                                      isInWishlist(product.Inventory.Material.id)
-                                        ? ''
-                                        : 'border border-secondary rounded-circle'
-                                    }
-                                    style={{ fontSize: '1rem' }}
-                                  />
-                                </CButton>
-                              </>
-                            ) : (
-                              <>
-                                <CButton
-                                  className="box btn-sm"
-                                  color="primary"
-                                  style={{
-                                    padding: '5px 10px',
-                                    fontSize: '12px',
-                                    marginRight: '10px',
-                                  }} // Custom styling for smaller button
-                                  onClick={() => handleModalCart(product)}
-                                >
-                                  Add to Cart
-                                </CButton>
-
-                                <CButton
-                                  className="box"
-                                  color="secondary"
-                                  onClick={() =>
-                                    handleToggleWishlist(product.Inventory.Material.id)
-                                  }
-                                  style={{
-                                    backgroundColor: isInWishlist(product.Inventory.Material.id)
-                                      ? 'red'
-                                      : 'white',
-                                    border: '1px solid white',
-                                    color: isInWishlist(product.Inventory.Material.id)
-                                      ? 'white'
-                                      : 'black',
-                                    borderRadius: '50%',
-                                  }}
-                                >
-                                  <CIcon
-                                    icon={cilHeart}
-                                    className={
-                                      isInWishlist(product.Inventory.Material.id)
-                                        ? ''
-                                        : 'border border-secondary rounded-circle'
-                                    }
-                                    style={{ fontSize: '1rem' }}
-                                  />
-                                </CButton>
-                              </>
-                            )}
-                          </CCol>
-                        </div>
-                      </CRow>
-                    </CCardBody>
-                  </CCard>
-                </CCol>
-              ))}
-            </CRow>
-
-            <CButton
-              className="position-absolute end-0"
-              color="light"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages - 1}
-              style={{
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10, // Memastikan tombol ini di atas elemen lain
-              }}
-            >
-              <CIcon icon={cilArrowRight} />
-            </CButton>
+                    </CRow>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            ))}
           </CRow>
-        </CCard>
+
+          <CButton
+            className="position-absolute end-0"
+            color="light"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages - 1}
+            style={{
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10, // Memastikan tombol ini di atas elemen lain
+            }}
+          >
+            <CIcon icon={cilArrowRight} />
+          </CButton>
+        </CRow>
       </CRow>
 
       {/* HISTORY */}
@@ -519,10 +478,10 @@ const Home = () => {
 
       {/* Order By Category */}
       <CRow className="mt-3">
-        <CCard className="d-block w-100 responsive-container">
+        <CCard className="d-block w-100 responsive-container shadow-sm">
           <CCallout
             color="primary"
-            style={{ width: '280px', padding: '4px', marginBottom: '20px', marginLeft: '20px' }}
+            style={{ width: '280px', padding: '4px', marginBottom: '20px' }}
           >
             <b>Order By Category</b>
           </CCallout>
@@ -564,7 +523,7 @@ const Home = () => {
       </CRow>
 
       {/* Daftar Produk */}
-      <CRow>
+      <CRow className="mt-3">
         {filteredProducts.slice(0, visibleCount).map((product) => (
           <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
             <CCard className="h-100">

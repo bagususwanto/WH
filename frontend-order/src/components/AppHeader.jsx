@@ -111,7 +111,9 @@ const AppHeader = () => {
   }, []) // Empty dependency array ensures it only runs once
 
   useEffect(() => {
-    getProducts()
+    if (warehouse && warehouse.id) {
+      getProducts()
+    }
   }, [warehouse])
 
   useEffect(() => {
@@ -340,26 +342,9 @@ const AppHeader = () => {
             </CButton>
           </CModalFooter>
         </CModal>
-        {/* Confirmation modal to confirm the selection */}
-        <CModal visible={confirmationModalVisible} onClose={handleCloseConfirmationModal}>
-          <CModalHeader>
-            <CModalTitle>Confirm Warehouse Change</CModalTitle>
-          </CModalHeader>
-          <CModalBody>
-            Are you sure you want to switch to <b>{temporaryWarehouse}</b>?
-          </CModalBody>
-          <CModalFooter>
-            <CButton color="secondary" onClick={handleCloseConfirmationModal}>
-              Cancel
-            </CButton>
-            <CButton color="primary" onClick={handleSaveChanges}>
-              Yes, Change
-            </CButton>
-          </CModalFooter>
-        </CModal>
       </CContainer>
 
-      <CContainer className="border-bottom px-4 mb-2" fluid>
+      <CContainer className="border-bottom px-4" fluid>
         <CCol sm={2}>
           <a href="/" className="d-flex align-items-center">
             <img
