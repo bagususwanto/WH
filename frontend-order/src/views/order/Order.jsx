@@ -52,15 +52,12 @@ const ProductList = () => {
 
   const getCarts = async () => {
     try {
-      const response = await getCart()
+      const response = await getCart(warehouse.id)
       setCart(response.data)
     } catch (error) {
       console.error('Error fetching cart:', error)
     }
   }
-  useEffect(() => {
-    getCarts()
-  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -73,6 +70,7 @@ const ProductList = () => {
       } else {
         getProducts()
       }
+      getCarts()
     }
 
     getCategories()

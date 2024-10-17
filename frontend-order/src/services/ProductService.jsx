@@ -51,10 +51,24 @@ const useProductService = () => {
     }
   }
 
+  const getAllProduct = async (id) => {
+    try {
+      const response = await axiosJWT.get(`/product-all/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   return {
     getProduct,
     getCategory,
     getProductByQuery,
+    getAllProduct,
   }
 }
 

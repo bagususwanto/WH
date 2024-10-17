@@ -55,9 +55,10 @@ import { GlobalContext } from '../context/GlobalProvider'
 const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [productsData, setProductsData] = useState([])
+  const [allProductsData, setAllProductsData] = useState([])
   const [warehouseData, setWarehouseData] = useState([])
   const { getMasterData } = useMasterDataService()
-  const { getProduct } = useProductService()
+  const { getProduct, getAllProduct } = useProductService()
   const { getCartCount, getCart } = useCartService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
@@ -87,6 +88,15 @@ const AppHeader = () => {
     try {
       const response = await getProduct(warehouse.id)
       setProductsData(response.data) // Assuming response.data is an array of products
+    } catch (error) {
+      console.error('Failed to fetch products:', error) // Log any errors
+    }
+  }
+
+  const getAllProducts = async () => {
+    try {
+      const response = await getAllProduct(warehouse.id)
+      setAllProductsData(response.data) // Assuming response.data is an array of products
     } catch (error) {
       console.error('Failed to fetch products:', error) // Log any errors
     }
@@ -138,6 +148,7 @@ const AppHeader = () => {
       getProducts()
       getCartCounts()
       getCarts()
+      getAllProducts()
     }
   }, [warehouse])
 
@@ -165,7 +176,7 @@ const AppHeader = () => {
     if (!query) return []
     const lowerCaseQuery = query.toLowerCase()
 
-    return productsData.filter((product) => {
+    return allProductsData.filter((product) => {
       const productName = product.Material.description?.toLowerCase() // Use optional chaining
       const productMaterialNumber = product.Material.materialNo?.toLowerCase() // Use optional chaining
 
