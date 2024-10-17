@@ -28,7 +28,7 @@ const useProductService = () => {
   const getProductByCategory = async (warehouseId, categoryId, page) => {
     try {
       const response = await axiosJWT.get(
-        `/product-category/${warehouseId}/${categoryId}?${page}&limit=24`,
+        `/product-category/${warehouseId}/${categoryId}?page=${page}&limit=24`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
