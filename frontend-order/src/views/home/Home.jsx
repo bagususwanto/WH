@@ -90,14 +90,7 @@ const Home = () => {
       const response = await getProductByCategory(warehouse.id, categoryId, page)
       const newProducts = response.data
 
-      setProducts((prevProducts) => {
-        // Filter produk baru yang belum ada di daftar produk sebelumnya
-        const uniqueProducts = newProducts.filter(
-          (newProduct) =>
-            !prevProducts.some((prevProduct) => prevProduct.Material.id === newProduct.Material.id),
-        )
-        return [...prevProducts, ...uniqueProducts]
-      })
+      setProducts((prevProducts) => [...prevProducts, ...newProducts])
 
       // Set 'hasMore' berdasarkan apakah ada produk yang tersisa untuk di-load
       setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
@@ -149,9 +142,9 @@ const Home = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      if (selectedCategory && selectedCategory.id) {
-        getProductByCategories(selectedCategory.id, 1)
-      }
+      // if (selectedCategory && selectedCategory.id) {
+      //   getProductByCategories(selectedCategory.id, 1)
+      // }
       getFavorite()
       getMyorders()
     }
@@ -173,6 +166,7 @@ const Home = () => {
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)
     setProducts([])
+    getProductByCategories(category.id, 1)
   }
 
   const handleQuantityChange = (action) => {
@@ -218,6 +212,7 @@ const Home = () => {
   const handleLoadMore = () => {
     // setVisibleCount(visibleCount + 12) // Load 12 more products
     const nextPage = page + 1
+    setPage(nextPage)
     getProductByCategories(selectedCategory ? selectedCategory.id : categoriesData[0].id, nextPage)
   }
 
