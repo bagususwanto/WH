@@ -135,18 +135,20 @@ const Home = () => {
   }, [])
 
   useEffect(() => {
-    if (warehouse && warehouse.id) {
-      if (categoriesData && categoriesData.length > 0) {
-        getProductByCategories(categoriesData[0].id, 1)
-      }
+    if (categoriesData && categoriesData.length > 0) {
+      getProductByCategories(categoriesData[0].id, 1)
+    }
+  }, [categoriesData])
 
+  useEffect(() => {
+    if (warehouse && warehouse.id) {
       if (selectedCategory && selectedCategory.id) {
         getProductByCategories(selectedCategory.id, 1)
       }
       getFavorite()
       getMyorders()
     }
-  }, [warehouse, categoriesData, selectedCategory])
+  }, [warehouse, selectedCategory])
 
   // const currentProducts = useMemo(() => {
   //   const start = currentPage * productsPerPage
