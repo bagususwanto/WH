@@ -343,7 +343,7 @@ const Confirm = () => {
                   Total: Rp {totalAmount.toLocaleString('id-ID')}
                 </label>
                 <CButton color="primary" onClick={handleCheckout}>
-                 Approve Now
+                  Approve Now
                 </CButton>
 
                 <CModal visible={modalVisible} onClose={handleCancel}>
@@ -412,8 +412,10 @@ const Confirm = () => {
                         </label>
                       </div>
                     </CCol>
-                    <CCol xs="2">
-                      <CButtonGroup role="group" aria-label="Basic outlined example">
+                    <CCol xs="3">
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                      >
                         <CButton
                           color="secondary"
                           variant="outline"
@@ -437,7 +439,9 @@ const Confirm = () => {
                         >
                           +
                         </CButton>
-                      </CButtonGroup>
+
+                        <span className="px-2">({product.Material?.uom || 'UOM'})</span>
+                      </div>
                     </CCol>
 
                     <CCol xs="1" className="d-flex justify-content-end align-items-center">

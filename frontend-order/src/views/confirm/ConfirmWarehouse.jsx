@@ -28,6 +28,7 @@ import { cilHome, cilCart, cilTrash, cilLocationPin, cilArrowBottom } from '@cor
 import useVerify from '../../hooks/UseVerify'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import '../../scss/modal.scss'
 
 const Confirm = () => {
   const [productsData, setProductsData] = useState([])
@@ -46,7 +47,7 @@ const Confirm = () => {
   const [iswbs, setIswbs] = useState(true)
   const [quantities, setQuantities] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
-
+  const [modalConfirm, setModalConfirm] = useState(false)
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
@@ -79,6 +80,14 @@ const Confirm = () => {
   const handleCancel = () => {
     setModalVisible(false)
   }
+  const handleModalCart = (product) => {
+    console.log(product)
+    setSelectedProduct(product)
+    setModalConfirm(true)
+  }
+  const handleCloseModalOrder = () => {
+    setModalConfirm(false)
+  }
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -100,6 +109,7 @@ const Confirm = () => {
     setRejectionReason(e.target.value)
   }
   const handleConfirmRejection = () => {
+    console.log('test')
     // Update the product state with the rejection flag and reason
     setCurrentProducts((prevProducts) =>
       prevProducts.map((product) =>
@@ -307,7 +317,7 @@ const Confirm = () => {
                   <CRow className="align-items-center">
                     <CCol xs="1">
                       <CCardImage
-                        src={product.Material.img || 'https://via.placeholder.com/150'}
+                        src={'https://via.placeholder.com/150'}
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>
@@ -356,33 +366,47 @@ const Confirm = () => {
                           icon={cilTrash}
                           className="text-danger"
                           style={{ cursor: 'pointer' }}
-                          onClick={() => handleDeleteClick(product.id)} // Trigger the modal on trash click
+                          onClick={() => handleModalCart(product)}
                         />
                       )}
                     </CCol>
                   </CRow>
                   <CRow>
-                    <CModal visible={isModalVisible} onClose={() => setIsModalVisible(false)}>
-                      <CModalHeader>
-                        <CModalTitle>Provide Rejection Reason</CModalTitle>
-                      </CModalHeader>
-                      <CModalBody>
-                        <CFormInput
-                          type="text"
-                          placeholder="Enter rejection reason"
-                          value={rejectionReason}
-                          onChange={handleInputChange}
-                        />
-                      </CModalBody>
-                      <CModalFooter>
-                        <CButton color="secondary" onClick={() => setIsModalVisible(false)}>
-                          Cancel
-                        </CButton>
-                        <CButton color="danger" onClick={handleConfirmRejection}>
-                          Confirm
-                        </CButton>
-                      </CModalFooter>
-                    </CModal>
+                    {/* modal */}
+                    {selectedProduct && (
+                      <CModal visible={modalConfirm} onClose={handleCloseModalOrder}>
+                        <CModalHeader>
+                          <CModalTitle>Provide Rejection Reason</CModalTitle>
+                        </CModalHeader>
+                        <CModalBody>
+                          <CCol md="4">
+                            <CImage
+                              src={'https://via.placeholder.com/150'}
+                              // alt={selectedProduct.Material.description}
+                              fluid
+                              className="rounded"
+                            />
+                          </CCol>
+                          <CCol md="8">
+                            <strong>{selectedProduct.Material.description}</strong>
+                            <p> {selectedProduct.Material.materialNo}</p>
+                            <div className="d-flex align-items-center"></div>
+                          </CCol>
+                          <CFormInput
+                            type="text"
+                            placeholder="Enter rejection reason"
+                            value={rejectionReason}
+                            onChange={handleInputChange}
+                          />
+                        </CModalBody>
+                        <CModalFooter>
+                         
+                          <CButton color="danger" onClick={handleConfirmRejection}>
+                            Reject
+                          </CButton>
+                        </CModalFooter>
+                      </CModal>
+                    )}
                   </CRow>
                   {/* Show the rejection reason under the product if rejected */}
                   {product.rejected && (

@@ -43,6 +43,9 @@ import {
   cilCarAlt,
   cilPin,
   cilLocationPin,
+  cilClipboard,
+  cilTruck,
+  cilTask,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -319,7 +322,7 @@ const ApproveAll = () => {
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
                             <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
+                              <CIcon className="me-2" icon={cilClipboard} />
                               <label className="me-2 fs-6">3 Oktober 2024</label>
                               <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                                 ON PROCESS
@@ -399,7 +402,7 @@ const ApproveAll = () => {
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
                             <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
+                              <CIcon className="me-2" icon={cilTruck} />
                               <label className="me-2 fs-6">3 Oktober 2024</label>
                               <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                                 ON PROCESS
@@ -479,7 +482,7 @@ const ApproveAll = () => {
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
                             <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
+                              <CIcon className="me-2" icon={cilTruck} />
                               <label className="me-2 fs-6">3 Oktober 2024</label>
                               <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                                 ON PROCESS
@@ -558,7 +561,7 @@ const ApproveAll = () => {
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
                             <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
+                              <CIcon className="me-2" icon={cilTask} />
                               <label className="me-2 fs-6">3 Oktober 2024</label>
                               <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                                 ON PROCESS
