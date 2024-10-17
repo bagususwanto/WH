@@ -147,7 +147,7 @@ export const updateCartItem = async (req, res) => {
 export const removeFromCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { id } = req.body;
+    const id = req.params.id;
 
     const cartItem = await Cart.findOne({ where: { userId, id } });
 
