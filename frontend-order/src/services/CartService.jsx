@@ -39,7 +39,7 @@ const useCartService = () => {
   }
   const updateCart = async (data) => {
     try {
-      const response = await axiosJWT.put('/cart',data, {
+      const response = await axiosJWT.put('/cart', data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -51,7 +51,7 @@ const useCartService = () => {
   }
   const deleteCart = async (data) => {
     try {
-      const response = await axiosJWT.get('/cart',data, {
+      const response = await axiosJWT.get('/cart-delete', data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -75,13 +75,12 @@ const useCartService = () => {
     }
   }
 
-
   return {
     getCart,
     postCart,
     updateCart,
     deleteCart,
-    getCartCount
+    getCartCount,
   }
 }
 

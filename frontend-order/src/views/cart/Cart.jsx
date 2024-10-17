@@ -52,7 +52,7 @@ const Cart = () => {
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
-  const [selectedProduct, setSelectedProduct] = useState(null)
+
   const [modalVisible, setModalVisible] = useState(false)
 
   const [currentProducts, setCurrentProducts] = useState([])
@@ -75,7 +75,7 @@ const Cart = () => {
   const handleDeleteCart = async (productId) => {
     try {
       console.log(productId)
-      await deleteCart(productId)
+      await deleteCart({ id: productId })
       setCartData(cartData.filter((product) => product.id !== productId))
     } catch (error) {
       console.error('Error deleting cart:', error)
@@ -83,7 +83,9 @@ const Cart = () => {
   }
 
   useEffect(() => {
-    getCarts()
+    if (warehouse && warehouse.id) {
+      getCarts()
+    }
   }, [warehouse])
 
   // Debounce Effect to Batch API Requests
@@ -101,7 +103,7 @@ const Cart = () => {
         const quantity = debouncedQuantities[productId]
         try {
           const updateCartItem = {
-            id: productId,
+            inventoryId: productId,
             quantity: quantity,
           }
           await updateCart(updateCartItem)
@@ -117,29 +119,6 @@ const Cart = () => {
     }
   }, [debouncedQuantities, updateCart])
 
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
-
-    // Update all individual checkboxes
-    const updatedCheckedItems = currentProducts.reduce((acc, product) => {
-      acc[product.id] = newSelectAll
-      return acc
-    }, {})
-    setCheckedItems(updatedCheckedItems)
-  }
-
-  // Handle individual checkbox change
-  const handleCheckboxChange = (productId) => {
-    setCheckedItems((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }))
-  }
-
-  const handleDelete = (productId) => {
-    setCurrentProducts(currentProducts.filter((product) => product.id !== productId))
-  }
   const handleDeleteAll = () => {
     setCurrentProducts([])
   }
