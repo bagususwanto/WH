@@ -49,16 +49,16 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const deleteCart = async (data) => {
+  const deleteCart = async (id) => {
     try {
-      const response = await axiosJWT.get('/cart-delete', data, {
+      const response = await axiosJWT.delete(`/cart/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       return response.data // Returning the data instead of the whole response
     } catch (error) {
-      handleError(error, `Error delete data for ID ${id}:`)
+      handleError(error, `Error deleting data for ID ${id}:`)
     }
   }
 

@@ -185,6 +185,8 @@ const ProductList = () => {
           quantity: quantity,
         }
 
+        const arraycartIds = []
+
         // Post the new cart item to the API (use postCart)
         const addToCartResponse = await postCart(newCartItem)
         if (addToCartResponse) {
@@ -263,23 +265,19 @@ const ProductList = () => {
                     <CCol sm="auto" className="ms-2">
                       <CButton
                         className="box"
-                        color="secondary"
+                        color="black"
                         onClick={() => handleToggleWishlist(product.Material.id)}
                         style={{
                           backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
-                          border: '1px solid white',
+                          border: '1px solid gray',
                           color: isInWishlist(product.Material.id) ? 'white' : 'black',
                           borderRadius: '50%',
                         }}
                       >
                         <CIcon
                           icon={cilHeart}
-                          className={
-                            isInWishlist(product.Material.id)
-                              ? ''
-                              : 'border border-secondary rounded-circle'
-                          }
-                          style={{ fontSize: '1rem' }}
+                          className={isInWishlist(product.Material.id)}
+                          size="lg"
                         />
                       </CButton>
                     </CCol>
@@ -323,12 +321,12 @@ const ProductList = () => {
                   >
                     -
                   </CButton>
-                  <span className="mx-3">
-                    {quantity} ({selectedProduct.Material.uom})
-                  </span>
+                  <span className="mx-3">{quantity}</span>
                   <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
                     +
                   </CButton>
+
+                  <span className="px-2"> ({selectedProduct.Material.uom})</span>
                 </div>
               </CCol>
             </CRow>
