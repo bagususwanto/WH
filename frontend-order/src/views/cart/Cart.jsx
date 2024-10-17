@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import '../../scss/home.scss'
@@ -37,6 +37,7 @@ import {
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useCartService from '../../services/CartService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 // Icon mapping based on your category names
 
@@ -55,6 +56,7 @@ const Cart = () => {
   const [modalVisible, setModalVisible] = useState(false)
 
   const [currentProducts, setCurrentProducts] = useState([])
+  const { warehouse } = useContext(GlobalContext)
 
   const navigate = useNavigate()
 
@@ -62,8 +64,9 @@ const Cart = () => {
 
   const getCarts = async () => {
     try {
-      const response = await getCart()
+      const response = await getCart(warehouse.id)
       setCartData(response.data)
+      console.log(cartData)
     } catch (error) {
       console.error('Error fetching cart:', error)
     }
@@ -81,7 +84,7 @@ const Cart = () => {
 
   useEffect(() => {
     getCarts()
-  }, [])
+  }, [warehouse])
 
   // Debounce Effect to Batch API Requests
   useEffect(() => {
@@ -205,7 +208,7 @@ const Cart = () => {
   return (
     <>
       <CRow className="mt-3">
-      <CCard style={{ border: 'none' }}>
+        <CCard style={{ border: 'none' }}>
           <h3 className="fw-bold fs-4">Your Cart</h3>
           <div
             className="ms-auto"
