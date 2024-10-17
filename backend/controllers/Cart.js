@@ -113,10 +113,10 @@ export const addToCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { inventoryId, quantity } = req.body;
+    const { id, quantity } = req.body;
 
     const cartItem = await Cart.findOne({
-      where: { userId, inventoryId },
+      where: { id, userId },
       include: [
         {
           model: Inventory,
@@ -147,9 +147,9 @@ export const updateCartItem = async (req, res) => {
 export const removeFromCart = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { inventoryId } = req.body;
+    const { id } = req.body;
 
-    const cartItem = await Cart.findOne({ where: { userId, inventoryId } });
+    const cartItem = await Cart.findOne({ where: { userId, id } });
 
     if (!cartItem) {
       return res.status(404).json({ error: "Item not found in cart" });

@@ -40,7 +40,7 @@ import {
 
 import { format, parseISO } from 'date-fns'
 
-import useManageStockService from '../../services/ProductService'
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
@@ -60,8 +60,8 @@ const Home = () => {
   const [categoriesData, setCategoriesData] = useState([])
   const [wishlistData, setWishlistData] = useState([])
   const [myOrderData, setMyOrderData] = useState([])
-  const { getProduct } = useManageStockService()
-  const { getCategory } = useManageStockService()
+  const { getProductByCategory } = useProductService()
+  const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
   const { getWishlist, getMyorder } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -73,8 +73,11 @@ const Home = () => {
   const [wishlist, setWishlist] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
   const productsPerPage = 6
-  const [visibleCount, setVisibleCount] = useState(12)
+  const [visibleCount, setVisibleCount] = useState(20)
   const [filteredProducts, setFilteredProducts] = useState([])
+  const [products, setProducts] = useState([])
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
 
   const { warehouse } = useContext(GlobalContext)
 
@@ -82,11 +85,15 @@ const Home = () => {
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
+  const getProductByCategories = async (categoryId, page) => {
     try {
-      const response = await getProduct(warehouse.id)
-      setProductsData(response.data)
-      setFilteredProducts(response.data) // Initially show all products
+      const response = await getProductByCategory(warehouse.id, categoryId, page)
+      // Periksa apakah respons memiliki data dan apakah halaman saat ini adalah halaman terakhir
+      const newProducts = response.data
+      setProducts((prevProducts) => [...prevProducts, ...newProducts])
+
+      // Jika jumlah produk yang dikembalikan kurang dari limit per halaman, berarti tidak ada lagi produk
+      setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
     } catch (error) {
       console.error('Error fetching products:', error)
     }
@@ -124,21 +131,30 @@ const Home = () => {
   }
 
   useEffect(() => {
+    getCategories()
+  }, [])
+
+  useEffect(() => {
     if (warehouse && warehouse.id) {
-      getProducts()
+      if (categoriesData && categoriesData.length > 0) {
+        getProductByCategories(categoriesData[0].id, 1)
+      }
+
+      if (selectedCategory && selectedCategory.id) {
+        getProductByCategories(selectedCategory.id, 1)
+      }
       getFavorite()
       getMyorders()
     }
-    getCategories()
-  }, [warehouse])
+  }, [warehouse, categoriesData, selectedCategory])
 
-  const currentProducts = useMemo(() => {
-    const start = currentPage * productsPerPage
-    const end = start + productsPerPage
-    return filteredProducts.slice(start, end)
-  }, [filteredProducts, currentPage, productsPerPage])
+  // const currentProducts = useMemo(() => {
+  //   const start = currentPage * productsPerPage
+  //   const end = start + productsPerPage
+  //   return filteredProducts.slice(start, end)
+  // }, [filteredProducts, currentPage, productsPerPage])
 
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
+  // const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -147,13 +163,6 @@ const Home = () => {
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)
-
-    if (category) {
-      const filtered = productsData.filter((product) => product.Material.categoryId === category.id)
-      setFilteredProducts(filtered)
-    } else {
-      setFilteredProducts(productsData)
-    }
   }
 
   const handleQuantityChange = (action) => {
@@ -197,7 +206,9 @@ const Home = () => {
   }
 
   const handleLoadMore = () => {
-    setVisibleCount(visibleCount + 12) // Load 12 more products
+    // setVisibleCount(visibleCount + 12) // Load 12 more products
+    const nextPage = page + 1
+    getProductByCategories(1, nextPage)
   }
 
   const handleNextPage = () => {
@@ -212,7 +223,7 @@ const Home = () => {
     }
   }
 
-  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  // const visibleProducts = products.slice(0, visibleCount)
 
   const handleShowAll = () => {
     navigate('/history')
@@ -278,7 +289,7 @@ const Home = () => {
 
         {/* Container for displaying product cards */}
         <CRow className="position-relative">
-          <CButton
+          {/* <CButton
             className="position-absolute start-0"
             color="light"
             onClick={handlePrevPage}
@@ -293,7 +304,7 @@ const Home = () => {
             }}
           >
             <CIcon icon={cilArrowLeft} />
-          </CButton>
+          </CButton> */}
 
           <CRow className="g-2">
             {wishlistData.map((product) => (
@@ -409,7 +420,7 @@ const Home = () => {
             ))}
           </CRow>
 
-          <CButton
+          {/* <CButton
             className="position-absolute end-0"
             color="light"
             onClick={handleNextPage}
@@ -424,7 +435,7 @@ const Home = () => {
             }}
           >
             <CIcon icon={cilArrowRight} />
-          </CButton>
+          </CButton> */}
         </CRow>
       </CRow>
       <hr />
@@ -559,8 +570,16 @@ const Home = () => {
 
       {/* Daftar Produk */}
       <CRow className="mt-3">
-        {filteredProducts.slice(0, visibleCount).map((product) => (
-          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
+        {products.map((product, index) => (
+          <CCol
+            xs="6"
+            sm="6"
+            md="3"
+            lg="3"
+            xl="2"
+            key={`${product.Material.id}-${index}`}
+            className="mb-4"
+          >
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
@@ -588,31 +607,28 @@ const Home = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      {/* Show "Out of Stock" badge if applicable */}
-                      {calculateStockStatus(product) === 'Out of Stock' && (
+                      {/* {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="secondary">Out of Stock</CBadge>
                         </CCol>
                       )}
-                      {/* Show "Low Stock" badge if applicable */}
                       {calculateStockStatus(product) === 'Low Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="warning">Low Stock</CBadge>
                         </CCol>
                       )}
-                      {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
-                      {calculateStockStatus(product) !== 'Out of Stock' && (
-                        <CCol sm="auto">
-                          <CButton
-                            className="box btn-sm"
-                            color="primary"
-                            style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
-                            onClick={() => handleModalCart(product)}
-                          >
-                            Add to Cart
-                          </CButton>
-                        </CCol>
-                      )}
+                      {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                      <CCol sm="auto">
+                        <CButton
+                          className="box btn-sm"
+                          color="primary"
+                          style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                          onClick={() => handleModalCart(product)}
+                        >
+                          Add to Cart
+                        </CButton>
+                      </CCol>
+                      {/* )} */}
                     </div>
 
                     <CCol sm="auto" className="ms-2">
@@ -647,13 +663,15 @@ const Home = () => {
       </CRow>
 
       {/* Tombol Load More */}
-      {visibleCount < filteredProducts.length && (
+      {/* {visibleCount < products.length && ( */}
+      {hasMore && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
       )}
+      {/* )} */}
 
       {/* Modal for adding product to cart */}
       {selectedProduct && (
