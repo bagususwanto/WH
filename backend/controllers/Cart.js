@@ -113,10 +113,10 @@ export const addToCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { id, quantity } = req.body;
+    const { inventoryId, quantity } = req.body;
 
     const cartItem = await Cart.findOne({
-      where: { id, userId },
+      where: { inventoryId, userId },
       include: [
         {
           model: Inventory,

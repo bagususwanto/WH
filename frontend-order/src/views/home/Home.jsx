@@ -88,11 +88,18 @@ const Home = () => {
   const getProductByCategories = async (categoryId, page) => {
     try {
       const response = await getProductByCategory(warehouse.id, categoryId, page)
-      // Periksa apakah respons memiliki data dan apakah halaman saat ini adalah halaman terakhir
       const newProducts = response.data
-      setProducts((prevProducts) => [...prevProducts, ...newProducts])
 
-      // Jika jumlah produk yang dikembalikan kurang dari limit per halaman, berarti tidak ada lagi produk
+      setProducts((prevProducts) => {
+        // Filter produk baru yang belum ada di daftar produk sebelumnya
+        const uniqueProducts = newProducts.filter(
+          (newProduct) =>
+            !prevProducts.some((prevProduct) => prevProduct.Material.id === newProduct.Material.id),
+        )
+        return [...prevProducts, ...uniqueProducts]
+      })
+
+      // Set 'hasMore' berdasarkan apakah ada produk yang tersisa untuk di-load
       setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -165,6 +172,7 @@ const Home = () => {
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)
+    setProducts([])
   }
 
   const handleQuantityChange = (action) => {
@@ -210,7 +218,7 @@ const Home = () => {
   const handleLoadMore = () => {
     // setVisibleCount(visibleCount + 12) // Load 12 more products
     const nextPage = page + 1
-    getProductByCategories(1, nextPage)
+    getProductByCategories(selectedCategory ? selectedCategory.id : categoriesData[0].id, nextPage)
   }
 
   const handleNextPage = () => {
