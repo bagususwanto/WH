@@ -156,22 +156,22 @@ const ProductList = () => {
   // }
 
   const handleAddToCart = async (product, quantity) => {
+    console.log('tes', product)
     try {
-      console.log(product)
       // Find the existing product in the cart by matching inventoryId
       const existingProduct = cart.find((item) => item.Inventory.materialId === product.Material.id)
-
+      console.log('-', existingProduct)
       if (existingProduct) {
         // If product exists in the cart, update the quantity
         const updatedProduct = {
           ...existingProduct,
           quantity: existingProduct.quantity + quantity,
         }
-        console.log(updatedProduct)
+        console.log("1231414",product.id)
 
         // Update the cart with the new quantity (use API updateCart)
         const updatedCartResponse = await updateCart({
-          inventoryId: product.id,
+          id: product.id,
           quantity: updatedProduct.quantity,
         })
         if (updatedCartResponse) {
@@ -214,7 +214,7 @@ const ProductList = () => {
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={ 'https://via.placeholder.com/150'}
+                src={'https://via.placeholder.com/150'}
                 alt={product.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />
@@ -307,7 +307,7 @@ const ProductList = () => {
             <CRow>
               <CCol md="4">
                 <CImage
-                  src={ 'https://via.placeholder.com/150'}
+                  src={'https://via.placeholder.com/150'}
                   alt={selectedProduct.Material.description}
                   fluid
                   className="rounded"
