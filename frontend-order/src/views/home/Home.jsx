@@ -19,6 +19,7 @@ import {
   CCarouselItem,
   CCallout,
   CBadge,
+  CLink,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -37,7 +38,9 @@ import {
   cilLifeRing,
 } from '@coreui/icons'
 
-import useManageStockService from '../../services/ProductService'
+import { format, parseISO } from 'date-fns'
+
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
@@ -56,10 +59,11 @@ const Home = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const [wishlistData, setWishlistData] = useState([])
-  const { getProduct } = useManageStockService()
-  const { getCategory } = useManageStockService()
+  const [myOrderData, setMyOrderData] = useState([])
+  const { getProductByCategory } = useProductService()
+  const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist } = useOrderService()
+  const { getWishlist, getMyorder } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [quantity, setQuantity] = useState(1)
@@ -69,8 +73,11 @@ const Home = () => {
   const [wishlist, setWishlist] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
   const productsPerPage = 6
-  const [visibleCount, setVisibleCount] = useState(12)
+  const [visibleCount, setVisibleCount] = useState(20)
   const [filteredProducts, setFilteredProducts] = useState([])
+  const [products, setProducts] = useState([])
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
 
   const { warehouse } = useContext(GlobalContext)
 
@@ -78,11 +85,15 @@ const Home = () => {
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
+  const getProductByCategories = async (categoryId, page) => {
     try {
-      const response = await getProduct(warehouse.id)
-      setProductsData(response.data)
-      setFilteredProducts(response.data) // Initially show all products
+      const response = await getProductByCategory(warehouse.id, categoryId, page)
+      // Periksa apakah respons memiliki data dan apakah halaman saat ini adalah halaman terakhir
+      const newProducts = response.data
+      setProducts((prevProducts) => [...prevProducts, ...newProducts])
+
+      // Jika jumlah produk yang dikembalikan kurang dari limit per halaman, berarti tidak ada lagi produk
+      setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
     } catch (error) {
       console.error('Error fetching products:', error)
     }
@@ -106,25 +117,44 @@ const Home = () => {
     }
   }
 
+  const getMyorders = async () => {
+    try {
+      const response = await getMyorder(warehouse.id)
+      setMyOrderData(response.data)
+    } catch (error) {
+      console.error('Error fetching wishlist:', error)
+    }
+  }
+
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item.Material.id === productId)
   }
 
   useEffect(() => {
-    if (warehouse && warehouse.id) {
-      getProducts()
-      getFavorite()
-    }
     getCategories()
-  }, [warehouse])
+  }, [])
 
-  const currentProducts = useMemo(() => {
-    const start = currentPage * productsPerPage
-    const end = start + productsPerPage
-    return filteredProducts.slice(start, end)
-  }, [filteredProducts, currentPage, productsPerPage])
+  useEffect(() => {
+    if (warehouse && warehouse.id) {
+      if (categoriesData && categoriesData.length > 0) {
+        getProductByCategories(categoriesData[0].id, 1)
+      }
 
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
+      if (selectedCategory && selectedCategory.id) {
+        getProductByCategories(selectedCategory.id, 1)
+      }
+      getFavorite()
+      getMyorders()
+    }
+  }, [warehouse, categoriesData, selectedCategory])
+
+  // const currentProducts = useMemo(() => {
+  //   const start = currentPage * productsPerPage
+  //   const end = start + productsPerPage
+  //   return filteredProducts.slice(start, end)
+  // }, [filteredProducts, currentPage, productsPerPage])
+
+  // const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -133,13 +163,6 @@ const Home = () => {
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)
-
-    if (category) {
-      const filtered = productsData.filter((product) => product.Material.categoryId === category.id)
-      setFilteredProducts(filtered)
-    } else {
-      setFilteredProducts(productsData)
-    }
   }
 
   const handleQuantityChange = (action) => {
@@ -183,7 +206,9 @@ const Home = () => {
   }
 
   const handleLoadMore = () => {
-    setVisibleCount(visibleCount + 12) // Load 12 more products
+    // setVisibleCount(visibleCount + 12) // Load 12 more products
+    const nextPage = page + 1
+    getProductByCategories(1, nextPage)
   }
 
   const handleNextPage = () => {
@@ -198,25 +223,25 @@ const Home = () => {
     }
   }
 
-  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  // const visibleProducts = products.slice(0, visibleCount)
 
-  const handleViewAll = () => {
+  const handleShowAll = () => {
     navigate('/history')
   }
 
   const getSeverity = (status) => {
     switch (status) {
-      case 'Waiting':
+      case 'waiting approval':
         return 'gray'
-      case 'On Process':
+      case 'on process':
         return 'warning'
-      case 'Delivery':
+      case 'ready to deliver':
         return 'secondary'
-      case 'Pickup':
+      case 'ready to pickup':
         return 'blue'
-      case 'Completed':
+      case 'delivered':
         return 'success'
-      case 'Rejected':
+      case 'rejected':
         return 'danger'
     }
   }
@@ -249,11 +274,22 @@ const Home = () => {
 
       {/* Your Favorite Item */}
       <CRow className="mt-4">
-        <h4>Your Favorite Item</h4>
+        <div className="d-flex flex-wrap align-items-center">
+          <h4 className="me-3">Your Favorite Item</h4>
+          <CLink
+            component="button"
+            color="primary"
+            onClick={() => navigate('/wishlist')}
+            style={{ cursor: 'pointer' }}
+            className="text-decoration-none text-color-primary fw-bold"
+          >
+            Show All
+          </CLink>
+        </div>
 
         {/* Container for displaying product cards */}
         <CRow className="position-relative">
-          <CButton
+          {/* <CButton
             className="position-absolute start-0"
             color="light"
             onClick={handlePrevPage}
@@ -268,7 +304,7 @@ const Home = () => {
             }}
           >
             <CIcon icon={cilArrowLeft} />
-          </CButton>
+          </CButton> */}
 
           <CRow className="g-2">
             {wishlistData.map((product) => (
@@ -294,10 +330,7 @@ const Home = () => {
                         {product.Inventory.Material.description}
                       </CCardTitle>
                       <CCardTitle style={{ fontSize: '12px' }}>
-                        Rp{' '}
-                        {product.Inventory.Material.price
-                          ? product.Inventory.Material.price.toLocaleString('id-ID')
-                          : 'Price not available'}
+                        {product.Inventory.Material.materialNo}
                       </CCardTitle>
                     </div>
 
@@ -387,7 +420,7 @@ const Home = () => {
             ))}
           </CRow>
 
-          <CButton
+          {/* <CButton
             className="position-absolute end-0"
             color="light"
             onClick={handleNextPage}
@@ -402,131 +435,151 @@ const Home = () => {
             }}
           >
             <CIcon icon={cilArrowRight} />
-          </CButton>
+          </CButton> */}
         </CRow>
       </CRow>
-
+      <hr />
       {/* HISTORY */}
-      {/* <CRow className="mt-3">
-        <CCard className="d-block w-100 responsive-container">
-          Judul History Order dengan tombol View All
-          <div className="d-flex justify-content-between align-items-center">
-            <h3 style={{ fontFamily: 'Arial', fontSize: '24px', fontWeight: 'bold' }}>
-              History Order
-            </h3>
-            <CButton
-              color="primary"
-              onClick={handleViewAll}
-              style={{ fontSize: '14px', padding: '2px 10px' }}
-            >
-              View All
-            </CButton>
-          </div>
-
-          Kartu produk
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            {currentProducts.map((product) => (
-              <CCard className="d-block w-100 p-3 mb-3" key={product.Inventory.Material.id}>
-                <CRow className="align-items-center">
-                  <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <CCol>
-                      <CIcon className="me-2" icon={cilCart} />
-                      <label className="me-2 fs-6" size="sm ">
-                        {' '}
-                        3 Oktober 2024
-                      </label>
-                      <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
-                        ON PROCESS
-                      </CBadge>
-
-                      <label className=" me-2 fw-light ">X21000000000/20/20</label>
-                    </CCol>
-                  </div>
-                  <CCol xs="5"></CCol>
-                 
-                  <CRow xs="1" className="d-flex justify-content-between my-2 ">
-                    <CCol xs="1">
-                      <CCardImage
-                        src={product.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Material.description}
-                        style={{ height: '100%', width: '100%' }}
-                      />
-                    </CCol>
-                    <CCol >
-                      <label>{product.Material.description}</label>
-                      <br />
-                      <label className="fw-bold fs-6">Total: 4 Item</label>
-                    </CCol>
-                  </CRow>
-
-                  <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                    <CCol xs={4} className="d-flex justify-content-end">
-                      <CButton
-                        onClick={() => handleViewHistoryOrder(product)}
-                        color="primary"
-                        size="sm"
-                      >
-                        View Detail Order
-                      </CButton>
-                    </CCol>
-                  </CRow>
-                </CRow>
-              </CCard>
-            ))}
-          </div>
-        </CCard>
-      </CRow> */}
-
-      {/* Order By Category */}
-      <CRow className="mt-3">
-        <CCard className="d-block w-100 responsive-container shadow-sm">
-          <CCallout
+      <CRow className="mt-4">
+        {/* Judul History Order dengan tombol View All */}
+        <div className="d-flex flex-wrap align-items-center">
+          <h4 className="me-3">History Order</h4>
+          <CLink
+            component="button"
             color="primary"
-            style={{ width: '280px', padding: '4px', marginBottom: '20px' }}
+            onClick={() => navigate('/history')}
+            style={{ cursor: 'pointer' }}
+            className="text-decoration-none text-color-primary fw-bold"
           >
-            <b>Order By Category</b>
-          </CCallout>
-          <CRow>
-            {categoriesData.map((category) => (
-              <CCol
-                key={category.id}
-                xs="12"
-                sm="6"
-                md="4"
-                lg="2"
-                style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
-              >
-                <CCard
-                  onClick={() => handleCategoryClick(category)}
-                  style={{
-                    cursor: 'pointer',
-                    width: '100%',
-                    padding: '1px',
-                    margin: '10px',
-                    backgroundColor:
-                      selectedCategory && selectedCategory.id === category.id ? 'navy' : 'white',
-                    color:
-                      selectedCategory && selectedCategory.id === category.id ? 'white' : 'black',
-                  }}
-                >
-                  <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
-                    <CIcon
-                      icon={iconMap[category.categoryName] || cilFolder}
-                      style={{ marginRight: '8px' }}
+            Show All
+          </CLink>
+        </div>
+
+        {/* Kartu produk */}
+        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          {myOrderData.map((order) => (
+            <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
+              <CRow className="align-items-center">
+                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                  <CCol>
+                    <CIcon className="me-2" icon={cilCart} />
+                    <label className="me-2 fs-6" size="sm ">
+                      {format(parseISO(order.createdAt), 'dd/MM/yyyy')}
+                    </label>
+                    <CBadge
+                      className=" me-2 "
+                      size="sm"
+                      color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
+                    >
+                      {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
+                    </CBadge>
+                    <label className=" me-2 fw-light ">{order.transactionNumber}</label>
+                  </CCol>
+                </div>
+                <CCol xs="5"></CCol>
+
+                <CRow className="d-flex justify-content-between my-2 ">
+                  <CCol xs="1">
+                    <CCardImage
+                      src={
+                        order.Detail_Orders[0].Inventory.Material.img ||
+                        'https://via.placeholder.com/150'
+                      }
+                      alt={order.Detail_Orders[0].Inventory.Material.description}
+                      style={{ height: '100%', width: '100%' }}
                     />
-                    <h6 style={{ margin: 0 }}>{category.categoryName}</h6>
-                  </CCardBody>
-                </CCard>
-              </CCol>
-            ))}
-          </CRow>
-        </CCard>
+                  </CCol>
+
+                  <CCol>
+                    {order.Detail_Orders.length === 1 ? (
+                      <label key={order.Detail_Orders[0].id}>
+                        {order.Detail_Orders[0].Inventory.Material.description}
+                      </label>
+                    ) : (
+                      <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
+                    )}
+                    <br />
+                    <label className="fw-bold fs-6">Total: {order.Detail_Orders.length} Item</label>
+                  </CCol>
+                </CRow>
+
+                <CRow className="d-flex justify-content-end align-items-center">
+                  <CCol xs={4} className="d-flex justify-content-end">
+                    <CButton
+                      onClick={() => handleViewHistoryOrder(order)}
+                      color="primary"
+                      size="sm"
+                    >
+                      View Detail Order
+                    </CButton>
+                  </CCol>
+                </CRow>
+              </CRow>
+            </CCard>
+          ))}
+        </div>
+      </CRow>
+      <hr />
+      {/* Order By Category */}
+      <CRow className="mt-4">
+        <CRow>
+          {categoriesData.map((category, index) => (
+            <CCol
+              key={category.id}
+              xs="12"
+              sm="6"
+              md="4"
+              lg="2"
+              style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
+            >
+              <CCard
+                onClick={() => handleCategoryClick(category)}
+                style={{
+                  cursor: 'pointer',
+                  width: '100%',
+                  padding: '1px',
+                  margin: '10px',
+                  backgroundColor:
+                    selectedCategory && selectedCategory.id === category.id
+                      ? 'navy' // Warna navy jika kategori terpilih
+                      : index === 0 &&
+                          (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                        ? 'navy' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
+                        : 'white', // Warna default putih
+                  color:
+                    selectedCategory && selectedCategory.id === category.id
+                      ? 'white' // Warna teks putih untuk kategori yang dipilih
+                      : index === 0 &&
+                          (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                        ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
+                        : 'black', // Warna teks default
+                }}
+              >
+                <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
+                  <CIcon
+                    icon={iconMap[category.categoryName] || cilFolder}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <h6 style={{ margin: 0 }}>{category.categoryName}</h6>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          ))}
+        </CRow>
       </CRow>
 
       {/* Daftar Produk */}
       <CRow className="mt-3">
-        {filteredProducts.slice(0, visibleCount).map((product) => (
-          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
+        {products.map((product, index) => (
+          <CCol
+            xs="6"
+            sm="6"
+            md="3"
+            lg="3"
+            xl="2"
+            key={`${product.Material.id}-${index}`}
+            className="mb-4"
+          >
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
@@ -540,7 +593,7 @@ const Home = () => {
                     {product.Material.description}
                   </CCardTitle>
                   <CCardTitle style={{ fontSize: '12px' }}>
-                    Rp {product.Material.price.toLocaleString('id-ID')}
+                    {product.Material.materialNo}
                   </CCardTitle>
                 </div>
                 <CRow className="mt-auto align-items-center">
@@ -554,31 +607,28 @@ const Home = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      {/* Show "Out of Stock" badge if applicable */}
-                      {calculateStockStatus(product) === 'Out of Stock' && (
+                      {/* {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="secondary">Out of Stock</CBadge>
                         </CCol>
                       )}
-                      {/* Show "Low Stock" badge if applicable */}
                       {calculateStockStatus(product) === 'Low Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge color="warning">Low Stock</CBadge>
                         </CCol>
                       )}
-                      {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
-                      {calculateStockStatus(product) !== 'Out of Stock' && (
-                        <CCol sm="auto">
-                          <CButton
-                            className="box btn-sm"
-                            color="primary"
-                            style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
-                            onClick={() => handleModalCart(product)}
-                          >
-                            Add to Cart
-                          </CButton>
-                        </CCol>
-                      )}
+                      {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                      <CCol sm="auto">
+                        <CButton
+                          className="box btn-sm"
+                          color="primary"
+                          style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                          onClick={() => handleModalCart(product)}
+                        >
+                          Add to Cart
+                        </CButton>
+                      </CCol>
+                      {/* )} */}
                     </div>
 
                     <CCol sm="auto" className="ms-2">
@@ -613,13 +663,15 @@ const Home = () => {
       </CRow>
 
       {/* Tombol Load More */}
-      {visibleCount < filteredProducts.length && (
+      {/* {visibleCount < products.length && ( */}
+      {hasMore && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
       )}
+      {/* )} */}
 
       {/* Modal for adding product to cart */}
       {selectedProduct && (
@@ -637,7 +689,7 @@ const Home = () => {
               </CCol>
               <CCol md="8">
                 <strong>{selectedProduct.Material.description}</strong>
-                <p>Rp {selectedProduct.Material.price.toLocaleString('id-ID')}</p>
+                <p>{product.Inventory.Material.materialNo}</p>
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"

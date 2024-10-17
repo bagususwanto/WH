@@ -52,29 +52,28 @@ const ProductList = () => {
 
   const getCarts = async () => {
     try {
-      const response = await getCart()
+      const response = await getCart(warehouse.id)
       setCart(response.data)
     } catch (error) {
       console.error('Error fetching cart:', error)
     }
   }
-  useEffect(() => {
-    getCarts()
-  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const query = params.get('q') // Ambil parameter 'q'
-    console.log('Query:', query)
 
-    if (query) {
-      getProductByQueries(query)
-    } else {
-      getProducts()
+    if (warehouse && warehouse.id) {
+      if (query) {
+        getProductByQueries(query)
+      } else {
+        getProducts()
+      }
+      getCarts()
     }
 
     getCategories()
-  }, [location])
+  }, [location, warehouse])
 
   const getProducts = async () => {
     try {
@@ -161,31 +160,31 @@ const ProductList = () => {
       console.log(product)
       // Find the existing product in the cart by matching inventoryId
       const existingProduct = cart.find((item) => item.Inventory.materialId === product.Material.id)
-  
+
       if (existingProduct) {
         // If product exists in the cart, update the quantity
         const updatedProduct = {
           ...existingProduct,
-          quantity: existingProduct.quantity + quantity
+          quantity: existingProduct.quantity + quantity,
         }
         console.log(updatedProduct)
-  
+
         // Update the cart with the new quantity (use API updateCart)
         const updatedCartResponse = await updateCart({
           inventoryId: product.id,
-          quantity: updatedProduct.quantity
+          quantity: updatedProduct.quantity,
         })
         if (updatedCartResponse) {
           // Update the cart state with the updated product
-          setCart(cart.map(item => item.id === updatedProduct.id ? updatedProduct : item))
+          setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
         }
       } else {
         // If product doesn't exist in the cart, add a new product
         const newCartItem = {
           inventoryId: product.id,
-          quantity: quantity
+          quantity: quantity,
         }
-  
+
         // Post the new cart item to the API (use postCart)
         const addToCartResponse = await postCart(newCartItem)
         if (addToCartResponse) {
@@ -193,11 +192,11 @@ const ProductList = () => {
           setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])
         }
       }
-      
+
       // Update cart count
       setCartCount(cartCount + quantity)
       setModalOrder(false)
-  
+
       // Navigate to the cart page
       navigate('/cart')
     } catch (error) {
@@ -205,7 +204,6 @@ const ProductList = () => {
       console.error('Failed to add to cart:', error)
     }
   }
-  
 
   return (
     <>
