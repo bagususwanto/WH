@@ -167,11 +167,11 @@ const ProductList = () => {
           ...existingProduct,
           quantity: existingProduct.quantity + quantity,
         }
-        console.log("1231414",product.id)
+        console.log('1231414', product.id)
 
         // Update the cart with the new quantity (use API updateCart)
         const updatedCartResponse = await updateCart({
-          id: product.id,
+          inventoryId: product.id,
           quantity: updatedProduct.quantity,
         })
         if (updatedCartResponse) {
