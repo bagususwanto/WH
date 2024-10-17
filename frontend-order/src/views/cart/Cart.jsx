@@ -145,7 +145,7 @@ const Cart = () => {
 
   const handleConfirm = () => {
     setModalVisible(false)
-    navigate('/app') // Use navigate instead of history.push
+    navigate('/confirmrec') // Use navigate instead of history.push
   }
 
   const handleCancel = () => {

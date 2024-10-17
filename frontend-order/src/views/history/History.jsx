@@ -39,8 +39,9 @@ import {
   cilLocationPin,
 } from '@coreui/icons'
 
-import useManageStockService from '../../services/ProductService'
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -61,11 +62,11 @@ const iconMap = {
   Tools: cilKeyboard,
 }
 
-const ProductList = () => {
+const History = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { getProduct } = useProductService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -79,11 +80,11 @@ const ProductList = () => {
 
   const getProducts = async () => {
     try {
-      const response = await getInventory()
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    }
+    const response = await getProduct(1)
+    setProductsData(response.data)
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  }
   }
 
   const getCategories = async () => {
@@ -118,6 +119,11 @@ const ProductList = () => {
 
     fetchProductsAndCategories()
   }, [])
+  
+  useEffect(() => {
+    getProducts()
+  }, [])
+  
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -166,14 +172,14 @@ const ProductList = () => {
   }, [checkedItems, quantities, currentProducts])
 
   const handleViewHistoryOrder = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
+    setSelectedProduct(product) // Set the selected product
+    setVisible(true) // Open the modal
   }
 
   return (
     <>
-      <CRow className="mt-1">
-        <CCard>
+      <CRow className="mt-1" >
+        <CCard style={{ border: 'none' }}>
           <h3 className="fw-bold fs-4">History Order</h3>
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <CButton className="me-2" color="secondary" variant="outline">
@@ -199,7 +205,7 @@ const ProductList = () => {
             </CButton>
           </div>
           <CRow className="g-1 mt-2">
-            {currentProducts.map((product, index) => (
+          {productsData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between ">
                   <CRow className="align-items-center">
@@ -217,18 +223,11 @@ const ProductList = () => {
                         <label className=" me-2 fw-light ">X21000000000/20/20</label>
                       </CCol>
                     </div>
-                    {/* <CCol xs="5"></CCol> */}
-                    {/* <div>
-                        <label>{product.Material.description}</label>
-                        <br />
-                        <label className="fw-bold fs-6">
-                          Rp {product.Material.price.toLocaleString('id-ID')}
-                        </label>
-                      </div> */}
+                 
                     <CRow xs="1" className="d-flex justify-content-between my-2 ">
                       <CCol xs="1">
                         <CCardImage
-                          src={product.Material.img || 'https://via.placeholder.com/150'}
+                          src={product.Material.img }
                           alt={product.Material.description}
                           style={{ height: '100%', width: '100%' }}
                         />
@@ -273,7 +272,7 @@ const ProductList = () => {
                         <CCol xs="1">
                           <CCardImage
                             src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                            alt={selectedProduct.Material.description}
+                         
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
@@ -297,16 +296,17 @@ const ProductList = () => {
                             <label className="d-flex flex-column justify-content-between fs-6">
                               Status:
                             </label>
-                            <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
+                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                               ON PROCESS
                             </CBadge>
                           </div>
                         </CCol>
-
-                        <hr></hr>
                       </CRow>
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
 
+                      <hr />
+
+                      {/* History Order Timeline */}
+                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
                       <div
                         style={{
                           display: 'flex',
@@ -382,4 +382,4 @@ const ProductList = () => {
   )
 }
 
-export default ProductList
+export default History

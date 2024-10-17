@@ -42,7 +42,7 @@ import {
 } from '@coreui/icons'
 
 import useVerify from '../../hooks/UseVerify'
-import useManageStockService from '../../services/ProductService'
+import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
 const categoriesData = [
@@ -68,8 +68,9 @@ const Confirm = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
-  const { getInventory } = useManageStockService()
+  const [clicked, setClicked] = useState(false)
   const { getMasterData } = useMasterDataService()
+  const { getProduct } = useProductService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -89,10 +90,10 @@ const Confirm = () => {
 
   const getProducts = async () => {
     try {
-      const response = await getInventory()
+      const response = await getProduct(1)
       setProductsData(response.data)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('Error fetching categories:', error)
     }
   }
 
@@ -107,6 +108,9 @@ const Confirm = () => {
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item.Material.id === productId)
   }
+  useEffect(() => {
+    getProducts()
+  }, [])
 
   useEffect(() => {
     const fetchProductsAndCategories = async () => {
@@ -213,6 +217,7 @@ const Confirm = () => {
       [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
     }))
   }
+
   const handleQuantityChange = (productId, value) => {
     // Validasi jika nilai yang dimasukkan adalah angka
     if (!isNaN(value) && value >= 0) {
@@ -221,6 +226,10 @@ const Confirm = () => {
         [productId]: parseInt(value, 10),
       })
     }
+  }
+  const handleButtonClick = () => {
+    setClicked(true) // Change the button state to clicked
+    navigate('/order') // Redirect to the Order page
   }
 
   return (
@@ -334,11 +343,12 @@ const Confirm = () => {
                   Total: Rp {totalAmount.toLocaleString('id-ID')}
                 </label>
                 <CButton color="primary" onClick={handleCheckout}>
-                  Order Now
+                 Approve Now
                 </CButton>
+
                 <CModal visible={modalVisible} onClose={handleCancel}>
                   <CModalHeader>
-                    <CModalTitle>Confirm Checkout</CModalTitle>
+                    <CModalTitle>Confirm Approve</CModalTitle>
                   </CModalHeader>
                   <CModalBody>
                     <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
@@ -359,19 +369,35 @@ const Confirm = () => {
               </div>
             </CCardBody>
           </CCard>
+          <CButton
+            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`} // Add a class for when clicked
+            color="secondary"
+            style={{
+              position: 'fixed',
+              bottom: '20px', // Position the button 20px from the bottom
+              right: '20px', // Position the button 20px from the right
+              width: '55px', // Set a fixed width
+              height: '55px', // Set a fixed height (same as width for a perfect circle)
+              border: '1px solid white',
+              color: 'white',
+              borderRadius: '50%', // This ensures it's perfectly circular
+              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none', // Add a shadow when clicked
+            }}
+            onClick={handleButtonClick}
+          >
+            <CIcon icon={cilCart} size="lg" /> {/* Adjust the icon size with size="lg" */}
+          </CButton>
         </CCol>
 
         <CCol xs={8}>
           <CRow className="g-2">
-            {currentProducts.map((product, index) => (
+            {productsData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
-                    <CCol xs="1"></CCol>
                     <CCol xs="1">
                       <CCardImage
                         src={product.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Material.description}
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>

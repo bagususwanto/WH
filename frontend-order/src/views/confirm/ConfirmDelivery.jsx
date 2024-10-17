@@ -180,30 +180,36 @@ const ApproveAll = () => {
     <>
       <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                  <img
-                    src="path-to-user-photo.jpg"
-                    alt="User Profile"
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      marginRight: '16px',
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                      <strong>FORM:</strong> ANDI (TEAM LEADER)
-                    </div>
-                    <div>
-                      <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                    </div>
-                    <div>
-                      <small>Request at 11:19</small>
-                    </div>
-                  </div>
-                </div>
-                
+          <CRow>
+            <CCol xs={1}>
+              <img
+                src="path-to-user-photo.jpg"
+                alt="User Profile"
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  marginRight: '16px',
+                }}
+              />
+            </CCol>
+            {userData.map((user) => (
+              <CCol xs={4}>
+                <label className="fw-bold">FORM:</label>
+                <label>{user.name}</label>
+                <br />
+                <label className="fw-bold">GRUP:</label>{' '}
+                <label>{user.Organization.Line.lineName}</label>
+                <br />
+                <label className="fw-bold">Request at 11:19</label>
+              </CCol>
+            ))}
+            <CCol xs={2} className="ms-auto d-flex flex-column justify-content-end" style={{ height: '100%' }}>
+              <CButton onClick={() => handleViewProduct(product)} color="primary" size="sm">
+                Confirm All
+              </CButton>
+            </CCol>
+          </CRow>
           <CRow className="g-1 mt-1">
             {productsData.map((product, index) => (
               <CCard className="h-78 mb-2" key={index}>
@@ -213,7 +219,7 @@ const ApproveAll = () => {
                     <CCol>
                       <CIcon className="me-2" icon={cilCart} />
                       <label className="me-2 fs-6">3 Oktober 2024</label>
-                    
+
                       <label className="me-2 fw-light">X21000000000/20/20</label>
                     </CCol>
 
