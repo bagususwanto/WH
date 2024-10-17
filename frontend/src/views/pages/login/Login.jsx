@@ -19,7 +19,8 @@ import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../../services/AuthService'
-import logo from '../../../assets/brand/Twis.png'
+import logo from '../../../assets/brand/TWIIS-NEW.png'
+import background from '../../../assets/brand/bgwh.png'
 
 const MySwal = withReactContent(Swal)
 
@@ -68,7 +69,15 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+  <div
+  className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center"
+  style={{
+    backgroundImage: `url(${background})`, // Menggunakan gambar impor
+    backgroundSize: 'cover', // Agar gambar menyesuaikan dengan ukuran viewport
+    backgroundPosition: 'center', // Posisi gambar di tengah
+    backgroundRepeat: 'no-repeat', // Mencegah pengulangan gambar
+    }}
+  >
       <CContainer>
         <CRow className="justify-content-center">
           <CCol md={8}>
@@ -111,10 +120,15 @@ const Login = () => {
                   </CForm>
                 </CCardBody>
               </CCard>
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
+              <CCard className="text-white bg-white py-5  px-1" style={{ width: '42%' }}>
                 <CCardBody className="text-center">
                   <img src={logo} alt="Logo" className="sidebar-brand-full" height={80} />
-                  <h5>Toyota Warehouse Integrated System</h5>
+
+                  <label style={{ color: 'black' }} className="fw-bold fs-5">
+                    Toyota Warehouse Integrated Inventory System
+                  </label>
+
+                 
                 </CCardBody>
               </CCard>
             </CCardGroup>

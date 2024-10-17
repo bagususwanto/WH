@@ -40,8 +40,9 @@ import {
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
-import Carousel from 'react-bootstrap/Carousel'
+
 import useVerify from '../../hooks/UseVerify'
+import useProductService from '../../services/ProductService'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 
@@ -70,6 +71,7 @@ const Confirm = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { getProduct } = useProductService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -88,12 +90,8 @@ const Confirm = () => {
   const apiCategory = 'category'
 
   const getProducts = async () => {
-    try {
-      const response = await getInventory()
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    }
+    const response = await getProduct(1)
+    setProductsData(response.data)
   }
 
   const getCategories = async () => {
@@ -107,7 +105,9 @@ const Confirm = () => {
   const isInWishlist = (productId) => {
     return wishlist.some((item) => item.Material.id === productId)
   }
-
+  useEffect(() => {
+    getProducts()
+  }, [])
   useEffect(() => {
     const fetchProductsAndCategories = async () => {
       try {
@@ -318,14 +318,14 @@ const Confirm = () => {
 
         <CCol xs={8}>
           <CRow className="g-2">
-            {currentProducts.map((product, index) => (
+          {productsData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
                     <CCol xs="1">
                       <CCardImage
                         src={product.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Material.description}
+
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>

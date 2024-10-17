@@ -15,6 +15,11 @@ import {
   CModalFooter,
   CModalTitle,
   CModalBody,
+  CTab,
+  CTabs,
+  CTabList,
+  CTabContent,
+  CTabPanel,
   CBadge,
   CFormInput,
   CFormCheck,
@@ -65,6 +70,7 @@ const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
   const [userData, setUserData] = useState([])
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState(null)
   const [categoriesData, setCategoriesData] = useState([])
   const { getProduct } = useProductService()
   const { getMasterData } = useMasterDataService()
@@ -81,12 +87,24 @@ const ApproveAll = () => {
   const apiUser = 'user'
 
   const handleStatusFilterClick = (status) => {
-    setSelectedStatusFilter(status)
+    setSelectedStatus(status)
+    // Call any other logic you need here, such as fetching/filtering data based on status
   }
 
   const handleViewProduct = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
+    // Navigate to different routes based on the selected status filter
+    if (selectedStatusFilter === 'confirmation') {
+      navigate('/confirmwer') // Navigate to confirmwer screen
+    } else if (
+      selectedStatusFilter === 'shopping' ||
+      selectedStatusFilter === 'readyToDelivery' ||
+      selectedStatusFilter === 'readyToPickup'
+    ) {
+      navigate('/confirmdel') // Navigate to confirmdel screen
+    } else {
+      setSelectedProduct(product) // Default action, show product details
+      setVisible(true)
+    }
   }
 
   const getProducts = async () => {
@@ -181,266 +199,514 @@ const ApproveAll = () => {
       <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            {/* Sticky header */}
-            <div className="sticky-top bg-white p-1" style={{ zIndex: 10 }}>
-              <h3 className="fw-bold fs-4">Order Approval</h3>
-              {/* Button group */}
-              <div>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('confirmation')}
-                >
-                  Confirmation
-                </CButton>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('shopping')}
-                >
-                  Shopping
-                </CButton>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('readyToDelivery')}
-                >
-                  Ready To Delivery
-                </CButton>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('readyToPickup')}
-                >
-                  Ready to Pickup
-                </CButton>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('completed')}
-                >
-                  Completed
-                </CButton>
-                <CButton
-                  className="me-2"
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => handleStatusFilterClick('rejected')}
-                >
-                  Rejected
-                </CButton>
-              </div>
-            </div>
+            <h3 className="fw-bold fs-4">Warehouse Confirmation</h3>
           </CCardBody>
         </CCard>
       </CRow>
 
-      {/* Container for product cards with scroll */}
-      <CRow className="mt-1">
-        <CCard style={{ border: 'none' }}>
-          <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
-            <CRow className="g-1 mt-1">
-              {productsData.map((product, index) => (
-                <CCard className="h-78 mb-2" key={index}>
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <CRow className="align-items-center">
-                      {/* Informasi pesanan */}
-                      <CCol>
-                        <CIcon className="me-2" icon={cilCart} />
-                        <label className="me-2 fs-6">3 Oktober 2024</label>
-                        <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                          ON PROCESS
-                        </CBadge>
-                        <label className="me-2 fw-light">X21000000000/20/20</label>
-                      </CCol>
+      <CTabs activeItemKey={2}>
+      <CTabList variant="pills">
+          <CTab aria-controls="home-tab-pane" itemKey={1}>
+            Confirmation
+          </CTab>
+          <CTab aria-controls="Shopping-tab-pane" itemKey={2}>
+            Shopping
+          </CTab>
+          <CTab aria-controls="Ready Delivery-tab-pane" itemKey={3}>
+            Ready To Delivery
+          </CTab>
+          <CTab aria-controls="Ready Pickup-tab-pane" itemKey={4}>
+            Ready To Pickup
+          </CTab>
+          <CTab aria-controls="Delivered-tab-pane" itemKey={5}>
+            Delivered
+          </CTab>
 
-                      {/* Product and user information */}
-                      <CRow xs="1">
-                        <CCol xs="1">
-                          {userData.map((user) => (
-                            <CCardImage
-                              key={user.id}
-                              src={user.img}
-                              alt={user.name}
-                              style={{ height: '100%', width: '100%' }}
-                            />
-                          ))}
-                        </CCol>
-                        <CCol xs="4">
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <div>
-                              <strong>FORM:</strong> ANDI (TEAM LEADER)
-                            </div>
-                            <div>
-                              <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                            </div>
-                            <div>
-                              <small>Request at 11:19</small>
-                            </div>
-                          </div>
-                        </CCol>
-                        <CCol xs="4">
-                          <label>{product.Material.description}</label>
-                          <br />
-                          <label className="fw-bold fs-6">Total: 4 Item</label>
-                        </CCol>
-                        <CCol className="text-end">
-                          <label className="fw-bold fs-6">
-                            Rp {product.Material.price.toLocaleString('id-ID')}
-                          </label>
-                          <br />
-                          <label className="me-2">WBS : 20000000</label>
-                        </CCol>
-                      </CRow>
+          <CTab aria-controls="Rejected-tab-pane" itemKey={6}>
+            Rejected
+          </CTab>
+        </CTabList>
 
-                      {/* View Detail button */}
-                      <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                        <CCol xs={4} className="d-flex justify-content-end">
-                          <CButton
-                            onClick={() => handleViewProduct(product)}
-                            color="primary"
-                            size="sm"
-                          >
-                            {selectedStatusFilter
-                              ? selectedStatusFilter.charAt(0).toUpperCase() +
-                                selectedStatusFilter.slice(1) +
-                                ' Detail'
-                              : 'View Detail Order'}
-                          </CButton>
-                        </CCol>
-                      </CRow>
-                    </CRow>
-                  </CCardBody>
-                </CCard>
-              ))}
+        <CTabContent>
+          <CTabPanel className="p-3" aria-labelledby="home-tab-pane" itemKey={1}>
+            {/* You can use the same product card structure for each tab panel */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
+
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
             </CRow>
-          </div>
+          </CTabPanel>
 
-          {/* Modal for product details */}
-          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-            <CModalHeader>
-              <CModalTitle>Product Details</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              {selectedProduct && (
-                <CRow className="g-1 mt-2">
-                  <CCard className="h-80">
-                    <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center">
-                        <CCol xs="1">
-                          <CCardImage
-                            src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                            alt={selectedProduct.Material.description}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs="6" className="mb-2">
-                          <div>
-                            <label>{selectedProduct.Material.description}</label>
-                            <br />
-                            <label className="fw-bold fs-6">
-                              Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
-                            </label>
-                          </div>
-                        </CCol>
-                        <CCol xs="5">
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                            }}
-                          >
-                            <label className="d-flex flex-column justify-content-between fs-6">
-                              Status:
-                            </label>
-                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                              ON PROCESS
-                            </CBadge>
-                          </div>
-                        </CCol>
-                      </CRow>
+          <CTabPanel className="p-3" aria-labelledby="shopping-tab-pane" itemKey={2}>
+            {/* You can use the same product card structure for each tab panel */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
 
-                      <hr />
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
 
-                      {/* History Order Timeline */}
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        {[
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilLocationPin,
-                            label: 'YOUR ITEM RECEIVED',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilCarAlt,
-                            label: 'DELIVERY OTODOKE',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilHome,
-                            label: 'ACCEPTED WAREHOUSE STAFF',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL SECTION HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL LINE HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'ORDER CREATED',
-                          },
-                        ].map((item, index) => (
-                          <div
-                            key={index}
-                            style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}
-                          >
-                            <label style={{ marginRight: '8px' }}>{item.date}</label>
-                            <div
-                              style={{
-                                border: '2px solid #000',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <CIcon icon={item.icon} size="lg" />
-                            </div>
-                            <label style={{ marginLeft: '8px' }}>{item.label}</label>
-                          </div>
-                        ))}
-                      </div>
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
+            </CRow>
+          </CTabPanel>
 
-                      <CRow></CRow>
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              )}
-            </CModalBody>
-          </CModal>
-        </CCard>
-      </CRow>
+          <CTabPanel className="p-3" aria-labelledby="Ready Delivery-tab-pane" itemKey={3}>
+            {/* Same structure for the Profile tab */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
+
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
+            </CRow>
+          </CTabPanel>
+
+          <CTabPanel className="p-3" aria-labelledby="Ready Pickup-tab-pane" itemKey={4}>
+            {/* Same structure for the Contact tab */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
+
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
+            </CRow>
+          </CTabPanel>
+          <CTabPanel className="p-3" aria-labelledby="Completed-tab-pane" itemKey={5}>
+            {/* Same structure for the Profile tab */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
+
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
+            </CRow>
+          </CTabPanel>
+          <CTabPanel className="p-3" aria-labelledby="Rejected-tab-pane" itemKey={6}>
+            {/* Same structure for the Profile tab */}
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">3 Oktober 2024</label>
+                              <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                ON PROCESS
+                              </CBadge>
+                              <label className="me-2 fw-light">X21000000000/20/20</label>
+                            </CCol>
+
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    alt={user.name}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewProduct(product)}
+                                  color="secondary"
+                                  size="sm"
+                                >
+                                  {selectedStatusFilter
+                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
+                                    : 'View Detail Order'}
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+              </CCard>
+            </CRow>
+          </CTabPanel>
+        </CTabContent>
+      </CTabs>
     </>
   )
 }

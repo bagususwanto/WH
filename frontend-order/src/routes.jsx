@@ -7,6 +7,8 @@ const Profile = React.lazy(() => import('./views/profile/Profile'))
 const Wishlist = React.lazy(() => import('./views/wishllist/Wishlist'))
 const History = React.lazy(() => import('./views/history/History'))
 const HistoryApp = React.lazy(() => import('./views/history/HistoryApprove'))
+const ConfirmWer = React.lazy(() => import('./views/confirm/ConfirmWarehouse'))
+const ConfirmDel = React.lazy(() => import('./views/confirm/ConfirmDelivery'))
 const ConfirmAll = React.lazy(() => import('./views/confirm/ConfirmAllWarehouse'))
 const ApproveAll = React.lazy(() => import('./views/confirm/ConfirmAllApprove'))
 const ConfirmApp = React.lazy(() => import('./views/confirm/ConfirmApprove'))
@@ -24,10 +26,12 @@ const routes = [
   { path: '/order', name: 'Order', element: Order },
   { path: '/order/:warehouseId', name: 'Order', element: Order },
   { path: '/cart', name: 'Cart', element: Cart },
-  { path: '/approveall', name: 'Aprroveall', element: ApproveAll},
-  { path: '/confirmall', name: 'Confirmall', element: ConfirmAll},
-  { path: '/confirmapp', name: 'Confirmapp', element: ConfirmApp},
+  { path: '/approveall', name: 'AprroveAll', element: ApproveAll},
+  { path: '/confirmall', name: 'ConfirmAll', element: ConfirmAll},
+  { path: '/confirmwer', name: 'ConfirmWer', element: ConfirmWer},
+  { path: '/confirmapp', name: 'ConfirmApp', element: ConfirmApp},
   { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec},
+  { path: '/confirmdel', name: 'ConfirmDel', element: ConfirmDel},
 
   
 ]
