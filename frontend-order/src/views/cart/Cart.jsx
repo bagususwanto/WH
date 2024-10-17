@@ -45,6 +45,7 @@ const Cart = () => {
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const [debouncedQuantities, setDebouncedQuantities] = useState({})
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
@@ -81,6 +82,37 @@ const Cart = () => {
   useEffect(() => {
     getCarts()
   }, [])
+
+  // Debounce Effect to Batch API Requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuantities(quantities)
+    }, 500) // Debounce delay of 500ms
+
+    return () => clearTimeout(timer)
+  }, [quantities])
+
+  useEffect(() => {
+    const updateServerQuantities = async () => {
+      for (const productId in debouncedQuantities) {
+        const quantity = debouncedQuantities[productId]
+        try {
+          const updateCartItem = {
+            id: productId,
+            quantity: quantity,
+          }
+          await updateCart(updateCartItem)
+          console.log(`Updated product ${productId} to quantity ${quantity}`)
+        } catch (error) {
+          console.error(`Error updating product ${productId}:`, error)
+        }
+      }
+    }
+
+    if (Object.keys(debouncedQuantities).length > 0) {
+      updateServerQuantities()
+    }
+  }, [debouncedQuantities, updateCart])
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -121,6 +153,25 @@ const Cart = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, cartData])
 
+  // const handleIncreaseQuantity = (productId) => {
+  //   setQuantities((prevQuantities) => ({
+  //     ...prevQuantities,
+  //     [productId]:
+  //       (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) + 1,
+  //   }))
+  // }
+
+  // const handleDecreaseQuantity = (productId) => {
+  //   setQuantities((prevQuantities) => ({
+  //     ...prevQuantities,
+  //     [productId]: Math.max(
+  //       (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) - 1,
+  //       1,
+  //     ),
+  //   }))
+  // }
+
+  // Handle Increase and Decrease Quantity
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
@@ -154,9 +205,12 @@ const Cart = () => {
   return (
     <>
       <CRow className="mt-3">
-        <CCard>
+      <CCard style={{ border: 'none' }}>
           <h3 className="fw-bold fs-4">Your Cart</h3>
-          <div className='ms-auto'style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            className="ms-auto"
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
             {/* <CFormCheck
               id="flexCheckDefault"
               label="Confirm All"
@@ -214,10 +268,7 @@ const Cart = () => {
                         >
                           -
                         </CButton>
-                        <span className="mx-3">
-                          {quantities[product.id] || product.quantity} (
-                          {product.Inventory.Material?.uom || 'UOM'})
-                        </span>
+                        <span className="mx-3">{quantities[product.id] || product.quantity}</span>
                         <CButton
                           color="secondary"
                           variant="outline"
@@ -226,6 +277,7 @@ const Cart = () => {
                         >
                           +
                         </CButton>
+                        <span className="px-2">({product.Inventory.Material?.uom || 'UOM'})</span>
                       </div>
                     </CCol>
 

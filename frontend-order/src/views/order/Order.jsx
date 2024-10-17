@@ -216,7 +216,7 @@ const ProductList = () => {
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={product.Material.img || 'https://via.placeholder.com/150'}
+                src={ 'https://via.placeholder.com/150'}
                 alt={product.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />
@@ -309,7 +309,7 @@ const ProductList = () => {
             <CRow>
               <CCol md="4">
                 <CImage
-                  src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
+                  src={ 'https://via.placeholder.com/150'}
                   alt={selectedProduct.Material.description}
                   fluid
                   className="rounded"
