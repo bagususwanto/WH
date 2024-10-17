@@ -467,7 +467,7 @@ const Home = () => {
                 </div>
                 <CCol xs="5"></CCol>
 
-                <CRow xs="1" className="d-flex justify-content-between my-2 ">
+                <CRow className="d-flex justify-content-between my-2 ">
                   <CCol xs="1">
                     <CCardImage
                       src={
@@ -492,7 +492,7 @@ const Home = () => {
                   </CCol>
                 </CRow>
 
-                <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                <CRow className="d-flex justify-content-end align-items-center">
                   <CCol xs={4} className="d-flex justify-content-end">
                     <CButton
                       onClick={() => handleViewHistoryOrder(order)}

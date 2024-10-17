@@ -44,6 +44,10 @@ import {
   cilFolder,
   cilStar,
   cilHeart,
+  cilInbox,
+  cilFax,
+  cilLifeRing,
+  cilKeyboard,
 } from '@coreui/icons'
 import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
@@ -76,13 +80,24 @@ const AppHeader = () => {
   const [warehouseId, setWarehouseId] = useState(0)
   const [cartCount, setCartCount] = useState(0)
   const [cart, setCart] = useState([])
+  const [category, setCategory] = useState([])
 
   const { warehouse, setWarehouse } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
 
-  const apiWarehouseUser = 'warehouse-user'
+  const iconMap = {
+    'Office Supp.': cilFolder,
+    'Oper Supp.': cilCart,
+    'Support Oper': cilInbox,
+    'Raw.Matr': cilFax,
+    'Spare Part': cilLifeRing,
+    Tools: cilKeyboard,
+  }
 
+  const apiWarehouseUser = 'warehouse-user'
+  const apiCategory = 'category'
   const apiWarehouse = 'warehouse'
+
   // Fetch products from API
   const getProducts = async () => {
     try {
@@ -120,6 +135,15 @@ const AppHeader = () => {
     }
   }
 
+  const getCategories = async () => {
+    try {
+      const response = await getMasterData(apiCategory)
+      setCategory(response.data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
   const getCartCounts = async () => {
     try {
       const response = await getCartCount(warehouse.id)
@@ -141,6 +165,7 @@ const AppHeader = () => {
   useEffect(() => {
     getDefaultWarehouse()
     getWarehouse() // Fetch products on mount
+    getCategories()
   }, []) // Empty dependency array ensures it only runs once
 
   useEffect(() => {
@@ -195,11 +220,6 @@ const AppHeader = () => {
   }
 
   const handleSuggestionClick = (query) => {
-    console.log('handleSuggestionClick')
-
-    console.log(query)
-    console.log(searchHistory)
-
     setSearchQuery(query)
     setFilteredSuggestions([])
     addToSearchHistory(query)
@@ -222,10 +242,6 @@ const AppHeader = () => {
 
   const handleSearchHistoryClick = (query, e) => {
     e.preventDefault() // Prevent default button behavior
-    console.log('handleSearchHistoryClick')
-
-    console.log(query)
-    console.log(searchHistory)
 
     setSearchQuery(query)
     setFilteredSuggestions([])
@@ -242,8 +258,6 @@ const AppHeader = () => {
       limit: limit.toString(),
       q: query,
     })
-    // Debug URL params
-    console.log('URL Params:', params.toString())
     // Mengarahkan pengguna ke URL yang berisi query parameters
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
@@ -522,11 +536,11 @@ const AppHeader = () => {
           </form>
         </CCol>
 
-        {/* Button Order */}
         <CHeaderNav className="d-flex align-items-center ms-auto">
-          <CButton onClick={() => navigate('/order')} className="text-dark ms-3">
+          {/* Button Order */}
+          {/* <CButton onClick={() => navigate('/order')} className="text-dark ms-3">
             <CIcon icon={cilLibrary} size="lg" />
-          </CButton>
+          </CButton> */}
 
           {/* Button Cart */}
           <CDropdown variant="nav-item">
@@ -620,38 +634,15 @@ const AppHeader = () => {
         <CRow>
           <CCollapse visible={showCategories}>
             <div className="p-3">
-              <label className="fw-bold">Kategori Utama</label>
               <CRow>
-                <CCol xs="auto">
-                  <CButton className="text-start" onClick={() => navigate('/kategori1')}>
-                    <CIcon icon={cilFolder} className="me-2" /> {/* Ikon Kategori 1 */}
-                    Kategori 1
-                  </CButton>
-                </CCol>
-                <CCol xs="auto">
-                  <CButton className="text-start" onClick={() => navigate('/kategori2')}>
-                    <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
-                    Kategori 2
-                  </CButton>
-                </CCol>
-                <CCol xs="auto">
-                  <CButton className="text-start" onClick={() => navigate('/kategori3')}>
-                    <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
-                    Kategori 3
-                  </CButton>
-                </CCol>
-                <CCol xs="auto">
-                  <CButton className="text-start" onClick={() => navigate('/kategori2')}>
-                    <CIcon icon={cilStar} className="me-2" /> {/* Ikon Kategori 2 */}
-                    Kategori 2
-                  </CButton>
-                </CCol>
-                <CCol xs="auto">
-                  <CButton className="text-start" onClick={() => navigate('/kategori3')}>
-                    <CIcon icon={cilHeart} className="me-2" /> {/* Ikon Kategori 3 */}
-                    Kategori 3
-                  </CButton>
-                </CCol>
+                {category.map((cat) => (
+                  <CCol xs="auto" key={cat.id}>
+                    <CButton className="text-start" onClick={() => navigate('/kategori1')}>
+                      <CIcon icon={iconMap[cat.categoryName] || cilFolder} className="me-2" />
+                      {cat.categoryName}
+                    </CButton>
+                  </CCol>
+                ))}
               </CRow>
             </div>
           </CCollapse>

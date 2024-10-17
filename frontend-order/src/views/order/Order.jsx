@@ -62,7 +62,6 @@ const ProductList = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const query = params.get('q') // Ambil parameter 'q'
-    console.log('Query:', query)
 
     if (warehouse && warehouse.id) {
       if (query) {
