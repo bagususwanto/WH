@@ -263,20 +263,35 @@ const ProductList = () => {
                     </div>
 
                     <CCol sm="auto" className="ms-2">
-                      <CButton
-                        className="box"
-                        color="black"
+                      {/* <CButton
                         onClick={() => handleToggleWishlist(product.Material.id)}
                         style={{
                           backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
-                          border: '1px solid gray',
+
                           color: isInWishlist(product.Material.id) ? 'white' : 'black',
-                          borderRadius: '50%',
                         }}
                       >
                         <CIcon
                           icon={cilHeart}
                           className={isInWishlist(product.Material.id)}
+                          size="lg"
+                        />
+                      </CButton> */}
+                      <CButton
+                        onClick={() => handleToggleWishlist(product.Material.id)}
+                        style={{
+                          backgroundColor: 'transparent', // No background for the button
+                          border: 'none', // No border for the button
+                          padding: '0', // No padding, make the button as small as the icon
+                        }}
+                      >
+                        <CIcon
+                          icon={cilHeart}
+                          style={{
+                            fill: isInWishlist(product.Material.id) ? 'red' : 'white', // Change the fill color
+                            stroke: 'black', // Outline for the heart
+                            strokeWidth: '2px', // Ensure the outline is visible
+                          }}
                           size="lg"
                         />
                       </CButton>
