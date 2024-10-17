@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -48,6 +48,7 @@ import {
 import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
 import useProductService from '../services/ProductService'
+import useCartService from '../services/CartService'
 import '../scss/appheader.scss'
 import { GlobalContext } from '../context/GlobalProvider'
 
@@ -57,6 +58,7 @@ const AppHeader = () => {
   const [warehouseData, setWarehouseData] = useState([])
   const { getMasterData } = useMasterDataService()
   const { getProduct } = useProductService()
+  const { getCartCount, getCart } = useCartService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [searchHistory, setSearchHistory] = useState([])
@@ -65,14 +67,17 @@ const AppHeader = () => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const navigate = useNavigate()
-  const notificationCount = 3
+  const notificationCount = 0
   const [showCategories, setShowCategories] = useState(false)
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false)
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
   const [visible, setVisible] = useState(false)
   const [warehouseId, setWarehouseId] = useState(0)
+  const [cartCount, setCartCount] = useState(0)
+  const [cart, setCart] = useState([])
 
   const { warehouse, setWarehouse } = useContext(GlobalContext)
+  const dropdownRef = useRef(null)
 
   const apiWarehouseUser = 'warehouse-user'
 
@@ -105,6 +110,24 @@ const AppHeader = () => {
     }
   }
 
+  const getCartCounts = async () => {
+    try {
+      const response = await getCartCount(warehouse.id)
+      setCartCount(response.totalItems)
+    } catch (error) {
+      console.error('Error fetching carts:', error)
+    }
+  }
+
+  const getCarts = async () => {
+    try {
+      const response = await getCart(warehouse.id)
+      setCart(response.data)
+    } catch (error) {
+      console.error('Error fetching carts:', error)
+    }
+  }
+
   useEffect(() => {
     getDefaultWarehouse()
     getWarehouse() // Fetch products on mount
@@ -113,6 +136,8 @@ const AppHeader = () => {
   useEffect(() => {
     if (warehouse && warehouse.id) {
       getProducts()
+      getCartCounts()
+      getCarts()
     }
   }, [warehouse])
 
@@ -251,13 +276,12 @@ const AppHeader = () => {
   }
 
   const handleBlur = (e) => {
-    // Instead of immediately hiding, add a condition or delay
     setTimeout(() => {
-      // Only close the recent search if the input is truly not focused
-      if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) {
+      // Pastikan e.currentTarget tidak null sebelum memanggil contains
+      if (e.currentTarget && (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget))) {
         setShowRecentSearches(false)
       }
-    }, 300) // Small delay to allow for delete to work
+    }, 150) // Small delay to allow for delete to work
   }
 
   const handleDropdownToggle = () => {
@@ -300,6 +324,22 @@ const AppHeader = () => {
     }
   }
 
+  const handleClickOutside = (e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setShowRecentSearches(false) // Tutup dropdown jika klik di luar
+    }
+  }
+
+  useEffect(() => {
+    // Tambahkan event listener saat komponen di-mount
+    document.addEventListener('mousedown', handleClickOutside)
+
+    // Hapus event listener saat komponen di-unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -309,11 +349,12 @@ const AppHeader = () => {
             size="lg"
             style={{ transition: 'color 0.3s', color: '#333', marginRight: '5px' }}
           />
-          <b>{warehouse.warehouseName}</b>
+          <b className="me-2">{warehouse.warehouseName}</b>
           <CLink
             color="primary"
             onClick={handleShowModal}
-            style={{ marginLeft: '7px', cursor: 'pointer' }}
+            style={{ cursor: 'pointer' }}
+            className="text-decoration-none text-color-primary"
           >
             Change
           </CLink>
@@ -358,7 +399,7 @@ const AppHeader = () => {
           <CButton onClick={handleToggleCategories}>Category</CButton>
         </CCol>
         <CCol sm={4}>
-          <form onSubmit={handleSubmit} style={{ position: 'relative' }}>
+          <form ref={dropdownRef} onSubmit={handleSubmit} style={{ position: 'relative' }}>
             <CFormInput
               type="search"
               placeholder="Search product..."
@@ -483,53 +524,49 @@ const AppHeader = () => {
               caret={false}
             >
               <CIcon icon={cilCart} size="lg" className="ms-3" />
-              {notificationCount > 0 && (
+              {cartCount > 0 && (
                 <CBadge
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
                   style={{ top: '-5px', right: '-10px' }}
                 >
-                  {notificationCount}
+                  {cartCount}
                 </CBadge>
               )}
             </CDropdownToggle>
             <CDropdownMenu className="pt-0" placement="bottom-end" style={{ minWidth: '300px' }}>
               <CDropdownHeader className="bg-body-secondary fw-semibold d-flex justify-content-between align-items-center">
-                <span>Your Cart ({notificationCount})</span>
+                <span>Your Cart ({cartCount})</span>
                 <CLink
                   onClick={() => navigate('/cart')}
                   className="text-primary ms-auto"
                   style={{ cursor: 'pointer' }}
                 >
-                  Show In
+                  Show
                 </CLink>
               </CDropdownHeader>
-              <CDropdownItem href="#" className="d-flex align-items-center">
-                <CRow className="w-100">
-                  <CCol xs="3" className="d-flex justify-content-center">
-                    <CCardImage
-                      src="https://via.placeholder.com/150"
-                      alt="Product Image"
-                      className="w-100"
-                      style={{ height: '50px', objectFit: 'cover' }}
-                    />
-                  </CCol>
-                  <CCol xs="6">
-                    <CCardTitle className="mb-0" style={{ fontSize: '12px' }}>
-                      ALABAMA
-                    </CCardTitle>
-                    <CCardText className="mb-0" style={{ fontSize: '12px' }}>
-                      Material No
-                    </CCardText>
-                  </CCol>
-                  <CCol xs="3" className="text-end">
-                    <CCardText className="mb-0" style={{ fontSize: '12px' }}>
-                      2 x Rp 1000
-                    </CCardText>
-                  </CCol>
-                </CRow>
-              </CDropdownItem>
+              {cart.map((product) => (
+                <CDropdownItem key={product.id} href="#" className="d-flex align-items-center">
+                  <CRow className="w-100">
+                    <CCol xs="8" className="mb-2">
+                      <CCardTitle style={{ fontSize: '12px' }}>
+                        {product.Inventory.Material.description.length > 25
+                          ? product.Inventory.Material.description.substring(0, 25) + '...'
+                          : product.Inventory.Material.description}
+                      </CCardTitle>
+                      <CCardText style={{ fontSize: '12px' }}>
+                        {product.Inventory.Material.materialNo}
+                      </CCardText>
+                    </CCol>
+                    <CCol xs="4" className="text-end">
+                      <CCardText style={{ fontSize: '12px' }}>
+                        <b>{product.quantity} Item</b>
+                      </CCardText>
+                    </CCol>
+                  </CRow>
+                </CDropdownItem>
+              ))}
             </CDropdownMenu>
           </CDropdown>
 
@@ -555,9 +592,9 @@ const AppHeader = () => {
               <CDropdownHeader className="bg-body-secondary fw-semibold">
                 Anda memiliki ({notificationCount}) notifikasi
               </CDropdownHeader>
-              <CDropdownItem href="#">Notifikasi 1</CDropdownItem>
+              {/* <CDropdownItem href="#">Notifikasi 1</CDropdownItem>
               <CDropdownItem href="#">Notifikasi 2</CDropdownItem>
-              <CDropdownItem href="#">Notifikasi 3</CDropdownItem>
+              <CDropdownItem href="#">Notifikasi 3</CDropdownItem> */}
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>

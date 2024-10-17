@@ -21,6 +21,7 @@ import Line from "../models/LineModel.js";
 import Division from "../models/DivisionModel.js";
 import Department from "../models/DepartmentModel.js";
 import CostCenter from "../models/CostCenterModel.js";
+import Role from "../models/RoleModel.js";
 
 // cek stock
 export const checkStock = async (inventoryId, quantity) => {
@@ -313,7 +314,7 @@ export const generateOrderNumber = async (isApproval) => {
     const formattedDate = `${year}${month}${day}`;
 
     // Tentukan prefix berdasarkan isApproval
-    const prefix = isApproval === 1 ? "TR" : "REQ";
+    const prefix = isApproval == 1 ? "TR" : "REQ";
 
     // Cari sequence terbaru untuk hari ini
     const lastOrder = await Order.findOne({
@@ -330,9 +331,18 @@ export const generateOrderNumber = async (isApproval) => {
     let sequenceNumber = 1;
     if (lastOrder) {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
-      const lastTransactionNumber = isApproval === 1 ? lastOrder.transactionNumber : lastOrder.requestNumber;
-      const lastSequence = parseInt(lastTransactionNumber.slice(-4)); // Ambil 4 digit terakhir sebagai sequence
-      sequenceNumber = lastSequence + 1;
+      const lastTransactionNumber = isApproval == 1 && lastOrder ? lastOrder.transactionNumber : lastOrder ? lastOrder.requestNumber : null;
+
+
+      // Periksa apakah lastTransactionNumber valid
+      if (lastTransactionNumber) {
+        const lastSequence = parseInt(lastTransactionNumber.slice(-4), 10); // Ambil 4 digit terakhir sebagai sequence
+        sequenceNumber = isNaN(lastSequence) ? 1 : lastSequence + 1;
+      } else {
+        sequenceNumber = 1; // Jika lastTransactionNumber null, mulai dari sequence 1
+      }
+    } else {
+      sequenceNumber = 1; // Jika tidak ada lastOrder, mulai dari sequence 1
     }
 
     // Pad sequence number menjadi 4 digit
@@ -528,7 +538,7 @@ export const createOrder = async (req, res) => {
     const remarks = req.body.remarks;
     const orderTimeStr = req.body.orderTime; // ex: "07:30"
     const paymentNumber = req.body.paymentNumber; // ex: "4000000061" or "F3.Y2024.0031.51101R0100"
-    const paymentMethod = req.body.paymentMethod; // ex: "WBS" or "GIC"
+    const paymentMethod = req.body.paymentMethod; // ex: "GIC" or "WBS"
     const deliveryMethod = req.body.deliveryMethod; // ex: "Otodoke" or "Pickup"
     const isProduction = req.user.isProduction;
     const role = req.user.roleName;
@@ -550,8 +560,8 @@ export const createOrder = async (req, res) => {
       ],
     });
 
-    if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res.status(400).json({ message: "cartIds harus berupa array dan tidak boleh kosong" });
+    if (carts.length !== cartIds.length) {
+      return res.status(400).json({ message: "Beberapa ID cart tidak valid" });
     }
 
     // Jika quantity order < min order
@@ -604,16 +614,21 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: "Approval tidak ditemukan" });
     }
 
+    const fullTransactionNo = await generateOrderNumber(approval[0].isApproval);
+    console.log("fullTransactionNo", fullTransactionNo);
+    const leftTransactionNo = fullTransactionNo.slice(0, 2); // Mengambil 2 digit pertama
+
     // Create order
     const order = await Order.create(
       {
         userId: userId,
-        requestNumber: await generateOrderNumber(0),
+        requestNumber: leftTransactionNo == "REQ" ? fullTransactionNo : null,
+        transactionNumber: leftTransactionNo == "TR" ? fullTransactionNo : null,
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
         status: "waiting approval",
-        secheduleDelivery: orderTimeStr,
+        scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
         currentRoleApprovalId: approval[0].currentRoleApprovalId,

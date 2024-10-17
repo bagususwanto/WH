@@ -15,7 +15,7 @@ const useCartService = () => {
 
   const getCart = async (id) => {
     try {
-      const response = await axiosJWT.get('/cart', {
+      const response = await axiosJWT.get(`/cart/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -62,12 +62,26 @@ const useCartService = () => {
     }
   }
 
+  const getCartCount = async (id) => {
+    try {
+      const response = await axiosJWT.get(`/cart-count/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response.data // Returning the data instead of the whole response
+    } catch (error) {
+      handleError(error, `Error delete data for ID ${id}:`)
+    }
+  }
+
 
   return {
     getCart,
     postCart,
     updateCart,
     deleteCart,
+    getCartCount
   }
 }
 

@@ -17,7 +17,7 @@ const Order = db.define(
     },
     requestNumber: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     transactionNumber: {
       type: DataTypes.STRING,
@@ -40,7 +40,7 @@ const Order = db.define(
       allowNull: false,
     },
     scheduleDelivery: {
-      type: DataTypes.TIME,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     deliveryMethod: {
@@ -79,5 +79,8 @@ const Order = db.define(
     freezeTableName: true,
   }
 );
+
+User.hasMany(Order, { foreignKey: "userId" });
+Order.belongsTo(User, { foreignKey: "userId" });
 
 export default Order;
