@@ -146,7 +146,7 @@ const Wishlist = () => {
                     {product.Inventory.Material.description}
                   </CCardTitle>
                   <CCardTitle style={{ fontSize: '12px' }}>
-                    Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
+                    {product.Inventory.Material.materialNo}
                   </CCardTitle>
                 </div>
                 <CRow className="mt-auto align-items-center">
