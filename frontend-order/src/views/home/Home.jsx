@@ -70,7 +70,6 @@ const Home = () => {
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [wishlist, setWishlist] = useState([])
   const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(0)
   const [visibleCount, setVisibleCount] = useState(20)
@@ -79,7 +78,7 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
-  const { warehouse } = useContext(GlobalContext)
+  const { warehouse, wishlist } = useContext(GlobalContext)
 
   const navigate = useNavigate()
 
@@ -127,7 +126,7 @@ const Home = () => {
   }
 
   const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Material.id === productId)
+    return wishlist.some((item) => item.Inventory.Material.id === productId)
   }
 
   useEffect(() => {
