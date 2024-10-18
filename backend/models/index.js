@@ -44,7 +44,7 @@ import LogImport from "./LogImportModel.js";
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await Order.sync({ alter: true });
+    // await ServiceHours.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

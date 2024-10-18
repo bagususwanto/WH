@@ -25,7 +25,7 @@ const ServiceHours = db.define(
       },
     },
     time: {
-      type: DataTypes.TIME,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     flag: {
