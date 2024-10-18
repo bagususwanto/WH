@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { AiFillHeart } from 'react-icons/ai'
 import {
   CCard,
   CCardBody,
@@ -281,18 +282,18 @@ const ProductList = () => {
                         onClick={() => handleToggleWishlist(product.Material.id)}
                         style={{
                           backgroundColor: 'transparent', // No background for the button
-                          border: 'none', // No border for the button
-                          padding: '0', // No padding, make the button as small as the icon
+                          border: 'black', // Menghilangkan border default button
+                          padding: '0', // No padding, membuat button sekecil ikon
+                          outline: 'none', // Menghapus outline pada focus button
                         }}
                       >
-                        <CIcon
-                          icon={cilHeart}
+                        <AiFillHeart
                           style={{
-                            fill: isInWishlist(product.Material.id) ? 'red' : 'white', // Change the fill color
-                            stroke: 'black', // Outline for the heart
-                            strokeWidth: '2px', // Ensure the outline is visible
+                            color: isInWishlist(product.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                            stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                            strokeWidth: '15px', // Tebal garis luar
                           }}
-                          size="lg"
+                          size={24} // Ukuran ikon
                         />
                       </CButton>
                     </CCol>
