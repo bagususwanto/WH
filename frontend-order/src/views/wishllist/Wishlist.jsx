@@ -28,13 +28,15 @@ import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
 import { AiFillHeart } from 'react-icons/ai'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist } = useOrderService()
+  const { getWishlist, clearWishlist } = useOrderService()
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
@@ -43,8 +45,12 @@ const Wishlist = () => {
   const [quantity, setQuantity] = useState(1)
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
+  const [isAdjustMode, setIsAdjustMode] = useState(false)
+  const [selectedItems, setSelectedItems] = useState([])
 
   const { warehouse, wishlist } = useContext(GlobalContext)
+
+  const MySwal = withReactContent(Swal)
 
   const apiCategory = 'category'
   const navigate = useNavigate()
@@ -65,7 +71,7 @@ const Wishlist = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      getFavorite()
+      getFavorite(warehouse.id)
     }
     getCategories()
   }, [warehouse])
@@ -120,8 +126,102 @@ const Wishlist = () => {
     navigate('/cart') // Navigate to the cart page
   }
 
+  // Toggle mode Adjust
+  const handleAdjustToggle = () => {
+    setIsAdjustMode(!isAdjustMode)
+    // Reset selected items jika keluar dari Adjust Mode
+    if (isAdjustMode) {
+      setSelectedItems([])
+    }
+  }
+
+  // Handle checkbox change
+  const handleCheckboxChange = (productId) => {
+    setSelectedItems((prevSelected) => {
+      if (prevSelected.includes(productId)) {
+        return prevSelected.filter((id) => id !== productId)
+      } else {
+        return [...prevSelected, productId]
+      }
+    })
+  }
+
+  const handleDelete = async () => {
+    if (selectedItems.length === 0) {
+      MySwal.fire('Error', 'Please select products to delete.', 'error')
+      return
+    }
+
+    // Tampilkan dialog konfirmasi
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete the selected items?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Yes, delete them!',
+      reverseButtons: true, // Membalik posisi tombol
+    })
+
+    // Jika pengguna menekan tombol "Yes"
+    if (result.isConfirmed) {
+      try {
+        await clearWishlist({ inventoryIds: selectedItems })
+        MySwal.fire('Deleted!', 'Selected products have been deleted.', 'success')
+
+        // Kosongkan selectedItems setelah penghapusan berhasil
+        setSelectedItems([])
+
+        getFavorite(warehouse.id)
+      } catch (error) {
+        console.error('Error deleting products:', error)
+        MySwal.fire('Error', 'Failed to delete selected products.', 'error')
+      }
+    }
+  }
+
   return (
     <>
+      <CRow className="mb-2">
+        <p>
+          {!isAdjustMode && (
+            <>
+              <span className="me-2 fw-bold">{wishlistData ? wishlistData.length : 0}</span>
+              Item
+              <CButton
+                size="sm"
+                className="ms-2 me-2 text-primary fw-bold"
+                onClick={handleAdjustToggle}
+              >
+                Adjust
+              </CButton>
+            </>
+          )}
+          {isAdjustMode && (
+            <>
+              <CButton
+                size="sm"
+                color="danger"
+                className="text-white ms-2"
+                disabled={selectedItems.length === 0}
+                onClick={handleDelete}
+              >
+                Delete ({selectedItems.length})
+              </CButton>
+              <CButton
+                size="sm"
+                className="ms-2 me-2 text-primary fw-bold"
+                onClick={handleAdjustToggle}
+              >
+                Cancel
+              </CButton>
+            </>
+          )}
+        </p>
+      </CRow>
+
       <CRow>
         {wishlistData.map((product) => (
           <CCol
@@ -134,6 +234,22 @@ const Wishlist = () => {
             className="mb-4"
           >
             <CCard className="h-100">
+              {/* Checkbox di pojok kanan atas jika dalam mode adjust */}
+              {isAdjustMode && (
+                <input
+                  type="checkbox"
+                  className="position-absolute"
+                  style={{
+                    right: '10px',
+                    top: '10px',
+                    width: '20px',
+                    height: '20px',
+                    transform: 'scale(0.9)',
+                  }}
+                  onChange={() => handleCheckboxChange(product.Inventory.id)} // Handle checkbox click
+                />
+              )}
+
               <CCardImage
                 orientation="top"
                 src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
@@ -150,45 +266,14 @@ const Wishlist = () => {
                   </CCardTitle>
                 </div>
                 <CRow className="mt-auto align-items-center">
-                  {/* <CCol sm="auto" className="mb-2">
-                    <CBadge
-                      color={calculateStockStatus(product) === 'Out of Stock' ? 'primary' : ''}
-                    >
-                      {calculateStockStatus(product)}
-                    </CBadge>
-                  </CCol> */}
-
-                  {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
                   <CCol sm="auto">
                     <CButton
                       className="box btn-sm"
                       color="primary"
-                      style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                      style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }}
                       onClick={() => handleModalCart(product)}
                     >
                       Add to Cart
-                    </CButton>
-                  </CCol>
-                  {/* )} */}
-
-                  <CCol sm="auto" className="ms-2">
-                    <CButton
-                      onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
-                      style={{
-                        backgroundColor: 'transparent', // No background for the button
-                        border: 'black', // Menghilangkan border default button
-                        padding: '0', // No padding, membuat button sekecil ikon
-                        outline: 'none', // Menghapus outline pada focus button
-                      }}
-                    >
-                      <AiFillHeart
-                        style={{
-                          color: isInWishlist(product.Inventory.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                          stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                          strokeWidth: '15px', // Tebal garis luar
-                        }}
-                        size={20} // Ukuran ikon
-                      />
                     </CButton>
                   </CCol>
                 </CRow>

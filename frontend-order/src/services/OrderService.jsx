@@ -26,6 +26,20 @@ const useOrderService = () => {
     }
   }
 
+  const clearWishlist = async (data) => {
+    try {
+      const response = await axiosJWT.delete('/wishlist-clear', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: data, // Letakkan data di sini untuk metode DELETE
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching wishlist:')
+    }
+  }
+
   const getMyorder = async (id) => {
     try {
       const response = await axiosJWT.get(`/myorder/${id}?page=1&limit=10`, {
@@ -53,6 +67,7 @@ const useOrderService = () => {
 
   return {
     getWishlist,
+    clearWishlist,
     getMyorder,
     checkout,
   }
