@@ -28,6 +28,12 @@ import {
   cilDeaf,
   cilFax,
   cilFolder,
+  cilPencil,
+  cilFactory,
+  cilPaintBucket,
+  cilFootball,
+cilCut,
+cilTags,
   cilHome,
   cilInbox,
   cilKeyboard,
@@ -48,12 +54,13 @@ import { GlobalContext } from '../../context/GlobalProvider'
 
 // Icon mapping based on your category names
 const iconMap = {
-  'Office Supp.': cilFolder,
-  'Oper Supp.': cilCart,
-  'Support Oper': cilInbox,
-  'Raw.Matr': cilFax,
-  'Spare Part': cilLifeRing,
-  Tools: cilKeyboard,
+  'Office Supp.': cilPencil,
+    'Oper. Supply': cilFactory,
+    'Support Oper': cilInbox,
+    'Raw Matr.': cilPaintBucket,
+    'Spare Part': cilFootball,
+    'Tools': cilCut,
+    'Others': cilTags,
 }
 
 const Home = () => {

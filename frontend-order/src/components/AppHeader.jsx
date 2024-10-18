@@ -48,6 +48,14 @@ import {
   cilFax,
   cilLifeRing,
   cilKeyboard,
+  cilFactory,
+  cilPaintBucket,
+  cilFootball,
+ cilPencil,
+ cilInputHdmi,
+ cilCog,
+ cilCut,
+ cilTags
 } from '@coreui/icons'
 import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
@@ -86,12 +94,13 @@ const AppHeader = () => {
   const dropdownRef = useRef(null)
 
   const iconMap = {
-    'Office Supp.': cilFolder,
-    'Oper Supp.': cilCart,
+    'Office Supp.': cilPencil,
+    'Oper. Supply': cilFactory,
     'Support Oper': cilInbox,
-    'Raw.Matr': cilFax,
-    'Spare Part': cilLifeRing,
-    Tools: cilKeyboard,
+    'Raw Matr.': cilPaintBucket,
+    'Spare Part': cilFootball,
+    'Tools': cilCut,
+    'Others': cilTags,
   }
 
   const apiWarehouseUser = 'warehouse-user'

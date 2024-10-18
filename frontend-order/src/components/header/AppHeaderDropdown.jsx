@@ -7,7 +7,7 @@ import {
   CDropdownToggle,
   CDropdownHeader,
 } from '@coreui/react'
-import { cilUser, cilAccountLogout, cilHistory, cilBadge, cilCart } from '@coreui/icons'
+import { cilUser, cilAccountLogout, cilHistory, cilBadge, cilCart, cilHeart } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
 
@@ -19,13 +19,10 @@ const AppHeaderDropdown = () => {
   const { name } = useVerify()
   const navigate = useNavigate()
 
- const handleHistory = () => {
+  const handleHistory = () => {
     navigate('/history')
   }
 
-  const handleCheckout = () => {
-    navigate('/cart')
-  }
   const handleProfile = () => {
     navigate('/profile')
   }
@@ -58,20 +55,15 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilUser} className="me-2" />
           Profile
         </CDropdownItem>
-        
         <CDropdownDivider />
-        <CDropdownItem onClick={handleCheckout} style={{ cursor: 'pointer' }}>
-          <CIcon icon={cilCart} className="me-2" />
-          Checkout
-        </CDropdownItem>
-        <CDropdownDivider />
+
         <CDropdownItem onClick={handleHistory} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilHistory} className="me-2" />
           History Order
         </CDropdownItem>
         <CDropdownDivider />
         <CDropdownItem onClick={handleWhislist} style={{ cursor: 'pointer' }}>
-          <CIcon icon={cilHistory} className="me-2" />
+          <CIcon icon={cilHeart} className="me-2" />
           Wishlist
         </CDropdownItem>
         <CDropdownDivider />
