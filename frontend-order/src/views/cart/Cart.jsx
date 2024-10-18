@@ -37,6 +37,7 @@ import {
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useCartService from '../../services/CartService'
+import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
 
 // Icon mapping based on your category names
@@ -46,6 +47,7 @@ const Cart = () => {
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { checkout } = useOrderService()
   const [debouncedQuantities, setDebouncedQuantities] = useState({})
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
@@ -72,10 +74,21 @@ const Cart = () => {
     }
   }
 
+  const checkouts = async () => {
+    try {
+      const response = await checkout({ cartIds: [18] })
+      console.log(response)
+
+      navigate('/confirmrec', { state: { verifiedCartItems: response.data } })
+    } catch (error) {
+      console.error('Error fetching cart:', error)
+    }
+  }
+
   const handleDeleteCart = async (productId) => {
     try {
       console.log(productId)
-      await deleteCart({ id: productId })
+      await deleteCart(productId)
       setCartData(cartData.filter((product) => product.id !== productId))
     } catch (error) {
       console.error('Error deleting cart:', error)
@@ -154,19 +167,21 @@ const Cart = () => {
   // }
 
   // Handle Increase and Decrease Quantity
-  const handleIncreaseQuantity = (productId) => {
+  const handleIncreaseQuantity = (inventoryId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]:
-        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) + 1,
+      [inventoryId]:
+        (prevQuantities[inventoryId] ||
+          cartData.find((p) => p.inventoryId === inventoryId).quantity) + 1,
     }))
   }
 
-  const handleDecreaseQuantity = (productId) => {
+  const handleDecreaseQuantity = (inventoryId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: Math.max(
-        (prevQuantities[productId] || cartData.find((p) => p.id === productId).quantity) - 1,
+      [inventoryId]: Math.max(
+        (prevQuantities[inventoryId] ||
+          cartData.find((p) => p.inventoryId === inventoryId).quantity) - 1,
         1,
       ),
     }))
@@ -178,7 +193,7 @@ const Cart = () => {
 
   const handleConfirm = () => {
     setModalVisible(false)
-    navigate('/confirmrec') // Use navigate instead of history.push
+    checkouts()
   }
 
   const handleCancel = () => {
@@ -246,16 +261,18 @@ const Cart = () => {
                           color="secondary"
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDecreaseQuantity(product.id)}
+                          onClick={() => handleDecreaseQuantity(product.inventoryId)}
                         >
                           -
                         </CButton>
-                        <span className="mx-3">{quantities[product.id] || product.quantity}</span>
+                        <span className="mx-3">
+                          {quantities[product.inventoryId] || product.quantity}
+                        </span>
                         <CButton
                           color="secondary"
                           variant="outline"
                           size="sm"
-                          onClick={() => handleIncreaseQuantity(product.id)}
+                          onClick={() => handleIncreaseQuantity(product.inventoryId)}
                         >
                           +
                         </CButton>

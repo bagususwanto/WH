@@ -38,10 +38,23 @@ const useOrderService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+  const checkout = async (data) => {
+    try {
+      const response = await axiosJWT.post('/checkout', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
 
   return {
     getWishlist,
     getMyorder,
+    checkout,
   }
 }
 
