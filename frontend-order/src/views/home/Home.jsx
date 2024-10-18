@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+import { AiFillHeart } from 'react-icons/ai'
 import {
   CCard,
   CCardBody,
@@ -349,7 +350,7 @@ const Home = () => {
                               <CBadge color="secondary" className="me-2">
                                 {calculateStockStatus(product)}
                               </CBadge>
-
+{/* 
                               <CButton
                                 className="box me-4"
                                 color="secondary"
@@ -364,15 +365,25 @@ const Home = () => {
                                     : 'black',
                                   borderRadius: '50%',
                                 }}
+                              > */}
+                               <CButton
+                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
+                                style={{
+                                  backgroundColor: 'transparent', // No background for the button
+                                  border: 'black', // Menghilangkan border default button
+                                  padding: '0', // No padding, membuat button sekecil ikon
+                                  outline: 'none', // Menghapus outline pada focus button
+                                }}
                               >
-                                <CIcon
-                                  icon={cilHeart}
-                                  className={
-                                    isInWishlist(product.Inventory.Material.id)
-                                      ? ''
-                                      : 'border border-secondary rounded-circle'
-                                  }
-                                  style={{ fontSize: '1rem' }}
+                                <AiFillHeart
+                                  style={{
+                                    color: isInWishlist(product.Inventory.Material.id)
+                                      ? 'red'
+                                      : 'white', // Ubah warna ikon sesuai status wishlist
+                                    stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                                    strokeWidth: '15px', // Tebal garis luar
+                                  }}
+                                  size={20} // Ukuran ikon
                                 />
                               </CButton>
                             </>
@@ -391,7 +402,7 @@ const Home = () => {
                                 Add to Cart
                               </CButton>
 
-                              <CButton
+                              {/* <CButton
                                 className="box"
                                 color="secondary"
                                 onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
@@ -405,15 +416,25 @@ const Home = () => {
                                     : 'black',
                                   borderRadius: '50%',
                                 }}
+                              > */}
+                              <CButton
+                                onClick={() => handleToggleWishlist(product.InventoryMaterial.id)}
+                                style={{
+                                  backgroundColor: 'transparent', // No background for the button
+                                  border: 'black', // Menghilangkan border default button
+                                  padding: '0', // No padding, membuat button sekecil ikon
+                                  outline: 'none', // Menghapus outline pada focus button
+                                }}
                               >
-                                <CIcon
-                                  icon={cilHeart}
-                                  className={
-                                    isInWishlist(product.Inventory.Material.id)
-                                      ? ''
-                                      : 'border border-secondary rounded-circle'
-                                  }
-                                  style={{ fontSize: '1rem' }}
+                                <AiFillHeart
+                                  style={{
+                                    color: isInWishlist(product.Inventory.Material.id)
+                                      ? 'red'
+                                      : 'white', // Ubah warna ikon sesuai status wishlist
+                                    stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                                    strokeWidth: '15px', // Tebal garis luar
+                                  }}
+                                  size={20} // Ukuran ikon
                                 />
                               </CButton>
                             </>
@@ -640,24 +661,21 @@ const Home = () => {
 
                     <CCol sm="auto" className="ms-2">
                       <CButton
-                        className="box"
-                        color="secondary"
                         onClick={() => handleToggleWishlist(product.Material.id)}
                         style={{
-                          backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
-                          border: '1px solid white',
-                          color: isInWishlist(product.Material.id) ? 'white' : 'black',
-                          borderRadius: '50%',
+                          backgroundColor: 'transparent', // No background for the button
+                          border: 'black', // Menghilangkan border default button
+                          padding: '0', // No padding, membuat button sekecil ikon
+                          outline: 'none', // Menghapus outline pada focus button
                         }}
                       >
-                        <CIcon
-                          icon={cilHeart}
-                          className={
-                            isInWishlist(product.Material.id)
-                              ? ''
-                              : 'border border-secondary rounded-circle'
-                          }
-                          style={{ fontSize: '1rem' }}
+                        <AiFillHeart
+                          style={{
+                            color: isInWishlist(product.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                            stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                            strokeWidth: '15px', // Tebal garis luar
+                          }}
+                          size={20} // Ukuran ikon
                         />
                       </CButton>
                     </CCol>

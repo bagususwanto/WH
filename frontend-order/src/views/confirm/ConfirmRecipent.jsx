@@ -138,9 +138,9 @@ const Confirm = () => {
   return (
     <CContainer>
       <CRow>
-        <CCol key={data.id} xs={4}>
-        {cartsData.map((product, index) => (
-            <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+        <CCol  xs={4}>
+          {verifiedCartItems.map((data) => (
+            <CCard key={data.id}style={{ position: 'sticky', top: '0', zIndex: '10' }}>
               <CCardBody>
                 <label className="fw-bold mb-2">Select Delivery Type</label>
 
@@ -196,7 +196,7 @@ const Confirm = () => {
                 <CFormCheck
                   type="radio"
                   id="payment1"
-                  label="WBS - ####-###-###"
+                  label={checkout.Material.description}
                   checked={iswbs}
                   onChange={() => setIswbs(true)}
                 />
