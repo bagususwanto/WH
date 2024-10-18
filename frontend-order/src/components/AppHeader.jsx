@@ -296,6 +296,16 @@ const AppHeader = () => {
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
+  const handleCategoryHeadClick = (categoryId) => {
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      id: categoryId,
+    })
+
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/category?${params.toString()}`)
+  }
+
   const handleFocus = () => {
     setShowRecentSearches(searchHistory.length > 0)
   }
@@ -637,7 +647,7 @@ const AppHeader = () => {
               <CRow>
                 {category.map((cat) => (
                   <CCol xs="auto" key={cat.id}>
-                    <CButton className="text-start" onClick={() => navigate('/kategori1')}>
+                    <CButton className="text-start" onClick={() => handleCategoryHeadClick(cat.id)}>
                       <CIcon icon={iconMap[cat.categoryName] || cilFolder} className="me-2" />
                       {cat.categoryName}
                     </CButton>

@@ -137,8 +137,9 @@ const Home = () => {
   useEffect(() => {
     if (categoriesData && categoriesData.length > 0) {
       getProductByCategories(categoriesData[0].id, 1)
+      setProducts([])
     }
-  }, [categoriesData])
+  }, [categoriesData, warehouse])
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
@@ -148,7 +149,7 @@ const Home = () => {
       getFavorite()
       getMyorders()
     }
-  }, [warehouse, selectedCategory])
+  }, [warehouse])
 
   // const currentProducts = useMemo(() => {
   //   const start = currentPage * productsPerPage
