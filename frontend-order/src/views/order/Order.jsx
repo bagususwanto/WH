@@ -48,7 +48,6 @@ const ProductList = () => {
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-  
 
   const location = useLocation() // Ambil informasi
   const { warehouse } = useContext(GlobalContext)
@@ -74,6 +73,7 @@ const ProductList = () => {
       if (query) {
         getProductByQueries(query)
       } else if (categoryId) {
+        setProductsData([])
         getProductByCategories(categoryId, 1)
       } else {
         getProducts()
@@ -94,15 +94,17 @@ const ProductList = () => {
   }
 
   // Fungsi untuk mendapatkan produk berdasarkan query
-  const getProductByQueries = async (query) => {
+  const getProductByQueries = async (query, page) => {
     try {
-      const response = await getProductByQuery(warehouse.id, query)
+      const response = await getProductByQuery(warehouse.id, query, page)
       if (!response.data) {
         console.error('No products found')
         setProductsData([])
         return
       }
-      setProductsData(response.data)
+      const newProducts = response.data
+      setProductsData((prevProducts) => [...prevProducts, ...newProducts])
+      setHasMore(newProducts.length === 25) // Misalkan limit per halaman adalah 24
     } catch (error) {
       console.error('Error fetching products by query:', error)
     }
@@ -118,7 +120,7 @@ const ProductList = () => {
       const response = await getProductByCategory(warehouse.id, categoryId, page)
       const newProducts = response.data
 
-      setProducts((prevProducts) => [...prevProducts, ...newProducts])
+      setProductsData((prevProducts) => [...prevProducts, ...newProducts])
 
       // Set 'hasMore' berdasarkan apakah ada produk yang tersisa untuk di-load
       setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
@@ -160,10 +162,24 @@ const ProductList = () => {
     setQuantity(1)
   }
   const handleLoadMore = () => {
-    // setVisibleCount(visibleCount + 12) // Load 12 more products
     const nextPage = page + 1
     setPage(nextPage)
-    getProductByCategories(selectedCategory ? selectedCategory.id : categoriesData[0].id, nextPage)
+
+    // setVisibleCount(visibleCount + 12) // Load 12 more products
+    const params = new URLSearchParams(location.search)
+    const query = params.get('q') // Ambil parameter 'q'
+    const categoryId = params.get('id')
+
+    if (warehouse && warehouse.id) {
+      if (query) {
+        getProductByQueries(query, nextPage)
+      } else if (categoryId) {
+        // setProductsData([])
+        getProductByCategories(categoryId, nextPage)
+      } else {
+        getProducts()
+      }
+    }
   }
 
   // const handleAddToCart = (product, quantity) => {
@@ -237,8 +253,16 @@ const ProductList = () => {
     <>
       {productsData.length === 0 && <div>Product not found...</div>}
       <CRow>
-        {products.map((product, index) => (
-          <CCol xs="6" sm="6" md="3" lg="4" xl="2"  key={`${product.Material.id}-${index}`} className="mb-3">
+        {productsData.map((product, index) => (
+          <CCol
+            xs="6"
+            sm="6"
+            md="3"
+            lg="4"
+            xl="2"
+            key={`${product.Material.id}-${index}`}
+            className="mb-3"
+          >
             <CCard className="h-100">
               <CCardImage
                 orientation="top"

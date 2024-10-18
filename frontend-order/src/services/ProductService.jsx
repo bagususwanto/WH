@@ -41,9 +41,9 @@ const useProductService = () => {
     }
   }
 
-  const getProductByQuery = async (id, q) => {
+  const getProductByQuery = async (id, q, page) => {
     try {
-      const response = await axiosJWT.get(`/product/search/${id}?page=1&limit=20&q=${q}`, {
+      const response = await axiosJWT.get(`/product/search/${id}?page=${page}&limit=25&q=${q}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

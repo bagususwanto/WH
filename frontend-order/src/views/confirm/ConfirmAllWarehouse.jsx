@@ -251,7 +251,7 @@ const ApproveAll = () => {
                                 </div>
                               </CCol>
                               <CCol xs="4">
-                                <label>{product.Material.description}</label>
+                                <label>{product.Material.description}..</label>
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>

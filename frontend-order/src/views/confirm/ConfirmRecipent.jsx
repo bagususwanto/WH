@@ -72,7 +72,6 @@ const Confirm = () => {
 
   const { verifiedCartItems } = location.state
 
-
   // const apiCategory = 'category'
 
   // const getCarts = async () => {
@@ -87,17 +86,17 @@ const Confirm = () => {
   //   }
   // }, [warehouse])
 
-  // const handleCheckout = () => {
-  //   setModalVisible(true)
-  // }
-  // const handleConfirm = () => {
-  //   setModalVisible(false)
-  //   navigate('/history') // Use navigate instead of history.push
-  // }
+  const handleCheckout = () => {
+    setModalVisible(true)
+  }
+  const handleConfirm = () => {
+    setModalVisible(false)
+    navigate('/history') // Use navigate instead of history.push
+  }
 
-  // const handleCancel = () => {
-  //   setModalVisible(false)
-  // }
+  const handleCancel = () => {
+    setModalVisible(false)
+  }
 
   // // Total harga produk
   // useEffect(() => {
@@ -139,9 +138,8 @@ const Confirm = () => {
   return (
     <CContainer>
       <CRow>
-        
-          <CCol key={data.id} xs={4}>
-          {verifiedCartItems.map((data) => (
+        <CCol key={data.id} xs={4}>
+        {cartsData.map((product, index) => (
             <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
               <CCardBody>
                 <label className="fw-bold mb-2">Select Delivery Type</label>
@@ -249,40 +247,39 @@ const Confirm = () => {
                 </div>
               </CCardBody>
             </CCard>
-             ))}
-          </CCol>
+          ))}
+        </CCol>
 
-          <CCol xs={8}>
-            <CRow className="g-2">
-              {cartsData.map((product, index) => (
-                <CCard className="h-80" key={index}>
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <CRow className="align-items-center">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={product.Material.img || 'https://via.placeholder.com/150'}
-                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="10">
-                        <div>
-                          <label className="fw-bold">
-                            {product.Material.description} ({product.Material?.uom || 'UOM'}){' '}
-                          </label>
-                          <br></br>
-                          <label className="fw-light fs-6">{product.Material.materialNo}</label>
-                        </div>
-                      </CCol>
-                      <CCol xs="1">
-                        <label> 2 {product.Material.uom}</label>
-                      </CCol>
-                    </CRow>
-                  </CCardBody>
-                </CCard>
-              ))}
-            </CRow>
-          </CCol>
-       
+        <CCol xs={8}>
+          <CRow className="g-2">
+            {cartsData.map((product, index) => (
+              <CCard className="h-80" key={index}>
+                <CCardBody className="d-flex flex-column justify-content-between">
+                  <CRow className="align-items-center">
+                    <CCol xs="1">
+                      <CCardImage
+                        src={product.Material.img || 'https://via.placeholder.com/150'}
+                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                      />
+                    </CCol>
+                    <CCol xs="10">
+                      <div>
+                        <label className="fw-bold">
+                          {product.Material.description} ({product.Material?.uom || 'UOM'}){' '}
+                        </label>
+                        <br></br>
+                        <label className="fw-light fs-6">{product.Material.materialNo}</label>
+                      </div>
+                    </CCol>
+                    <CCol xs="1">
+                      <label> 2 {product.Material.uom}</label>
+                    </CCol>
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            ))}
+          </CRow>
+        </CCol>
       </CRow>
     </CContainer>
   )
