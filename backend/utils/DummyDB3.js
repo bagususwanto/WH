@@ -8017,6 +8017,11 @@ export const serviceHoursData = [
   {
     warehouseId: 1,
     shiftId: 1,
+    time: "10:00",
+  },
+  {
+    warehouseId: 1,
+    shiftId: 1,
     time: "13:00",
   },
 ];
