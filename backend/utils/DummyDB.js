@@ -517,7 +517,7 @@ export const roleData = [
 export const warehouseData = [
   {
     warehouseCode: 1000,
-    warehouseName: "Warehouse Issuing Karawang 1 & 2",
+    warehouseName: "Warehouse Karawang 1 & 2",
   },
   {
     warehouseCode: 2000,

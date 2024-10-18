@@ -71,7 +71,7 @@ const Wishlist = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      getFavorite(warehouse.id)
+      getFavorite()
     }
     getCategories()
   }, [warehouse])
@@ -98,7 +98,7 @@ const Wishlist = () => {
   }
 
   const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Inventory.Material.id === productId)
+    return wishlist.some((item) => item.id === productId)
   }
 
   const handleModalCart = (product) => {
@@ -174,7 +174,7 @@ const Wishlist = () => {
         // Kosongkan selectedItems setelah penghapusan berhasil
         setSelectedItems([])
 
-        getFavorite(warehouse.id)
+        getFavorite()
       } catch (error) {
         console.error('Error deleting products:', error)
         MySwal.fire('Error', 'Failed to delete selected products.', 'error')
@@ -283,14 +283,6 @@ const Wishlist = () => {
         ))}
       </CRow>
 
-      {!allVisible && filteredProducts.length > 20 && (
-        <div className="text-center mt-4 mb-4">
-          <CButton color="secondary" onClick={() => setAllVisible(true)}>
-            Load More
-          </CButton>
-        </div>
-      )}
-
       {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>
@@ -306,7 +298,7 @@ const Wishlist = () => {
               </CCol>
               <CCol md="8">
                 <strong>{selectedProduct.Inventory.Material.description}</strong>
-                <p>Rp {selectedProduct.Inventory.Material.price.toLocaleString('id-ID')}</p>
+                <p>{selectedProduct.Inventory.Material.materialNo}</p>
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
