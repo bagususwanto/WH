@@ -570,7 +570,11 @@ const AppHeader = () => {
                 </CBadge>
               )}
             </CDropdownToggle>
-            <CDropdownMenu className="pt-0" placement="bottom-end" style={{ minWidth: '300px' }}>
+            <CDropdownMenu
+              className="pt-0"
+              placement="bottom-end"
+              style={{ minWidth: '300px', maxHeight: '400px', overflowY: 'auto' }}
+            >
               <CDropdownHeader className="bg-body-secondary fw-semibold d-flex justify-content-between align-items-center">
                 <span>Your Cart ({cartCount})</span>
                 <CLink

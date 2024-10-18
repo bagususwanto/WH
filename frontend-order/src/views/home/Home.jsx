@@ -71,8 +71,8 @@ const Home = () => {
   const [cartCount, setCartCount] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [wishlist, setWishlist] = useState([])
+  const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(0)
-  const productsPerPage = 6
   const [visibleCount, setVisibleCount] = useState(20)
   const [filteredProducts, setFilteredProducts] = useState([])
   const [products, setProducts] = useState([])
@@ -151,13 +151,7 @@ const Home = () => {
     }
   }, [warehouse])
 
-  // const currentProducts = useMemo(() => {
-  //   const start = currentPage * productsPerPage
-  //   const end = start + productsPerPage
-  //   return filteredProducts.slice(start, end)
-  // }, [filteredProducts, currentPage, productsPerPage])
-
-  // const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
+  const totalPages = Math.ceil(wishlistData.length / itemsPerPage)
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -217,17 +211,25 @@ const Home = () => {
     getProductByCategories(selectedCategory ? selectedCategory.id : categoriesData[0].id, nextPage)
   }
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1)
+  // Fungsi untuk navigasi ke halaman sebelumnya
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage((prevPage) => prevPage - 1)
     }
   }
 
-  const handlePrevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1)
+  // Fungsi untuk navigasi ke halaman berikutnya
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage((prevPage) => prevPage + 1)
     }
   }
+
+  // Dapatkan produk yang ditampilkan pada halaman saat ini
+  const currentWishlist = wishlistData.slice(
+    currentPage * itemsPerPage,
+    currentPage * itemsPerPage + itemsPerPage,
+  )
 
   // const visibleProducts = products.slice(0, visibleCount)
 
@@ -295,7 +297,7 @@ const Home = () => {
 
         {/* Container for displaying product cards */}
         <CRow className="position-relative">
-          {/* <CButton
+          <CButton
             className="position-absolute start-0"
             color="light"
             onClick={handlePrevPage}
@@ -310,10 +312,10 @@ const Home = () => {
             }}
           >
             <CIcon icon={cilArrowLeft} />
-          </CButton> */}
+          </CButton>
 
           <CRow className="g-2">
-            {wishlistData.map((product) => (
+            {currentWishlist.map((product) => (
               <CCol
                 xs="6"
                 sm="6"
@@ -328,7 +330,7 @@ const Home = () => {
                     orientation="top"
                     src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
                     alt={product.Inventory.Material.description}
-                    className="img-fluid custom-card-image" // Menggunakan kelas CoreUI dan kelas kustom
+                    className="img-fluid custom-card-image"
                   />
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <div>
@@ -384,7 +386,7 @@ const Home = () => {
                                   padding: '5px 10px',
                                   fontSize: '12px',
                                   marginRight: '10px',
-                                }} // Custom styling for smaller button
+                                }}
                                 onClick={() => handleModalCart(product)}
                               >
                                 Add to Cart
@@ -426,7 +428,7 @@ const Home = () => {
             ))}
           </CRow>
 
-          {/* <CButton
+          <CButton
             className="position-absolute end-0"
             color="light"
             onClick={handleNextPage}
@@ -437,11 +439,11 @@ const Home = () => {
               height: '40px',
               top: '50%',
               transform: 'translateY(-50%)',
-              zIndex: 10, // Memastikan tombol ini di atas elemen lain
+              zIndex: 10,
             }}
           >
             <CIcon icon={cilArrowRight} />
-          </CButton> */}
+          </CButton>
         </CRow>
       </CRow>
       <hr />
