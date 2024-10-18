@@ -27,6 +27,7 @@ import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import { AiFillHeart } from 'react-icons/ai'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
@@ -42,19 +43,15 @@ const Wishlist = () => {
   const [quantity, setQuantity] = useState(1)
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
-  const [wishlist, setWishlist] = useState(new Set())
 
-  const { warehouse } = useContext(GlobalContext)
+  const { warehouse, wishlist } = useContext(GlobalContext)
 
   const apiCategory = 'category'
   const navigate = useNavigate()
-  console.log(wishlistData)
 
   const getFavorite = async () => {
     try {
       const response = await getWishlist(warehouse.id)
-      console.log(response.data)
-
       setWishlistData(response.data)
     } catch (error) {
       console.error('Error fetching wishlist:', error)
@@ -94,7 +91,9 @@ const Wishlist = () => {
     setWishlist(updatedWishlist)
   }
 
-  const isInWishlist = (productId) => wishlist.has(productId)
+  const isInWishlist = (productId) => {
+    return wishlist.some((item) => item.Inventory.Material.id === productId)
+  }
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -125,7 +124,15 @@ const Wishlist = () => {
     <>
       <CRow>
         {wishlistData.map((product) => (
-          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Inventory.Material.id} className="mb-4">
+          <CCol
+            xs="6"
+            sm="6"
+            md="3"
+            lg="3"
+            xl="2"
+            key={product.Inventory.Material.id}
+            className="mb-4"
+          >
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
@@ -152,37 +159,35 @@ const Wishlist = () => {
                   </CCol> */}
 
                   {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
-                    <CCol sm="auto" className="ms-2">
-                      <CButton
-                        className="box"
-                        color="primary"
-                        onClick={() => handleModalCart(product)}
-                      >
-                        + Add Cart
-                      </CButton>
-                    </CCol>
+                  <CCol sm="auto">
+                    <CButton
+                      className="box btn-sm"
+                      color="primary"
+                      style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                      onClick={() => handleModalCart(product)}
+                    >
+                      Add to Cart
+                    </CButton>
+                  </CCol>
                   {/* )} */}
 
                   <CCol sm="auto" className="ms-2">
                     <CButton
-                      className="box"
-                      color="secondary"
                       onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
                       style={{
-                        backgroundColor: isInWishlist(product.Inventory.Material.id) ? 'red' : 'white',
-                        border: '1px solid white',
-                        color: isInWishlist(product.Inventory.Material.id) ? 'white' : 'black',
-                        borderRadius: '50%',
+                        backgroundColor: 'transparent', // No background for the button
+                        border: 'black', // Menghilangkan border default button
+                        padding: '0', // No padding, membuat button sekecil ikon
+                        outline: 'none', // Menghapus outline pada focus button
                       }}
                     >
-                      <CIcon
-                        icon={cilHeart}
-                        className={
-                          isInWishlist(product.Inventory.Material.id)
-                            ? ''
-                            : 'border border-secondary rounded-circle'
-                        }
-                        style={{ fontSize: '1.5rem' }}
+                      <AiFillHeart
+                        style={{
+                          color: isInWishlist(product.Inventory.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                          stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                          strokeWidth: '15px', // Tebal garis luar
+                        }}
+                        size={20} // Ukuran ikon
                       />
                     </CButton>
                   </CCol>
