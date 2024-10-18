@@ -296,6 +296,16 @@ const AppHeader = () => {
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
+  const handleCategoryHeadClick = (categoryId) => {
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      id: categoryId,
+    })
+
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/category?${params.toString()}`)
+  }
+
   const handleFocus = () => {
     setShowRecentSearches(searchHistory.length > 0)
   }
@@ -560,7 +570,11 @@ const AppHeader = () => {
                 </CBadge>
               )}
             </CDropdownToggle>
-            <CDropdownMenu className="pt-0" placement="bottom-end" style={{ minWidth: '300px' }}>
+            <CDropdownMenu
+              className="pt-0"
+              placement="bottom-end"
+              style={{ minWidth: '300px', maxHeight: '400px', overflowY: 'auto' }}
+            >
               <CDropdownHeader className="bg-body-secondary fw-semibold d-flex justify-content-between align-items-center">
                 <span>Your Cart ({cartCount})</span>
                 <CLink
@@ -637,7 +651,7 @@ const AppHeader = () => {
               <CRow>
                 {category.map((cat) => (
                   <CCol xs="auto" key={cat.id}>
-                    <CButton className="text-start" onClick={() => navigate('/kategori1')}>
+                    <CButton className="text-start" onClick={() => handleCategoryHeadClick(cat.id)}>
                       <CIcon icon={iconMap[cat.categoryName] || cilFolder} className="me-2" />
                       {cat.categoryName}
                     </CButton>

@@ -33,7 +33,7 @@ const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getMasterData } = useMasterDataService()
-  const { getProduct, getProductByQuery } = useProductService()
+  const { getProduct, getProductByQuery, getProductByCategory } = useProductService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [modalOrder, setModalOrder] = useState(false)
@@ -63,10 +63,13 @@ const ProductList = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const query = params.get('q') // Ambil parameter 'q'
+    const categoryId = params.get('id')
 
     if (warehouse && warehouse.id) {
       if (query) {
         getProductByQueries(query)
+      } else if (categoryId) {
+        getProductByCategories(categoryId, 1)
       } else {
         getProducts()
       }
@@ -79,6 +82,15 @@ const ProductList = () => {
   const getProducts = async () => {
     try {
       const response = await getProduct(warehouse.id)
+      setProductsData(response.data)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
+
+  const getProductByCategories = async (categoryId, page) => {
+    try {
+      const response = await getProductByCategory(warehouse.id, categoryId, page)
       setProductsData(response.data)
     } catch (error) {
       console.error('Error fetching products:', error)

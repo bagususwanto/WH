@@ -468,8 +468,6 @@ export const checkout = async (req, res) => {
   try {
     const cartIds = req.body.cartIds;
 
-    console.log(cartIds);
-
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
       return res.status(400).json({ message: "cartIds harus berupa array dan tidak boleh kosong" });
     }
