@@ -33,6 +33,7 @@ import {
   COffcanvasHeader,
   COffcanvasTitle,
   CFormSelect,
+  CImage,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -588,17 +589,24 @@ const AppHeader = () => {
               {cart.map((product) => (
                 <CDropdownItem key={product.id} href="#" className="d-flex align-items-center">
                   <CRow className="w-100">
+                    <CCol xs="2">
+                      <CImage
+                        src={'https://via.placeholder.com/150'}
+                        // alt={product.Inventory.Material.description}
+                        style={{ width: '40px', height: '40px' }}
+                      />
+                    </CCol>
                     <CCol xs="8" className="mb-2">
                       <CCardTitle style={{ fontSize: '12px' }}>
-                        {product.Inventory.Material.description.length > 25
-                          ? product.Inventory.Material.description.substring(0, 25) + '...'
+                        {product.Inventory.Material.description.length > 20
+                          ? product.Inventory.Material.description.substring(0, 20) + '...'
                           : product.Inventory.Material.description}
                       </CCardTitle>
                       <CCardText style={{ fontSize: '12px' }}>
                         {product.Inventory.Material.materialNo}
                       </CCardText>
                     </CCol>
-                    <CCol xs="4" className="text-end">
+                    <CCol xs="2" className="text-end">
                       <CCardText style={{ fontSize: '12px' }}>
                         <b>{product.quantity} Item</b>
                       </CCardText>
