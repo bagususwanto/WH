@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CCard,
@@ -25,12 +25,16 @@ import CIcon from '@coreui/icons-react'
 import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import useOrderService from '../../services/OrderService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
+  const { getWishlist } = useOrderService()
+  const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -40,12 +44,21 @@ const Wishlist = () => {
   const [cartCount, setCartCount] = useState(0)
   const [wishlist, setWishlist] = useState(new Set())
 
+  const { warehouse } = useContext(GlobalContext)
+
   const apiCategory = 'category'
   const navigate = useNavigate()
+  console.log(wishlistData)
 
-  const getProducts = async () => {
-    const response = await getInventory()
-    setProductsData(response.data)
+  const getFavorite = async () => {
+    try {
+      const response = await getWishlist(warehouse.id)
+      console.log(response.data)
+
+      setWishlistData(response.data)
+    } catch (error) {
+      console.error('Error fetching wishlist:', error)
+    }
   }
 
   const getCategories = async () => {
@@ -54,18 +67,20 @@ const Wishlist = () => {
   }
 
   useEffect(() => {
-    getProducts()
+    if (warehouse && warehouse.id) {
+      getFavorite()
+    }
     getCategories()
-  }, [])
+  }, [warehouse])
 
-  const calculateStockStatus = (product) => {
-    const { quantityActualCheck } = product
-    const { minStock, maxStock } = product.Material
-    if (quantityActualCheck == null) return 'Out of Stock'
-    if (quantityActualCheck > maxStock) return 'In Stock'
-    if (quantityActualCheck <= minStock) return 'Low Stock'
-    return 'Out of Stock'
-  }
+  // const calculateStockStatus = (product) => {
+  //   const { quantityActualCheck } = product
+  //   const { minStock, maxStock } = product.Material
+  //   if (quantityActualCheck == null) return 'Out of Stock'
+  //   if (quantityActualCheck > maxStock) return 'In Stock'
+  //   if (quantityActualCheck <= minStock) return 'Low Stock'
+  //   return 'Out of Stock'
+  // }
 
   const filteredProducts = productsData.filter((product) =>
     product.Material.description.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -109,34 +124,34 @@ const Wishlist = () => {
   return (
     <>
       <CRow>
-        {filteredProducts.slice(0, allVisible ? filteredProducts.length : 10).map((product) => (
-          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Material.id} className="mb-4">
+        {wishlistData.map((product) => (
+          <CCol xs="6" sm="6" md="3" lg="3" xl="2" key={product.Inventory.Material.id} className="mb-4">
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={product.Material.img || 'https://via.placeholder.com/150'}
-                alt={product.Material.description}
+                src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                alt={product.Inventory.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />
               <CCardBody className="d-flex flex-column justify-content-between">
                 <div>
                   <CCardTitle style={{ fontSize: '14px' }}>
-                    {product.Material.description}
+                    {product.Inventory.Material.description}
                   </CCardTitle>
                   <CCardTitle style={{ fontSize: '12px' }}>
-                    Rp {product.Material.price.toLocaleString('id-ID')}
+                    Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
                   </CCardTitle>
                 </div>
                 <CRow className="mt-auto align-items-center">
-                  <CCol sm="auto" className="mb-2">
+                  {/* <CCol sm="auto" className="mb-2">
                     <CBadge
                       color={calculateStockStatus(product) === 'Out of Stock' ? 'primary' : ''}
                     >
                       {calculateStockStatus(product)}
                     </CBadge>
-                  </CCol>
+                  </CCol> */}
 
-                  {calculateStockStatus(product) !== 'Out of Stock' && (
+                  {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
                     <CCol sm="auto" className="ms-2">
                       <CButton
                         className="box"
@@ -146,24 +161,24 @@ const Wishlist = () => {
                         + Add Cart
                       </CButton>
                     </CCol>
-                  )}
+                  {/* )} */}
 
                   <CCol sm="auto" className="ms-2">
                     <CButton
                       className="box"
                       color="secondary"
-                      onClick={() => handleToggleWishlist(product.Material.id)}
+                      onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
                       style={{
-                        backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
+                        backgroundColor: isInWishlist(product.Inventory.Material.id) ? 'red' : 'white',
                         border: '1px solid white',
-                        color: isInWishlist(product.Material.id) ? 'white' : 'black',
+                        color: isInWishlist(product.Inventory.Material.id) ? 'white' : 'black',
                         borderRadius: '50%',
                       }}
                     >
                       <CIcon
                         icon={cilHeart}
                         className={
-                          isInWishlist(product.Material.id)
+                          isInWishlist(product.Inventory.Material.id)
                             ? ''
                             : 'border border-secondary rounded-circle'
                         }
@@ -193,15 +208,15 @@ const Wishlist = () => {
             <CRow>
               <CCol md="4">
                 <CImage
-                  src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                  alt={selectedProduct.Material.description}
+                  src={selectedProduct.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                  alt={selectedProduct.Inventory.Material.description}
                   fluid
                   className="rounded"
                 />
               </CCol>
               <CCol md="8">
-                <strong>{selectedProduct.Material.description}</strong>
-                <p>Rp {selectedProduct.Material.price.toLocaleString('id-ID')}</p>
+                <strong>{selectedProduct.Inventory.Material.description}</strong>
+                <p>Rp {selectedProduct.Inventory.Material.price.toLocaleString('id-ID')}</p>
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
@@ -210,7 +225,7 @@ const Wishlist = () => {
                     -
                   </CButton>
                   <span className="mx-3">
-                    {quantity} ({selectedProduct.Material.uom})
+                    {quantity} ({selectedProduct.Inventory.Material.uom})
                   </span>
                   <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
                     +

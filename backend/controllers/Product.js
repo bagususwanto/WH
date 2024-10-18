@@ -216,7 +216,7 @@ export const getProductByQuery = async (req, res) => {
 export const getAllProduct = async (req, res) => {
   try {
     const warehouseId = req.params.warehouseId;
-    const BATCH_SIZE = 2000; // Ukuran batch yang diinginkan
+    const BATCH_SIZE = 1000; // Ukuran batch yang diinginkan
     let products = [];
     let batchNumber = 0;
     let hasMore = true;
