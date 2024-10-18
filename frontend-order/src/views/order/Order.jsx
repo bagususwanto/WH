@@ -28,12 +28,16 @@ import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import { GlobalContext } from '../../context/GlobalProvider'
 import useCartService from '../../services/CartService'
+import useOrderService from '../../services/OrderService'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getMasterData } = useMasterDataService()
   const { getProduct, getProductByQuery, getProductByCategory } = useProductService()
+  const { deleteWishlist, addWishlist, getWishlist } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
@@ -43,14 +47,15 @@ const ProductList = () => {
   const [quantity, setQuantity] = useState(1)
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
-  const [wishlist, setWishlist] = useState(new Set())
   const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
   const location = useLocation() // Ambil informasi
-  const { warehouse } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist } = useContext(GlobalContext)
+
+  const MySwal = withReactContent(Swal)
 
   const apiCategory = 'category'
   const navigate = useNavigate()
@@ -142,15 +147,51 @@ const ProductList = () => {
     product.Material.description.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleToggleWishlist = (productId) => {
-    const updatedWishlist = new Set(wishlist)
-    updatedWishlist.has(productId)
-      ? updatedWishlist.delete(productId)
-      : updatedWishlist.add(productId)
-    setWishlist(updatedWishlist)
+  const handleToggleWishlist = async (product) => {
+    if (isInWishlist(product.id)) {
+      // Jika produk sudah ada di wishlist (unlove), lakukan DELETE
+      try {
+        await deleteWishlist(product.id)
+        // Update state wishlist di frontend setelah berhasil menghapus dari database
+        setWishlist((prevWishlist) =>
+          prevWishlist.filter((item) => item.Inventory.id !== product.id),
+        )
+        MySwal.fire('Success', 'Product removed from wishlist', 'success')
+      } catch (error) {
+        console.error('Error removing product from wishlist:', error)
+      }
+    } else {
+      // Jika produk belum ada di wishlist (love), lakukan POST
+      try {
+        await addWishlist({ inventoryId: product.id })
+        // Update state wishlist di frontend setelah berhasil menambahkan ke database
+        const responseWish = await getWishlist(warehouse.id)
+        setWishlist((prevWishlist) => [...prevWishlist, ...responseWish.data])
+
+        // Menampilkan SweetAlert dengan tombol "Go to Wishlist"
+        MySwal.fire({
+          title: 'Success',
+          text: 'Product added to wishlist',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonText: 'Go to Wishlist',
+          cancelButtonText: 'Stay Here',
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Navigasi ke halaman wishlist
+            navigate('/wishlist')
+          }
+        })
+      } catch (error) {
+        console.error('Error adding product to wishlist:', error)
+      }
+    }
   }
 
-  const isInWishlist = (productId) => wishlist.has(productId)
+  const isInWishlist = (productId) => {
+    return wishlist.some((item) => item.Inventory.id === productId)
+  }
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -328,7 +369,7 @@ const ProductList = () => {
                         />
                       </CButton> */}
                       <CButton
-                        onClick={() => handleToggleWishlist(product.Material.id)}
+                        onClick={() => handleToggleWishlist(product)}
                         style={{
                           backgroundColor: 'transparent', // No background for the button
                           border: 'black', // Menghilangkan border default button
@@ -338,7 +379,7 @@ const ProductList = () => {
                       >
                         <AiFillHeart
                           style={{
-                            color: isInWishlist(product.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                            color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
                             stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
                             strokeWidth: '15px', // Tebal garis luar
                           }}

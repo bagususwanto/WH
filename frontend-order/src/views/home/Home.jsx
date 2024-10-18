@@ -230,6 +230,7 @@ const Home = () => {
           showCancelButton: true,
           confirmButtonText: 'Go to Wishlist',
           cancelButtonText: 'Stay Here',
+          reverseButtons: true,
         }).then((result) => {
           if (result.isConfirmed) {
             // Navigasi ke halaman wishlist
