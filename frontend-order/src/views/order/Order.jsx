@@ -35,6 +35,7 @@ const ProductList = () => {
   const { getMasterData } = useMasterDataService()
   const { getProduct, getProductByQuery, getProductByCategory } = useProductService()
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
@@ -43,7 +44,11 @@ const ProductList = () => {
   const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
   const [wishlist, setWishlist] = useState(new Set())
+  const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  
 
   const location = useLocation() // Ambil informasi
   const { warehouse } = useContext(GlobalContext)
@@ -88,15 +93,6 @@ const ProductList = () => {
     }
   }
 
-  const getProductByCategories = async (categoryId, page) => {
-    try {
-      const response = await getProductByCategory(warehouse.id, categoryId, page)
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    }
-  }
-
   // Fungsi untuk mendapatkan produk berdasarkan query
   const getProductByQueries = async (query) => {
     try {
@@ -115,6 +111,20 @@ const ProductList = () => {
   const getCategories = async () => {
     const response = await getMasterData(apiCategory)
     setCategoriesData(response.data)
+  }
+
+  const getProductByCategories = async (categoryId, page) => {
+    try {
+      const response = await getProductByCategory(warehouse.id, categoryId, page)
+      const newProducts = response.data
+
+      setProducts((prevProducts) => [...prevProducts, ...newProducts])
+
+      // Set 'hasMore' berdasarkan apakah ada produk yang tersisa untuk di-load
+      setHasMore(newProducts.length === 24) // Misalkan limit per halaman adalah 24
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
   }
 
   const calculateStockStatus = (product) => {
@@ -150,7 +160,10 @@ const ProductList = () => {
     setQuantity(1)
   }
   const handleLoadMore = () => {
-    setVisibleCount(visibleCount + 20) // Load 12 more products
+    // setVisibleCount(visibleCount + 12) // Load 12 more products
+    const nextPage = page + 1
+    setPage(nextPage)
+    getProductByCategories(selectedCategory ? selectedCategory.id : categoriesData[0].id, nextPage)
   }
 
   // const handleAddToCart = (product, quantity) => {
@@ -224,8 +237,8 @@ const ProductList = () => {
     <>
       {productsData.length === 0 && <div>Product not found...</div>}
       <CRow>
-        {filteredProducts.slice(0, allVisible ? filteredProducts.length : 18).map((product) => (
-          <CCol xs="6" sm="6" md="3" lg="4" xl="2" key={product.Material.id} className="mb-3">
+        {products.map((product, index) => (
+          <CCol xs="6" sm="6" md="3" lg="4" xl="2"  key={`${product.Material.id}-${index}`} className="mb-3">
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
@@ -305,7 +318,7 @@ const ProductList = () => {
                             stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
                             strokeWidth: '15px', // Tebal garis luar
                           }}
-                          size={24} // Ukuran ikon
+                          size={20} // Ukuran ikon
                         />
                       </CButton>
                     </CCol>
@@ -317,8 +330,8 @@ const ProductList = () => {
         ))}
       </CRow>
 
-      {/* Tombol Load More */}
-      {visibleCount < filteredProducts.length && (
+      {/* {visibleCount < products.length && ( */}
+      {hasMore && (
         <div className="text-center mt-4 mb-4">
           <CButton color="secondary" onClick={handleLoadMore}>
             Load More

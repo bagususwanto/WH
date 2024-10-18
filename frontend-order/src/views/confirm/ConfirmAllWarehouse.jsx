@@ -94,21 +94,7 @@ const ApproveAll = () => {
     // Call any other logic you need here, such as fetching/filtering data based on status
   }
 
-  const handleViewProduct = (product) => {
-    // Navigate to different routes based on the selected status filter
-    if (selectedStatusFilter === 'confirmation') {
-      navigate('/confirmwer') // Navigate to confirmwer screen
-    } else if (
-      selectedStatusFilter === 'shopping' ||
-      selectedStatusFilter === 'readyToDelivery' ||
-      selectedStatusFilter === 'readyToPickup'
-    ) {
-      navigate('/confirmdel') // Navigate to confirmdel screen
-    } else {
-      setSelectedProduct(product) // Default action, show product details
-      setVisible(true)
-    }
-  }
+  
 
   const getProducts = async () => {
     const response = await getProduct(1)
@@ -146,17 +132,7 @@ const ApproveAll = () => {
     fetchProductsAndCategories()
   }, [])
 
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
-
-    // Update all individual checkboxes
-    const updatedCheckedItems = currentProducts.reduce((acc, product) => {
-      acc[product.id] = newSelectAll
-      return acc
-    }, {})
-    setCheckedItems(updatedCheckedItems)
-  }
+ 
 
   const getSeverity = (status) => {
     switch (status) {
@@ -200,7 +176,7 @@ const ApproveAll = () => {
   return (
     <>
       <CRow className="mt-1">
-        <CCard style={{ border: 'none' }}>
+        <CCard style={{ border: 'none' }} >
           <CCardBody>
             <h3 className="fw-bold fs-4">Warehouse Confirmation</h3>
           </CCardBody>
@@ -601,15 +577,9 @@ const ApproveAll = () => {
 
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleViewProduct(product)}
-                                  color="secondary"
-                                  size="sm"
-                                >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
-                                </CButton>
+                             
+                                 <CBadge color="success">Completed</CBadge>
+                               
                               </CCol>
                             </CRow>
                           </CRow>
@@ -680,15 +650,7 @@ const ApproveAll = () => {
 
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleViewProduct(product)}
-                                  color="secondary"
-                                  size="sm"
-                                >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
-                                </CButton>
+                              <CBadge color="danger">Rejected</CBadge>
                               </CCol>
                             </CRow>
                           </CRow>
