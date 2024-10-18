@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { AiFillHeart } from 'react-icons/ai'
 import {
   CCard,
   CCardBody,
@@ -275,21 +276,36 @@ const ProductList = () => {
                     </div>
 
                     <CCol sm="auto" className="ms-2">
-                      <CButton
-                        className="box"
-                        color="black"
+                      {/* <CButton
                         onClick={() => handleToggleWishlist(product.Material.id)}
                         style={{
                           backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
-                          border: '1px solid gray',
+
                           color: isInWishlist(product.Material.id) ? 'white' : 'black',
-                          borderRadius: '50%',
                         }}
                       >
                         <CIcon
                           icon={cilHeart}
                           className={isInWishlist(product.Material.id)}
                           size="lg"
+                        />
+                      </CButton> */}
+                      <CButton
+                        onClick={() => handleToggleWishlist(product.Material.id)}
+                        style={{
+                          backgroundColor: 'transparent', // No background for the button
+                          border: 'black', // Menghilangkan border default button
+                          padding: '0', // No padding, membuat button sekecil ikon
+                          outline: 'none', // Menghapus outline pada focus button
+                        }}
+                      >
+                        <AiFillHeart
+                          style={{
+                            color: isInWishlist(product.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                            stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                            strokeWidth: '15px', // Tebal garis luar
+                          }}
+                          size={24} // Ukuran ikon
                         />
                       </CButton>
                     </CCol>

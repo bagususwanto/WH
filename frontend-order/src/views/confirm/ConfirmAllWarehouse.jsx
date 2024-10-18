@@ -208,7 +208,7 @@ const ApproveAll = () => {
       </CRow>
 
       <CTabs activeItemKey={2}>
-      <CTabList variant="pills">
+        <CTabList variant="pills">
           <CTab aria-controls="home-tab-pane" itemKey={1}>
             Confirmation
           </CTab>
@@ -295,9 +295,7 @@ const ApproveAll = () => {
                                   color="secondary"
                                   size="sm"
                                 >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
+                                 Confirmation Detail 
                                 </CButton>
                               </CCol>
                             </CRow>
@@ -375,9 +373,7 @@ const ApproveAll = () => {
                                   color="secondary"
                                   size="sm"
                                 >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
+                                  Shopping Detail
                                 </CButton>
                               </CCol>
                             </CRow>
@@ -455,9 +451,7 @@ const ApproveAll = () => {
                                   color="secondary"
                                   size="sm"
                                 >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
+                                  Ready Delivery Detail
                                 </CButton>
                               </CCol>
                             </CRow>
@@ -535,9 +529,7 @@ const ApproveAll = () => {
                                   color="secondary"
                                   size="sm"
                                 >
-                                  {selectedStatusFilter
-                                    ? `${selectedStatusFilter.charAt(0).toUpperCase() + selectedStatusFilter.slice(1)} Detail`
-                                    : 'View Detail Order'}
+                                  Ready Pickup Detail
                                 </CButton>
                               </CCol>
                             </CRow>
