@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react'
 import useOrderService from '../services/OrderService'
+import useCartService from '../services/CartService'
 
 // Membuat context
 const GlobalContext = createContext()
@@ -8,8 +9,10 @@ const GlobalContext = createContext()
 const GlobalProvider = ({ children }) => {
   const [warehouse, setWarehouse] = useState([])
   const [wishlist, setWishlist] = useState([])
+  const [cartCount, setCartCount] = useState(0)
 
   const { getWishlist } = useOrderService()
+  const { getCartCount } = useCartService()
 
   const fetchWishlists = async () => {
     try {
@@ -20,14 +23,26 @@ const GlobalProvider = ({ children }) => {
     }
   }
 
+  const fetchCartCount = async () => {
+    try {
+      const response = await getCartCount(warehouse.id)
+      setCartCount(response.totalItems)
+    } catch (error) {
+      console.error('Error fetching carts:', error)
+    }
+  }
+
   useEffect(() => {
     if (warehouse && warehouse.id) {
       fetchWishlists()
+      fetchCartCount()
     }
   }, [warehouse])
 
   return (
-    <GlobalContext.Provider value={{ warehouse, setWarehouse, wishlist, setWishlist }}>
+    <GlobalContext.Provider
+      value={{ warehouse, setWarehouse, wishlist, setWishlist, cartCount, setCartCount }}
+    >
       {children}
     </GlobalContext.Provider>
   )

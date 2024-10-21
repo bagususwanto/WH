@@ -87,11 +87,10 @@ const AppHeader = () => {
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
   const [visible, setVisible] = useState(false)
   const [warehouseId, setWarehouseId] = useState(0)
-  const [cartCount, setCartCount] = useState(0)
   const [cart, setCart] = useState([])
   const [category, setCategory] = useState([])
 
-  const { warehouse, setWarehouse } = useContext(GlobalContext)
+  const { warehouse, setWarehouse, cartCount } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
 
   const iconMap = {
@@ -181,11 +180,10 @@ const AppHeader = () => {
   useEffect(() => {
     if (warehouse && warehouse.id) {
       getProducts()
-      getCartCounts()
       getCarts()
       getAllProducts()
     }
-  }, [warehouse])
+  }, [warehouse, cartCount])
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem('searchHistory')) || []

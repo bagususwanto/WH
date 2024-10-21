@@ -46,14 +46,13 @@ const ProductList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [cart, setCart] = useState([])
-  const [cartCount, setCartCount] = useState(0)
   const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
   const location = useLocation() // Ambil informasi
-  const { warehouse, wishlist, setWishlist } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist, cartCount, setCartCount } = useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
@@ -239,18 +238,15 @@ const ProductList = () => {
   // }
 
   const handleAddToCart = async (product, quantity) => {
-    console.log('tes', product)
     try {
       // Find the existing product in the cart by matching inventoryId
       const existingProduct = cart.find((item) => item.Inventory.materialId === product.Material.id)
-      console.log('-', existingProduct)
       if (existingProduct) {
         // If product exists in the cart, update the quantity
         const updatedProduct = {
           ...existingProduct,
           quantity: existingProduct.quantity + quantity,
         }
-        console.log('1231414', product.id)
 
         // Update the cart with the new quantity (use API updateCart)
         const updatedCartResponse = await updateCart({
@@ -282,8 +278,20 @@ const ProductList = () => {
       setCartCount(cartCount + quantity)
       setModalOrder(false)
 
-      // Navigate to the cart page
-      navigate('/cart')
+      MySwal.fire({
+        title: 'Success',
+        text: 'Product added to cart',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Cart',
+        cancelButtonText: 'Stay Here',
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Navigasi ke halaman wishlist
+          navigate('/cart')
+        }
+      })
     } catch (error) {
       // Handle error
       console.error('Failed to add to cart:', error)
@@ -331,26 +339,24 @@ const ProductList = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      {/* Show "Out of Stock" badge if applicable */}
-                      {calculateStockStatus(product) === 'Out of Stock' && (
+                      {/* {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge textBgColor="light">Out of Stock</CBadge>
                         </CCol>
-                      )}
+                      )} */}
 
-                      {/* Show "Add Cart" only if the stock status is not "Out of Stock" */}
-                      {calculateStockStatus(product) !== 'Out of Stock' && (
-                        <CCol sm="auto">
-                          <CButton
-                            className="box btn-sm"
-                            color="primary"
-                            style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
-                            onClick={() => handleModalCart(product)}
-                          >
-                            Add to Cart
-                          </CButton>
-                        </CCol>
-                      )}
+                      {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                      <CCol sm="auto">
+                        <CButton
+                          className="box btn-sm"
+                          color="primary"
+                          style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                          onClick={() => handleModalCart(product)}
+                        >
+                          Add to Cart
+                        </CButton>
+                      </CCol>
+                      {/* )} */}
                     </div>
 
                     <CCol sm="auto" className="ms-2">
