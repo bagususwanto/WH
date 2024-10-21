@@ -23,7 +23,6 @@ import {
 import CIcon from '@coreui/icons-react'
 import {
   cilBatteryEmpty,
-  cilClipboard,
   cilDeaf,
   cilFax,
   cilFolder,
@@ -39,12 +38,9 @@ import {
   cilCarAlt,
   cilPin,
   cilLocationPin,
-  cilTruck,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -80,7 +76,7 @@ const ApproveAll = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [currentProducts, setCurrentProducts] = useState([])
   const navigate = useNavigate()
-  const MySwal = withReactContent(Swal);
+
   const apiCategory = 'category'
   const apiUser = 'user'
 
@@ -179,26 +175,6 @@ const ApproveAll = () => {
     setSelectedProduct(product)
     setVisible(true)
   }
-  const handleConfirm = () => {
-    MySwal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, confirm it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Perform the confirm action here
-        Swal.fire(
-          'Confirmed!',
-          'Your action has been confirmed.',
-          'success'
-        );
-      }
-    });
-  };
 
   return (
     <>
@@ -228,11 +204,7 @@ const ApproveAll = () => {
                 <label className="fw-bold">Request at 11:19</label>
               </CCol>
             ))}
-            <CCol xs={2} className="ms-auto d-flex flex-column justify-content-end" style={{ height: '100%' }}>
-              <CButton onClick={() => handleViewProduct(product)} color="primary" size="sm">
-                Confirm All
-              </CButton>
-            </CCol>
+          
           </CRow>
           <CRow className="g-1 mt-1">
             {productsData.map((product, index) => (
@@ -241,7 +213,7 @@ const ApproveAll = () => {
                   <CRow className="align-items-center ">
                     {/* Informasi pesanan */}
                     <CCol>
-                    <CIcon className="me-2" icon={cilTruck} />
+                      <CIcon className="me-2" icon={cilCart} />
                       <label className="me-2 fs-6">3 Oktober 2024</label>
 
                       <label className="me-2 fw-light">X21000000000/20/20</label>
@@ -272,17 +244,7 @@ const ApproveAll = () => {
                     </CRow>
 
                     {/* View Detail button */}
-                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                      <CCol xs={4} className="d-flex justify-content-end">
-                        <CButton
-                          onClick={handleConfirm}
-                          color="primary"
-                          size="sm"
-                        >
-                          Confirm Delivery
-                        </CButton>
-                      </CCol>
-                    </CRow>
+                    <CRow xs="1" className="d-flex justify-content-end align-items-center"></CRow>
                   </CRow>
                 </CCardBody>
               </CCard>

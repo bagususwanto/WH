@@ -185,7 +185,7 @@ const ApproveAll = () => {
 
       <CTabs activeItemKey={2}>
         <CTabList variant="pills">
-          <CTab aria-controls="home-tab-pane" itemKey={1}>
+          <CTab aria-controls="Confirmation-tab-pane" itemKey={1}>
             Confirmation
           </CTab>
           <CTab aria-controls="Shopping-tab-pane" itemKey={2}>
@@ -207,7 +207,7 @@ const ApproveAll = () => {
         </CTabList>
 
         <CTabContent>
-          <CTabPanel className="p-3" aria-labelledby="home-tab-pane" itemKey={1}>
+          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={1}>
             {/* You can use the same product card structure for each tab panel */}
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>

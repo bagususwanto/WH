@@ -12,6 +12,7 @@ const ConfirmAll = React.lazy(() => import('./views/confirm/ConfirmAllWarehouse'
 const ApproveAll = React.lazy(() => import('./views/confirm/ConfirmAllApprove'))
 const ConfirmApp = React.lazy(() => import('./views/confirm/ConfirmApprove'))
 const ConfirmRec = React.lazy(() => import('./views/confirm/ConfirmRecipent'))
+const Shopping = React.lazy(() => import('./views/confirm/Shopping'))
 const Order = React.lazy(() => import('./views/order/Order'))
 const Cart = React.lazy(() => import('./views/cart/Cart'))
 
@@ -32,6 +33,7 @@ const routes = [
   { path: '/confirmapp', name: 'ConfirmApp', element: ConfirmApp },
   { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec },
   { path: '/confirmdel', name: 'ConfirmDel', element: ConfirmDel },
+  { path: '/shopping', name: 'Shopping', element: Shopping},
 ]
 
 export default routes
