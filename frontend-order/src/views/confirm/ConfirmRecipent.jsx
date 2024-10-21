@@ -213,12 +213,14 @@ const Confirm = () => {
                   <hr />
                   <label className="fw-bold mb-2">Schedule Delivery</label>
                   <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option  className="fw-light" value="">Select Cycle</option>
+                    <option className="fw-light" value="">
+                      Select Cycle
+                    </option>
                     {verifiedCartItems.length > 0 &&
                       verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
                         (serviceHour) => (
                           <option key={serviceHour.id} value={`shift${serviceHour.shiftId}`}>
-                            {`Shift ${serviceHour.shiftId}: ${new Date(serviceHour.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                            {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
                           </option>
                         ),
                       )}

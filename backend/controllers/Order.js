@@ -333,7 +333,6 @@ export const generateOrderNumber = async (isApproval) => {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
       const lastTransactionNumber = isApproval == 1 && lastOrder ? lastOrder.transactionNumber : lastOrder ? lastOrder.requestNumber : null;
 
-
       // Periksa apakah lastTransactionNumber valid
       if (lastTransactionNumber) {
         const lastSequence = parseInt(lastTransactionNumber.slice(-4), 10); // Ambil 4 digit terakhir sebagai sequence
@@ -613,7 +612,6 @@ export const createOrder = async (req, res) => {
     }
 
     const fullTransactionNo = await generateOrderNumber(approval[0].isApproval);
-    console.log("fullTransactionNo", fullTransactionNo);
     const leftTransactionNo = fullTransactionNo.slice(0, 2); // Mengambil 2 digit pertama
 
     // Create order
@@ -625,7 +623,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: "waiting approval",
+        status: leftTransactionNo == "TR" ? "delivered" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
