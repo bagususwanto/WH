@@ -46,6 +46,8 @@ import useProductService from '../../services/ProductService'
 import useCartService from '../../services/CartService'
 import useMasterDataService from '../../services/MasterDataService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 const Confirm = () => {
   const [cartData, setCartData] = useState([])
@@ -69,7 +71,7 @@ const Confirm = () => {
   const { warehouse } = useContext(GlobalContext)
   const navigate = useNavigate()
   const location = useLocation()
-
+  const MySwal = withReactContent(Swal);
   const { verifiedCartItems } = location.state
   console.log(verifiedCartItems)
   // const apiCategory = 'category'
@@ -87,8 +89,22 @@ const Confirm = () => {
   // }, [warehouse])
 
   const handleCheckout = () => {
-    setModalVisible(true)
-  }
+    MySwal.fire({
+      title: 'Confirm Checkout',
+      text: `Are you sure you want to proceed to checkout products?\n\n Total items: ${totalQuantity}`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      reverseButtons: true, // This option will reverse the positions of the buttons
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // If confirmed, proceed with checkout function
+      }
+    });
+  }; 
   const handleConfirm = () => {
     setModalVisible(false)
     navigate('/history') // Use navigate instead of history.push
@@ -239,27 +255,7 @@ const Confirm = () => {
                 <CButton color="primary" onClick={handleCheckout}>
                   Order Now
                 </CButton>
-                <CModal visible={modalVisible} onClose={handleCancel}>
-                  <CModalHeader>
-                    <CModalTitle>Confirm Checkout</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
-                    <br />
-                    <label className="fw-bold">
-                      Total Items:{' '}
-                      {Object.keys(checkedItems).filter((id) => checkedItems[id]).length} Item
-                    </label>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="danger" onClick={handleCancel}>
-                      Cancel
-                    </CButton>
-                    <CButton color="success" onClick={handleConfirm}>
-                      OK
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
+               
               </div>
             </CCardBody>
           </CCard>
