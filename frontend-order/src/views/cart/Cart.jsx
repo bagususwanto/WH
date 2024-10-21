@@ -39,6 +39,8 @@ import useMasterDataService from '../../services/MasterDataService'
 import useCartService from '../../services/CartService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 // Icon mapping based on your category names
 
@@ -56,6 +58,7 @@ const Cart = () => {
   const [quantities, setQuantities] = useState({})
 
   const [modalVisible, setModalVisible] = useState(false)
+  const MySwal = withReactContent(Swal);
 
   const [currentProducts, setCurrentProducts] = useState([])
   const { warehouse } = useContext(GlobalContext)
@@ -187,18 +190,34 @@ const Cart = () => {
       ),
     }))
   }
-
-
-
   const handleCheckout = () => {
-    setModalVisible(true)
-  }
+    MySwal.fire({
+      title: 'Confirm Checkout',
+      text: 'Are you sure you want to proceed to checkout?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      reverseButtons: true,  // This option will reverse the positions of the buttons
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Jika pengguna mengonfirmasi, panggil fungsi checkout
+        checkouts();
+      }
+    });
+  };
 
-  const handleConfirm = () => {
-    setModalVisible(false)
-    checkouts()
-  }
-
+  const totalQuantity = cartData.reduce((acc, product) => {
+    // Check if the product's inventoryId has already been added to the accumulator
+    if (!acc.includes(product.inventoryId)) {
+      acc.push(product.inventoryId);
+    }
+    return acc;
+  }, []).length; // Return the length of the array which holds distinct inventoryIds
+  
+  console.log(totalQuantity);
   const handleCancel = () => {
     setModalVisible(false)
   }
@@ -299,31 +318,11 @@ const Cart = () => {
 
           {/* Sticky Footer */}
           <div className="p-3 bg-light shadow-sm sticky-bottom d-flex justify-content-between align-items-center">
-            <h5>Total: Rp {totalAmount.toLocaleString('id-ID')}</h5>
+          <h5>Total Item: {totalQuantity}</h5>
             <CButton color="primary" onClick={handleCheckout}>
               Checkout
             </CButton>
-            <CModal visible={modalVisible} onClose={handleCancel}>
-              <CModalHeader>
-                <CModalTitle>Confirm Checkout</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
-                <br />
-                <label className="fw-bold">
-                  Total Items: {Object.keys(checkedItems).filter((id) => checkedItems[id]).length}{' '}
-                  Item
-                </label>
-              </CModalBody>
-              <CModalFooter>
-                <CButton color="danger" onClick={handleCancel}>
-                  Cancel
-                </CButton>
-                <CButton color="success" onClick={handleConfirm}>
-                  OK
-                </CButton>
-              </CModalFooter>
-            </CModal>
+         
           </div>
         </CCard>
       </CRow>

@@ -98,6 +98,14 @@ const Confirm = () => {
     setModalVisible(false)
   }
 
+  const totalQuantity = verifiedCartItems.reduce((acc, product) => {
+     // Check if the product's inventoryId has already been added to the accumulator
+  if (!acc.includes(product.inventoryId)) {
+    acc.push(product.inventoryId);
+  }
+  return acc;
+}, []).length; // Return the length of the array which holds distinct inventoryIds
+
   // // Total harga produk
   // useEffect(() => {
   //   const newTotal = currentProducts.reduce((acc, product) => {
@@ -227,7 +235,7 @@ const Confirm = () => {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 className="mt-4"
               >
-                <label className="fw-bold">Total Items: {totalItems} Items</label>
+                <label className="fw-bold">Total Items: { totalQuantity} Items</label>
                 <CButton color="primary" onClick={handleCheckout}>
                   Order Now
                 </CButton>
@@ -272,8 +280,8 @@ const Confirm = () => {
                     <CCol xs="10">
                       <div>
                         <label className="fw-bold">
-                          {data.Inventory.Material.description} (
-                          {data.Inventory.Material?.uom || 'UOM'}){' '}
+                          {data.Inventory.Material.description} 
+
                         </label>
                         <br></br>
                         <label className="fw-light fs-6">
