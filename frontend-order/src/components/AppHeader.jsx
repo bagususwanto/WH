@@ -247,6 +247,23 @@ const AppHeader = () => {
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
+  const handleCartItemClick = (query) => {
+    // Contoh query params yang dibutuhkan
+    const warehouseId = warehouse.id // Misalnya ID warehouse
+    const page = 1 // Default halaman pertama
+    const limit = 20 // Default limit produk per halaman
+
+    // Membuat query string berdasarkan input pencarian dan params default
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      q: query,
+    })
+
+    // Mengarahkan pengguna ke URL yang berisi query parameters
+    navigate(`/order/${warehouseId}?${params.toString()}`)
+  }
+
   const handleSearchHistoryClick = (query, e) => {
     e.preventDefault() // Prevent default button behavior
 
@@ -595,8 +612,8 @@ const AppHeader = () => {
               {cart.map((product, index) => (
                 <CDropdownItem
                   key={`${product.id}-${index}`}
-                  href="#"
                   className="d-flex align-items-center"
+                  onClick={() => handleCartItemClick(product.Inventory.Material.description)}
                 >
                   <CRow className="w-100">
                     <CCol xs="2">
