@@ -45,28 +45,19 @@ const ProductList = () => {
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [cart, setCart] = useState([])
   const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
   const location = useLocation() // Ambil informasi
-  const { warehouse, wishlist, setWishlist, cartCount, setCartCount } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist, cartCount, setCartCount, cart, setCart } =
+    useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
   const apiCategory = 'category'
   const navigate = useNavigate()
-
-  const getCarts = async () => {
-    try {
-      const response = await getCart(warehouse.id)
-      setCart(response.data)
-    } catch (error) {
-      console.error('Error fetching cart:', error)
-    }
-  }
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -82,7 +73,6 @@ const ProductList = () => {
       } else {
         getProducts()
       }
-      getCarts()
     }
 
     getCategories()

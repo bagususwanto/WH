@@ -52,11 +52,11 @@ import {
   cilFactory,
   cilPaintBucket,
   cilFootball,
- cilPencil,
- cilInputHdmi,
- cilCog,
- cilCut,
- cilTags
+  cilPencil,
+  cilInputHdmi,
+  cilCog,
+  cilCut,
+  cilTags,
 } from '@coreui/icons'
 import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
@@ -87,10 +87,9 @@ const AppHeader = () => {
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
   const [visible, setVisible] = useState(false)
   const [warehouseId, setWarehouseId] = useState(0)
-  const [cart, setCart] = useState([])
   const [category, setCategory] = useState([])
 
-  const { warehouse, setWarehouse, cartCount } = useContext(GlobalContext)
+  const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
 
   const iconMap = {
@@ -99,8 +98,8 @@ const AppHeader = () => {
     'Support Oper': cilInbox,
     'Raw Matr.': cilPaintBucket,
     'Spare Part': cilFootball,
-    'Tools': cilCut,
-    'Others': cilTags,
+    Tools: cilCut,
+    Others: cilTags,
   }
 
   const apiWarehouseUser = 'warehouse-user'
@@ -593,24 +592,32 @@ const AppHeader = () => {
                   Show
                 </CLink>
               </CDropdownHeader>
-              {cart.map((product) => (
-                <CDropdownItem key={product.id} href="#" className="d-flex align-items-center">
+              {cart.map((product, index) => (
+                <CDropdownItem
+                  key={`${product.id}-${index}`}
+                  href="#"
+                  className="d-flex align-items-center"
+                >
                   <CRow className="w-100">
                     <CCol xs="2">
                       <CImage
                         src={'https://via.placeholder.com/150'}
-                        // alt={product.Inventory.Material.description}
+                        // alt={product.Inventory && product.Inventory.Material ? product.Inventory.Material.description : 'No description'}
                         style={{ width: '40px', height: '40px' }}
                       />
                     </CCol>
                     <CCol xs="8" className="mb-2">
                       <CCardTitle style={{ fontSize: '12px' }}>
-                        {product.Inventory.Material.description.length > 20
-                          ? product.Inventory.Material.description.substring(0, 20) + '...'
-                          : product.Inventory.Material.description}
+                        {product.Inventory && product.Inventory.Material
+                          ? product.Inventory.Material.description.length > 20
+                            ? product.Inventory.Material.description.substring(0, 20) + '...'
+                            : product.Inventory.Material.description
+                          : 'No description'}
                       </CCardTitle>
                       <CCardText style={{ fontSize: '12px' }}>
-                        {product.Inventory.Material.materialNo}
+                        {product.Inventory && product.Inventory.Material
+                          ? product.Inventory.Material.materialNo
+                          : 'No material number'}
                       </CCardText>
                     </CCol>
                     <CCol xs="2" className="text-end">

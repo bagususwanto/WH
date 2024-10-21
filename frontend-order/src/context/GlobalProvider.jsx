@@ -10,9 +10,10 @@ const GlobalProvider = ({ children }) => {
   const [warehouse, setWarehouse] = useState([])
   const [wishlist, setWishlist] = useState([])
   const [cartCount, setCartCount] = useState(0)
+  const [cart, setCart] = useState([])
 
   const { getWishlist } = useOrderService()
-  const { getCartCount } = useCartService()
+  const { getCartCount, getCart } = useCartService()
 
   const fetchWishlists = async () => {
     try {
@@ -32,16 +33,35 @@ const GlobalProvider = ({ children }) => {
     }
   }
 
+  const fetchCart = async () => {
+    try {
+      const response = await getCart(warehouse.id)
+      setCart(response.data)
+    } catch (error) {
+      console.error('Error fetching carts:', error)
+    }
+  }
+
   useEffect(() => {
     if (warehouse && warehouse.id) {
       fetchWishlists()
       fetchCartCount()
+      fetchCart()
     }
   }, [warehouse])
 
   return (
     <GlobalContext.Provider
-      value={{ warehouse, setWarehouse, wishlist, setWishlist, cartCount, setCartCount }}
+      value={{
+        warehouse,
+        setWarehouse,
+        wishlist,
+        setWishlist,
+        cartCount,
+        setCartCount,
+        cart,
+        setCart,
+      }}
     >
       {children}
     </GlobalContext.Provider>
