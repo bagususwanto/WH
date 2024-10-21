@@ -131,7 +131,7 @@ const Home = () => {
 
   const getMyorders = async () => {
     try {
-      const response = await getMyorder(warehouse.id)
+      const response = await getMyorder(warehouse.id, "delivered")
       setMyOrderData(response.data)
     } catch (error) {
       console.error('Error fetching wishlist:', error)

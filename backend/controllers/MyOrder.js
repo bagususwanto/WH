@@ -12,12 +12,12 @@ export const getMyOrder = async (req, res) => {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10 } = req.query; // Ambil limit dan page dari query params, default: 10 item per halaman
+    const { page = 1, limit = 10, status = "delivered" } = req.query; // Ambil limit dan page dari query params, default: 10 item per halaman
     const offset = (page - 1) * limit;
 
     // Cari data my order dengan paginasi (limit dan offset)
     const myOrder = await Order.findAll({
-      where: { userId: userId, status: "delivered" },
+      where: { userId: userId, status: status },
       include: [
         {
           model: DetailOrder,
