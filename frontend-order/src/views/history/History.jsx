@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import {
@@ -44,8 +44,13 @@ import {
   cilLocationPin,
 } from '@coreui/icons'
 
+import { format, parseISO } from 'date-fns'
+
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import useOrderService from '../../services/OrderService'
+
+import { GlobalContext } from '../../context/GlobalProvider'
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -71,6 +76,7 @@ const History = () => {
   const [categoriesData, setCategoriesData] = useState([])
   const { getMasterData } = useMasterDataService()
   const { getProduct } = useProductService()
+  const { getMyorder } = useOrderService()
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
@@ -78,16 +84,19 @@ const History = () => {
   const [quantities, setQuantities] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [currentProducts, setCurrentProducts] = useState([])
+  const [myOrderData, setMyOrderData] = useState([])
   const navigate = useNavigate()
+
+  const { warehouse } = useContext(GlobalContext)
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
+  const getMyorders = async () => {
     try {
-      const response = await getProduct(1)
-      setProductsData(response.data)
+      const response = await getMyorder(warehouse.id)
+      setMyOrderData(response.data)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching wishlist:', error)
     }
   }
 
@@ -104,29 +113,10 @@ const History = () => {
   }
 
   useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
+    if (warehouse && warehouse.id) {
+      getMyorders()
     }
-
-    fetchProductsAndCategories()
-  }, [])
-
-  useEffect(() => {
-    getProducts()
-  }, [])
+  }, [warehouse])
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -142,22 +132,17 @@ const History = () => {
 
   const getSeverity = (status) => {
     switch (status) {
-      case 'Waiting':
-        return 'gray'
-
-      case 'On Process':
+      case 'waiting approval':
         return 'warning'
-
-      case 'Delivery':
+      case 'on process':
+        return 'warning'
+      case 'ready to deliver':
         return 'secondary'
-
-      case 'Pickup':
-        return 'blue'
-
-      case 'Completed':
+      case 'ready to pickup':
+        return 'secondary'
+      case 'delivered':
         return 'success'
-
-      case 'Rejected':
+      case 'rejected':
         return 'danger'
     }
   }
@@ -211,73 +196,90 @@ const History = () => {
               REJECTED
             </CButton>
           </div> */}
-      <CTabs activeItemKey={2}>
+      <CTabs activeItemKey={1}>
         <CTabList variant="pills">
-          <CTab aria-controls="Waiting-tab-pane" itemKey={1}>
-            Waiting Approve
+          <CTab aria-controls="All-tab-pane" itemKey={1}>
+            All
           </CTab>
-          <CTab aria-controls="Process-tab-pane" itemKey={2}>
+          <CTab aria-controls="Waiting-tab-pane" itemKey={2}>
+            Waiting Approval
+          </CTab>
+          <CTab aria-controls="Process-tab-pane" itemKey={3}>
             On Process
           </CTab>
-          <CTab aria-controls="Delivery-tab-pane" itemKey={3}>
+          <CTab aria-controls="Delivery-tab-pane" itemKey={4}>
             Delivery
           </CTab>
-          <CTab aria-controls="Pickup-tab-pane" itemKey={4}>
+          <CTab aria-controls="Pickup-tab-pane" itemKey={5}>
             Pickup
           </CTab>
-          <CTab aria-controls="Completed-tab-pane" itemKey={5}>
+          <CTab aria-controls="Completed-tab-pane" itemKey={6}>
             Completed
           </CTab>
-
-          <CTab aria-controls="Rejected-tab-pane" itemKey={6}>
+          <CTab aria-controls="Rejected-tab-pane" itemKey={7}>
             Rejected
           </CTab>
         </CTabList>
 
         <CTabContent>
-          <CTabPanel className="p-3" aria-labelledby="Waiting-tab-pane" itemKey={1}>
-          <CRow className="g-1 mt-2">
-            {productsData.map((product, index) => (
-              <CCard className="h-80" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between ">
+          <CTabPanel className="p-3" aria-labelledby="All-tab-pane" itemKey={1}>
+            <CRow className="g-1 mt-2">
+              {myOrderData.map((order) => (
+                <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
                   <CRow className="align-items-center">
                     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                       <CCol>
                         <CIcon className="me-2" icon={cilCart} />
                         <label className="me-2 fs-6" size="sm ">
-                          {' '}
-                          3 Oktober 2024
+                          {format(parseISO(order.createdAt), 'dd/MM/yyyy')}
                         </label>
-                        <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
-                          ON PROCESS
+                        <CBadge
+                          className=" me-2 "
+                          size="sm"
+                          color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
+                        >
+                          {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
                         </CBadge>
-
-                        <label className=" me-2 fw-light ">X21000000000/20/20</label>
+                        <label className=" me-2 fw-light ">{order.transactionNumber}</label>
                       </CCol>
                     </div>
 
-                    <CRow xs="1" className="d-flex justify-content-between my-2 ">
+                    <CRow className="d-flex justify-content-between my-2 ">
                       <CCol xs="1">
                         <CCardImage
-                          src={product.Material.img}
-                          alt={product.Material.description}
+                          src={
+                            // order.Detail_Orders[0].Inventory.Material.img ||
+                            'https://via.placeholder.com/150'
+                          }
+                          // alt={order.Detail_Orders[0].Inventory.Material.description}
                           style={{ height: '100%', width: '100%' }}
                         />
                       </CCol>
-                      <CCol xs="4">
-                        <label>{product.Material.description}</label>
+
+                      <CCol xs="9">
+                        {order.Detail_Orders.length === 1 ? (
+                          <label key={order.Detail_Orders[0].id}>
+                            {order.Detail_Orders[0].Inventory.Material.description}
+                          </label>
+                        ) : (
+                          <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
+                        )}
                         <br />
-                        <label className="fw-bold fs-6">Total: 4 Item</label>
+                        <label className="fw-bold fs-6">
+                          Total: {order.Detail_Orders.length} Item
+                        </label>
                       </CCol>
-                      <CCol className="text-end">
-                        <label className="me-2 ">WBS : 20000000</label>
+                      <CCol xs="2" className="text-center">
+                        <label>{order.paymentMethod}</label>
+                        <br />
+                        <span className="fw-bold">{order.paymentNumber}</span>
                       </CCol>
                     </CRow>
 
-                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                    <CRow className="d-flex justify-content-end align-items-center">
                       <CCol xs={4} className="d-flex justify-content-end">
                         <CButton
-                          onClick={() => handleViewHistoryOrder(product)}
+                          onClick={() => handleViewHistoryOrder(order)}
                           color="primary"
                           size="sm"
                         >
@@ -286,300 +288,140 @@ const History = () => {
                       </CCol>
                     </CRow>
                   </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-          </CRow>
+                </CCard>
+              ))}
+            </CRow>
 
-          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-            <CModalHeader>
-              <CModalTitle>Product Details</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              {selectedProduct && (
-                <CRow className="g-1 mt-2">
-                  <CCard className="h-80">
-                    <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center">
-                        <CCol xs="1">
-                          <CCardImage
-                            src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs="6" className="mb-2">
-                          <div>
-                            <label>{selectedProduct.Material.description}</label>
-                            <br />
-                            <label className="fw-bold fs-6">
-                              Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
+            <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+              <CModalHeader>
+                <CModalTitle>Order Details</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                {selectedProduct && (
+                  <CRow className="g-1 mt-2">
+                    <CCard className="h-80">
+                      <CCardBody className="d-flex flex-column justify-content-between">
+                        <CRow className="align-items-center mb-3">
+                          <CCol>
+                            <CIcon className="me-2" icon={cilCart} />
+                            <label className="me-2 fs-6" size="sm ">
+                              {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
                             </label>
-                          </div>
-                        </CCol>
-                        <CCol xs="5">
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                            }}
-                          >
-                            <label className="d-flex flex-column justify-content-between fs-6">
-                              Status:
-                            </label>
-                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                              ON PROCESS
-                            </CBadge>
-                          </div>
-                        </CCol>
-                      </CRow>
-
-                      <hr />
-
-                      {/* History Order Timeline */}
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        {[
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilLocationPin,
-                            label: 'YOUR ITEM RECEIVED',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilCarAlt,
-                            label: 'DELIVERY OTODOKE',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilHome,
-                            label: 'ACCEPTED WAREHOUSE STAFF',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL SECTION HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL LINE HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'ORDER CREATED',
-                          },
-                        ].map((item, index) => (
-                          <div
-                            key={index}
-                            style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}
-                          >
-                            <label style={{ marginRight: '8px' }}>{item.date}</label>
-                            <div
-                              style={{
-                                border: '2px solid #000',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}
+                            <CBadge
+                              className=" me-2 "
+                              size="sm"
+                              color={getSeverity(selectedProduct.status)}
                             >
-                              <CIcon icon={item.icon} size="lg" />
-                            </div>
-                            <label style={{ marginLeft: '8px' }}>{item.label}</label>
-                          </div>
+                              {selectedProduct.status.toUpperCase()}
+                            </CBadge>
+                            <label className=" me-2 fw-light ">
+                              {selectedProduct.transactionNumber}
+                            </label>
+                          </CCol>
+                        </CRow>
+
+                        {/* Iterasi melalui semua Detail_Orders */}
+                        {selectedProduct.Detail_Orders.map((detail, index) => (
+                          <CRow className="align-items-center mb-3" key={index}>
+                            <CCol xs="1">
+                              <CCardImage
+                                src={'https://via.placeholder.com/150'} // Ganti dengan gambar yang sesuai
+                                style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                              />
+                            </CCol>
+                            <CCol xs="6" className="mb-2">
+                              <div>
+                                <label>{detail.Inventory.Material.description}</label>
+                                <br />
+                                <label className="fs-6 fw-bold">Quantity: {detail.quantity}</label>
+                              </div>
+                            </CCol>
+                          </CRow>
                         ))}
-                      </div>
 
-                      <CRow></CRow>
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              )}
-            </CModalBody>
-          </CModal>
-          </CTabPanel>
-          <CTabPanel className="p-3" aria-labelledby="home-tab-pane" itemKey={1}>
-          <CRow className="g-1 mt-2">
-            {productsData.map((product, index) => (
-              <CCard className="h-80" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between ">
-                  <CRow className="align-items-center">
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <CCol>
-                        <CIcon className="me-2" icon={cilCart} />
-                        <label className="me-2 fs-6" size="sm ">
-                          {' '}
-                          3 Oktober 2024
-                        </label>
-                        <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
-                          ON PROCESS
-                        </CBadge>
+                        <CRow className="mb-3">
+                          <CCol>
+                            <label>Payment Method: {selectedProduct.paymentMethod}</label>
+                            <br />
+                            <span>Payment Number: {selectedProduct.paymentNumber}</span>
+                          </CCol>
+                        </CRow>
 
-                        <label className=" me-2 fw-light ">X21000000000/20/20</label>
-                      </CCol>
-                    </div>
+                        <hr />
 
-                    <CRow xs="1" className="d-flex justify-content-between my-2 ">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={product.Material.img}
-                          alt={product.Material.description}
-                          style={{ height: '100%', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="4">
-                        <label>{product.Material.description}</label>
-                        <br />
-                        <label className="fw-bold fs-6">Total: 4 Item</label>
-                      </CCol>
-                      <CCol className="text-end">
-                        <label className="me-2 ">WBS : 20000000</label>
-                      </CCol>
-                    </CRow>
-
-                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                      <CCol xs={4} className="d-flex justify-content-end">
-                        <CButton
-                          onClick={() => handleViewHistoryOrder(product)}
-                          color="primary"
-                          size="sm"
+                        {/* History Order Timeline */}
+                        <label className="fw-bold mb-2">MY HISTORY ORDER</label>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                          }}
                         >
-                          View Detail Order
-                        </CButton>
-                      </CCol>
-                    </CRow>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-          </CRow>
-
-          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-            <CModalHeader>
-              <CModalTitle>Product Details</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              {selectedProduct && (
-                <CRow className="g-1 mt-2">
-                  <CCard className="h-80">
-                    <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center">
-                        <CCol xs="1">
-                          <CCardImage
-                            src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs="6" className="mb-2">
-                          <div>
-                            <label>{selectedProduct.Material.description}</label>
-                            <br />
-                            <label className="fw-bold fs-6">
-                              Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
-                            </label>
-                          </div>
-                        </CCol>
-                        <CCol xs="5">
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                            }}
-                          >
-                            <label className="d-flex flex-column justify-content-between fs-6">
-                              Status:
-                            </label>
-                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                              ON PROCESS
-                            </CBadge>
-                          </div>
-                        </CCol>
-                      </CRow>
-
-                      <hr />
-
-                      {/* History Order Timeline */}
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        {[
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilLocationPin,
-                            label: 'YOUR ITEM RECEIVED',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilCarAlt,
-                            label: 'DELIVERY OTODOKE',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilHome,
-                            label: 'ACCEPTED WAREHOUSE STAFF',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL SECTION HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL LINE HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'ORDER CREATED',
-                          },
-                        ].map((item, index) => (
-                          <div
-                            key={index}
-                            style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}
-                          >
-                            <label style={{ marginRight: '8px' }}>{item.date}</label>
+                          {[
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilLocationPin,
+                              label: 'YOUR ITEM RECEIVED',
+                            },
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilCarAlt,
+                              label: 'DELIVERY OTODOKE',
+                            },
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilHome,
+                              label: 'ACCEPTED WAREHOUSE STAFF',
+                            },
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilUser,
+                              label: 'APPROVAL SECTION HEAD',
+                            },
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilUser,
+                              label: 'APPROVAL LINE HEAD',
+                            },
+                            {
+                              date: '20 JANUARI 2024 20:34 WIB',
+                              icon: cilUser,
+                              label: 'ORDER CREATED',
+                            },
+                          ].map((item, index) => (
                             <div
+                              key={index}
                               style={{
-                                border: '2px solid #000',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
                                 display: 'flex',
-                                justifyContent: 'center',
                                 alignItems: 'center',
+                                marginBottom: '16px',
                               }}
                             >
-                              <CIcon icon={item.icon} size="lg" />
+                              <label style={{ marginRight: '8px' }}>{item.date}</label>
+                              <div
+                                style={{
+                                  border: '2px solid #000',
+                                  borderRadius: '50%',
+                                  width: '40px',
+                                  height: '40px',
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                <CIcon icon={item.icon} size="lg" />
+                              </div>
+                              <label style={{ marginLeft: '8px' }}>{item.label}</label>
                             </div>
-                            <label style={{ marginLeft: '8px' }}>{item.label}</label>
-                          </div>
-                        ))}
-                      </div>
-
-                      <CRow></CRow>
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              )}
-            </CModalBody>
-          </CModal>
+                          ))}
+                        </div>
+                      </CCardBody>
+                    </CCard>
+                  </CRow>
+                )}
+              </CModalBody>
+            </CModal>
           </CTabPanel>
         </CTabContent>
       </CTabs>
