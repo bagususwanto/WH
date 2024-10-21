@@ -200,8 +200,8 @@ export const countCartItems = async (req, res) => {
       ],
     });
 
-    // Hitung total quantity dari cartItems
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    // Hitung total item (bukan quantity)
+    const totalItems = cartItems.length;
 
     res.status(200).json({ totalItems });
   } catch (error) {

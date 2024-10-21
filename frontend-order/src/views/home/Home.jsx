@@ -376,13 +376,13 @@ const Home = () => {
   const getSeverity = (status) => {
     switch (status) {
       case 'waiting approval':
-        return 'gray'
+        return 'warning'
       case 'on process':
         return 'warning'
       case 'ready to deliver':
         return 'secondary'
       case 'ready to pickup':
-        return 'blue'
+        return 'secondary'
       case 'delivered':
         return 'success'
       case 'rejected':

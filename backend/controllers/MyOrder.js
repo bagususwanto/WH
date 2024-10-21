@@ -7,17 +7,24 @@ import Inventory from "../models/InventoryModel.js";
 import DetailOrder from "../models/DetailOrderModel.js";
 
 // Get data product by warehouse
+// Get data product by warehouse
 export const getMyOrder = async (req, res) => {
   try {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10 } = req.query; // Ambil limit dan page dari query params, default: 10 item per halaman
+    const { page = 1, limit = 10, status } = req.query; // Ambil limit, page, dan status dari query params
     const offset = (page - 1) * limit;
+
+    // Buat kondisi where yang dinamis
+    let whereCondition = { userId: userId };
+    if (status == "") {
+      whereCondition.status = status;
+    }
 
     // Cari data my order dengan paginasi (limit dan offset)
     const myOrder = await Order.findAll({
-      where: { userId: userId, status: "delivered" },
+      where: whereCondition,
       include: [
         {
           model: DetailOrder,
@@ -54,6 +61,7 @@ export const getMyOrder = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
+      order: [["createdAt", "DESC"]], // Sort by createdAt descending (terbaru di atas)
       subQuery: false, // Memastikan limit dan offset hanya diterapkan di tabel utama (Order)
     });
 
