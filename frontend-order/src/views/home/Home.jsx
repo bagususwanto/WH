@@ -44,6 +44,8 @@ import {
   cilArrowLeft,
   cilLifeRing,
 } from '@coreui/icons'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 import { format, parseISO } from 'date-fns'
 
@@ -71,7 +73,7 @@ const Home = () => {
   const { getProductByCategory } = useProductService()
   const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, getMyorder } = useOrderService()
+  const { getWishlist, deleteWishlist, addWishlist, getMyorder } = useOrderService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [quantity, setQuantity] = useState(1)
@@ -86,7 +88,9 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
-  const { warehouse, wishlist } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist } = useContext(GlobalContext)
+
+  const MySwal = withReactContent(Swal)
 
   const navigate = useNavigate()
 
@@ -134,7 +138,11 @@ const Home = () => {
   }
 
   const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Inventory.Material.id === productId)
+    return wishlist.some((item) => item.id === productId)
+  }
+
+  const isInWishlistProduct = (productId) => {
+    return wishlist.some((item) => item.Inventory.id === productId)
   }
 
   useEffect(() => {
@@ -156,7 +164,7 @@ const Home = () => {
       getFavorite()
       getMyorders()
     }
-  }, [warehouse])
+  }, [warehouse, wishlist])
 
   const totalPages = Math.ceil(wishlistData.length / itemsPerPage)
 
@@ -195,12 +203,83 @@ const Home = () => {
     setModalOrder(false)
   }
 
-  const handleToggleWishlist = (productId) => {
-    if (isInWishlist(productId)) {
-      setWishlist(wishlist.filter((item) => item.Material.id !== productId))
+  const handleToggleWishlist = async (product) => {
+    if (isInWishlist(product.id)) {
+      // Jika produk sudah ada di wishlist (unlove), lakukan DELETE
+      try {
+        await deleteWishlist(product.Inventory.id)
+        // Update state wishlist di frontend setelah berhasil menghapus dari database
+        setWishlist((prevWishlist) => prevWishlist.filter((item) => item.id !== product.id))
+        MySwal.fire('Success', 'Product removed from wishlist', 'success')
+      } catch (error) {
+        console.error('Error removing product from wishlist:', error)
+      }
     } else {
-      const productToAdd = productsData.find((item) => item.Material.id === productId)
-      setWishlist([...wishlist, productToAdd])
+      // Jika produk belum ada di wishlist (love), lakukan POST
+      try {
+        await addWishlist({ inventoryId: product.Inventory.id })
+        // Update state wishlist di frontend setelah berhasil menambahkan ke database
+        const responseWish = await getWishlist(warehouse.id)
+        setWishlist((prevWishlist) => [...prevWishlist, ...responseWish.data])
+
+        // Menampilkan SweetAlert dengan tombol "Go to Wishlist"
+        MySwal.fire({
+          title: 'Success',
+          text: 'Product added to wishlist',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonText: 'Go to Wishlist',
+          cancelButtonText: 'Stay Here',
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Navigasi ke halaman wishlist
+            navigate('/wishlist')
+          }
+        })
+      } catch (error) {
+        console.error('Error adding product to wishlist:', error)
+      }
+    }
+  }
+
+  const handleToggleWishlistProduct = async (product) => {
+    if (isInWishlistProduct(product.id)) {
+      // Jika produk sudah ada di wishlist (unlove), lakukan DELETE
+      try {
+        await deleteWishlist(product.id)
+        // Update state wishlist di frontend setelah berhasil menghapus dari database
+        setWishlist((prevWishlist) =>
+          prevWishlist.filter((item) => item.Inventory.id !== product.id),
+        )
+      } catch (error) {
+        console.error('Error removing product from wishlist:', error)
+      }
+    } else {
+      // Jika produk belum ada di wishlist (love), lakukan POST
+      try {
+        await addWishlist({ inventoryId: product.id })
+        // Update state wishlist di frontend setelah berhasil menambahkan ke database
+        const responseWish = await getWishlist(warehouse.id)
+        setWishlist((prevWishlist) => [...prevWishlist, ...responseWish.data])
+        // Menampilkan SweetAlert dengan tombol "Go to Wishlist"
+        MySwal.fire({
+          title: 'Success',
+          text: 'Product added to wishlist',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonText: 'Go to Wishlist',
+          cancelButtonText: 'Stay Here',
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Navigasi ke halaman wishlist
+            navigate('/wishlist')
+          }
+        })
+      } catch (error) {
+        console.error('Error adding product to wishlist:', error)
+      }
     }
   }
 
@@ -350,102 +429,63 @@ const Home = () => {
                     </div>
 
                     <CRow className="mt-auto align-items-center">
-                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                        <CCol sm="Auto" className="mb-2">
-                          {calculateStockStatus(product) === 'Out of Stock' ? (
-                            <>
-                              <CBadge color="secondary" className="me-2">
-                                {calculateStockStatus(product)}
-                              </CBadge>
-                              {/* 
-                              <CButton
-                                className="box me-4"
-                                color="secondary"
-                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
-                                style={{
-                                  backgroundColor: isInWishlist(product.Inventory.Material.id)
-                                    ? 'red'
-                                    : 'white',
-                                  border: '1px solid white',
-                                  color: isInWishlist(product.Inventory.Material.id)
-                                    ? 'white'
-                                    : 'black',
-                                  borderRadius: '50%',
-                                }}
-                              > */}
-                              <CButton
-                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
-                                style={{
-                                  backgroundColor: 'transparent', // No background for the button
-                                  border: 'black', // Menghilangkan border default button
-                                  padding: '0', // No padding, membuat button sekecil ikon
-                                  outline: 'none', // Menghapus outline pada focus button
-                                }}
-                              >
-                                <AiFillHeart
-                                  style={{
-                                    color: isInWishlist(product.Inventory.Material.id)
-                                      ? 'red'
-                                      : 'white', // Ubah warna ikon sesuai status wishlist
-                                    stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                                    strokeWidth: '15px', // Tebal garis luar
-                                  }}
-                                  size={20} // Ukuran ikon
-                                />
-                              </CButton>
-                            </>
-                          ) : (
-                            <>
-                              <CButton
-                                className="box btn-sm"
-                                color="primary"
-                                style={{
-                                  padding: '5px 10px',
-                                  fontSize: '12px',
-                                  marginRight: '10px',
-                                }}
-                                onClick={() => handleModalCart(product)}
-                              >
-                                Add to Cart
-                              </CButton>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                          }}
+                        >
+                          {/* {calculateStockStatus(product) === 'Out of Stock' && (
+                            <CCol sm="auto" className="mb-1">
+                              <CBadge textBgColor="light">Out of Stock</CBadge>
+                            </CCol>
+                          )} */}
 
-                              {/* <CButton
-                                className="box"
-                                color="secondary"
-                                onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
-                                style={{
-                                  backgroundColor: isInWishlist(product.Inventory.Material.id)
-                                    ? 'red'
-                                    : 'white',
-                                  border: '1px solid white',
-                                  color: isInWishlist(product.Inventory.Material.id)
-                                    ? 'white'
-                                    : 'black',
-                                  borderRadius: '50%',
-                                }}
-                              > */}
-                              <CButton
-                                onClick={() => handleToggleWishlist(product.InventoryMaterial.id)}
-                                style={{
-                                  backgroundColor: 'transparent', // No background for the button
-                                  border: 'black', // Menghilangkan border default button
-                                  padding: '0', // No padding, membuat button sekecil ikon
-                                  outline: 'none', // Menghapus outline pada focus button
-                                }}
-                              >
-                                <AiFillHeart
-                                  style={{
-                                    color: isInWishlist(product.Inventory.Material.id)
-                                      ? 'red'
-                                      : 'white', // Ubah warna ikon sesuai status wishlist
-                                    stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                                    strokeWidth: '15px', // Tebal garis luar
-                                  }}
-                                  size={20} // Ukuran ikon
-                                />
-                              </CButton>
-                            </>
-                          )}
+                          {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                          <CCol sm="auto">
+                            <CButton
+                              className="box btn-sm"
+                              color="primary"
+                              style={{
+                                padding: '5px 10px',
+                                fontSize: '12px',
+                                marginRight: '10px',
+                              }} // Custom styling for smaller button
+                              onClick={() => handleModalCart(product)}
+                            >
+                              Add to Cart
+                            </CButton>
+                          </CCol>
+                          {/* )} */}
+                        </div>
+
+                        <CCol sm="auto" className="ms-2">
+                          <CButton
+                            onClick={() => handleToggleWishlist(product)}
+                            style={{
+                              backgroundColor: 'transparent', // No background for the button
+                              border: 'black', // Menghilangkan border default button
+                              padding: '0', // No padding, membuat button sekecil ikon
+                              outline: 'none', // Menghapus outline pada focus button
+                            }}
+                          >
+                            <AiFillHeart
+                              style={{
+                                color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                                stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                                strokeWidth: '15px', // Tebal garis luar
+                              }}
+                              size={20} // Ukuran ikon
+                            />
+                          </CButton>
                         </CCol>
                       </div>
                     </CRow>
@@ -668,7 +708,7 @@ const Home = () => {
 
                     <CCol sm="auto" className="ms-2">
                       <CButton
-                        onClick={() => handleToggleWishlist(product.Material.id)}
+                        onClick={() => handleToggleWishlistProduct(product)}
                         style={{
                           backgroundColor: 'transparent', // No background for the button
                           border: 'black', // Menghilangkan border default button
@@ -678,7 +718,7 @@ const Home = () => {
                       >
                         <AiFillHeart
                           style={{
-                            color: isInWishlist(product.Material.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                            color: isInWishlistProduct(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
                             stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
                             strokeWidth: '15px', // Tebal garis luar
                           }}

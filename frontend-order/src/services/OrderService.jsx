@@ -40,6 +40,32 @@ const useOrderService = () => {
     }
   }
 
+  const deleteWishlist = async (id) => {
+    try {
+      const response = await axiosJWT.delete(`/wishlist-delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching wishlist:')
+    }
+  }
+
+  const addWishlist = async (data) => {
+    try {
+      const response = await axiosJWT.post('/wishlist', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   const getMyorder = async (id) => {
     try {
       const response = await axiosJWT.get(`/myorder/${id}?page=1&limit=10`, {
@@ -52,6 +78,7 @@ const useOrderService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+
   const checkout = async (data) => {
     try {
       const response = await axiosJWT.post('/checkout', data, {
@@ -68,6 +95,8 @@ const useOrderService = () => {
   return {
     getWishlist,
     clearWishlist,
+    deleteWishlist,
+    addWishlist,
     getMyorder,
     checkout,
   }
