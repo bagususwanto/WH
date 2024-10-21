@@ -52,6 +52,7 @@ import { format, parseISO } from 'date-fns'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
+import useCartService from '../../services/CartService'
 import { GlobalContext } from '../../context/GlobalProvider'
 
 // Icon mapping based on your category names
@@ -74,10 +75,10 @@ const Home = () => {
   const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
   const { getWishlist, deleteWishlist, addWishlist, getMyorder } = useOrderService()
+  const { postCart, updateCart } = useCartService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const [cart, setCart] = useState([])
   const [cartCount, setCartCount] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const itemsPerPage = 6
@@ -88,7 +89,7 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
-  const { warehouse, wishlist, setWishlist } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist, cart, setCart } = useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
@@ -187,20 +188,69 @@ const Home = () => {
     }
   }
 
-  const handleAddToCart = (product, quantity) => {
-    const existingProduct = cart.find((item) => item.Material.id === product.Material.id)
-    if (existingProduct) {
-      const updatedCart = cart.map((item) =>
-        item.Material.id === product.Material.id
-          ? { ...item, quantity: item.quantity + quantity }
-          : item,
+  const handleAddToCart = async (product, quantity) => {
+    try {
+      // Find the existing product in the cart by matching inventoryId
+      const existingProduct = cart.find((item) =>
+        item.Inventory.materialId === product.Inventory
+          ? product.Inventory.materialId
+          : product.materialId,
       )
-      setCart(updatedCart)
-    } else {
-      setCart([...cart, { ...product, quantity }])
+      if (existingProduct) {
+        // If product exists in the cart, update the quantity
+        const updatedProduct = {
+          ...existingProduct,
+          quantity: existingProduct.quantity + quantity,
+        }
+
+        // Update the cart with the new quantity (use API updateCart)
+        const updatedCartResponse = await updateCart({
+          inventoryId: product.id,
+          quantity: updatedProduct.quantity,
+        })
+        if (updatedCartResponse) {
+          // Update the cart state with the updated product
+          setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
+        }
+      } else {
+        // If product doesn't exist in the cart, add a new product
+        const newCartItem = {
+          inventoryId: product.id,
+          quantity: quantity,
+        }
+
+        const arraycartIds = []
+
+        // Post the new cart item to the API (use postCart)
+        const addToCartResponse = await postCart(newCartItem)
+        if (addToCartResponse) {
+          // Add the new product to the cart state
+          setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])
+        }
+      }
+
+      // Update cart count
+      setCartCount(cartCount + quantity)
+      setModalOrder(false)
+
+      MySwal.fire({
+        title: 'Success',
+        text: 'Product added to cart',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Cart',
+        cancelButtonText: 'Stay Here',
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Navigasi ke halaman wishlist
+          navigate('/cart')
+        }
+      })
+    } catch (error) {
+      // Handle error
+      console.error('Failed to add to cart:', error)
     }
-    setCartCount(cartCount + quantity)
-    setModalOrder(false)
   }
 
   const handleToggleWishlist = async (product) => {
@@ -338,6 +388,11 @@ const Home = () => {
       case 'rejected':
         return 'danger'
     }
+  }
+
+  const handleCloseModalOrder = () => {
+    setModalOrder(false)
+    setQuantity(1)
   }
 
   return (
@@ -753,15 +808,23 @@ const Home = () => {
             <CRow>
               <CCol md="4">
                 <CImage
-                  src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                  alt={selectedProduct.Material.description}
+                  src={'https://via.placeholder.com/150'}
+                  // alt={selectedProduct.Material.description}
                   fluid
                   className="rounded"
                 />
               </CCol>
               <CCol md="8">
-                <strong>{selectedProduct.Material.description}</strong>
-                <p>{product.Inventory.Material.materialNo}</p>
+                <strong>
+                  {selectedProduct.Inventory
+                    ? selectedProduct.Inventory.Material.description
+                    : selectedProduct.Material.description}
+                </strong>
+                <p>
+                  {selectedProduct.Inventory
+                    ? selectedProduct.Inventory.Material.materialNo
+                    : selectedProduct.Material.materialNo}
+                </p>
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
@@ -769,12 +832,17 @@ const Home = () => {
                   >
                     -
                   </CButton>
-                  <span className="mx-3">
-                    {quantity} ({selectedProduct.Material.uom})
-                  </span>
+                  <span className="mx-3">{quantity}</span>
                   <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
                     +
                   </CButton>
+                  <span className="mx-3">
+                    (
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                    )
+                  </span>
                 </div>
               </CCol>
             </CRow>
