@@ -14,6 +14,11 @@ import {
   CModalFooter,
   CModalTitle,
   CModalBody,
+  CTab,
+  CTabs,
+  CTabList,
+  CTabContent,
+  CTabPanel,
   CBadge,
   CFormInput,
   CFormCheck,
@@ -41,7 +46,6 @@ import {
 
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
-
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -80,11 +84,11 @@ const History = () => {
 
   const getProducts = async () => {
     try {
-    const response = await getProduct(1)
-    setProductsData(response.data)
-  } catch (error) {
-    console.error('Error fetching categories:', error)
-  }
+      const response = await getProduct(1)
+      setProductsData(response.data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
   }
 
   const getCategories = async () => {
@@ -119,11 +123,10 @@ const History = () => {
 
     fetchProductsAndCategories()
   }, [])
-  
+
   useEffect(() => {
     getProducts()
   }, [])
-  
 
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
@@ -178,10 +181,14 @@ const History = () => {
 
   return (
     <>
-      <CRow className="mt-1" >
+      <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
-          <h3 className="fw-bold fs-4">History Order</h3>
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <CCardBody>
+            <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+          </CCardBody>
+        </CCard>
+      </CRow>
+      {/* <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <CButton className="me-2" color="secondary" variant="outline">
               ALL
             </CButton>
@@ -203,9 +210,34 @@ const History = () => {
             <CButton className="me-2" color="secondary" variant="outline">
               REJECTED
             </CButton>
-          </div>
+          </div> */}
+      <CTabs activeItemKey={2}>
+        <CTabList variant="pills">
+          <CTab aria-controls="Waiting-tab-pane" itemKey={1}>
+            Waiting Approve
+          </CTab>
+          <CTab aria-controls="Process-tab-pane" itemKey={2}>
+            On Process
+          </CTab>
+          <CTab aria-controls="Delivery-tab-pane" itemKey={3}>
+            Delivery
+          </CTab>
+          <CTab aria-controls="Pickup-tab-pane" itemKey={4}>
+            Pickup
+          </CTab>
+          <CTab aria-controls="Completed-tab-pane" itemKey={5}>
+            Completed
+          </CTab>
+
+          <CTab aria-controls="Rejected-tab-pane" itemKey={6}>
+            Rejected
+          </CTab>
+        </CTabList>
+
+        <CTabContent>
+          <CTabPanel className="p-3" aria-labelledby="Waiting-tab-pane" itemKey={1}>
           <CRow className="g-1 mt-2">
-          {productsData.map((product, index) => (
+            {productsData.map((product, index) => (
               <CCard className="h-80" key={index}>
                 <CCardBody className="d-flex flex-column justify-content-between ">
                   <CRow className="align-items-center">
@@ -223,11 +255,11 @@ const History = () => {
                         <label className=" me-2 fw-light ">X21000000000/20/20</label>
                       </CCol>
                     </div>
-                 
+
                     <CRow xs="1" className="d-flex justify-content-between my-2 ">
                       <CCol xs="1">
                         <CCardImage
-                          src={product.Material.img }
+                          src={product.Material.img}
                           alt={product.Material.description}
                           style={{ height: '100%', width: '100%' }}
                         />
@@ -272,7 +304,6 @@ const History = () => {
                         <CCol xs="1">
                           <CCardImage
                             src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                         
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
@@ -376,8 +407,182 @@ const History = () => {
               )}
             </CModalBody>
           </CModal>
-        </CCard>
-      </CRow>
+          </CTabPanel>
+          <CTabPanel className="p-3" aria-labelledby="home-tab-pane" itemKey={1}>
+          <CRow className="g-1 mt-2">
+            {productsData.map((product, index) => (
+              <CCard className="h-80" key={index}>
+                <CCardBody className="d-flex flex-column justify-content-between ">
+                  <CRow className="align-items-center">
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                      <CCol>
+                        <CIcon className="me-2" icon={cilCart} />
+                        <label className="me-2 fs-6" size="sm ">
+                          {' '}
+                          3 Oktober 2024
+                        </label>
+                        <CBadge className=" me-2 " size="sm" color={getSeverity('Completed')}>
+                          ON PROCESS
+                        </CBadge>
+
+                        <label className=" me-2 fw-light ">X21000000000/20/20</label>
+                      </CCol>
+                    </div>
+
+                    <CRow xs="1" className="d-flex justify-content-between my-2 ">
+                      <CCol xs="1">
+                        <CCardImage
+                          src={product.Material.img}
+                          alt={product.Material.description}
+                          style={{ height: '100%', width: '100%' }}
+                        />
+                      </CCol>
+                      <CCol xs="4">
+                        <label>{product.Material.description}</label>
+                        <br />
+                        <label className="fw-bold fs-6">Total: 4 Item</label>
+                      </CCol>
+                      <CCol className="text-end">
+                        <label className="me-2 ">WBS : 20000000</label>
+                      </CCol>
+                    </CRow>
+
+                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                      <CCol xs={4} className="d-flex justify-content-end">
+                        <CButton
+                          onClick={() => handleViewHistoryOrder(product)}
+                          color="primary"
+                          size="sm"
+                        >
+                          View Detail Order
+                        </CButton>
+                      </CCol>
+                    </CRow>
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            ))}
+          </CRow>
+
+          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+            <CModalHeader>
+              <CModalTitle>Product Details</CModalTitle>
+            </CModalHeader>
+            <CModalBody>
+              {selectedProduct && (
+                <CRow className="g-1 mt-2">
+                  <CCard className="h-80">
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      <CRow className="align-items-center">
+                        <CCol xs="1">
+                          <CCardImage
+                            src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
+                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                          />
+                        </CCol>
+                        <CCol xs="6" className="mb-2">
+                          <div>
+                            <label>{selectedProduct.Material.description}</label>
+                            <br />
+                            <label className="fw-bold fs-6">
+                              Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
+                            </label>
+                          </div>
+                        </CCol>
+                        <CCol xs="5">
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                            }}
+                          >
+                            <label className="d-flex flex-column justify-content-between fs-6">
+                              Status:
+                            </label>
+                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                              ON PROCESS
+                            </CBadge>
+                          </div>
+                        </CCol>
+                      </CRow>
+
+                      <hr />
+
+                      {/* History Order Timeline */}
+                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        {[
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilLocationPin,
+                            label: 'YOUR ITEM RECEIVED',
+                          },
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilCarAlt,
+                            label: 'DELIVERY OTODOKE',
+                          },
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilHome,
+                            label: 'ACCEPTED WAREHOUSE STAFF',
+                          },
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilUser,
+                            label: 'APPROVAL SECTION HEAD',
+                          },
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilUser,
+                            label: 'APPROVAL LINE HEAD',
+                          },
+                          {
+                            date: '20 JANUARI 2024 20:34 WIB',
+                            icon: cilUser,
+                            label: 'ORDER CREATED',
+                          },
+                        ].map((item, index) => (
+                          <div
+                            key={index}
+                            style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}
+                          >
+                            <label style={{ marginRight: '8px' }}>{item.date}</label>
+                            <div
+                              style={{
+                                border: '2px solid #000',
+                                borderRadius: '50%',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <CIcon icon={item.icon} size="lg" />
+                            </div>
+                            <label style={{ marginLeft: '8px' }}>{item.label}</label>
+                          </div>
+                        ))}
+                      </div>
+
+                      <CRow></CRow>
+                    </CCardBody>
+                  </CCard>
+                </CRow>
+              )}
+            </CModalBody>
+          </CModal>
+          </CTabPanel>
+        </CTabContent>
+      </CTabs>
     </>
   )
 }

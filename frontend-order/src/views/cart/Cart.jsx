@@ -76,7 +76,8 @@ const Cart = () => {
 
   const checkouts = async () => {
     try {
-      const response = await checkout({ cartIds: [18] })
+      const cartIds = cartData.map((item) => item.id)
+      const response = await checkout({ cartIds: cartIds })
       console.log(response)
 
       navigate('/confirmrec', { state: { verifiedCartItems: response.data } })
@@ -186,6 +187,8 @@ const Cart = () => {
       ),
     }))
   }
+
+
 
   const handleCheckout = () => {
     setModalVisible(true)

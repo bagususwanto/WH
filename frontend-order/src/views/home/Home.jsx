@@ -32,8 +32,8 @@ import {
   cilFactory,
   cilPaintBucket,
   cilFootball,
-cilCut,
-cilTags,
+  cilCut,
+  cilTags,
   cilHome,
   cilInbox,
   cilKeyboard,
@@ -55,12 +55,12 @@ import { GlobalContext } from '../../context/GlobalProvider'
 // Icon mapping based on your category names
 const iconMap = {
   'Office Supp.': cilPencil,
-    'Oper. Supply': cilFactory,
-    'Support Oper': cilInbox,
-    'Raw Matr.': cilPaintBucket,
-    'Spare Part': cilFootball,
-    'Tools': cilCut,
-    'Others': cilTags,
+  'Oper. Supply': cilFactory,
+  'Support Oper': cilInbox,
+  'Raw Matr.': cilPaintBucket,
+  'Spare Part': cilFootball,
+  Tools: cilCut,
+  Others: cilTags,
 }
 
 const Home = () => {
@@ -357,7 +357,7 @@ const Home = () => {
                               <CBadge color="secondary" className="me-2">
                                 {calculateStockStatus(product)}
                               </CBadge>
-{/* 
+                              {/* 
                               <CButton
                                 className="box me-4"
                                 color="secondary"
@@ -373,7 +373,7 @@ const Home = () => {
                                   borderRadius: '50%',
                                 }}
                               > */}
-                               <CButton
+                              <CButton
                                 onClick={() => handleToggleWishlist(product.Inventory.Material.id)}
                                 style={{
                                   backgroundColor: 'transparent', // No background for the button

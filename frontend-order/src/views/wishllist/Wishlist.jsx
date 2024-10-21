@@ -36,7 +36,7 @@ const Wishlist = () => {
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, clearWishlist } = useOrderService()
+  const { getWishlist, clearWishlist, } = useOrderService()
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
