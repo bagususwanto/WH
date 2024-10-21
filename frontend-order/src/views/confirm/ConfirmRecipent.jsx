@@ -46,8 +46,8 @@ import useProductService from '../../services/ProductService'
 import useCartService from '../../services/CartService'
 import useMasterDataService from '../../services/MasterDataService'
 import { GlobalContext } from '../../context/GlobalProvider'
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 const Confirm = () => {
   const [cartData, setCartData] = useState([])
@@ -71,7 +71,7 @@ const Confirm = () => {
   const { warehouse } = useContext(GlobalContext)
   const navigate = useNavigate()
   const location = useLocation()
-  const MySwal = withReactContent(Swal);
+  const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
   console.log(verifiedCartItems)
   // const apiCategory = 'category'
@@ -103,8 +103,8 @@ const Confirm = () => {
       if (result.isConfirmed) {
         // If confirmed, proceed with checkout function
       }
-    });
-  }; 
+    })
+  }
   const handleConfirm = () => {
     setModalVisible(false)
     navigate('/history') // Use navigate instead of history.push
@@ -115,12 +115,12 @@ const Confirm = () => {
   }
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
-     // Check if the product's inventoryId has already been added to the accumulator
-  if (!acc.includes(product.inventoryId)) {
-    acc.push(product.inventoryId);
-  }
-  return acc;
-}, []).length; // Return the length of the array which holds distinct inventoryIds
+    // Check if the product's inventoryId has already been added to the accumulator
+    if (!acc.includes(product.inventoryId)) {
+      acc.push(product.inventoryId)
+    }
+    return acc
+  }, []).length // Return the length of the array which holds distinct inventoryIds
 
   // // Total harga produk
   // useEffect(() => {
@@ -189,8 +189,11 @@ const Confirm = () => {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <CIcon icon={cilHome} size="lg" />
-                  <label className="fw-light" style={{ marginLeft: '8px' }}>
-                    Warehouse Issuing Plant
+                  <label style={{ marginLeft: '8px' }}>
+                    {
+                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse
+                        .warehouseName
+                    }
                   </label>
                 </div>
                 {!isPickup && (
@@ -208,13 +211,17 @@ const Confirm = () => {
               {!isPickup && (
                 <>
                   <hr />
-                  <label className="fw-bold mb-2">Deadline Order</label>
+                  <label className="fw-bold mb-2">Schedule Delivery</label>
                   <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option value="">Select Shift</option>
-                    <option value="dayShift1">Day Shift 1: 08:00</option>
-                    <option value="dayShift2">Day Shift 2: 10:00</option>
-                    <option value="nightShift1">Night Shift 1: 22:00</option>
-                    <option value="nightShift2">Night Shift 2: 10:00</option>
+                    <option  className="fw-light" value="">Select Cycle</option>
+                    {verifiedCartItems.length > 0 &&
+                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
+                        (serviceHour) => (
+                          <option key={serviceHour.id} value={`shift${serviceHour.shiftId}`}>
+                            {`Shift ${serviceHour.shiftId}: ${new Date(serviceHour.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                          </option>
+                        ),
+                      )}
                   </CFormSelect>
                 </>
               )}
@@ -251,11 +258,10 @@ const Confirm = () => {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 className="mt-4"
               >
-                <label className="fw-bold">Total Items: { totalQuantity} Items</label>
+                <label className="fw-bold">Total Items: {totalQuantity} Items</label>
                 <CButton color="primary" onClick={handleCheckout}>
                   Order Now
                 </CButton>
-               
               </div>
             </CCardBody>
           </CCard>
@@ -275,10 +281,7 @@ const Confirm = () => {
                     </CCol>
                     <CCol xs="10">
                       <div>
-                        <label className="fw-bold">
-                          {data.Inventory.Material.description} 
-
-                        </label>
+                        <label className="fw-bold">{data.Inventory.Material.description}</label>
                         <br></br>
                         <label className="fw-light fs-6">
                           {data.Inventory.Material.materialNo}
