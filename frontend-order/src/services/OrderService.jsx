@@ -91,6 +91,18 @@ const useOrderService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+  const createOrder = async (data) => {
+    try {
+      const response = await axiosJWT.post('/order', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error Create Order:')
+    }
+  }
 
   return {
     getWishlist,
@@ -99,6 +111,7 @@ const useOrderService = () => {
     addWishlist,
     getMyorder,
     checkout,
+    createOrder,
   }
 }
 

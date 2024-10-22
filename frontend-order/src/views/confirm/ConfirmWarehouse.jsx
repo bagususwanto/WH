@@ -181,6 +181,31 @@ const Confirm = () => {
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
+            {roleName === 'super admin' && (
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                  <img
+                    src="path-to-user-photo.jpg"
+                    alt="User Profile"
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      marginRight: '16px',
+                    }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div>
+                      <strong>FORM:</strong> ANDI (TEAM LEADER)
+                    </div>
+                    <div>
+                      <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                    </div>
+                    <div>
+                      <small>Request at 11:19</small>
+                    </div>
+                  </div>
+                </div>
+              )}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <CFormCheck
