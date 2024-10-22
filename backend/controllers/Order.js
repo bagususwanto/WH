@@ -22,6 +22,7 @@ import Division from "../models/DivisionModel.js";
 import Department from "../models/DepartmentModel.js";
 import CostCenter from "../models/CostCenterModel.js";
 import Role from "../models/RoleModel.js";
+import { postOrderHistory } from "./OrderHistory.js";
 
 // cek stock
 export const checkStock = async (inventoryId, quantity) => {
@@ -333,7 +334,6 @@ export const generateOrderNumber = async (isApproval) => {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
       const lastTransactionNumber = isApproval == 1 && lastOrder ? lastOrder.transactionNumber : lastOrder ? lastOrder.requestNumber : null;
 
-
       // Periksa apakah lastTransactionNumber valid
       if (lastTransactionNumber) {
         const lastSequence = parseInt(lastTransactionNumber.slice(-4), 10); // Ambil 4 digit terakhir sebagai sequence
@@ -613,7 +613,6 @@ export const createOrder = async (req, res) => {
     }
 
     const fullTransactionNo = await generateOrderNumber(approval[0].isApproval);
-    console.log("fullTransactionNo", fullTransactionNo);
     const leftTransactionNo = fullTransactionNo.slice(0, 2); // Mengambil 2 digit pertama
 
     // Create order
@@ -625,7 +624,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: "waiting approval",
+        status: leftTransactionNo == "TR" ? "completed" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
@@ -677,12 +676,27 @@ export const createOrder = async (req, res) => {
     // Commit transaksi jika semua berhasil
     await t.commit();
 
+    // Memulai transaksi kedua untuk postOrderHistory
+    const t2 = await db.transaction(); // Memulai transaksi kedua
+
+    try {
+      // Transaksi kedua untuk mencatat sejarah pesanan
+      await postOrderHistory(leftTransactionNo == "TR" ? "your item received" : "order created", userId, order.id, { transaction: t2 });
+
+      // Commit transaksi kedua
+      await t2.commit();
+    } catch (error) {
+      // Rollback transaksi kedua jika terjadi error
+      await t2.rollback();
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error saat mencatat sejarah pesanan" });
+    }
+
     // Jika semua validasi sukses
     res.status(200).json({ message: "Order berhasil" });
   } catch (error) {
-    // Rollback transaksi jika terjadi error
+    // Rollback transaksi pertama jika terjadi error
     await t.rollback();
-
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }

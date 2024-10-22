@@ -36,6 +36,7 @@ import wishlistRouter from "./routes/WishlistRouter.js";
 import myOrderRouter from "./routes/MyOrderRouter.js";
 import orderRouter from "./routes/OrderRouter.js";
 import userWarehouseROuter from "./routes/UserWarehouseRouter.js";
+import approvalRouter from "./routes/ApprovalRouter.js";
 import "./models/index.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
@@ -87,6 +88,9 @@ app.use("/api", cartRouter);
 app.use("/api", wishlistRouter);
 app.use("/api", myOrderRouter);
 app.use("/api", orderRouter);
+
+// approval router
+app.use("/api", approvalRouter);
 
 // incoming router
 app.use("/api", incomingRouter);

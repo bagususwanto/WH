@@ -140,7 +140,7 @@ const History = () => {
         return 'secondary'
       case 'ready to pickup':
         return 'secondary'
-      case 'delivered':
+      case 'completed':
         return 'success'
       case 'rejected':
         return 'danger'
