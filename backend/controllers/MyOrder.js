@@ -18,7 +18,8 @@ export const getMyOrder = async (req, res) => {
 
     // Buat kondisi where yang dinamis
     let whereCondition = { userId: userId };
-    if (status == "") {
+    // Jika status tidak 'all', tambahkan status ke kondisi where
+    if (status && status !== "all") {
       whereCondition.status = status;
     }
 

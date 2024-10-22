@@ -23,6 +23,8 @@ import {
   cilStorage,
   cilGraph,
   cilTruck,
+  cilClipboard,
+  cilHandPointUp,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
@@ -33,51 +35,51 @@ const useNavigation = () => {
 
   useEffect(() => {
     const baseNav = [
-      
       {
         component: CNavItem,
-        name: 'Dasboard',
-        to: '/dashboard',
-        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
-      },
-     
-      // {
-      //   component: CNavGroup,
-      //   name: 'Order To Warehouse',
-      //   to: '/order',
-      //   icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
-      //   items: [
-      //     {
-      //       component: CNavItem,
-      //       name: 'Order Item',
-      //       to: '/orderitem',
-      //       icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-      //     },
-      //     {
-      //       component: CNavItem,
-      //       name: 'Tracking Item',
-      //       to: '/tracking',
-      //       icon: <CIcon icon={cilTransfer} customClassName="nav-icon" />,
-      //     },
-      //     {
-      //       component: CNavItem,
-      //       name: 'Good Issue',
-      //       to: '/goodissue',
-      //       icon: <CIcon icon={cilList} customClassName="nav-icon" />,
-      //     },
-      //   ],
-      // },
-      {
-        component: CNavItem,
-        name: 'Incoming',
-        to: '/incoming',
-        icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+        name: 'Home',
+        to: '/home',
+        icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
       },
       {
-        component: CNavItem,
-        name: 'Inventory',
-        to: '/inventory',
+        component: CNavGroup,
+        name: 'Inventories',
+        to: '/order',
         icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Dasboard',
+            to: '/dashboard',
+            icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: 'Incoming',
+            to: '/incoming',
+            icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+          },
+          {
+            component: CNavGroup,
+            name: 'Inventory',
+            to: '/order',
+            icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+            items: [
+              {
+                component: CNavItem,
+                name: 'Input Inventory',
+                to: '/inventory/input',
+                icon: <CIcon icon={cilHandPointUp} customClassName="nav-icon" />,
+              },
+              {
+                component: CNavItem,
+                name: 'Data Inventory',
+                to: '/inventory',
+                icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
+              },
+            ],
+          },
+        ],
       },
     ]
 
