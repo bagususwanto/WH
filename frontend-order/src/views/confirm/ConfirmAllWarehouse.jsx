@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
-
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/flatpickr.css';
 import {
   CCard,
   CCardBody,
@@ -35,6 +36,7 @@ import {
   cilInbox,
   cilKeyboard,
   cilUser,
+  cilCalendar,
   cilCart,
   cilHeart,
   cilArrowRight,
@@ -46,6 +48,8 @@ import {
   cilClipboard,
   cilTruck,
   cilTask,
+  cilX,
+  cilXCircle,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -72,6 +76,7 @@ const iconMap = {
 const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
   const [userData, setUserData] = useState([])
+  const [dates, setDates] = useState([null, null]); // State for date range
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('')
   const [selectedStatus, setSelectedStatus] = useState(null)
   const [categoriesData, setCategoriesData] = useState([])
@@ -168,10 +173,27 @@ const ApproveAll = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleViewHistoryOrder = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
-  }
+  const handleConfirmProduct = (product) => {
+    // You might want to store the selected product in the state or context
+    // For example, using localStorage or a context provider
+
+    // Navigate to the ConfirmDev screen
+    navigate('/confirmwer');
+  };
+  const handleShopping = (product) => {
+    // You might want to store the selected product in the state or context
+    // For example, using localStorage or a context provider
+
+    // Navigate to the ConfirmDev screen
+    navigate('/shopping');
+  };
+  const handleDeliveryProduct = (product) => {
+    // You might want to store the selected product in the state or context
+    // For example, using localStorage or a context provider
+
+    // Navigate to the ConfirmDev screen
+    navigate('/confirmdel');
+  };
 
   return (
     <>
@@ -182,7 +204,36 @@ const ApproveAll = () => {
           </CCardBody>
         </CCard>
       </CRow>
-
+      <div className="mt-0 mb-1 d-flex justify-content-end">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #ccc', // Border around the icon and date picker
+                  borderRadius: '4px', // Optional: rounded corners
+                  padding: '5px', // Optional: padding inside the border
+                }}
+              >
+                <CIcon icon={cilCalendar} size="xl" className="px-1" /> {/* Your calendar icon */}
+                <Flatpickr
+                  value={dates}
+                  onChange={(selectedDates) => {
+                    setDates(selectedDates); // Update the state with the selected date range
+                    // Logic to filter products based on selected date range can go here
+                  }}
+                  options={{
+                    mode: 'range', // Enable range selection
+                    dateFormat: 'Y-m-d', // Desired date format
+                    placeholder: 'Select a date range',
+                  }}
+                  className="border-0 fw-light" // Remove the border from Flatpickr
+                  style={{
+                    outline: 'none', // Remove outline
+                    boxShadow: 'none', // Remove any box shadow
+                  }}
+                />
+              </div>
+            </div>
       <CTabs activeItemKey={2}>
         <CTabList variant="pills">
           <CTab aria-controls="Confirmation-tab-pane" itemKey={1}>
@@ -267,7 +318,7 @@ const ApproveAll = () => {
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
-                                  onClick={() => handleViewProduct(product)}
+                                  onClick={() => handleConfirmProduct(product)}
                                   color="secondary"
                                   size="sm"
                                 >
@@ -345,7 +396,7 @@ const ApproveAll = () => {
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
-                                  onClick={() => handleViewProduct(product)}
+                                  onClick={() => handleShopping(product)}
                                   color="secondary"
                                   size="sm"
                                 >
@@ -423,7 +474,7 @@ const ApproveAll = () => {
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
-                                  onClick={() => handleViewProduct(product)}
+                                  onClick={() => handleDeliveryProduct(product)}
                                   color="secondary"
                                   size="sm"
                                 >
@@ -501,7 +552,7 @@ const ApproveAll = () => {
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
-                                  onClick={() => handleViewProduct(product)}
+                                  onClick={() => handleDeliveryProduct(product)}
                                   color="secondary"
                                   size="sm"
                                 >
@@ -518,6 +569,7 @@ const ApproveAll = () => {
               </CCard>
             </CRow>
           </CTabPanel>
+
           <CTabPanel className="p-3" aria-labelledby="Completed-tab-pane" itemKey={5}>
             {/* Same structure for the Profile tab */}
             <CRow className="mt-1">
@@ -591,6 +643,7 @@ const ApproveAll = () => {
               </CCard>
             </CRow>
           </CTabPanel>
+
           <CTabPanel className="p-3" aria-labelledby="Rejected-tab-pane" itemKey={6}>
             {/* Same structure for the Profile tab */}
             <CRow className="mt-1">
@@ -602,7 +655,7 @@ const ApproveAll = () => {
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
                             <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
+                              <CIcon className="me-2" icon={cilXCircle} />
                               <label className="me-2 fs-6">3 Oktober 2024</label>
                               <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
                                 ON PROCESS
