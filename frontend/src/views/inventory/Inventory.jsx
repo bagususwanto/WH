@@ -48,7 +48,7 @@ const Inventory = () => {
 
   const apiPlant = 'plant'
   const apiShop = 'shop-plant'
-  const apiStorage = 'storage-shop'
+  const apiStorage = 'storage-plant'
 
   const columns = [
     {
@@ -93,14 +93,14 @@ const Inventory = () => {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.Shop.Plant.plantName': {
+    'Address_Rack.Storage.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
-    'Address_Rack.Storage.Shop.shopName': {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
+    // 'Address_Rack.Storage.shopName': {
+    //   value: null,
+    //   matchMode: FilterMatchMode.EQUALS,
+    // },
   })
 
   const initFilters = () => {
@@ -110,14 +110,14 @@ const Inventory = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.Plant.plantName': {
+      'Address_Rack.Storage.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Address_Rack.Storage.Shop.shopName': {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
+      // 'Address_Rack.Storage.shopName': {
+      //   value: null,
+      //   matchMode: FilterMatchMode.EQUALS,
+      // },
     })
     setGlobalFilterValue('')
   }
@@ -207,7 +207,7 @@ const Inventory = () => {
     }
   }
 
-  const getStorageByShopId = async (id) => {
+  const getStorageByPlantId = async (id) => {
     if (!id) {
       return
     }
@@ -247,10 +247,10 @@ const Inventory = () => {
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
 
-    getShopByPlantId(plantId)
+    getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -281,21 +281,21 @@ const Inventory = () => {
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.Plant.plantName'].value) {
+    if (filters['Address_Rack.Storage.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Address_Rack.Storage.Shop.Plant.plantName ===
-          filters['Address_Rack.Storage.Shop.Plant.plantName'].value,
+          item.Address_Rack.Storage.Plant.plantName ===
+          filters['Address_Rack.Storage.Plant.plantName'].value,
       )
     }
 
-    if (filters['Address_Rack.Storage.Shop.shopName'].value) {
-      filteredData = filteredData.filter(
-        (item) =>
-          item.Address_Rack.Storage.Shop.shopName ===
-          filters['Address_Rack.Storage.Shop.shopName'].value,
-      )
-    }
+    // if (filters['Address_Rack.Storage.shopName'].value) {
+    //   filteredData = filteredData.filter(
+    //     (item) =>
+    //       item.Address_Rack.Storage.shopName ===
+    //       filters['Address_Rack.Storage.shopName'].value,
+    //   )
+    // }
 
     setVisibleData(filteredData)
   }
@@ -346,8 +346,8 @@ const Inventory = () => {
           'Stock On Hand': quantityActualCheck,
           Evaluation: evaluation,
           Remarks: item.remarks,
-          Plant: item.Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: item.Address_Rack.Storage.Shop.shopName,
+          Plant: item.Address_Rack.Storage.Plant.plantName,
+          // Shop: item.Address_Rack.Storage.Shop.shopName,
           Storage: item.Address_Rack.Storage.storageName,
           'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
@@ -511,21 +511,10 @@ const Inventory = () => {
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.Plant.plantName'].value}
+                  value={filters['Address_Rack.Storage.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-              <CCol xs={12} sm={6} md={4}>
-                <Dropdown
-                  value={filters['Address_Rack.Storage.Shop.shopName'].value}
-                  options={shop}
-                  onChange={handleShopChange}
-                  placeholder="Select Shop"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
