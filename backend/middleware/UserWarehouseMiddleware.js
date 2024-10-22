@@ -3,7 +3,11 @@ import UserWarehouse from "../models/UserWarehouseModel.js";
 export const checkUserWarehouse = async (req, res, next) => {
   try {
     const userId = req.user.userId; // Ambil userId dari req.user
-    const warehouseId = req.query.warehouseId; // Ambil warehouseId dari query
+    const warehouseId = req.query.params; // Ambil warehouseId dari params
+
+    if (!warehouseId) {
+      return res.status(400).json({ message: "warehouseId is required" });
+    }
 
     // Cari userWarehouse berdasarkan userId dan warehouseId
     const userWarehouse = await UserWarehouse.findOne({

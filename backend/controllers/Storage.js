@@ -55,11 +55,11 @@ export const getStorageByPlant = async (req, res) => {
   try {
     const plantId = req.params.id;
 
-    const shop = await Storage.findOne({
+    const storage = await Storage.findOne({
       where: { plantId: plantId, flag: 1 },
     });
 
-    if (!shop) {
+    if (!storage) {
         return res.status(404).json({ message: "Storage not found" });
     }
 

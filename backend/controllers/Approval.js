@@ -9,6 +9,7 @@ import DetailOrder from "../models/DetailOrderModel.js";
 import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import { generateOrderNumber } from "./Order.js";
+import { postOrderHistory } from "./OrderHistory.js";
 
 const getOrganizationCondition = (user, role) => {
   switch (role) {
@@ -96,7 +97,7 @@ export const getDetailOrderApproval = async (req, res) => {
   }
 };
 
-export const isAuthorizedApproval = async (orderId, userId) => {
+const isAuthorizedApproval = async (orderId, userId) => {
   try {
     const order = await Order.findOne({
       where: { id: orderId },
@@ -195,11 +196,11 @@ export const setCurrentRoleApprovalId = async (userId) => {
       return await User.findOne({ where: { ...condition, flag: 1 } });
     };
 
-      // Logika untuk "line head"
-      if (userApproval.Role.roleName === "line head") {
-        const roleIdApproval = await getRoleApprovalId({ sectionId: userApproval.Organization.sectionId });
-        return roleIdApproval;
-      }
+    // Logika untuk "line head"
+    if (userApproval.Role.roleName === "line head") {
+      const roleIdApproval = await getRoleApprovalId({ sectionId: userApproval.Organization.sectionId });
+      return roleIdApproval;
+    }
 
     // Logika untuk "section head"
     if (userApproval.Role.roleName === "section head") {
@@ -227,7 +228,6 @@ export const approveOrder = async (req, res) => {
 
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
-      transaction,
     });
 
     // Cek apakah user berwenang untuk approve
@@ -237,6 +237,8 @@ export const approveOrder = async (req, res) => {
     }
 
     let typeLog = "approve";
+    let quantityBefore;
+    let quantityAfter;
     let status;
 
     // Update quantity jika ada perubahan
@@ -246,11 +248,15 @@ export const approveOrder = async (req, res) => {
       if (updatedOrder && updatedOrder.quantity !== order.quantity) {
         await DetailOrder.update({ quantity: updatedOrder.quantity }, { where: { id: order.id }, transaction });
         typeLog = "adjust";
+        quantityBefore = order.quantity;
+        quantityAfter = updatedOrder.quantity;
       }
     }
 
     if (role) {
-      if (role === "section head") {
+      if (role === "line head") {
+        status = "approved line head";
+      } else if (role === "section head") {
         status = "approved section head";
       } else if (role === "department head") {
         status = "approved department head";
@@ -272,16 +278,21 @@ export const approveOrder = async (req, res) => {
         typeLog: typeLog,
         userId: userId,
         detailOrderId: detailOrder.id,
+        quantityBefore: quantityBefore ? quantityBefore : null,
+        quantityAfter: quantityAfter ? quantityAfter : null,
       })),
       { transaction }
     );
+
+    // create order history
+    await postOrderHistory(status, userId, orderId, { transaction });
 
     // Cek apakah ada approval terakhir
     const isLast = await isLastApproval(orderId);
 
     // Jika isLastApproval = 1, update isApproval = 1
     if (isLast == 1) {
-      await Order.update({ isApproval: 1, transactionNumber: await generateOrderNumber(1) }, { where: { id: orderId }, transaction });
+      const order = await Order.update({ isApproval: 1, transactionNumber: await generateOrderNumber(1) }, { where: { id: orderId }, transaction });
 
       // Commit transaksi setelah operasi berhasil
       await transaction.commit();
@@ -290,7 +301,7 @@ export const approveOrder = async (req, res) => {
       return res.status(200).json({
         message: "Approval success",
         status: "Approved",
-        orderId: orderId,
+        "transaction number": order.transactionNumber,
       });
     }
 
@@ -298,7 +309,7 @@ export const approveOrder = async (req, res) => {
     if (isLast == 0) {
       // Jika isCertainPrice = 1, update currentRoleApprovalId dan isLastApproval
       if ((await isCertainPrice(orderId)) == 1) {
-        await Order.update(
+        const order = await Order.update(
           { currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId), isLastApproval: 1 },
           { where: { id: orderId }, transaction }
         );
@@ -310,7 +321,7 @@ export const approveOrder = async (req, res) => {
         return res.status(200).json({
           message: "Waiting for next approval",
           status: "Waiting approval",
-          orderId: orderId,
+          "request number": order.requestNumber,
         });
       }
     }
@@ -327,9 +338,15 @@ export const rejectOrder = async (req, res) => {
   try {
     const detailOrderId = req.params.detailOrderId;
     const userId = req.user.userId;
+    const role = req.user.roleName;
 
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
+      include: [
+        {
+          model: Order,
+        },
+      ],
     });
 
     // Cek apakah order ditemukan
@@ -359,12 +376,27 @@ export const rejectOrder = async (req, res) => {
       { transaction }
     );
 
+    let status;
+
+    if (role) {
+      if (role === "line head") {
+        status = "rejected line head";
+      } else if (role === "section head") {
+        status = "rejected section head";
+      } else if (role === "department head") {
+        status = "rejected department head";
+      }
+    }
+
+    // Create history order
+    await postOrderHistory(status, userId, orderId, { transaction });
+
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 
     res.status(200).json({
       message: "Reject success",
       status: "Rejected",
-      orderId: orderId,
+      "request number": order.Order.requestNumber,
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error
