@@ -17,6 +17,7 @@ const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventory = async (req, res) => {
+  const storageId = req.params.storageId;
   const limit = 1000; // Tentukan jumlah data per batch
   let offset = 0;
   let hasMoreData = true;
@@ -47,7 +48,7 @@ export const getInventory = async (req, res) => {
             include: [
               {
                 model: Storage,
-                where: { flag: 1 },
+                where: { flag: 1, id: storageId },
                 include: [
                   {
                     model: Plant,

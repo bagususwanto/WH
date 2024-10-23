@@ -16,12 +16,14 @@ const Storage = React.lazy(() => import('./views/masterdata/storage/Storage'))
 const Address = React.lazy(() => import('./views/masterdata/address/Address'))
 const User = React.lazy(() => import('./views/masterdata/user/User'))
 const Home = React.lazy(() => import('./views/home/Home'))
+const InputInventory = React.lazy(() => import('./views/inventory/InputInventory'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
   { path: '/dashboard', name: 'dashboard', element: Dashboard },
   { path: '/home', name: '', element: Home },
-  { path: '/inventory', name: 'Inventory', element: Inventory },
+  { path: '/inventory/data', name: 'Inventory / data', element: Inventory },
+  { path: '/inventory/input', name: 'Inventory / Input', element: InputInventory },
   { path: '/incoming', name: 'Incoming', element: Incoming },
   { path: '/category', name: 'Category', element: Category },
   { path: '/shop', name: 'Shop', element: Shop },

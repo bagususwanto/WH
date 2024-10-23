@@ -5,7 +5,7 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 const router = express.Router();
 
 router.get("/cart/:warehouseId", checkRole(["super admin"]), getCartItems);
-router.post("/cart", checkRole(["super admin"]), addToCart);
+router.post("/cart", checkRole(["super admin", "group head"]), addToCart);
 router.put("/cart", checkRole(["super admin"]), updateCartItem);
 router.delete("/cart/:id", checkRole(["super admin"]), removeFromCart);
 router.get("/cart-count/:warehouseId", checkRole(["super admin"]), countCartItems);

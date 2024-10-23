@@ -4,7 +4,7 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/storage", checkRole(["super admin", "warehouse staff"]), getStorage);
+router.get("/storage", checkRole(["super admin"]), getStorage);
 router.get("/storage/:id", checkRole(["super admin"]), getStorageById);
 router.post("/storage", checkRole(["super admin"]), createStorage);
 router.put("/storage/:id", checkRole(["super admin"]), updateStorage);

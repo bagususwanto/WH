@@ -74,7 +74,7 @@ const useNavigation = () => {
               {
                 component: CNavItem,
                 name: 'Data Inventory',
-                to: '/inventory',
+                to: '/inventory/data',
                 icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
               },
             ],

@@ -41,6 +41,6 @@ export const verifyToken = async (req, res, next) => {
 };
 
 const getOrganizationByUserId = async (userId) => {
-  const user = await Users.findOne({ where: { id: userId } });
+  const user = await Users.findOne({ where: { id: userId, flag: 1 } });
   return user;
 };

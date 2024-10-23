@@ -38,6 +38,7 @@ import Cart from "./CartModel.js";
 import LogApproval from "./LogApprovalModel.js";
 import LogEntry from "./LogEntryModel.js";
 import LogImport from "./LogImportModel.js";
+import OrderHistory from "./OrderHistoryModel.js";
 
 (async () => {
   try {

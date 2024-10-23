@@ -3,7 +3,7 @@ import { getInventory, updateIncoming, updateInventory, executeInventory } from 
 
 const router = express.Router();
 
-router.get("/inventory", getInventory);
+router.get("/inventory/:storageId", getInventory);
 router.put("/inventory/:id", updateInventory);
 router.put("/incoming/:id", updateIncoming);
 router.get("/inventory-execute", executeInventory);
