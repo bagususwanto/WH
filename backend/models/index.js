@@ -40,6 +40,7 @@ import LogEntry from "./LogEntryModel.js";
 import LogImport from "./LogImportModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 
+
 (async () => {
   try {
     // await db.sync();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+
 import {
   CCard,
   CCardBody,
@@ -20,6 +21,7 @@ import {
   CTabContent,
   CTabPanel,
   CBadge,
+  CAvatar,
   CFormInput,
   CFormCheck,
   CFooter,
@@ -169,7 +171,7 @@ const History = () => {
       <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+            <h3 className="fw-bold fs-4">HISTORY APPROVAL</h3>
           </CCardBody>
         </CCard>
       </CRow>
@@ -196,11 +198,8 @@ const History = () => {
               REJECTED
             </CButton>
           </div> */}
-      <CTabs activeItemKey={1}>
+      <CTabs activeItemKey={2}>
         <CTabList variant="pills">
-          <CTab aria-controls="All-tab-pane" itemKey={1}>
-            All
-          </CTab>
           <CTab aria-controls="Waiting-tab-pane" itemKey={2}>
             Waiting Approval
           </CTab>
@@ -222,99 +221,74 @@ const History = () => {
         </CTabList>
 
         <CTabContent>
-          <CTabPanel className="p-3" aria-labelledby="All-tab-pane" itemKey={1}>
+          <CTabPanel className="p-3" aria-labelledby="Waiting-tab-pane" itemKey={2}>
             <CRow className="g-1 mt-2">
-              
-                <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
-                  <CRow className="align-items-center">
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <CCol>
-                        <CIcon className="me-2" icon={cilCart} />
-                        <label className="me-2 fs-6" size="sm ">
+              <CCard className="d-block w-100 p-3 mb-3">
+                <CRow className="align-items-center">
+                  <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                    <CCol>
+                      <CIcon className="me-2" icon={cilCart} />
+                      <label className="me-2 fs-6" size="sm ">
                         02 februari 2024
-                        </label>
-                        <CBadge
-                          className=" me-2 "
-                          size="sm"
-                          color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
-                        >
-                          Rejected
-                        </CBadge>
-                        <label className=" me-2 fw-light ">20000-30000-43555</label>
-                      </CCol>
-                    </div>
+                      </label>
+                      <CBadge className=" me-2 " size="sm" color="success">
+                        Rejected
+                      </CBadge>
+                      <label className=" me-2 fw-light ">20000-30000-43555</label>
+                      <label >WBS:2000-2000-2000</label>
+                    </CCol>
+                  </div>
 
-                    <CRow className="d-flex justify-content-between my-2 ">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={
-                            // order.Detail_Orders[0].Inventory.Material.img ||
-                            'https://via.placeholder.com/150'
-                          }
-                          // alt={order.Detail_Orders[0].Inventory.Material.description}
-                          style={{ height: '100%', width: '100%' }}
-                        />
-                      </CCol>
+                  <CRow className="d-flex justify-content-between my-2 ">
+                    <CCol xs="1">
+                      <CCardImage
+                        src={
+                          // order.Detail_Orders[0].Inventory.Material.img ||
+                          'https://via.placeholder.com/150'
+                        }
+                        // alt={order.Detail_Orders[0].Inventory.Material.description}
+                        style={{ height: '100%', width: '100%' }}
+                      />
+                    </CCol>
 
-                      <CCol xs="5">
-                        {order.Detail_Orders.length === 1 ? (
-                          <label key={order.Detail_Orders[0].id}>
-                            PLASTIC 2000-000
-                          </label>
-                        ) : (
-                          <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
-                        )}
-                        <br />
-                        <label className="fw-bold fs-6">
-                          Total: 3 Item
-                        </label>
-                      </CCol>
-                      <CCol xs="2" className="text-center">
-                        <label>{order.paymentMethod}</label>
-                        <br />
-                        <span className="fw-bold">{order.paymentNumber}</span>
-                      </CCol>
+                    <CCol xs="5">
+                      <label className=" fs-6">PLASTIC 2000-000</label>
 
-                      <CCol xs="4">
-                
-                          {userData.map((user) => (
-                            <CCardImage
-                              key={user.id}
-                              src={user.img}
-                              alt={user.name}
-                              style={{ height: '100%', width: '100%' }}
-                            />
-                          ))}
-                    
-                       
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <div>
-                              <strong>FORM:</strong> ANDI (TEAM LEADER)
-                            </div>
-                            <div>
-                              <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                            </div>
-                            <div>
-                              <small>Request at 11:19</small>
-                            </div>
-                          </div>
-                        </CCol>
-                    </CRow>
+                      <label>...</label>
 
-                    <CRow className="d-flex justify-content-end align-items-center">
-                      <CCol xs={4} className="d-flex justify-content-end">
-                        <CButton
-                          onClick={() => handleViewHistoryOrder(order)}
-                          color="primary"
-                          size="sm"
-                        >
-                          View Detail Order
-                        </CButton>
-                      </CCol>
-                    </CRow>
+                      <br />
+                      <label className="fw-bold fs-6">Total: 3 Item</label>
+                    </CCol>
+
+                    <CCol xs="6" className="d-flex align-items-center justify-content-end">
+                      <CAvatar color="primary" textColor="white" className="me-3">
+                        CUI
+                      </CAvatar>
+
+                      <div>
+                        <div>
+                          <strong>Form:</strong> Andi Juanendi
+                        </div>
+                        <div>
+                          <strong>Grup:</strong> Assy Pre Trim 2 Red
+                        </div>
+                      </div>
+                    </CCol>
                   </CRow>
-                </CCard>
-          
+
+                  <CRow className="d-flex justify-content-end align-items-center">
+                    <CCol xs={4} className="d-flex justify-content-end">
+                      <CButton
+                        onClick={() => handleViewHistoryOrder(order)}
+                        color="primary"
+                        size="sm"
+                      >
+                        View Detail Order
+                      </CButton>
+                    </CCol>
+                  </CRow>
+                </CRow>
+              </CCard>
             </CRow>
 
             <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
@@ -330,14 +304,10 @@ const History = () => {
                           <CCol>
                             <CIcon className="me-2" icon={cilCart} />
                             <label className="me-2 fs-6" size="sm ">
-                              {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                              20 sept 2024
                             </label>
-                            <CBadge
-                              className=" me-2 "
-                              size="sm"
-                              color={getSeverity(selectedProduct.status)}
-                            >
-                              {selectedProduct.status.toUpperCase()}
+                            <CBadge className=" me-2 " size="sm" color="danger">
+                              ok
                             </CBadge>
                             <label className=" me-2 fw-light ">
                               {selectedProduct.transactionNumber}
@@ -346,29 +316,28 @@ const History = () => {
                         </CRow>
 
                         {/* Iterasi melalui semua Detail_Orders */}
-                        {selectedProduct.Detail_Orders.map((detail, index) => (
-                          <CRow className="align-items-center mb-3" key={index}>
-                            <CCol xs="1">
-                              <CCardImage
-                                src={'https://via.placeholder.com/150'} // Ganti dengan gambar yang sesuai
-                                style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                              />
-                            </CCol>
-                            <CCol xs="6" className="mb-2">
-                              <div>
-                                <label>{detail.Inventory.Material.description}</label>
-                                <br />
-                                <label className="fs-6 fw-bold">Quantity: {detail.quantity}</label>
-                              </div>
-                            </CCol>
-                          </CRow>
-                        ))}
+
+                        <CRow className="align-items-center mb-3" key={index}>
+                          <CCol xs="1">
+                            <CCardImage
+                              src={'https://via.placeholder.com/150'} // Ganti dengan gambar yang sesuai
+                              style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                            />
+                          </CCol>
+                          <CCol xs="6" className="mb-2">
+                            <div>
+                              <label>File Document</label>
+                              <br />
+                              <label className="fs-6 fw-bold">Quantity: 20 </label>
+                            </div>
+                          </CCol>
+                        </CRow>
 
                         <CRow className="mb-3">
                           <CCol>
-                            <label>Payment Method: {selectedProduct.paymentMethod}</label>
+                            <label>Payment Method: ngopi</label>
                             <br />
-                            <span>Payment Number: {selectedProduct.paymentNumber}</span>
+                            <span>Payment Number: 2000</span>
                           </CCol>
                         </CRow>
 

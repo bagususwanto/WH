@@ -50,25 +50,16 @@ import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 
 const Confirm = () => {
-  const [cartData, setCartData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
-  const [modalVisible, setModalVisible] = useState(false)
-  const { checkout } = useOrderService()
-  const { getMasterData } = useMasterDataService()
-  const { getCart } = useCartService()
-  const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
-  const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
-  const [totalAmount, setTotalAmount] = useState(0)
+  const { createOrder } = useOrderService()
+
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
-  const [quantities, setQuantities] = useState({})
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [selectedPlant, setSelectedPlant] = useState('')
+
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
-  const { roleName } = useVerify()
+
   const [currentProducts, setCurrentProducts] = useState([])
-  const { warehouse } = useContext(GlobalContext)
+
   const navigate = useNavigate()
   const location = useLocation()
   const MySwal = withReactContent(Swal)
@@ -102,16 +93,71 @@ const Confirm = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         // If confirmed, proceed with checkout function
+        order()
       }
     })
   }
-  const handleConfirm = () => {
-    setModalVisible(false)
-    navigate('/history') // Use navigate instead of history.push
-  }
 
-  const handleCancel = () => {
-    setModalVisible(false)
+  const order = async () => {
+    try {
+      const cartIds = verifiedCartItems.map((item) => item.id)
+      console.log('Cart IDs:', cartIds)
+
+      // Check if no items in the cart
+      if (cartIds.length === 0) {
+        return MySwal.fire({
+          icon: 'error',
+          title: 'Order Error',
+          text: 'No items to order. Please add items to the cart before proceeding.',
+        })
+      }
+
+      // Find the selected service hour based on the deadline
+      const selectedServiceHour =
+        verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.find(
+          (serviceHour) => `shift${serviceHour.shiftId}` === deadline,
+        )
+
+      // Enforce orderTime selection, prevent "No specific time"
+      if (!selectedServiceHour) {
+        return MySwal.fire({
+          icon: 'error',
+          title: 'Order Error',
+          text: 'Please select a valid schedule for your order. Order time is required.',
+        })
+      }
+
+      const orderTime = selectedServiceHour.time
+      const paymentNumber = iswbs
+        ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber // WBS number
+        : verifiedCartItems[0].User.Organization.Section.GIC.gicNumber // GIC number
+      const paymentMethod = iswbs ? 'WBS' : 'GIC' // Payment method based on user choice
+      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Dynamic delivery method
+
+      // Validate if all fields are provided
+      if (!orderTime || !paymentNumber || !paymentMethod || !deliveryMethod) {
+        return MySwal.fire({
+          icon: 'error',
+          title: 'Order Error',
+          text: 'Please ensure all order details are filled out before proceeding.',
+        })
+      }
+
+      console.log('XYZ', orderTime, paymentNumber, paymentMethod, deliveryMethod)
+
+      const response = await createOrder({
+        cartIds: cartIds, // Cart item IDs
+        orderTime: orderTime, // Ensure orderTime is provided
+        paymentNumber: paymentNumber,
+        paymentMethod: paymentMethod,
+        deliveryMethod: deliveryMethod,
+      })
+
+      console.log('Order response:', response)
+      navigate('/history') // Navigate to history page after successful order
+    } catch (error) {
+      console.error('Error creating order:', error)
+    }
   }
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
@@ -208,25 +254,23 @@ const Confirm = () => {
                   </>
                 )}
               </div>
-              {!isPickup && (
-                <>
-                  <hr />
-                  <label className="fw-bold mb-2">Schedule Delivery</label>
-                  <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option className="fw-light" value="">
-                      Select Cycle
-                    </option>
-                    {verifiedCartItems.length > 0 &&
-                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
-                        (serviceHour) => (
-                          <option key={serviceHour.id} value={`shift${serviceHour.shiftId}`}>
-                            {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
-                          </option>
-                        ),
-                      )}
-                  </CFormSelect>
-                </>
-              )}
+
+              <hr />
+              <label className="fw-bold mb-2">Schedule {isPickup ? 'Pickup' : 'Otodoke'}</label>
+              <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
+                <option className="fw-light" value="">
+                  Select Cycle
+                </option>
+                {verifiedCartItems.length > 0 &&
+                  verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
+                    (serviceHour) => (
+                      <option key={serviceHour.id} value={`shift${serviceHour.shiftId}`}>
+                        {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
+                      </option>
+                    ),
+                  )}
+              </CFormSelect>
+
               <hr />
               <label className="fw-bold mb-2">Payment</label>
               {verifiedCartItems.length > 0 && (

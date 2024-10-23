@@ -86,20 +86,25 @@ const History = () => {
   const [currentProducts, setCurrentProducts] = useState([])
   const [myOrderData, setMyOrderData] = useState([])
   const navigate = useNavigate()
-
+ 
   const { warehouse } = useContext(GlobalContext)
+  const [activeTab, setActiveTab] = useState(1) // New state to manage active tab
 
   const apiCategory = 'category'
 
-  const getMyorders = async () => {
+  const getMyorders = async (status = '') => {
     try {
-      const response = await getMyorder(warehouse.id)
+      const response = await getMyorder(warehouse.id, status)
       setMyOrderData(response.data)
     } catch (error) {
-      console.error('Error fetching wishlist:', error)
+      console.error('Error fetching orders:', error)
     }
   }
 
+  const handleTabChange = (status) => {
+    setActiveTab(status)
+    getMyorders(status) // Fetch orders based on selected status
+  }
   const getCategories = async () => {
     try {
       const response = await getMasterData(apiCategory)
@@ -196,27 +201,27 @@ const History = () => {
               REJECTED
             </CButton>
           </div> */}
-      <CTabs activeItemKey={1}>
+      <CTabs activeItemKey={activeTab}>
         <CTabList variant="pills">
-          <CTab aria-controls="All-tab-pane" itemKey={1}>
+          <CTab aria-controls="All-tab-pane" itemKey={1} onClick={() => handleTabChange('')}>
             All
           </CTab>
-          <CTab aria-controls="Waiting-tab-pane" itemKey={2}>
+          <CTab aria-controls="Waiting-tab-pane" itemKey={2} onClick={() => handleTabChange('waiting approval')}>
             Waiting Approval
           </CTab>
-          <CTab aria-controls="Process-tab-pane" itemKey={3}>
+          <CTab aria-controls="Process-tab-pane" itemKey={3} onClick={() => handleTabChange('on process')}>
             On Process
           </CTab>
-          <CTab aria-controls="Delivery-tab-pane" itemKey={4}>
+          <CTab aria-controls="Delivery-tab-pane" itemKey={4} onClick={() => handleTabChange('ready to deliver')}>
             Delivery
           </CTab>
-          <CTab aria-controls="Pickup-tab-pane" itemKey={5}>
+          <CTab aria-controls="Pickup-tab-pane" itemKey={5} onClick={() => handleTabChange('ready to pickup')}>
             Pickup
           </CTab>
-          <CTab aria-controls="Completed-tab-pane" itemKey={6}>
+          <CTab aria-controls="Completed-tab-pane" itemKey={6} onClick={() => handleTabChange('completed')}>
             Completed
           </CTab>
-          <CTab aria-controls="Rejected-tab-pane" itemKey={7}>
+          <CTab aria-controls="Rejected-tab-pane" itemKey={7} onClick={() => handleTabChange('rejected')}>
             Rejected
           </CTab>
         </CTabList>

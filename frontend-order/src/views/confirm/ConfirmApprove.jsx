@@ -272,6 +272,7 @@ const Confirm = () => {
                   label="Pickup"
                   checked={isPickup}
                   onChange={() => setIsPickup(true)}
+                  disabled
                 />
                 <CFormCheck
                   type="radio"
@@ -279,6 +280,7 @@ const Confirm = () => {
                   label="Otodoke"
                   checked={!isPickup}
                   onChange={() => setIsPickup(false)}
+                  disabled
                 />
               </div>
               <hr />
@@ -319,6 +321,7 @@ const Confirm = () => {
                 label="WBS - ####-###-###"
                 checked={iswbs}
                 onChange={() => setIswbs(true)}
+                disabled
               />
               <CFormCheck
                 type="radio"
@@ -326,6 +329,7 @@ const Confirm = () => {
                 label="GIC - ####-###-###"
                 checked={!iswbs}
                 onChange={() => setIswbs(false)}
+                disabled
               />
               <hr />
               <CFormTextarea
@@ -334,6 +338,7 @@ const Confirm = () => {
                 rows={3}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                disabled
               />
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
