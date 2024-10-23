@@ -53,6 +53,6 @@ button.p-row-editor-save.p-link {
 
 @media (min-width: 768px) and (max-width: 992px) {
   .responsive-container {
-    width: 97%; /* 90% width on tablet */
+    width: 98%; /* 90% width on tablet */
   }
 }

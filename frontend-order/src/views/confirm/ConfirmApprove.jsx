@@ -21,6 +21,8 @@ import {
   CModalBody,
   CModalFooter,
   CImage,
+  CPagination,
+  CPaginationItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -40,7 +42,8 @@ import {
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
-
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 import useVerify from '../../hooks/UseVerify'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -76,13 +79,15 @@ const Confirm = () => {
   const [totalAmount, setTotalAmount] = useState(0)
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
+  const MySwal = withReactContent(Swal)
   const [quantities, setQuantities] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(7) // Limit to 5 items per page
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
-  const [currentProducts, setCurrentProducts] = useState([])
 
   const navigate = useNavigate()
 
@@ -112,38 +117,16 @@ const Confirm = () => {
     getProducts()
   }, [])
 
-  useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-
-        // Initialize checkedItems with all products set to true
-        const initialCheckedItems = {}
-        responseProducts.data.forEach((product) => {
-          initialCheckedItems[product.id] = true // Set all to true
-        })
-        setCheckedItems(initialCheckedItems) // Update checkedItems state
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-
-    fetchProductsAndCategories()
-  }, [])
+  // This is where currentProducts is initialized
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentProducts = productsData.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(productsData.length / itemsPerPage)
 
   useEffect(() => {
     const newTotal = currentProducts.reduce((acc, product) => {
       if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Get quantity or default to 1
+        const quantity = quantities[product.id] || 1
         return acc + product.Material.price * quantity
       }
       return acc
@@ -151,23 +134,10 @@ const Confirm = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleCheckout = () => {
-    setModalVisible(true)
-  }
-  const handleConfirm = () => {
-    setModalVisible(false)
-    navigate('/history') // Use navigate instead of history.push
-  }
-
-  const handleCancel = () => {
-    setModalVisible(false)
-  }
-
   const handleSelectAllChange = () => {
     const newSelectAll = !selectAll
     setSelectAll(newSelectAll)
 
-    // Update all individual checkboxes
     const updatedCheckedItems = currentProducts.reduce((acc, product) => {
       acc[product.id] = newSelectAll
       return acc
@@ -175,34 +145,35 @@ const Confirm = () => {
     setCheckedItems(updatedCheckedItems)
   }
 
-  // Handle individual checkbox change
-  const handleCheckboxChange = (productId) => {
-    setCheckedItems((prev) => ({
-      ...prev,
-      [productId]: !prev[productId], // Toggle the checked state
-    }))
-  }
-
   const handleDelete = (productId) => {
-    setCurrentProducts(currentProducts.filter((product) => product.id !== productId))
+    setProductsData(productsData.filter((product) => product.id !== productId))
     setCheckedItems((prev) => {
       const { [productId]: _, ...newCheckedItems } = prev
       return newCheckedItems
     })
   }
 
-  // Total harga produk
-  useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        // Check if the product is selected
-        const quantity = quantities[product.id] || 1 // Use the quantity or default to 1
-        return acc + product.Material.price * quantity // Calculate price * quantity
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+  }
+
+  const handleCheckout = () => {
+    MySwal.fire({
+      title: 'Confirm Checkout',
+      text: `Are you sure you want to proceed to checkout products?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      reverseButtons: true, // This option will reverse the positions of the buttons
+    }).then((result) => {
+      if (result.isConfirmed) {
+        order()
       }
-      return acc
-    }, 0)
-    setTotalAmount(newTotal) // Set the total amount
-  }, [checkedItems, quantities, currentProducts])
+    })
+  }
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
@@ -219,7 +190,6 @@ const Confirm = () => {
   }
 
   const handleQuantityChange = (productId, value) => {
-    // Validasi jika nilai yang dimasukkan adalah angka
     if (!isNaN(value) && value >= 0) {
       setQuantities({
         ...quantities,
@@ -227,9 +197,10 @@ const Confirm = () => {
       })
     }
   }
+
   const handleButtonClick = () => {
-    setClicked(true) // Change the button state to clicked
-    navigate('/order') // Redirect to the Order page
+    setClicked(true)
+    navigate('/order')
   }
 
   return (
@@ -350,27 +321,6 @@ const Confirm = () => {
                 <CButton color="primary" onClick={handleCheckout}>
                   Approve Now
                 </CButton>
-
-                <CModal visible={modalVisible} onClose={handleCancel}>
-                  <CModalHeader>
-                    <CModalTitle>Confirm Approve</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
-                    <br />
-                    <label className="fw-bold">
-                      Total: Rp {totalAmount.toLocaleString('id-ID')}
-                    </label>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="danger" onClick={handleCancel}>
-                      Cancel
-                    </CButton>
-                    <CButton color="success" onClick={handleConfirm}>
-                      OK
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
               </div>
             </CCardBody>
           </CCard>
@@ -396,8 +346,8 @@ const Confirm = () => {
 
         <CCol xs={8}>
           <CRow className="g-2">
-            {productsData.map((product, index) => (
-              <CCard className="h-80" key={index}>
+          {currentProducts.map((product, index) => ( // Change from productsData to currentProducts
+              <CCard className="h-80" key={product.id}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
                     <CCol xs="1">
@@ -462,6 +412,31 @@ const Confirm = () => {
               </CCard>
             ))}
           </CRow>
+          <div className="d-flex justify-content-center mt-4">
+            <CPagination>
+              <CPaginationItem
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </CPaginationItem>
+              {[...Array(totalPages)].map((_, index) => (
+                <CPaginationItem
+                  key={index + 1}
+                  active={index + 1 === currentPage}
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </CPaginationItem>
+              ))}
+              <CPaginationItem
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </CPaginationItem>
+            </CPagination>
+          </div>
         </CCol>
       </CRow>
     </CContainer>
