@@ -1,256 +1,305 @@
 import React, { useState, useEffect } from 'react'
-import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormTextarea } from '@coreui/react'
-import { DataTable } from 'primereact/datatable'
-import { Column } from 'primereact/column'
-import { Dropdown } from 'primereact/dropdown'
+import {
+  CCard,
+  CCardHeader,
+  CCardBody,
+  CCol,
+  CRow,
+  CFormTextarea,
+  CTableRow,
+  CTableHead,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,
+  CTableCaption,
+} from '@coreui/react'
 import 'primeicons/primeicons.css'
-import { Button } from 'primereact/button'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import {
-  CFormInput,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CSpinner,
-  CButton,
-} from '@coreui/react'
+import { CFormInput, CButton, CFormLabel, CForm, CTable } from '@coreui/react'
+import Select from 'react-select'
+import AsyncSelect from 'react-select/async'
+import { CIcon } from '@coreui/icons-react'
+import { cilXCircle } from '@coreui/icons'
+
+import useMasterDataService from '../../services/MasterDataService'
+import useManageStockService from '../../services/ManageStockService'
 
 const MySwal = withReactContent(Swal)
 
 const InputInventory = () => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [isClearable, setIsClearable] = useState(true)
+  const [plant, setPlant] = useState([])
+  const [storage, setStorage] = useState([])
+  const [storageOptions, setStorageOptions] = useState([])
+  const [inventory, setInventory] = useState([])
+
+  const { getMasterData } = useMasterDataService()
+  const { getInventory } = useManageStockService()
+
+  const apiPlant = 'plant'
+  const apiStorage = 'storage'
+
+  useEffect(() => {
+    getPlant()
+    getStorage()
+  }, [])
+
+  const getPlant = async () => {
+    try {
+      const response = await getMasterData(apiPlant)
+      setPlant(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const getStorage = async () => {
+    try {
+      const response = await getMasterData(apiStorage)
+      setStorage(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const getInventories = async (id) => {
+    try {
+      const response = await getInventory(id)
+      setInventory(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const materialNoOptions = inventory.map((i) => ({
+    value: i.materialId,
+    label: i.Material.materialNo,
+  }))
+
+  const descriptionOptions = inventory.map((i) => ({
+    value: i.materialId,
+    label: i.Material.description,
+  }))
+
+  const addressOptions = inventory.map((i) => ({
+    value: i.addressId,
+    label: i.Address_Rack.addressRackName,
+  }))
+
+  const uomOptions = inventory.map((i) => ({
+    value: i.materialId,
+    label: i.Material.uom,
+  }))
+
+  const plantOptions = plant.map((plant) => ({
+    value: plant.id,
+    label: plant.plantName,
+  }))
+
+  const handlePlantChange = (selectedPlant) => {
+    if (selectedPlant) {
+      const filteredStorages = storage
+        .filter((s) => s.plantId === selectedPlant.value)
+        .map((s) => ({
+          value: s.id,
+          label: s.storageName,
+        }))
+      setStorageOptions(filteredStorages)
+    } else {
+      setStorageOptions([])
+    }
+  }
+
+  const handleStorageChange = (selectedStorage) => {
+    if (selectedStorage) {
+      getInventories(selectedStorage.value)
+    } else {
+      setInventory([])
+    }
+  }
+
   return (
     <CRow>
       <CCol>
         <CCard className="mb-3">
-          <CCardHeader>Filter</CCardHeader>
-          <CCardBody>
-            <CRow>
-              <CCol xs={12} sm={6} md={4}>
-                <Button
-                  type="button"
-                  icon="pi pi-filter-slash"
-                  label="Clear Filter"
-                  outlined
-                  onClick={clearFilter}
-                  className="mb-2"
-                  style={{ borderRadius: '5px' }}
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol xs={12} sm={6} md={4}>
-                <Dropdown
-                  value={filters['Address_Rack.Storage.Plant.plantName'].value}
-                  options={plant}
-                  onChange={handlePlantChange}
-                  placeholder="Select Plant"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-              <CCol xs={12} sm={6} md={4}>
-                <Dropdown
-                  value={filters['Address_Rack.Storage.storageName'].value}
-                  options={storage}
-                  onChange={handleStorageChange}
-                  placeholder="Select Storage"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-            </CRow>
-          </CCardBody>
-        </CCard>
-
-        <CCard className="mb-3">
-          <CCardHeader>InputInventory Table</CCardHeader>
-          <CCardBody>
-            <CRow className="mb-2">
-              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
-                <div className="d-flex flex-wrap justify-content-start">
-                  <Button
-                    type="button"
-                    label="Excel"
-                    icon="pi pi-file-excel"
-                    severity="success"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={exportExcel}
-                    data-pr-tooltip="XLS"
+          <CCardHeader>Form Input</CCardHeader>
+          <CForm>
+            <CCardBody>
+              <CRow>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="plant">Plant</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={plantOptions}
+                    id="plant"
+                    onChange={handlePlantChange}
                   />
-                  <Button
-                    type="button"
-                    label="Execute"
-                    icon="pi pi-play"
-                    severity="warning"
-                    className="rounded-5 mb-2"
-                    onClick={handleExecute}
+                </CCol>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="storage">Storage</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={storageOptions}
+                    id="storage"
+                    onChange={handleStorageChange}
                   />
-                </div>
-              </CCol>
-              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
-                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
-              </CCol>
-            </CRow>
-            <DataTable
-              value={visibleData}
-              tableStyle={{ minWidth: '50rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
-              dataKey="id"
-              filters={filters}
-              loading={loading}
-              emptyMessage="No inventory found."
-              size="small"
-              scrollable
-              removableSort
-              header={header}
-            >
-              <Column
-                field="Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column
-                field="Material.description"
-                header="Description"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
-              <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="Material.minStock" header="Min" sortable></Column>
-              <Column field="Material.maxStock" header="Max" sortable></Column>
-              <Column field="quantityActualCheck" header="SoH" sortable></Column>
-              <Column
-                field="evaluation"
-                header="Eval."
-                body={statusBodyTemplate} // Menggunakan fungsi evaluasi
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column>
-              <Column field="remarks" header="Remarks" sortable></Column>
-              {visibleColumns.map((col, index) => (
-                <Column
-                  key={index}
-                  field={col.field}
-                  header={col.header}
-                  body={col.body}
-                  sortable={col.sortable}
-                  headerStyle={col.headerStyle}
-                  bodyStyle={col.bodyStyle}
-                />
-              ))}
-              <Column
-                header="Action"
-                body={actionBodyTemplate}
-                headerStyle={{ width: '5%' }}
-                bodyStyle={{ textAlign: 'center' }}
-                frozen={true}
-                alignFrozen="right"
-              ></Column>
-            </DataTable>
-          </CCardBody>
+                </CCol>
+              </CRow>
+              <CRow className="mt-3">
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={materialNoOptions}
+                    id="materialNo"
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="description">Description</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={descriptionOptions}
+                    id="description"
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="address">Address</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={addressOptions}
+                    id="address"
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="uom">UoM</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={uomOptions}
+                    id="uom"
+                  />
+                </CCol>
+              </CRow>
+              <CRow className="mt-3">
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormInput
+                    type="number"
+                    id="quantity"
+                    label="Quantity"
+                    placeholder="Input.."
+                    text="Must be number."
+                    aria-describedby="quantity"
+                    required
+                  />
+                </CCol>
+                <CCol
+                  xs={12}
+                  sm={6}
+                  md={3}
+                  className="d-flex justify-content-start align-items-center"
+                >
+                  <CButton color="primary">Add</CButton>
+                </CCol>
+              </CRow>
+              <hr />
+              <CRow>
+                <CTable striped align="middle" responsive className="text-center">
+                  <CTableCaption>List of items</CTableCaption>
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell scope="col">#</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">Material No</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">Description</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">Address</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">UoM</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">Quantity</CTableHeaderCell>
+                      <CTableHeaderCell scope="col">Action</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    <CTableRow>
+                      <CTableHeaderCell scope="row">1</CTableHeaderCell>
+                      <CTableDataCell>Mark</CTableDataCell>
+                      <CTableDataCell>Otto</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>
+                        <CIcon
+                          icon={cilXCircle}
+                          size="xl"
+                          style={{ fontSize: '80px', cursor: 'pointer', color: 'red' }} // Memperbesar ukuran dan ubah warna
+                          onClick={() => alert('Icon clicked!')} // Tambahkan handler klik
+                        />
+                      </CTableDataCell>
+                    </CTableRow>
+                    <CTableRow>
+                      <CTableHeaderCell scope="row">1</CTableHeaderCell>
+                      <CTableDataCell>Mark</CTableDataCell>
+                      <CTableDataCell>Otto</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>
+                        <CIcon
+                          icon={cilXCircle}
+                          size="xl"
+                          style={{ fontSize: '80px', cursor: 'pointer', color: 'red' }} // Memperbesar ukuran dan ubah warna
+                          onClick={() => alert('Icon clicked!')} // Tambahkan handler klik
+                        />
+                      </CTableDataCell>
+                    </CTableRow>
+                    <CTableRow>
+                      <CTableHeaderCell scope="row">1</CTableHeaderCell>
+                      <CTableDataCell>Mark</CTableDataCell>
+                      <CTableDataCell>Otto</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>@mdo</CTableDataCell>
+                      <CTableDataCell>
+                        <CIcon
+                          icon={cilXCircle}
+                          size="xl"
+                          style={{ fontSize: '80px', cursor: 'pointer', color: 'red' }} // Memperbesar ukuran dan ubah warna
+                          onClick={() => alert('Icon clicked!')} // Tambahkan handler klik
+                        />
+                      </CTableDataCell>
+                    </CTableRow>
+                  </CTableBody>
+                </CTable>
+              </CRow>
+              <CRow className="mt-3">
+                <CCol className="d-flex justify-content-end">
+                  <CButton color="primary" className="text-white">
+                    Submit
+                  </CButton>
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CForm>
         </CCard>
       </CCol>
-
-      <CModal visible={modalInputInventory} onClose={() => setModalInputInventory(false)}>
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">InputInventory Input</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CFormInput
-            type="text"
-            value={editData?.Material?.materialNo || ''}
-            label="Material No."
-            disabled
-            className="mb-3"
-          />
-          <CFormInput
-            type="text"
-            value={editData?.Material?.description || ''}
-            label="Description"
-            disabled
-            className="mb-3"
-          />
-
-          <CRow>
-            <CCol md={12}>
-              <CFormInput
-                type="text"
-                value={editData?.Address_Rack?.addressRackName || ''}
-                label="Address"
-                disabled
-                className="mb-3"
-              />
-            </CCol>
-          </CRow>
-          <CRow>
-            <CCol md={6}>
-              <CFormInput
-                type="number"
-                value={editData?.quantityActual || ''}
-                onChange={(e) => setEditData({ ...editData, quantityActual: e.target.value })}
-                label="Quantity"
-                className="mb-3"
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormInput
-                type="text"
-                value={editData?.Material?.uom || ''}
-                label="UoM"
-                disabled
-                className="mb-3"
-              />
-            </CCol>
-          </CRow>
-          <CRow>
-            <CCol>
-              <CCol md={12}>
-                <CFormTextarea
-                  type="text"
-                  value={editData?.remarks || ''}
-                  onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
-                  label="Remarks"
-                  className="mb-3"
-                />
-              </CCol>
-            </CCol>
-          </CRow>
-        </CModalBody>
-        <CModalFooter>
-          <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
-          >
-            <CButton color="primary" onClick={handleSave}>
-              {loadingSave ? (
-                <>
-                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
-                  Saving...
-                </>
-              ) : (
-                'Save'
-              )}
-            </CButton>
-          </Suspense>
-        </CModalFooter>
-      </CModal>
     </CRow>
   )
 }

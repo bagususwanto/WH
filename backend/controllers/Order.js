@@ -178,7 +178,7 @@ export const setApproval = async (userId, carts) => {
     };
 
     // Logika untuk "group head"
-    if (user.roleName === "group head") {
+    if (user.Role.roleName === "group head") {
       // jika ada material dengan harga < 20jt
       if (!hasExpensiveMaterial) {
         if (user.Organization.lineId) {
@@ -263,7 +263,7 @@ export const setApproval = async (userId, carts) => {
     }
 
     // Logika untuk "line head"
-    if (user.roleName === "line head" && hasExpensiveMaterial) {
+    if (user.Role.roleName === "line head" && hasExpensiveMaterial) {
       // Jika role line head dan harga >= 20jt, set role approval berdasarkan sectionId
       if (user.Organization.sectionId) {
         const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
@@ -332,7 +332,8 @@ export const generateOrderNumber = async (isApproval) => {
     let sequenceNumber = 1;
     if (lastOrder) {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
-      const lastTransactionNumber = isApproval == 1 && lastOrder ? lastOrder.transactionNumber : lastOrder ? lastOrder.requestNumber : null;
+      const lastTransactionNumber =
+        isApproval == 1 && lastOrder ? lastOrder.transactionNumber : isApproval == 0 && lastOrder ? lastOrder.requestNumber : lastOrder;
 
       // Periksa apakah lastTransactionNumber valid
       if (lastTransactionNumber) {
@@ -619,7 +620,7 @@ export const createOrder = async (req, res) => {
     const order = await Order.create(
       {
         userId: userId,
-        requestNumber: leftTransactionNo == "REQ" ? fullTransactionNo : null,
+        requestNumber: leftTransactionNo == "RE" ? fullTransactionNo : null,
         transactionNumber: leftTransactionNo == "TR" ? fullTransactionNo : null,
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,

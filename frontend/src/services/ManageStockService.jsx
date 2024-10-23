@@ -13,9 +13,9 @@ const useManageStockService = () => {
     throw new Error(message + error.message)
   }
 
-  const getInventory = async () => {
+  const getInventory = async (id) => {
     try {
-      const response = await axiosJWT.get('/inventory', {
+      const response = await axiosJWT.get(`/inventory/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
