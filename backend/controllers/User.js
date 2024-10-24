@@ -144,8 +144,8 @@ export const createUser = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if ((!username || !password || !name || !roleId || !position, !organizationId, !isProduction)) {
-    return res.status(400).json({ message: "username, password, name, roleId, position must be filled" });
+  if ((!username || !password || !name || !roleId || !position, !organizationId)) {
+    return res.status(400).json({ message: "username, password, name, roleId, position and organization must be filled" });
   }
 
   if (password.length < 6) {
