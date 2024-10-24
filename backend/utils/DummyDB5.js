@@ -7992,7 +7992,7 @@ export const inventoryData = [
     addressId: 843,
   },
   {
-    materialId: 0,
+    materialId: 1000,
     quantitySistem: "",
     quantityActual: "",
     quantityActualCheck: 0,
@@ -9509,7 +9509,7 @@ export const inventoryData = [
     quantityActual: "",
     quantityActualCheck: 0,
     remarks: "",
-    addressId: 0,
+    addressId: 1000,
   },
   {
     materialId: 1190,
