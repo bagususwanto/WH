@@ -123,7 +123,7 @@ const Inventory = () => {
   }
 
   useEffect(() => {
-    fetchInventory()
+    // fetchInventory()
     getPlant()
     setLoading(false)
     initFilters()
@@ -147,6 +147,7 @@ const Inventory = () => {
   }
 
   const fetchInventory = async () => {
+    setLoading(true)
     try {
       const response = await getAllInventory()
       const dataWithFormattedFields = response.data.map((item) => {
@@ -173,8 +174,47 @@ const Inventory = () => {
       setInventory(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching inventory:', error)
+    } finally {
+      setLoading(false) // Set loading to false after data is fetched
     }
   }
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      setLoading(true)
+      try {
+        const response = await getAllInventory()
+        const dataWithFormattedFields = response.data.map((item) => {
+          // Evaluasi untuk menentukan status inventory
+          const evaluation =
+            item.quantityActual < item.Material.minStock
+              ? 'minim'
+              : item.quantityActual > item.Material.minStock
+                ? 'over'
+                : 'ok'
+
+          const discrepancy = item.quantityActual - item.quantitySistem
+
+          return {
+            ...item,
+            discrepancy,
+            evaluation, // Tambahkan evaluasi ke item yang dikembalikan
+            formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+            formattedUpdateAt: item.updatedAt
+              ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+              : '',
+          }
+        })
+        setInventory(dataWithFormattedFields)
+      } catch (error) {
+        console.error('Error fetching inventory:', error)
+      } finally {
+        setLoading(false) // Set loading to false after data is fetched
+      }
+    }
+
+    fetchInventory()
+  }, [])
 
   const getPlant = async () => {
     try {
@@ -489,6 +529,14 @@ const Inventory = () => {
     })
   }
 
+  // Placeholder component for loading
+  const LoadingComponent = () => (
+    <div className="text-center">
+      <CSpinner color="primary" />
+      <p>Loading inventory data...</p>
+    </div>
+  )
+
   return (
     <CRow>
       <CCol>
@@ -538,95 +586,103 @@ const Inventory = () => {
         <CCard className="mb-3">
           <CCardHeader>Inventory Table</CCardHeader>
           <CCardBody>
-            <CRow className="mb-2">
-              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
-                <div className="d-flex flex-wrap justify-content-start">
-                  <Button
-                    type="button"
-                    label="Excel"
-                    icon="pi pi-file-excel"
-                    severity="success"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={exportExcel}
-                    data-pr-tooltip="XLS"
+            {loading ? (
+              <LoadingComponent /> // Render loading component when loading is true
+            ) : (
+              <>
+                <CRow className="mb-2">
+                  <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
+                    <div className="d-flex flex-wrap justify-content-start">
+                      <Button
+                        type="button"
+                        label="Excel"
+                        icon="pi pi-file-excel"
+                        severity="success"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={exportExcel}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Execute"
+                        icon="pi pi-play"
+                        severity="warning"
+                        className="rounded-5 mb-2"
+                        onClick={handleExecute}
+                      />
+                    </div>
+                  </CCol>
+                  <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
+                  </CCol>
+                </CRow>
+
+                <DataTable
+                  value={visibleData}
+                  tableStyle={{ minWidth: '50rem' }}
+                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  paginator
+                  rowsPerPageOptions={[10, 50, 100, 500]}
+                  rows={10}
+                  dataKey="id"
+                  filters={filters}
+                  emptyMessage="No inventory found."
+                  size="small"
+                  scrollable
+                  removableSort
+                  header={header}
+                >
+                  <Column
+                    field="Material.materialNo"
+                    header="Material"
+                    frozen
+                    alignFrozen="left"
+                    sortable
                   />
-                  <Button
-                    type="button"
-                    label="Execute"
-                    icon="pi pi-play"
-                    severity="warning"
-                    className="rounded-5 mb-2"
-                    onClick={handleExecute}
+                  <Column
+                    field="Material.description"
+                    header="Description"
+                    frozen
+                    alignFrozen="left"
+                    sortable
                   />
-                </div>
-              </CCol>
-              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
-                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
-              </CCol>
-            </CRow>
-            <DataTable
-              value={visibleData}
-              tableStyle={{ minWidth: '50rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
-              dataKey="id"
-              filters={filters}
-              loading={loading}
-              emptyMessage="No inventory found."
-              size="small"
-              scrollable
-              removableSort
-              header={header}
-            >
-              <Column
-                field="Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column
-                field="Material.description"
-                header="Description"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column field="Address_Rack.addressRackName" header="Address" sortable></Column>
-              <Column field="Material.uom" header="UoM" sortable></Column>
-              <Column field="Material.minStock" header="Min" sortable></Column>
-              <Column field="Material.maxStock" header="Max" sortable></Column>
-              <Column field="quantityActualCheck" header="SoH" sortable></Column>
-              <Column
-                field="evaluation"
-                header="Eval."
-                body={statusBodyTemplate} // Menggunakan fungsi evaluasi
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column>
-              <Column field="remarks" header="Remarks" sortable></Column>
-              {visibleColumns.map((col, index) => (
-                <Column
-                  key={index}
-                  field={col.field}
-                  header={col.header}
-                  body={col.body}
-                  sortable={col.sortable}
-                  headerStyle={col.headerStyle}
-                  bodyStyle={col.bodyStyle}
-                />
-              ))}
-              <Column
-                header="Action"
-                body={actionBodyTemplate}
-                headerStyle={{ width: '5%' }}
-                bodyStyle={{ textAlign: 'center' }}
-                frozen={true}
-                alignFrozen="right"
-              ></Column>
-            </DataTable>
+                  <Column field="Address_Rack.addressRackName" header="Address" sortable />
+                  <Column field="Material.uom" header="UoM" sortable />
+                  <Column field="Material.minStock" header="Min" sortable />
+                  <Column field="Material.maxStock" header="Max" sortable />
+                  <Column field="quantityActualCheck" header="SoH" sortable />
+                  <Column
+                    field="evaluation"
+                    header="Eval."
+                    body={statusBodyTemplate} // Menggunakan fungsi evaluasi
+                    bodyStyle={{ textAlign: 'center' }}
+                    sortable
+                  />
+                  <Column field="remarks" header="Remarks" sortable />
+
+                  {visibleColumns.map((col, index) => (
+                    <Column
+                      key={index}
+                      field={col.field}
+                      header={col.header}
+                      body={col.body}
+                      sortable={col.sortable}
+                      headerStyle={col.headerStyle}
+                      bodyStyle={col.bodyStyle}
+                    />
+                  ))}
+
+                  <Column
+                    header="Action"
+                    body={actionBodyTemplate}
+                    headerStyle={{ width: '5%' }}
+                    bodyStyle={{ textAlign: 'center' }}
+                    frozen
+                    alignFrozen="right"
+                  />
+                </DataTable>
+              </>
+            )}
           </CCardBody>
         </CCard>
       </CCol>

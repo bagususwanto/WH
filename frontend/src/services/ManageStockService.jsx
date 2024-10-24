@@ -108,7 +108,7 @@ const useManageStockService = () => {
 
   const getAllInventory = async () => {
     try {
-      const response = await axiosJWT.get('/inventory', {
+      const response = await axiosJWT.get('/inventory-all', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
