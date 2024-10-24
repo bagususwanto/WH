@@ -38,10 +38,10 @@ const OrderHistory = db.define(
   }
 );
 
-Order.hasMany(OrderHistory, { foreignKey: "orderId" });
-OrderHistory.belongsTo(Order, { foreignKey: "orderId" });
+Order.hasMany(OrderHistory, { foreignKey: "orderId", onDelete: "NO ACTION" });
+OrderHistory.belongsTo(Order, { foreignKey: "orderId", onDelete: "NO ACTION" });
 
-User.hasMany(OrderHistory, { foreignKey: "userId" });
-OrderHistory.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(OrderHistory, { foreignKey: "userId", onDelete: "NO ACTION" });
+OrderHistory.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
 export default OrderHistory;
