@@ -5,6 +5,7 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 const router = express.Router();
 
 router.get("/plant", checkRole(["super admin"]), getPlant);
+router.get("/plant-public", checkRole(["super admin", "warehouse member"]), getPlant);
 router.get("/plant/:id", checkRole(["super admin"]), getPlantById);
 router.post("/plant", checkRole(["super admin"]), createPlant);
 router.put("/plant/:id", checkRole(["super admin"]), updatePlant);

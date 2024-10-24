@@ -1,3 +1,4 @@
+import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
 import Warehouse from "../models/WarehouseModel.js";
@@ -135,6 +136,51 @@ export const getWarehouseByUser = async (req, res) => {
 
     if (!response) {
       return res.status(404).json({ message: "Warehouse user not found" });
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getWarehouseByPlantId = async (req, res) => {
+  try {
+    const plantId = req.params.plantId;
+
+    const plant = await Plant.findOne({
+      where: { id: plantId, flag: 1 },
+    });
+
+    if (!plantId) {
+      return res.status(404).json({ message: "plantId not found" });
+    }
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    const response = await Warehouse.findOne({
+      attributes: ["id", "warehouseName"],
+      where: {
+        flag: 1,
+      },
+      include: [
+        {
+          model: Plant,
+          attributes: ["id", "plantName"],
+          where: {
+            id: plantId,
+            flag: 1,
+          },
+          required: true,
+        },
+      ],
+    });
+
+    if (!response) {
+      return res.status(404).json({ message: "Warehouse plant not found" });
     }
 
     res.status(200).json(response);

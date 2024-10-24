@@ -104,7 +104,7 @@ const AppHeader = () => {
 
   const apiWarehouseUser = 'warehouse-user'
   const apiCategory = 'category'
-  const apiWarehouse = 'warehouse'
+  const apiWarehouse = 'warehouse-public'
 
   // Fetch products from API
   const getProducts = async () => {

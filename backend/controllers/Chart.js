@@ -37,16 +37,11 @@ export const getInventoryDashboard = async (req, res) => {
     }
 
     if (status === "critical") {
-      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT) * 2), 2)`;
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2), 2)`;
     } else if (status === "lowest") {
-      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."minStock" AS FLOAT)), 2)`;
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0)), 2)`;
     } else if (status === "overflow") {
-      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / CAST("Material"."maxStock" AS FLOAT)), 2)`;
-    } else {
-      return res.status(400).send({
-        status: "error",
-        message: "Invalid status",
-      });
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."maxStock" AS FLOAT), 0)), 2)`;
     }
 
     // Determining dynamic length for truncation based on your conditions
@@ -87,13 +82,7 @@ export const getInventoryDashboard = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: [
-            "materialNo",
-            "uom",
-            "description",
-            "minStock",
-            "maxStock",
-          ],
+          attributes: ["materialNo", "uom", "description", "minStock", "maxStock"],
           where: {
             minStock: {
               [Op.ne]: null, // Ensure minStock is not NULL

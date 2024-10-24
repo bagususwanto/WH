@@ -9,43 +9,52 @@ const useDashboardService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    MySwal.fire('Error', `${error.response.data}`, 'error')
+    MySwal.fire('Error', `${error.response.data.message}`, 'error')
     throw new Error(message + error.message)
   }
 
-  const getInventoryCriticalStock = async (limit,order) => {
+  const getInventoryCriticalStock = async (limit, order) => {
     try {
-      const response = await axiosJWT.get(`/inventory-dashboard?limit=${limit}&order=${order}&status=critical`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=critical`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')
     }
   }
 
-  const getInventoryLowestStock = async (limit,order) => {
+  const getInventoryLowestStock = async (limit, order) => {
     try {
-      const response = await axiosJWT.get(`/inventory-dashboard?limit=${limit}&order=${order}&status=lowest`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=lowest`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')
     }
   }
 
-  const getInventoryOverflowStock = async (limit,order) => {
+  const getInventoryOverflowStock = async (limit, order) => {
     try {
-      const response = await axiosJWT.get(`/inventory-dashboard?limit=${limit}&order=${order}&status=overflow`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=overflow`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')

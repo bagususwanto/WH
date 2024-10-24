@@ -21,7 +21,7 @@ export const checkUserWarehouse = async (req, res, next) => {
     if (userWarehouse) {
       return next(); // Lanjutkan ke middleware berikutnya
     } else {
-      return res.status(403).json({ message: "Forbidden: You do not have the required permissions" });
+      return res.status(403).json({ message: "Forbidden: You do not have the required permissions as this material" });
     }
   } catch (error) {
     console.log(error.message);

@@ -89,7 +89,7 @@ const AppHeader = () => {
                 size="lg"
                 style={{ marginRight: '0.5rem' }} // Atur margin untuk pengaturan jarak
               />
-              {notificationCount > 0 && (
+              {/* {notificationCount > 0 && (
                 <CBadge
                   color="danger"
                   shape="rounded-pill"
@@ -102,15 +102,15 @@ const AppHeader = () => {
                 >
                   {notificationCount}
                 </CBadge>
-              )}
+              )} */}
             </CDropdownToggle>
             <CDropdownMenu className="pt-0" placement="bottom-end">
-              <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
+              {/* <CDropdownHeader className="bg-body-secondary fw-semibold my-2">
                 Anda memiliki ({notificationCount}) notifikasi
               </CDropdownHeader>
               <CDropdownItem href="#">Notifikasi 1</CDropdownItem>
               <CDropdownItem href="#">Notifikasi 2</CDropdownItem>
-              <CDropdownItem href="#">Notifikasi 3</CDropdownItem>
+              <CDropdownItem href="#">Notifikasi 3</CDropdownItem> */}
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
