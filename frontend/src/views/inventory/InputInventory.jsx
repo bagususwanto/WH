@@ -42,8 +42,8 @@ const InputInventory = () => {
   const { getMasterData } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
 
-  const apiPlant = 'plant'
-  const apiStorage = 'storage'
+  const apiPlant = 'plant-public'
+  const apiStorage = 'storage-public'
 
   useEffect(() => {
     getPlant()

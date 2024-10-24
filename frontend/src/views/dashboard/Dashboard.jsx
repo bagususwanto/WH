@@ -9,7 +9,7 @@ import {
   CDropdown,
   CDropdownToggle,
   CDropdownMenu,
-  CDropdownItem 
+  CDropdownItem,
 } from '@coreui/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
@@ -60,7 +60,7 @@ const MAX_NAME_LENGTH = 10 // Maksimal karakter untuk label sumbu X
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
-  const { getInventory } = useManageStockService() // Service
+  const { getAllInventory } = useManageStockService() // Service
   const { getInventoryCriticalStock } = useDashboardService() // Service
   const { getInventoryLowestStock } = useDashboardService() // Service
   const { getInventoryOverflowStock } = useDashboardService() // Service
@@ -94,7 +94,6 @@ const Dashboard = () => {
     fetchInventoryLowestStock(lowestItemNb, order)
     fetchInventoryOverflowStock(overflowItemNb, order)
     setLoading(false)
-    console.log(inventoriescritical)
   }, [itemNb, lowestItemNb, overflowItemNb, order])
 
   //Handle untuk Critical
@@ -129,7 +128,6 @@ const Dashboard = () => {
   const fetchInventoryLowestStock = async (lowestItemNb, order) => {
     try {
       const response = await getInventoryLowestStock(lowestItemNb, order)
-      console.log(response.data)
       setInventoriesLowest(response.data)
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -172,7 +170,7 @@ const Dashboard = () => {
 
   const fetchInventory = async () => {
     try {
-      const response = await getInventory()
+      const response = await getAllInventory()
       const dataWithFormattedFields = response.data
         .map((item) => {
           const evaluation =
@@ -225,7 +223,6 @@ const Dashboard = () => {
   const prepareBarChartData1 = (data) => {
     // Ambil item sesuai dengan nilai itemNb
     const limitedData = data.slice(0, itemNb)
-    console.log(limitedData)
 
     // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
 
@@ -237,9 +234,6 @@ const Dashboard = () => {
   }
 
   //Critical Grafik
-
-
-
 
   return (
     <CRow>
@@ -279,7 +273,9 @@ const Dashboard = () => {
 
         {/* Single Card for Conditional Rendering */}
         <CCard className="mb-3">
-          <CCardHeader>{selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}</CCardHeader>
+          <CCardHeader>
+            {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
+          </CCardHeader>
           <CCardBody>
             <ThemeProvider theme={darkTheme}>
               <Box
@@ -492,17 +488,17 @@ const Dashboard = () => {
                 selectedChart === 'critical'
                   ? inventoriescritical
                   : selectedChart === 'lowest'
-                  ? inventorieslowest
-                  : selectedChart === 'overflow'
-                  ? inventoriesoverflow
-                  : []
+                    ? inventorieslowest
+                    : selectedChart === 'overflow'
+                      ? inventoriesoverflow
+                      : []
               }
               tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
               paginator
               rowsPerPageOptions={[10, 50, 100, 500]}
               rows={10}
-              dataKey="id"
+              // dataKey="id"
               loading={loading}
               emptyMessage="Tidak ada data inventaris."
               size="small"
@@ -547,7 +543,7 @@ const Dashboard = () => {
         </CCard>
       </CCol>
     </CRow>
-  );
-};
+  )
+}
 
 export default Dashboard

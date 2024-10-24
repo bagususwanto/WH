@@ -46,7 +46,7 @@ const Inventory = () => {
   const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
-  const apiPlant = 'plant'
+  const apiPlant = 'plant-public'
   const apiShop = 'shop-plant'
   const apiStorage = 'storage-plant'
 
