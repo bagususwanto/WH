@@ -79,11 +79,10 @@ const Inventory = () => {
       sortable: true,
     },
     {
-      field: 'Address_Rack.Storage.Shop.Plant.plantName',
+      field: 'Address_Rack.Storage.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Address_Rack.Storage.Shop.shopName', header: 'Shop', sortable: true },
     { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
   ]
 
@@ -390,7 +389,6 @@ const Inventory = () => {
           Evaluation: evaluation,
           Remarks: item.remarks,
           Plant: item.Address_Rack.Storage.Plant.plantName,
-          // Shop: item.Address_Rack.Storage.Shop.shopName,
           Storage: item.Address_Rack.Storage.storageName,
           'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),

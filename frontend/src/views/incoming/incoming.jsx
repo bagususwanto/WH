@@ -65,7 +65,7 @@ const Incoming = () => {
 
   const apiPlant = 'plant-public'
   const apiShop = 'shop-plant'
-  const apiStorage = 'storage-shop'
+  const apiStorage = 'storage-plant'
   const apiIncomingPlan = 'upload-incoming-plan'
   const apiIncomingActual = 'upload-incoming-actual'
 
@@ -81,11 +81,10 @@ const Incoming = () => {
       sortable: true,
     },
     {
-      field: 'Address_Rack.Storage.Shop.Plant.plantName',
+      field: 'Address_Rack.Storage.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Address_Rack.Storage.Shop.shopName', header: 'Shop', sortable: true },
     { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
   ]
 
@@ -101,11 +100,7 @@ const Incoming = () => {
       value: null,
       matchMode: FilterMatchMode.CONTAINS,
     },
-    'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
-    'Inventory.Address_Rack.Storage.Shop.shopName': {
+    'Inventory.Address_Rack.Storage.Plant.plantName': {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -122,11 +117,7 @@ const Incoming = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Inventory.Address_Rack.Storage.Shop.Plant.plantName': {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-      'Inventory.Address_Rack.Storage.Shop.shopName': {
+      'Inventory.Address_Rack.Storage.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
@@ -223,7 +214,7 @@ const Incoming = () => {
     }
   }
 
-  const getStorageByShopId = async (id) => {
+  const getStorageByPlantId = async (id) => {
     if (!id) {
       return
     }
@@ -266,7 +257,7 @@ const Incoming = () => {
     getStorageByShopId(shopId)
 
     let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.Shop.shopName'].value = selectedShopName
+    _filters['Inventory.Address_Rack.Storage.shopName'].value = selectedShopName
     setFilters(_filters)
   }
 
@@ -275,10 +266,10 @@ const Incoming = () => {
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
 
-    getShopByPlantId(plantId)
+    getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value = selectedPlantName
+    _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
 
@@ -315,19 +306,11 @@ const Incoming = () => {
       )
     }
 
-    if (filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value) {
+    if (filters['Inventory.Address_Rack.Storage.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Inventory.Address_Rack.Storage.Shop.Plant.plantName ===
-          filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value,
-      )
-    }
-
-    if (filters['Inventory.Address_Rack.Storage.Shop.shopName'].value) {
-      filteredData = filteredData.filter(
-        (item) =>
-          item.Inventory.Address_Rack.Storage.Shop.shopName ===
-          filters['Inventory.Address_Rack.Storage.Shop.shopName'].value,
+          item.Inventory.Address_Rack.Storage.Plant.plantName ===
+          filters['Inventory.Address_Rack.Storage.Plant.plantName'].value,
       )
     }
 
@@ -364,8 +347,7 @@ const Incoming = () => {
           Discrepancy: item.discrepancy,
           Date: item.Log_Import.importDate,
           'Import By': item.Log_Import?.User?.username || '',
-          Plant: item.Inventory.Address_Rack.Storage.Shop.Plant.plantName,
-          Shop: item.Inventory.Address_Rack.Storage.Shop.shopName,
+          Plant: item.Inventory.Address_Rack.Storage.Plant.plantName,
           Storage: item.Inventory.Address_Rack.Storage.storageName,
           'Update By': item.Log_Entries[0]?.User?.username || '',
           'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
@@ -581,7 +563,7 @@ const Incoming = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Flatpickr
                   value={selectedDate}
                   options={{
@@ -600,9 +582,9 @@ const Incoming = () => {
                   }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['Inventory.Address_Rack.Storage.Shop.Plant.plantName'].value}
+                  value={filters['Inventory.Address_Rack.Storage.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -611,18 +593,7 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={3}>
-                <Dropdown
-                  value={filters['Inventory.Address_Rack.Storage.Shop.shopName'].value}
-                  options={shop}
-                  onChange={handleShopChange}
-                  placeholder="Select Shop"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Dropdown
                   value={filters['Inventory.Address_Rack.Storage.storageName'].value}
                   options={storage}
