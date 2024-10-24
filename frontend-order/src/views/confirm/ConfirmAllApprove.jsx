@@ -302,7 +302,7 @@ const ApproveAll = () => {
                                   <CCardImage
                                     key={user.id}
                                     src={user.img}
-                                    alt={user.name}
+                                    
                                     style={{ height: '100%', width: '100%' }}
                                   />
                                 ))}

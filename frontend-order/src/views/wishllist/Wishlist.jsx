@@ -52,7 +52,7 @@ const Wishlist = () => {
 
   const MySwal = withReactContent(Swal)
 
-  const apiCategory = 'category'
+  const apiCategory = 'category-public'
   const navigate = useNavigate()
 
   const getFavorite = async () => {
