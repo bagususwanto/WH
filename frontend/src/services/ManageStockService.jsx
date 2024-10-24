@@ -106,6 +106,32 @@ const useManageStockService = () => {
     }
   }
 
+  const getAllInventory = async () => {
+    try {
+      const response = await axiosJWT.get('/inventory', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
+  const updateInventorySubmit = async (data) => {
+    try {
+      const response = await axiosJWT.post('/inventory-submit', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response.data // Returning the data instead of the whole response
+    } catch (error) {
+      handleError(error, 'Error update inventory:')
+    }
+  }
+
   return {
     getInventory,
     getIncoming,
@@ -114,6 +140,8 @@ const useManageStockService = () => {
     postIncomingActual,
     updateIncomingById,
     executeInventory,
+    getAllInventory,
+    updateInventorySubmit,
   }
 }
 

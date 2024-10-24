@@ -6358,9 +6358,4 @@ export const storageData = [
     storageName: "Consumable Storage",
     plantId: 1,
   },
-  {
-    storageCode: 2100,
-    storageName: "Chemical Storage",
-    plantId: 1,
-  },
 ];

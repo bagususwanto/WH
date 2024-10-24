@@ -43,7 +43,7 @@ const Inventory = () => {
   const [modalInventory, setModalInventory] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
 
-  const { getInventory, updateInventoryById, executeInventory } = useManageStockService()
+  const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant'
@@ -148,7 +148,7 @@ const Inventory = () => {
 
   const fetchInventory = async () => {
     try {
-      const response = await getInventory()
+      const response = await getAllInventory()
       const dataWithFormattedFields = response.data.map((item) => {
         // Evaluasi untuk menentukan status inventory
         const evaluation =
