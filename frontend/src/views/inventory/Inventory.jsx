@@ -42,6 +42,7 @@ const Inventory = () => {
   const [editData, setEditData] = useState({})
   const [modalInventory, setModalInventory] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
+  const [plantId, setPlantId] = useState()
 
   const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -49,6 +50,7 @@ const Inventory = () => {
   const apiPlant = 'plant-public'
   const apiShop = 'shop-plant'
   const apiStorage = 'storage-plant'
+  const apiWarehousePlant = 'warehouse-plant'
 
   const columns = [
     {
@@ -286,6 +288,7 @@ const Inventory = () => {
     const selectedPlantName = e.value
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
+    setPlantId(plantId)
 
     getStorageByPlantId(plantId)
 
@@ -439,7 +442,14 @@ const Inventory = () => {
     setLoadingSave(true)
     setModalInventory(false)
     try {
-      await updateInventoryById(editData.id, editData)
+      if (!plantId) {
+        setLoadingSave(false) 
+        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
+        return
+      }
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+
+      await updateInventoryById(editData.id, warehouseId.id, editData)
       fetchInventory()
       MySwal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
@@ -566,6 +576,7 @@ const Inventory = () => {
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
+                  id={filters['Address_Rack.Storage.Plant.id']?.value}
                 />
               </CCol>
               <CCol xs={12} sm={6} md={4}>
