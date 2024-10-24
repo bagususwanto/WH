@@ -44,33 +44,17 @@ export const getServiceHoursByPlantId = async (req, res) => {
 
 export const createServiceHours = async (req, res) => {
   try {
-    const { shiftId, plantId, startTime, endTime } = req.body;
-    if ((!shiftId || !plantId, !startTime, !endTime)) {
-      return res.status(400).json({ message: "shiftId, plantId, startTime, endTime are required" });
+    const { shiftId, time, warehouseId } = req.body;
+    if (!shiftId || !time || !warehouseId) {
+      return res.status(400).json({ message: "shiftId, time, warehouseId are required" });
     }
 
-    const shift = await Shift.findOne({
-      where: { id: shiftId, flag: 1 },
+    const warehouse = await Shift.findOne({
+      where: { shiftId: shiftId, warehouseId: warehouseId, time: time, flag: 1 },
     });
 
-    if (!shift) {
-      return res.status(404).json({ message: "Shift not found" });
-    }
-
-    const plant = await Plant.findOne({
-      where: { id: plantId, flag: 1 },
-    });
-
-    if (!plant) {
-      return res.status(404).json({ message: "Plant not found" });
-    }
-
-    const existingServiceHours = await ServiceHours.findOne({
-      where: { shiftId: shiftId, plantId: plantId, flag: 1 },
-    });
-
-    if (existingServiceHours) {
-      return res.status(400).json({ message: "ServiceHours already exists" });
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
     }
 
     await ServiceHours.create(req.body);
