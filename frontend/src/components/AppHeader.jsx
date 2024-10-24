@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
   CDropdown,
+  CCol,
   CDropdownHeader,
   CDropdownItem,
   CDropdownMenu,
@@ -66,13 +67,25 @@ const AppHeader = () => {
 
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
-      <CContainer className="border-bottom px-4" fluid>
-        <CHeaderToggler
-          onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
-          style={{ marginInlineStart: '-14px' }}
-        >
-          <CIcon icon={cilMenu} size="lg" />
-        </CHeaderToggler>
+      <CContainer className="border-bottom px-1" fluid>
+        <CCol xs ={1}>
+          <CHeaderToggler
+            onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
+           
+          >
+            <CIcon icon={cilMenu} size="lg" />
+          </CHeaderToggler>
+        </CCol>
+        <CCol xs={1} className='px-1'>
+          <a href="/" className="d-flex align-items-center">
+            <img
+              src="/src/assets/brand/TWIIS-NEW.png"
+              alt="Logo"
+              style={{ height: '40px' }}
+            />
+          </a>
+        </CCol>
+        <CCol sm={2}></CCol>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
         <CHeaderNav className="ms-auto">
           <CDropdown
