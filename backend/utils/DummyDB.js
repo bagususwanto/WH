@@ -6328,7 +6328,7 @@ export const sectionData = [
   },
   {
     sectionCode: 111131400,
-    sectionName: "Warehouse KRW Plant Opr Sec",
+    sectionName: "Warehouse KRW Plant & Steel Opr Sec",
     gicId: 338,
     wbsId: 6,
   },
