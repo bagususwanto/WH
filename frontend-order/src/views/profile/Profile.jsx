@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef} from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CCard,
@@ -14,12 +14,16 @@ import {
   CModalBody,
   CModalFooter,
   CModalHeader,
+  CAccordionItem,
   CImage,
   CNavLink,
   CDropdown,
   CDropdownToggle,
   CDropdownMenu,
   CDropdownItem,
+  CAccordionBody,
+  CAccordion,
+  CAccordionHeader,
   CTab,
   CTabList,
   CTabs,
@@ -68,8 +72,8 @@ const Profile = () => {
     }
   }
 
-   // Function to trigger the file input element
-   const openFileExplorer = () => {
+  // Function to trigger the file input element
+  const openFileExplorer = () => {
     fileInputRef.current.click() // Programmatically click the hidden input
   }
   // Function to handle photo reset (reset to API image)
@@ -91,14 +95,7 @@ const Profile = () => {
         </CTab>
 
         <CTab aria-controls="profile-tab-pane" itemKey={2}>
-          Structure
-        </CTab>
-        <CTab aria-controls="contact-tab-pane" itemKey={3}>
-          Addres list
-        </CTab>
-
-        <CTab aria-controls="contact-tab-pane" itemKey={5}>
-          Notification
+          Structure Approval
         </CTab>
       </CTabList>
       <CTabContent>
@@ -124,12 +121,15 @@ const Profile = () => {
                     )}
 
                     <hr />
-                    <CButton color="light" onClick={toggleModal}>
-                      Choose Your Photo
-                    </CButton>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <CButton color="light" onClick={toggleModal}>
+                        Choose Your Photo
+                      </CButton>
 
-                    <hr />
-                    <CButton color="light">Change Password</CButton>
+                      <hr style={{ width: '100%' }} />
+
+                      <CButton color="light">Change Password</CButton>
+                    </div>
                   </CCardBody>
                 </CCard>
 
@@ -158,7 +158,6 @@ const Profile = () => {
                       </div>
                     </div>
                   </CModalBody>
-                  
                 </CModal>
               </CCol>
 
@@ -166,24 +165,76 @@ const Profile = () => {
                 <CRow className="g-2">
                   <CCard className="h-80">
                     <CCardBody className="d-flex flex-column justify-content-between">
-                      {userData.map((user) => (
-                        <CRow className="align-items-center">
-                          <label className="fw-bold py-2">Profil Change</label>
-                          <br />
-                          <label className="py-2">Name : {user.name}</label>
-                          <br />
-                          <label className="py-2">Position : {user.position}</label>
-                          <br />
-                          <label className="py-2">
-                            Location :{user.Organization.Line.lineName},{' '}
-                            {user.Organization.Section.sectionName},{' '}
-                            {user.Organization.Department.departmentName}.
-                          </label>
-                          <br />
-                          <label className="py-2">Email:{user.email}</label>
-                          <br />
-                          <label className="py-2">Phone Number :{user.noHandphone}</label>
-                        </CRow>
+                      {userData.map((user, index) => (
+                        <div key={index}>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Name</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2">{user.name}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Position</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 "> {user.position}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Line</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 ">{user.Organization.Line.lineName}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="py-2">Section</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 ">
+                                {user.Organization.Section.sectionName},{' '}
+                              </label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="">
+                            <CCol xs="3">
+                              <label className="py-2">Departement</label>
+                            </CCol>
+                            <CCol xs="6">
+                              <label className="py-2 ">
+                                {user.Organization.Department.departmentName}
+                              </label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="fw-bold py-2 text-muted">Change Contact</label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="py-2">Email</label>
+                            </CCol>
+                            <CCol xs="6">
+                              <label className="py-2">{user.email}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="py-2">Phone Number</label>
+                            </CCol>
+                          </CRow>
+                        </div>
                       ))}
                     </CCardBody>
                   </CCard>
@@ -192,8 +243,137 @@ const Profile = () => {
             </CRow>
           </CContainer>
         </CTabPanel>
+
         <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={2}>
-          Profile tab content
+          <CContainer>
+            <CRow>
+              <CCol xs={5}>
+                <CRow className="g-2">
+                  <CCard className="h-80">
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      {userData.map((user) => (
+                        <CRow className="align-items-center">
+                          <label className="fw-bold fs-5 mb-2"> Your Structure Approval</label>
+                          <CAccordion activeItemKey={1}>
+                            <CAccordionItem itemKey={1}>
+                              <CAccordionHeader className="text-muted">
+                                Approval Line Head
+                              </CAccordionHeader>
+                              <CAccordionBody>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Name </label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">Bagus</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Position</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">Line Head</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Line</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">
+                                      {' '}
+                                      {user.Organization.Line.lineName},{' '}
+                                    </label>
+                                  </CCol>
+                                </CRow>
+                              </CAccordionBody>
+                            </CAccordionItem>
+                            <CAccordionItem itemKey={2}>
+                              <CAccordionHeader className="text-muted">
+                                Approval Section Head
+                              </CAccordionHeader>
+                              <CAccordionBody>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Name</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">Prihandono</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Position</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">SectionHead</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Line</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">
+                                      {' '}
+                                      {user.Organization.Section.sectionName},{' '}
+                                    </label>
+                                  </CCol>
+                                </CRow>
+                              </CAccordionBody>
+                            </CAccordionItem>
+                            <CAccordionItem itemKey={3}>
+                              <CAccordionHeader className="text-muted">
+                                Approval Dph Head
+                              </CAccordionHeader>
+                              <CAccordionBody>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Name</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">Andjar Januar</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Position</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 "> Department Head</label>
+                                  </CCol>
+                                </CRow>
+                                <CRow className="">
+                                  <CCol xs="3">
+                                    <label className="py-2">Line</label>
+                                  </CCol>
+                                  <CCol xs="9 ">
+                                    <label className="py-2 ">
+                                      {user.Organization.Department.departmentName},{' '}
+                                    </label>
+                                  </CCol>
+                                </CRow>
+                              </CAccordionBody>
+                            </CAccordionItem>
+                          </CAccordion>
+                        </CRow>
+                      ))}
+                    </CCardBody>
+                  </CCard>
+                </CRow>
+              </CCol>
+              <CCol xs={7}>
+                <CRow>
+                  <CCard>
+                    <CCardBody>
+                      <label className="fw-bold fs-5"> Your Information</label>
+                    </CCardBody>
+                  </CCard>
+                </CRow>
+              </CCol>
+            </CRow>
+          </CContainer>
         </CTabPanel>
         <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={3}>
           Contact tab content

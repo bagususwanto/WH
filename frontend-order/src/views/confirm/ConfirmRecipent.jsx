@@ -9,6 +9,8 @@ import {
   CButton,
   CRow,
   CCol,
+  CPagination,
+  CPaginationItem,
   CFormInput,
   CFormCheck,
   CFormSelect,
@@ -57,7 +59,8 @@ const Confirm = () => {
 
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
-
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 6
   const [currentProducts, setCurrentProducts] = useState([])
 
   const navigate = useNavigate()
@@ -78,7 +81,25 @@ const Confirm = () => {
   //     getCarts()
   //   }
   // }, [warehouse])
+  // Calculate total pages
+  const totalQuantity = verifiedCartItems.reduce((acc, product) => {
+    if (!acc.includes(product.inventoryId)) {
+      acc.push(product.inventoryId)
+    }
+    return acc
+  }, []).length
 
+
+  const totalPages = Math.ceil(verifiedCartItems.length / itemsPerPage)
+
+  // Get current items based on the current page
+  const currentItems = verifiedCartItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+  }
   const handleCheckout = () => {
     MySwal.fire({
       title: 'Confirm Checkout',
@@ -160,13 +181,6 @@ const Confirm = () => {
     }
   }
 
-  const totalQuantity = verifiedCartItems.reduce((acc, product) => {
-    // Check if the product's inventoryId has already been added to the accumulator
-    if (!acc.includes(product.inventoryId)) {
-      acc.push(product.inventoryId)
-    }
-    return acc
-  }, []).length // Return the length of the array which holds distinct inventoryIds
 
   // // Total harga produk
   // useEffect(() => {
@@ -315,7 +329,7 @@ const Confirm = () => {
 
         <CCol xs={8}>
           <CRow className="g-2">
-            {verifiedCartItems.map((data) => (
+          {currentItems.map((data) => (
               <CCard className="h-80" key={data.id}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
@@ -341,6 +355,34 @@ const Confirm = () => {
                 </CCardBody>
               </CCard>
             ))}
+          </CRow>
+              {/* Pagination */}
+          <CRow className="mt-4">
+            <CCol className="d-flex justify-content-center sticky-pagination">
+              <CPagination aria-label="Page navigation example">
+                <CPaginationItem
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </CPaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <CPaginationItem
+                    key={index}
+                    active={currentPage === index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </CPaginationItem>
+              </CPagination>
+            </CCol>
           </CRow>
         </CCol>
       </CRow>

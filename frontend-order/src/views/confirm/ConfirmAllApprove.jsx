@@ -105,27 +105,6 @@ const ApproveAll = () => {
     getUsers()
   }, [])
 
-  useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-
-    fetchProductsAndCategories()
-  }, [])
-
   const filteredProducts = selectedDate
     ? productsData.filter((product) => {
         const productDate = new Date(product.date) // Adjust this based on your product date field
@@ -241,7 +220,7 @@ const ApproveAll = () => {
       <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            <h3 className="fw-bold fs-4">Warehouse Confirmation</h3>
+            <h3 className="fw-bold fs-4">Order Approval</h3>
           </CCardBody>
         </CCard>
       </CRow>
@@ -278,23 +257,16 @@ const ApproveAll = () => {
       <CTabs activeItemKey={2}>
         <CTabList variant="pills">
           <CTab aria-controls="Confirmation-tab-pane" itemKey={1}>
-            Confirmation
+            Waiting Approve LH
           </CTab>
           <CTab aria-controls="Shopping-tab-pane" itemKey={2}>
-            Shopping
+            Waiting Approve SH
           </CTab>
           <CTab aria-controls="Ready Delivery-tab-pane" itemKey={3}>
-            Ready To Delivery
+            Waiting Approve DPH
           </CTab>
           <CTab aria-controls="Ready Pickup-tab-pane" itemKey={4}>
-            Ready To Pickup
-          </CTab>
-          <CTab aria-controls="Delivered-tab-pane" itemKey={5}>
-            Delivered
-          </CTab>
-
-          <CTab aria-controls="Rejected-tab-pane" itemKey={6}>
-            Rejected
+            Approved
           </CTab>
         </CTabList>
 
@@ -314,10 +286,10 @@ const ApproveAll = () => {
                             {/* Order information */}
                             <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                               <CCol>
-                                <CIcon className="me-2" icon={cilCart} />
+                                <CIcon className="me-2" icon={cilUser} />
                                 <label className="me-2 fs-6">3 Oktober 2024</label>
-                                <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                                  ON PROCESS
+                                <CBadge className="me-2" size="sm" color={getSeverity('On Process')}>
+                                 Waiting Approval
                                 </CBadge>
                                 <label className="me-2 fw-light">X21000000000/20/20</label>
                               </CCol>
@@ -338,10 +310,10 @@ const ApproveAll = () => {
                               <CCol xs="4">
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <div>
-                                    <strong>FORM:</strong> ANDI (TEAM LEADER)
+                                    <strong>Form:</strong> ANDI (TEAM LEADER)
                                   </div>
                                   <div>
-                                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                                    <strong>Grup:</strong> ASSY PRE TRIM 2 OPR RED
                                   </div>
                                   <div>
                                     <small>Request at 11:19</small>
