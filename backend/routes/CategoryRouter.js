@@ -5,6 +5,7 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 const router = express.Router();
 
 router.get("/category", checkRole(["super admin"]), getCategory);
+router.get("/category-public", getCategory);
 router.get("/category/:id", checkRole(["super admin"]), getCategoryById);
 router.post("/category", checkRole(["super admin"]), createCategory);
 router.put("/category/:id", checkRole(["super admin"]), updateCategory);

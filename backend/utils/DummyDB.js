@@ -3476,6 +3476,10 @@ export const WBSData = [
     wbsNumber: "F3.Y2024.0025.51101R0400",
     wbsYear: 2024,
   },
+  {
+    wbsNumber: "F3.Y2024.0031.51201T0300",
+    wbsYear: 2024,
+  },
 ];
 
 export const costCenterData = [
@@ -6321,6 +6325,12 @@ export const sectionData = [
     sectionName: "Vehicles Inspection Red Sec",
     gicId: 23,
     wbsId: 2,
+  },
+  {
+    sectionCode: 111131400,
+    sectionName: "Warehouse KRW Plant Opr Sec",
+    gicId: 338,
+    wbsId: 6,
   },
 ];
 

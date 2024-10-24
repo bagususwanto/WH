@@ -98,10 +98,19 @@ export const getOrganizationById = async (req, res) => {
 
 export const createOrganization = async (req, res) => {
   try {
-    const shiftName = await Organization.findOne({
-      where: { shiftName: req.body.shiftName, flag: 1 },
+    const organization = await Organization.findOne({
+      where: {
+        groupId: req.body.groupId,
+        lineId: req.body.lineId,
+        sectionId: req.body.sectionId,
+        departmentId: req.body.departmentId,
+        divisionId: req.body.divisionId,
+        plantId: req.body.plantId,
+        flag: 1,
+      },
     });
-    if (shiftName) {
+
+    if (organization) {
       return res.status(400).json({ message: "Organization already exists" });
     }
 

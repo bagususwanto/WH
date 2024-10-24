@@ -51,7 +51,7 @@ app.use(express.json());
 
 // auth router
 app.use("/api", authRouter);
-app.use(verifyToken);
+// app.use(verifyToken);
 
 // master data router
 app.use("/api", categoryRouter);
