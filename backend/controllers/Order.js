@@ -174,11 +174,12 @@ export const setApproval = async (userId, carts) => {
 
     // Helper function untuk mengambil roleIdApproval
     const getRoleApprovalId = async (condition) => {
-      return await User.findOne({ where: { ...condition, flag: 1 } });
+      const user = await User.findOne({ where: { ...condition, flag: 1 } });
+      return user ? user.roleId : null;
     };
 
     // Logika untuk "group head"
-    if (user.Role.roleName === "group head") {
+    if (user.Role.roleName == "group head") {
       // jika ada material dengan harga < 20jt
       if (!hasExpensiveMaterial) {
         if (user.Organization.lineId) {
@@ -186,7 +187,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ lineId: user.Organization.lineId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 1,
               isApproval: 0,
             });
@@ -199,7 +200,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 1,
               isApproval: 0,
             });
@@ -212,7 +213,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 1,
               isApproval: 0,
             });
@@ -226,7 +227,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ lineId: user.Organization.lineId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 0,
               isApproval: 0,
             });
@@ -239,7 +240,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 1,
               isApproval: 0,
             });
@@ -252,7 +253,7 @@ export const setApproval = async (userId, carts) => {
           const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
           if (roleIdApproval) {
             approval.push({
-              currentRoleApprovalId: roleIdApproval.roleId,
+              currentRoleApprovalId: roleIdApproval,
               isLastApproval: 1,
               isApproval: 0,
             });
@@ -263,13 +264,13 @@ export const setApproval = async (userId, carts) => {
     }
 
     // Logika untuk "line head"
-    if (user.Role.roleName === "line head" && hasExpensiveMaterial) {
+    if (user.Role.roleName == "line head" && hasExpensiveMaterial) {
       // Jika role line head dan harga >= 20jt, set role approval berdasarkan sectionId
       if (user.Organization.sectionId) {
         const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
         if (roleIdApproval) {
           approval.push({
-            currentRoleApprovalId: roleIdApproval.roleId,
+            currentRoleApprovalId: roleIdApproval,
             isLastApproval: 1,
             isApproval: 0,
           });
@@ -282,7 +283,7 @@ export const setApproval = async (userId, carts) => {
         const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
         if (roleIdApproval) {
           approval.push({
-            currentRoleApprovalId: roleIdApproval.roleId,
+            currentRoleApprovalId: roleIdApproval,
             isLastApproval: 1,
             isApproval: 0,
           });

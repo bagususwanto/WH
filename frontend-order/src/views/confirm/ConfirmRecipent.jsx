@@ -54,6 +54,8 @@ import withReactContent from 'sweetalert2-react-content'
 const Confirm = () => {
   const { createOrder } = useOrderService()
 
+  const { setCartCount } = useContext(GlobalContext)
+
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
 
@@ -89,13 +91,12 @@ const Confirm = () => {
     return acc
   }, []).length
 
-
   const totalPages = Math.ceil(verifiedCartItems.length / itemsPerPage)
 
   // Get current items based on the current page
   const currentItems = verifiedCartItems.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   )
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
@@ -174,13 +175,14 @@ const Confirm = () => {
         deliveryMethod: deliveryMethod,
       })
 
+      setCartCount(0)
+
       console.log('Order response:', response)
       navigate('/history') // Navigate to history page after successful order
     } catch (error) {
       console.error('Error creating order:', error)
     }
   }
-
 
   // // Total harga produk
   // useEffect(() => {
@@ -329,7 +331,7 @@ const Confirm = () => {
 
         <CCol xs={8}>
           <CRow className="g-2">
-          {currentItems.map((data) => (
+            {currentItems.map((data) => (
               <CCard className="h-80" key={data.id}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
@@ -356,7 +358,7 @@ const Confirm = () => {
               </CCard>
             ))}
           </CRow>
-              {/* Pagination */}
+          {/* Pagination */}
           <CRow className="mt-4">
             <CCol className="d-flex justify-content-center sticky-pagination">
               <CPagination aria-label="Page navigation example">

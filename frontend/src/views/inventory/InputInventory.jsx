@@ -47,6 +47,20 @@ const InputInventory = () => {
   const apiStorage = 'storage-public'
   const apiWarehousePlant = 'warehouse-plant'
 
+  // Konfirmasi sebelum refresh halaman
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = '' // Standar untuk menampilkan prompt konfirmasi di beberapa browser
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
+
   useEffect(() => {
     getPlant()
     getStorage()

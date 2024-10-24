@@ -79,7 +79,6 @@ const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const [cartCount, setCartCount] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(0)
@@ -89,7 +88,8 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
 
-  const { warehouse, wishlist, setWishlist, cart, setCart } = useContext(GlobalContext)
+  const { warehouse, wishlist, setWishlist, cart, setCart, cartCount, setCartCount } =
+    useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
@@ -131,7 +131,7 @@ const Home = () => {
 
   const getMyorders = async () => {
     try {
-      const response = await getMyorder(warehouse.id)
+      const response = await getMyorder(warehouse.id, 'all')
       setMyOrderData(response.data)
     } catch (error) {
       console.error('Error fetching wishlist:', error)

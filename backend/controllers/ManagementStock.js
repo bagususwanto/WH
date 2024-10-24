@@ -115,6 +115,28 @@ export const executeInventory = async (req, res) => {
     while (hasMoreData) {
       // Ambil data inventory dalam batch
       const inventories = await Inventory.findAll({
+        attributes: ["id", "quantitySistem", "quantityActual", "quantityActualCheck", "remarks"],
+        include: [
+          {
+            model: AddressRack,
+            attributes: ["id"],
+            where: { flag: 1 },
+            include: [
+              {
+                model: Storage,
+                attributes: ["id"],
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Plant,
+                    attributes: ["id"],
+                    where: { flag: 1, id: req.params.plantId },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
         limit: batchSize,
         offset: offset,
       });

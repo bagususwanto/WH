@@ -43,6 +43,7 @@ const Inventory = () => {
   const [modalInventory, setModalInventory] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
   const [plantId, setPlantId] = useState()
+  const [plantName, setPlantName] = useState()
 
   const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -285,6 +286,7 @@ const Inventory = () => {
 
   const handlePlantChange = (e) => {
     const selectedPlantName = e.value
+    setPlantName(selectedPlantName)
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
     setPlantId(plantId)
@@ -441,7 +443,7 @@ const Inventory = () => {
     setModalInventory(false)
     try {
       if (!plantId) {
-        setLoadingSave(false) 
+        setLoadingSave(false)
         MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
         return
       }
@@ -505,7 +507,13 @@ const Inventory = () => {
 
   const confirmExecute = async () => {
     try {
-      await executeInventory()
+      if (!plantId) {
+        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
+        return
+      }
+
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+      await executeInventory(plantId, warehouseId)
       fetchInventory()
       MySwal.fire('Success!', 'Data has been executed.', 'success')
     } catch (error) {
@@ -514,11 +522,17 @@ const Inventory = () => {
   }
 
   const handleExecute = () => {
+    if (!plantId) {
+      MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
+      return
+    }
+
     MySwal.fire({
       title: 'Apakah Anda yakin?',
       icon: 'question',
       input: 'text',
-      html: `Data ini tidak dapat dikembalikan! <br/> 
+      html: `Data inventory <b>${plantName}</b> akan diproses <br/>
+      Data ini tidak dapat dikembalikan! <br/> 
       Ketik "<b>execute</b>" untuk konfirmasi`,
       inputPlaceholder: 'Ketik "execute"',
       showCancelButton: true,
