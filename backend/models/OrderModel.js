@@ -41,7 +41,7 @@ const Order = db.define(
     },
     scheduleDelivery: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     deliveryMethod: {
       type: DataTypes.STRING,
