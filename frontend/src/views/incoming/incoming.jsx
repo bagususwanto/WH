@@ -63,7 +63,7 @@ const Incoming = () => {
     useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
-  const apiPlant = 'plant'
+  const apiPlant = 'plant-public'
   const apiShop = 'shop-plant'
   const apiStorage = 'storage-shop'
   const apiIncomingPlan = 'upload-incoming-plan'

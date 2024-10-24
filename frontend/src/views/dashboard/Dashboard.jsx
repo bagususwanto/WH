@@ -210,11 +210,6 @@ const Dashboard = () => {
         overflow: dataWithFormattedFields.filter((item) => item.evaluation === 'over'),
       })
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch inventory data.',
-      })
       console.error('Error fetching inventory:', error)
     }
   }
