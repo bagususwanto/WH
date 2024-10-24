@@ -12,8 +12,8 @@ import {
 
 import { AppSidebarNav } from './AppSidebarNav'
 
-import logo from 'src/assets/brand/Twiis.png'
-import sygnet from 'src/assets/brand/TwisLogo.png'
+import logo from 'src/assets/brand/TWIIS-NEW2.png'
+import sygnet from 'src/assets/brand/TWIISLOGO-NEW.png'
 
 // sidebar nav config
 import useNavigation from '../_nav'

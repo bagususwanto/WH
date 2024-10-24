@@ -18,21 +18,24 @@ import {
   cilMoney,
   cilHome,
   cilTransfer,
-  cilList,
+  cilEnvelopeLetter,
   cilCart,
   cilStorage,
   cilGraph,
   cilTruck,
-  cilClipboard,
+  cilEqualizer,
   cilHandPointUp,
+  cilUserX,
+  cilUserFollow,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
+import config from './utils/Config'
 
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
   const { roleName } = useVerify()
-
+  //NAV HOME
   useEffect(() => {
     const baseNav = [
       {
@@ -41,47 +44,231 @@ const useNavigation = () => {
         to: '/home',
         icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
       },
-      {
-        component: CNavGroup,
-        name: 'Inventories',
-        to: '/order',
-        icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Dasboard',
-            to: '/dashboard',
-            icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
-          },
-          {
-            component: CNavItem,
-            name: 'Incoming',
-            to: '/incoming',
-            icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
-          },
-          {
-            component: CNavGroup,
-            name: 'Inventory',
-            to: '/order',
-            icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
-            items: [
-              {
-                component: CNavItem,
-                name: 'Input Inventory',
-                to: '/inventory/input',
-                icon: <CIcon icon={cilHandPointUp} customClassName="nav-icon" />,
-              },
-              {
-                component: CNavItem,
-                name: 'Data Inventory',
-                to: '/inventory/data',
-                icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
-              },
-            ],
-          },
-        ],
-      },
     ]
+    // NAV DASHBOARD
+    if (
+      roleName === 'super admin' ||
+      roleName === 'line head' ||
+      roleName === 'section head' ||
+      roleName === 'section head' ||
+      roleName === 'section head'
+    ) {
+      baseNav.push({
+        component: CNavItem,
+        name: 'Dasboard',
+        to: '/dashboard',
+        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+      })
+    }
+    // NAV INVENTORY
+    if (
+      roleName === 'super admin' ||
+      roleName === 'warehouse staff' ||
+      roleName === 'warehouse member'
+    ) {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'INVENTORY',
+        },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Inventory',
+          to: '/order',
+          icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Incoming',
+              to: '/incoming',
+              icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavGroup,
+              name: 'Inventory',
+              to: '/order',
+              icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+              items: [
+                {
+                  component: CNavItem,
+                  name: 'Input Inventory',
+                  to: '/inventory/input',
+                  icon: <CIcon icon={cilHandPointUp} customClassName="nav-icon" />,
+                },
+                {
+                  component: CNavItem,
+                  name: 'Data Inventory',
+                  to: '/inventory/data',
+                  icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
+                },
+              ],
+            },
+          ],
+        },
+      )
+    }
+    //ORDER DAN CONFIRMATION UNTUK SUPER ADMIN
+    if (roleName === 'super admin') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Order',
+        },
+        {
+          component: CNavGroup,
+          name: 'TWISS-Order',
+          to: '/order',
+          icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Order By Recipient',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/home`, '_self') // Use base URL from config
+              },
+            },
+
+            {
+              component: CNavItem,
+              name: 'Approval By Line Head',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/approveall`, '_self') // Use base URL from config
+              },
+            },
+            {
+              component: CNavItem,
+              name: 'Approval By Group Head',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/approveall`, '_self') // Use base URL from config
+              },
+            },
+            {
+              component: CNavItem,
+              name: 'Approval By Dph Head',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/approveall`, '_self') // Use base URL from config
+              },
+            },
+          ],
+        },
+        {
+          component: CNavTitle,
+          name: 'Confirmation Order',
+        },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Confirmation',
+          to: '/order',
+          icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Confirmation Order',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilEnvelopeLetter} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/confirmall`, '_self') // Use base URL from config
+              },
+            },
+            {
+              component: CNavItem,
+              name: 'Shopping',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/approveall`, '_self') // Use base URL from config
+              },
+            },
+          ],
+        },
+      )
+    }
+    if (roleName === 'group head') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Order',
+        },
+        {
+          component: CNavItem,
+          name: 'Order By Recipent',
+          to: '/home',
+          icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+        },
+      )
+    }
+
+    if (roleName === 'line head') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Approval Order',
+        },
+        {
+          component: CNavItem,
+          name: 'Approval Order By Line Head',
+          to: '/home',
+          icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+        },
+      )
+    }
+    if (roleName === 'section head') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Approval Order',
+        },
+        {
+          component: CNavItem,
+          name: 'Approval Order By Section Head',
+          to: '/home',
+          icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+        },
+      )
+    }
+
+    if (roleName === 'warehouse staff') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Confirmation Order',
+        },
+        {
+          component: CNavItem,
+          name: 'Approval Order By Section Head',
+          to: '/home',
+          icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+        },
+      )
+    }
+    if (roleName === 'warehouse member') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'TWIIS-Shopping',
+        },
+        {
+          component: CNavItem,
+          name: 'Shopping Order',
+          to: '/home',
+          icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+        },
+      )
+    }
 
     if (roleName === 'super admin') {
       baseNav.push(
@@ -93,7 +280,7 @@ const useNavigation = () => {
           component: CNavGroup,
           name: 'Master Data',
           to: '/order',
-          icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+          icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
           items: [
             {
               component: CNavItem,
@@ -171,12 +358,30 @@ const useNavigation = () => {
     baseNav.push(
       {
         component: CNavTitle,
+        name: 'Good Issue Data',
+      },
+      {
+        component: CNavGroup,
+        name: 'Data Good Issue',
+        to: '/order',
+        icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Good Issue Data',
+            to: '/category',
+            icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
+          },
+        ],
+      },
+      {
+        component: CNavTitle,
         name: 'Profile',
       },
       {
         component: CNavItem,
         name: 'Profile',
-        to: 'user/profile',
+        to: '/profile',
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
       },
       {
