@@ -95,7 +95,7 @@ const Home = () => {
 
   const navigate = useNavigate()
 
-  const apiCategory = 'category'
+  const apiCategory = 'category-public'
 
   const getProductByCategories = async (categoryId, page) => {
     try {
