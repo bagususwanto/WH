@@ -5,8 +5,8 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/upload-incoming-plan", checkRole(["super admin", "warehouse staff"]), uploadFile.single("file"), uploadIncomingPlan);
-router.post("/upload-incoming-actual", checkRole(["super admin", "warehouse staff"]), uploadFile.single("file"), uploadIncomingActual);
-router.post("/upload-master-material", checkRole(["super admin", "warehouse staff"]), uploadFile.single("file"), uploadMasterMaterial);
+router.post("/upload-incoming-plan/warehouseId", checkRole(["super admin", "warehouse member"]), uploadFile.single("file"), uploadIncomingPlan);
+router.post("/upload-incoming-actual/warehouseId", checkRole(["super admin", "warehouse member"]), uploadFile.single("file"), uploadIncomingActual);
+router.post("/upload-master-material", checkRole(["super admin"]), uploadFile.single("file"), uploadMasterMaterial);
 
 export default router;

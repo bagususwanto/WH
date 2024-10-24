@@ -271,7 +271,7 @@ const InputInventory = () => {
         // Jika user mengkonfirmasi, lakukan submit
         try {
           if (!plantId) {
-            MySwal.fire('Error', 'Please select a plant.', 'error')
+            MySwal.fire('Error', 'Plant is required, please select a dropdown plant.', 'error')
             return
           }
 

@@ -52,9 +52,9 @@ const useManageStockService = () => {
     }
   }
 
-  const updateIncomingById = async (id, data) => {
+  const updateIncomingById = async (id, warehouseId, data) => {
     try {
-      const response = await axiosJWT.put(`incoming/${id}`, data, {
+      const response = await axiosJWT.put(`incoming/${id}/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -65,9 +65,9 @@ const useManageStockService = () => {
     }
   }
 
-  const postIncomingPlan = async (api, data) => {
+  const postIncomingPlan = async (api, warehouseId, data) => {
     try {
-      const response = await axiosJWT.post(`/${api}`, data, {
+      const response = await axiosJWT.post(`/${api}/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -79,9 +79,9 @@ const useManageStockService = () => {
     }
   }
 
-  const postIncomingActual = async (api, data) => {
+  const postIncomingActual = async (api, warehouseId, data) => {
     try {
-      const response = await axiosJWT.post(`/${api}`, data, {
+      const response = await axiosJWT.post(`/${api}/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

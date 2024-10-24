@@ -51,6 +51,7 @@ const Incoming = () => {
   const [visible, setVisible] = useState(false)
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const [radio, setRadio] = useState('plan')
+  const [plantId, setPlantId] = useState()
   const [incomingData, setIncomingData] = useState({
     importDate: date,
     file: null, // Mengubah tipe ke null karena file adalah objek
@@ -68,6 +69,7 @@ const Incoming = () => {
   const apiStorage = 'storage-plant'
   const apiIncomingPlan = 'upload-incoming-plan'
   const apiIncomingActual = 'upload-incoming-actual'
+  const apiWarehousePlant = 'warehouse-plant'
 
   const columns = [
     {
@@ -127,7 +129,6 @@ const Incoming = () => {
   }
 
   useEffect(() => {
-    fetchIncoming()
     getPlant()
     setLoading(false)
     initFilters()
@@ -158,6 +159,7 @@ const Incoming = () => {
   }
 
   const fetchIncoming = async () => {
+    setLoading(true)
     try {
       const response = await getIncoming()
       const dataWithFormattedFields = response.data.map((item) => {
@@ -180,8 +182,43 @@ const Incoming = () => {
         text: 'Failed to fetch incoming data.',
       })
       console.error('Error fetching incoming:', error)
+    } finally {
+      setLoading(false) // Set loading to false after data is fetched
     }
   }
+
+  useEffect(() => {
+    const fetchIncoming = async () => {
+      setLoading(true)
+      try {
+        const response = await getIncoming()
+        const dataWithFormattedFields = response.data.map((item) => {
+          const discrepancy = item.actual - item.planning
+
+          return {
+            ...item,
+            discrepancy,
+            formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+            formattedUpdateAt: item.updatedAt
+              ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+              : '',
+          }
+        })
+        setIncoming(dataWithFormattedFields)
+      } catch (error) {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to fetch incoming data.',
+        })
+        console.error('Error fetching incoming:', error)
+      } finally {
+        setLoading(false) // Set loading to false after data is fetched
+      }
+    }
+
+    fetchIncoming()
+  }, [])
 
   const getPlant = async () => {
     try {
@@ -233,8 +270,12 @@ const Incoming = () => {
   const editIncoming = async (updateItem) => {
     try {
       const { id, ...data } = updateItem
-
-      await updateIncomingById(id, data)
+      if (!plantId) {
+        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
+        return
+      }
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+      await updateIncomingById(id, warehouseId.id, data)
       fetchIncoming()
       Swal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
@@ -265,6 +306,7 @@ const Incoming = () => {
     const selectedPlantName = e.value
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
+    setPlantId(plantId)
 
     getStorageByPlantId(plantId)
 
@@ -512,16 +554,23 @@ const Incoming = () => {
   const handleImport = async () => {
     setLoadingImport(true)
     try {
+      if (!plantId) {
+        MySwal.fire('Error', 'Plant is required, please select a dropdown plant.', 'error')
+        return
+      }
+
       if (!incomingData.file) {
         MySwal.fire('Error', 'Please select a file', 'error')
         return
       }
 
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+
       if (radio === 'plan') {
-        await postIncomingPlan(apiIncomingPlan, incomingData)
+        await postIncomingPlan(apiIncomingPlan, warehouseId.id, incomingData)
         MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
       } else if (radio === 'actual') {
-        await postIncomingActual(apiIncomingActual, incomingData)
+        await postIncomingActual(apiIncomingActual, warehouseId.id, incomingData)
         MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
       }
 
@@ -542,6 +591,13 @@ const Incoming = () => {
     _filters['Log_Import.importDate'].value = fornmattedDate
     setFilters(_filters)
   }
+
+  const LoadingComponent = () => (
+    <div className="text-center">
+      <CSpinner color="primary" />
+      <p>Loading inventory data...</p>
+    </div>
+  )
 
   return (
     <CRow>
@@ -611,117 +667,123 @@ const Incoming = () => {
         <CCard className="mb-3">
           <CCardHeader>Incoming Table</CCardHeader>
           <CCardBody>
-            <CRow className="mb-2">
-              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
-                <div className="d-flex flex-wrap justify-content-start">
-                  <Button
-                    type="button"
-                    label="Excel"
-                    icon="pi pi-file-excel"
-                    severity="success"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={exportExcel}
-                    data-pr-tooltip="XLS"
-                  />
-                  <Button
-                    type="button"
-                    label="Upload"
-                    icon="pi pi-file-import"
-                    severity="primary"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={showModalUpload}
-                    data-pr-tooltip="XLS"
-                  />
-                  <Button
-                    type="button"
-                    label="Template"
-                    icon="pi pi-download"
-                    severity="primary"
-                    className="rounded-5 mb-2"
-                    onClick={downloadTemplate}
-                    data-pr-tooltip="XLS"
-                  />
-                </div>
-              </CCol>
-              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
-                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
-              </CCol>
-            </CRow>
-            <DataTable
-              value={visibleData}
-              tableStyle={{ minWidth: '50rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
-              dataKey="id"
-              filters={filters}
-              loading={loading}
-              emptyMessage="No incoming found."
-              size="small"
-              scrollable
-              editMode="row"
-              onRowEditComplete={onRowEditComplete}
-              removableSort
-              header={header}
-            >
-              <Column
-                field="Inventory.Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column
-                field="Inventory.Material.description"
-                header="Description"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              ></Column>
-              <Column
-                field="Inventory.Address_Rack.addressRackName"
-                header="Address"
-                sortable
-              ></Column>
-              <Column field="Inventory.Material.uom" header="UoM" sortable></Column>
-              <Column field="planning" header="Plan." sortable></Column>
-              <Column
-                field="actual"
-                header="Act."
-                editor={(options) => qtyActualEditor(options)}
-                style={{ width: '5%' }}
-                sortable
-              ></Column>
-              <Column
-                field="discrepancy"
-                header="Disc."
-                // body={discrepancyBodyTemplate}
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              ></Column>
-              <Column field="Log_Import.importDate" header="Date" sortable></Column>
-              <Column field="Log_Import.User.username" header="Import By" sortable></Column>
-              {visibleColumns.map((col, index) => (
-                <Column
-                  key={index}
-                  field={col.field}
-                  header={col.header}
-                  body={col.body}
-                  sortable={col.sortable}
-                  headerStyle={col.headerStyle}
-                  bodyStyle={col.bodyStyle}
-                />
-              ))}
-              <Column
-                header="Action"
-                rowEditor={true}
-                headerStyle={{ width: '5%' }}
-                bodyStyle={{ textAlign: 'center' }}
-                frozen={true}
-                alignFrozen="right"
-              ></Column>
-            </DataTable>
+            {loading ? (
+              <LoadingComponent /> // Render loading component when loading is true
+            ) : (
+              <>
+                <CRow className="mb-2">
+                  <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
+                    <div className="d-flex flex-wrap justify-content-start">
+                      <Button
+                        type="button"
+                        label="Excel"
+                        icon="pi pi-file-excel"
+                        severity="success"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={exportExcel}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Upload"
+                        icon="pi pi-file-import"
+                        severity="primary"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={showModalUpload}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Template"
+                        icon="pi pi-download"
+                        severity="primary"
+                        className="rounded-5 mb-2"
+                        onClick={downloadTemplate}
+                        data-pr-tooltip="XLS"
+                      />
+                    </div>
+                  </CCol>
+                  <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
+                  </CCol>
+                </CRow>
+                <DataTable
+                  value={visibleData}
+                  tableStyle={{ minWidth: '50rem' }}
+                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  paginator
+                  rowsPerPageOptions={[10, 50, 100, 500]}
+                  rows={10}
+                  dataKey="id"
+                  filters={filters}
+                  loading={loading}
+                  emptyMessage="No incoming found."
+                  size="small"
+                  scrollable
+                  editMode="row"
+                  onRowEditComplete={onRowEditComplete}
+                  removableSort
+                  header={header}
+                >
+                  <Column
+                    field="Inventory.Material.materialNo"
+                    header="Material"
+                    frozen={true}
+                    alignFrozen="left"
+                    sortable
+                  ></Column>
+                  <Column
+                    field="Inventory.Material.description"
+                    header="Description"
+                    frozen={true}
+                    alignFrozen="left"
+                    sortable
+                  ></Column>
+                  <Column
+                    field="Inventory.Address_Rack.addressRackName"
+                    header="Address"
+                    sortable
+                  ></Column>
+                  <Column field="Inventory.Material.uom" header="UoM" sortable></Column>
+                  <Column field="planning" header="Plan." sortable></Column>
+                  <Column
+                    field="actual"
+                    header="Act."
+                    editor={(options) => qtyActualEditor(options)}
+                    style={{ width: '5%' }}
+                    sortable
+                  ></Column>
+                  <Column
+                    field="discrepancy"
+                    header="Disc."
+                    // body={discrepancyBodyTemplate}
+                    bodyStyle={{ textAlign: 'center' }}
+                    sortable
+                  ></Column>
+                  <Column field="Log_Import.importDate" header="Date" sortable></Column>
+                  <Column field="Log_Import.User.username" header="Import By" sortable></Column>
+                  {visibleColumns.map((col, index) => (
+                    <Column
+                      key={index}
+                      field={col.field}
+                      header={col.header}
+                      body={col.body}
+                      sortable={col.sortable}
+                      headerStyle={col.headerStyle}
+                      bodyStyle={col.bodyStyle}
+                    />
+                  ))}
+                  <Column
+                    header="Action"
+                    rowEditor={true}
+                    headerStyle={{ width: '5%' }}
+                    bodyStyle={{ textAlign: 'center' }}
+                    frozen={true}
+                    alignFrozen="right"
+                  ></Column>
+                </DataTable>
+              </>
+            )}
           </CCardBody>
         </CCard>
       </CCol>
