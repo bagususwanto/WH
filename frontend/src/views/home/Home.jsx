@@ -5,7 +5,8 @@ import animationData2 from '../../assets/lottie/Animation - wh location.json'
 import animationData3 from '../../assets/lottie/Animation - incoming.json'
 import animationData4 from '../../assets/lottie/Animation - 1729593009638.json'
 import animationData5 from '../../assets/lottie/Animation - Forklift.json'
-
+import { CRow, CCol } from '@coreui/react'
+import backgroundImage from '../../assets/brand/Desain tanpa judul.png';  // Adjust path if necessary
 const lottieStyle = {
   display: 'flex',
   justifyContent: 'center',
@@ -35,17 +36,65 @@ const Home = () => {
   }, []) // [] untuk menjalankan useEffect sekali saat komponen mount
 
   const lottieStyle = {
+    position: 'fixed',         // Fix the position relative to the viewport
+    right: '0',                // Align to the right edge
+    top: '50%',                // Align vertically to the middle
+    transform: 'translateY(-50%)', // Keep the element vertically centered
+    width: '40vw',             // Responsive width based on viewport width
+    height: '30vh',            // Responsive height based on viewport height
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '80%',
-    height: '80%',
-  }
+  };
+  const labelStyle = {
+    fontSize: '3vw', // Responsive font size, adjusts based on viewport width
+    fontWeight: '900', // Adjust for boldness
+    color: '#343a40', // Text color
+    textAlign: 'center', // Center the text horizontally
+    marginBottom: '1rem', // Add some space below the heading
+  };
+  
+  const secondaryLabelStyle = {
+    fontSize: '1vw', // Smaller responsive font size for the secondary text
+    color: '#343a40',
+    textAlign: 'center',
+  };
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center', // Center vertically within the column
+    alignItems: 'center', // Center horizontally within the column
+    height: '100%', // Use full height of the column
+  };
+
+  const gradientBackgroundStyle = {
+    backgroundImage: `url(${backgroundImage})`,  // Use the imported image
+    backgroundSize: 'cover', // Ensures the image covers the entire background
+    backgroundPosition: 'center', // Centers the background image
+    backgroundRepeat: 'no-repeat', // Prevents the image from repeating
+    height: '100vh', // Full viewport height
+    display: 'flex', // Ensures children can center properly
+    alignItems: 'center', // Centers child elements vertically
+  };
 
   return (
-    <div style={lottieStyle} className="mb-1">
-      <Lottie animationData={animations[currentAnimationIndex]} loop={true} />
-    </div>
+    <CRow style={gradientBackgroundStyle}>
+      <CCol xs={5}>
+      <div style={containerStyle}>
+      <label style={labelStyle}>
+            Makes it Easier and Shortens the Time to Order Goods. Awesome!
+          </label>
+          <label style={secondaryLabelStyle}>
+            Please choose what you want, ordering up to inventory is very easy with TWIIS!
+          </label>
+        </div>
+      </CCol>
+      <CCol xs={5}>
+        <div style={lottieStyle} className="mb-1">
+          <Lottie animationData={animations[currentAnimationIndex]} loop={true} />
+        </div>
+      </CCol>
+    </CRow>
   )
 }
 

@@ -24,7 +24,9 @@ const AppHeaderDropdown = () => {
   const handleLogout = () => {
     navigate('/logout')
   }
-
+  const handleProfile = () => {
+    navigate('/profile')
+  }
   const [firstName, lastName] = name.split(' ')
 
   const handleDropdownToggle = () => {
@@ -52,7 +54,7 @@ const AppHeaderDropdown = () => {
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
         <CDropdownHeader className="bg-body-secondary fw-semibold my-2">Account</CDropdownHeader>
-        <CDropdownItem href="#">
+        <CDropdownItem onClick={handleProfile} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilUser} className="me-2" />
           Profile
         </CDropdownItem>
