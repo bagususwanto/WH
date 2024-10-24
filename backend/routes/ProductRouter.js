@@ -4,9 +4,9 @@ import { getProduct, getProductByCategory, getProductByQuery, getAllProduct } fr
 
 const router = express.Router();
 
-router.get("/product/:warehouseId", checkRole(["super admin"]), getProduct);
-router.get("/product-category/:warehouseId/:categoryId", checkRole(["super admin"]), getProductByCategory);
-router.get("/product/search/:warehouseId", checkRole(["super admin"]), getProductByQuery);
-router.get("/product-all/:warehouseId", checkRole(["super admin"]), getAllProduct);
+router.get("/product/:warehouseId", getProduct);
+router.get("/product-category/:warehouseId/:categoryId", getProductByCategory);
+router.get("/product/search/:warehouseId", getProductByQuery);
+router.get("/product-all/:warehouseId", getAllProduct);
 
 export default router;

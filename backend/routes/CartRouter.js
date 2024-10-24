@@ -4,10 +4,10 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/cart/:warehouseId", checkRole(["super admin"]), getCartItems);
-router.post("/cart", checkRole(["super admin", "group head"]), addToCart);
-router.put("/cart", checkRole(["super admin"]), updateCartItem);
-router.delete("/cart/:id", checkRole(["super admin"]), removeFromCart);
-router.get("/cart-count/:warehouseId", checkRole(["super admin"]), countCartItems);
+router.get("/cart/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), getCartItems);
+router.post("/cart", checkRole(["super admin", "group head", "line head", "section head", "department head"]), addToCart);
+router.put("/cart", checkRole(["super admin", "group head", "line head", "section head", "department head"]), updateCartItem);
+router.delete("/cart/:id", checkRole(["super admin", "group head", "line head", "section head", "department head"]), removeFromCart);
+router.get("/cart-count/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), countCartItems);
 
 export default router;
