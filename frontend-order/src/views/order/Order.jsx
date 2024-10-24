@@ -56,7 +56,7 @@ const ProductList = () => {
 
   const MySwal = withReactContent(Swal)
 
-  const apiCategory = 'category'
+  const apiCategory = 'category-public'
   const navigate = useNavigate()
 
   useEffect(() => {
