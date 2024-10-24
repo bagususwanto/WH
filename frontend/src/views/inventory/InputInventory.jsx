@@ -38,12 +38,14 @@ const InputInventory = () => {
   const [selectedUom, setSelectedUom] = useState(null)
   const [quantity, setQuantity] = useState(0) // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
+  const [plantId, setPlantId] = useState()
 
-  const { getMasterData } = useMasterDataService()
+  const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
 
   const apiPlant = 'plant-public'
   const apiStorage = 'storage-public'
+  const apiWarehousePlant = 'warehouse-plant'
 
   useEffect(() => {
     getPlant()
@@ -104,6 +106,7 @@ const InputInventory = () => {
 
   const handlePlantChange = (selectedPlant) => {
     setIsLoading(true) // Set loading to true when plant change starts
+    setPlantId(selectedPlant.value)
     if (selectedPlant) {
       const filteredStorages = storage
         .filter((s) => s.plantId === selectedPlant.value)
@@ -251,9 +254,7 @@ const InputInventory = () => {
     }
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-
+  const handleSubmit = async () => {
     // Tampilkan konfirmasi menggunakan SweetAlert
     MySwal.fire({
       title: 'Are you sure?',
@@ -269,12 +270,17 @@ const InputInventory = () => {
       if (result.isConfirmed) {
         // Jika user mengkonfirmasi, lakukan submit
         try {
-          await updateInventorySubmit(items) // Mengirimkan semua item dalam satu body
+          if (!plantId) {
+            MySwal.fire('Error', 'Please select a plant.', 'error')
+            return
+          }
+
+          const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+          await updateInventorySubmit(warehouseId.id, items) // Mengirimkan semua item dalam satu body
           setItems([]) // Kosongkan tabel setelah submit berhasil
           MySwal.fire('Success', 'Inventory updated successfully!', 'success')
         } catch (error) {
           console.error('Error updating items:', error)
-          MySwal.fire('Error', 'Failed to update inventory!', 'error')
         }
       }
     })

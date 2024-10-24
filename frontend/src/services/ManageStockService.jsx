@@ -119,9 +119,9 @@ const useManageStockService = () => {
     }
   }
 
-  const updateInventorySubmit = async (data) => {
+  const updateInventorySubmit = async (warehouseId, data) => {
     try {
-      const response = await axiosJWT.post('/inventory-submit', data, {
+      const response = await axiosJWT.post(`/inventory-submit/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
