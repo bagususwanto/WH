@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/flatpickr.css';
+import Flatpickr from 'react-flatpickr'
+import 'flatpickr/dist/flatpickr.css'
 import {
   CCard,
   CCardBody,
@@ -24,16 +24,14 @@ import {
   CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCart,cilCalendar } from '@coreui/icons'
+import { cilCart, cilCalendar } from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
 import { format, parseISO } from 'date-fns'
-
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
-
 import { GlobalContext } from '../../context/GlobalProvider'
 
 const iconMap = {
@@ -48,8 +46,9 @@ const iconMap = {
 const History = () => {
   const [myOrderData, setMyOrderData] = useState([])
   const [visible, setVisible] = useState(false)
-  const [dates, setDates] = useState([null, null]); // State for date range
+  const [dates, setDates] = useState([null, null]) // State for date range
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [globalFilterValue, setGlobalFilterValue] = useState('') // State for global search filter
   const { getMyorder } = useOrderService()
   const { warehouse } = useContext(GlobalContext)
   const [activeTab, setActiveTab] = useState('all')
@@ -95,17 +94,20 @@ const History = () => {
         return 'primary'
     }
   }
-   // Search filter handler
-   const onGlobalFilterChange = (e) => {
+  // Search filter handler
+  const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value)
   }
 
   // Filtered order data based on search input
-  const filteredOrders = myOrderData.filter((order) =>
-    order.transactionNumber.toLowerCase().includes(globalFilterValue.toLowerCase()) ||
-    order.Detail_Orders.some((detail) =>
-      detail.Inventory.Material.description.toLowerCase().includes(globalFilterValue.toLowerCase())
-    )
+  const filteredOrders = myOrderData.filter(
+    (order) =>
+      order.transactionNumber.toLowerCase().includes(globalFilterValue.toLowerCase()) ||
+      order.Detail_Orders.some((detail) =>
+        detail.Inventory.Material.description
+          .toLowerCase()
+          .includes(globalFilterValue.toLowerCase()),
+      ),
   )
   const handleViewHistoryOrder = (product) => {
     setSelectedProduct(product)
@@ -130,48 +132,53 @@ const History = () => {
           </CCardBody>
         </CCard>
       </CRow>
-      <div className="d-flex flex-wrap justify-start">
-        <IconField iconPosition="left">
-          <InputIcon className="pi pi-search" />
-          <InputText
-            value={globalFilterValue}
-            onChange={onGlobalFilterChange}
-            placeholder="Search by Order Number or Product Description"
-            style={{ width: '100%', borderRadius: '5px' }}
-          />
-        </IconField>
-      </div>
-
-      <div className="mt-0 mb-1 d-flex justify-content-end">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            border: '1px solid #ccc', // Border around the icon and date picker
-            borderRadius: '4px', // Optional: rounded corners
-            padding: '5px', // Optional: padding inside the border
-          }}
-        >
-          <CIcon icon={cilCalendar} size="xl" className="px-1" /> {/* Your calendar icon */}
-          <Flatpickr
-            value={dates}
-            onChange={(selectedDates) => {
-              setDates(selectedDates) // Update the state with the selected date range
-              // Logic to filter products based on selected date range can go here
-            }}
-            options={{
-              mode: 'range', // Enable range selection
-              dateFormat: 'Y-m-d', // Desired date format
-              placeholder: 'Select a date range',
-            }}
-            className="border-0 fw-light" // Remove the border from Flatpickr
-            style={{
-              outline: 'none', // Remove outline
-              boxShadow: 'none', // Remove any box shadow
-            }}
-          />
+      <CRow className="d-flex justify-content-between">
+        {/* Left side: Search field */}
+        <CCol xs={4}>
+        <div className="d-flex flex-wrap">
+          <IconField iconPosition="left">
+            <InputIcon className="pi pi-search" />
+            <InputText
+              value={globalFilterValue}
+              onChange={onGlobalFilterChange}
+              placeholder="Search by Order Number or Product Description"
+              style={{ width: '100%', borderRadius: '5px' }}
+            />
+          </IconField>
         </div>
-      </div>
+        </CCol>
+        <CCol xs={2}>
+        {/* Right side: Date picker */}
+        <div className="d-flex align-items-center">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '5px',
+            }}
+          >
+            <CIcon icon={cilCalendar} size="xl" className="px-1" />
+            <Flatpickr
+              value={dates}
+              onChange={(selectedDates) => setDates(selectedDates)}
+              options={{
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                placeholder: 'Select a date range',
+              }}
+              className="border-0 fw-light"
+              style={{
+                outline: 'none',
+                boxShadow: 'none',
+              }}
+            />
+          </div>
+        </div>
+        </CCol>
+      </CRow>
+
       <CTabs activeItemKey={activeTab}>
         <CTabList variant="pills">
           {tabs.map((tab) => (
