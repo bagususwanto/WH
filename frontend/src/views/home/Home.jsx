@@ -38,11 +38,11 @@ const Home = () => {
   }, []) // [] untuk menjalankan useEffect sekali saat komponen mount
 
   const lottieStyle = {
-    position: 'fixed', // Fix the position relative to the viewport
+    position: 'relative', // Fix the position relative to the viewport
     right: '0', // Align to the right edge
     top: '50%', // Align vertically to the middle
     transform: 'translateY(-50%)', // Keep the element vertically centered
-    width: '40vw', // Responsive width based on viewport width
+    width: '50vw', // Responsive width based on viewport width
     height: '30vh', // Responsive height based on viewport height
     display: 'flex',
     justifyContent: 'center',
@@ -82,12 +82,13 @@ const Home = () => {
         margin: '0', // Ensure no margin around the container
         padding: '0', // Ensure no padding inside the container
         overflow: 'hidden', // Prevent overflow issues
+        maxWidth:'100%'
       }}
     >
       <CRow>
-        <CCol xs={5}>
+        <CCol xs={5} >
           <div style={containerStyle}>
-            <label style={labelStyle}>
+            <label className="me-2" style={labelStyle}>
               Makes it Easier and Shortens the Time to Order Goods. Awesome!
             </label>
             <label style={secondaryLabelStyle}>
@@ -96,7 +97,7 @@ const Home = () => {
           </div>
         </CCol>
         <CCol xs={5}>
-          <div style={lottieStyle} className="mb-1">
+          <div style={lottieStyle} className="me-4">
             <Lottie animationData={animations[currentAnimationIndex]} loop={true} />
           </div>
         </CCol>
