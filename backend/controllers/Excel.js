@@ -524,11 +524,13 @@ export const uploadMasterMaterial = async (req, res) => {
             uom: row[2],
             price: row[3],
             type: row[4],
-            categoryId: await getCategoryIdByCategoryName(row[5]),
-            supplierId: await getSupplierIdBySupplierName(row[6]),
-            minStock: row[7],
-            maxStock: row[8],
-            img: row[9],
+            mrpType: row[5],
+            minStock: row[6],
+            maxStock: row[7],
+            img: row[8],
+            minOrder: row[9],
+            categoryId: await getCategoryIdByCategoryName(row[10]),
+            supplierId: await getSupplierIdBySupplierName(row[11]),
           },
           { transaction }
         );
@@ -548,14 +550,16 @@ export const uploadMasterMaterial = async (req, res) => {
         return {
           materialNo,
           description: row[1],
-          uom: row[2],
-          price: row[3],
-          type: row[4],
-          categoryId: category.id,
-          supplierId: supplier.id,
-          minStock: row[7],
-          maxStock: row[8],
-          img: row[9],
+            uom: row[2],
+            price: row[3],
+            type: row[4],
+            mrpType: row[5],
+            minStock: row[6],
+            maxStock: row[7],
+            img: row[8],
+            minOrder: row[9],
+            categoryId: category.id,
+            supplierId: supplier.id,
         };
       }
     });

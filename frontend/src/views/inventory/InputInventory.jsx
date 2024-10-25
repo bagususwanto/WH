@@ -39,6 +39,7 @@ const InputInventory = () => {
   const [quantity, setQuantity] = useState(0) // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
+  const [previousPlant, setPreviousPlant] = useState(null)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -120,8 +121,10 @@ const InputInventory = () => {
 
   const handlePlantChange = (selectedPlant) => {
     setIsLoading(true) // Set loading to true when plant change starts
-    setPlantId(selectedPlant.value)
+
     if (selectedPlant) {
+      setPlantId(selectedPlant.value)
+
       const filteredStorages = storage
         .filter((s) => s.plantId === selectedPlant.value)
         .map((s) => ({
