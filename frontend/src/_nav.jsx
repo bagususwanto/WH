@@ -263,9 +263,14 @@ const useNavigation = () => {
         },
         {
           component: CNavItem,
-          name: 'Shopping Order',
-          to: '/home',
+          
+          name: 'Shopping',
+          to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+          onClick: (e) => {
+            e.preventDefault() // Prevent the default behavior of `to`
+            window.open(`${config.ORDER_URL}/shopping`, '_self') // Use base URL from config
+          },
         },
       )
     }
