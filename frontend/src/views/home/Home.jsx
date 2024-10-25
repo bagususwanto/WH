@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import Lottie from 'lottie-react'
-import animationData1 from '../../assets/lottie/Animation - 1729582034020.json'
-import animationData2 from '../../assets/lottie/Animation - wh location.json'
+
+import animationData2 from '../../assets/lottie/Animation - order.json'
 import animationData3 from '../../assets/lottie/Animation - incoming.json'
 import animationData4 from '../../assets/lottie/Animation - 1729593009638.json'
 import animationData5 from '../../assets/lottie/Animation - Forklift.json'
+import animationData6 from '../../assets/lottie/Animation - 1729819077387.json'
 import { CRow, CCol } from '@coreui/react'
 import backgroundImage from '../../assets/brand/bghome.png'
 const lottieStyle = {
@@ -17,11 +18,12 @@ const lottieStyle = {
 
 const Home = () => {
   const animations = [
-    animationData1,
+  
     animationData2,
     animationData3,
     animationData4,
     animationData5,
+    animationData6,
   ]
   const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0) // Indeks animasi yang aktif
 
@@ -29,7 +31,7 @@ const Home = () => {
     const animationInterval = setInterval(() => {
       // Update animasi ke indeks berikutnya, reset ke 0 jika sudah mencapai akhir array
       setCurrentAnimationIndex((prevIndex) => (prevIndex + 1) % animations.length)
-    }, 4000) // Interval dalam milidetik (3000 ms = 3 detik)
+    }, 6000) // Interval dalam milidetik (3000 ms = 3 detik)
 
     // Cleanup interval ketika komponen di-unmount
     return () => clearInterval(animationInterval)
@@ -76,7 +78,7 @@ const Home = () => {
         backgroundPosition: 'center', // Center the background image
         backgroundRepeat: 'no-repeat', // Prevent the image from repeating
         height: '100vh', // Full viewport height
-        width: '98vw', // Full viewport width
+        width: '100vw', // Full viewport width
         margin: '0', // Ensure no margin around the container
         padding: '0', // Ensure no padding inside the container
         overflow: 'hidden', // Prevent overflow issues
