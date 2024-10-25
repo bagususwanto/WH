@@ -190,7 +190,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/approveall`, '_self') // Use base URL from config
+                window.open(`${config.ORDER_URL}/shopping`, '_self') // Use base URL from config
               },
             },
           ],
@@ -269,7 +269,26 @@ const useNavigation = () => {
         },
       )
     }
-
+    baseNav.push(
+      {
+        component: CNavTitle,
+        name: 'Good Issue Data',
+      },
+      {
+        component: CNavGroup,
+        name: 'Data Good Issue',
+        to: '/order',
+        icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Good Issue Data',
+            to: '/category',
+            icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
+          },
+        ],
+      },
+    )
     if (roleName === 'super admin') {
       baseNav.push(
         {
@@ -356,24 +375,6 @@ const useNavigation = () => {
     }
 
     baseNav.push(
-      {
-        component: CNavTitle,
-        name: 'Good Issue Data',
-      },
-      {
-        component: CNavGroup,
-        name: 'Data Good Issue',
-        to: '/order',
-        icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Good Issue Data',
-            to: '/category',
-            icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
-          },
-        ],
-      },
       {
         component: CNavTitle,
         name: 'Profile',
