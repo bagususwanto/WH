@@ -91,7 +91,7 @@ export const logout = async (req, res) => {
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
 
-  if (!refreshToken) return res.sendStatus(401);
+  if (!refreshToken) return res.status(401).json({ message: "No token provided. Unauthorized access!" });
 
   try {
     const user = await Users.findOne({
@@ -101,10 +101,10 @@ export const refreshToken = async (req, res) => {
         where: { flag: 1 },
       },
     });
-    if (!user) return res.sendStatus(403);
+    if (!user) return res.status(401).json({ message: "Unauthorized access!" });
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-      if (err) return res.sendStatus(403);
+      if (err) return res.status(403).json({ message: "Invalid or expired token. Access forbidden!" });
 
       const { id: userId, username, name, isProduction } = user;
       const roleName = user.Role.roleName;

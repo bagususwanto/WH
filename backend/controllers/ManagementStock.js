@@ -482,6 +482,15 @@ export const submitInventory = async (req, res) => {
     for (const inventory of inventories) {
       if (inventory) {
         await setQuantityActualCheck(inventory.materialId, inventory.addressId);
+
+        await LogEntry.create({
+          inventoryId: inventory.id,
+          typeLogEntry: "update inventory",
+          quantity: inventory.quantityActual,
+          userId: req.user.userId,
+          detailOrder: null,
+          incomingId: null,
+        });
       }
     }
 

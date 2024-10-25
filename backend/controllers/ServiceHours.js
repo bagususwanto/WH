@@ -49,12 +49,12 @@ export const createServiceHours = async (req, res) => {
       return res.status(400).json({ message: "shiftId, time, warehouseId are required" });
     }
 
-    const warehouse = await Shift.findOne({
+    const serviceHours = await ServiceHours.findOne({
       where: { shiftId: shiftId, warehouseId: warehouseId, time: time, flag: 1 },
     });
 
-    if (!warehouse) {
-      return res.status(404).json({ message: "Warehouse not found" });
+    if (serviceHours) {
+      return res.status(404).json({ message: "ServiceHours already exists" });
     }
 
     await ServiceHours.create(req.body);

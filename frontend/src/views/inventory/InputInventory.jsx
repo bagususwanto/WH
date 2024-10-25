@@ -269,6 +269,16 @@ const InputInventory = () => {
   }
 
   const handleSubmit = async () => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      return // Hentikan aksi jika offline
+    }
+
     // Tampilkan konfirmasi menggunakan SweetAlert
     MySwal.fire({
       title: 'Are you sure?',
