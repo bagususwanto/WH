@@ -70,7 +70,7 @@ const Dashboard = () => {
   const [inventories, setInventories] = useState([]) // Inventory data
   const [lowestItemNb, setLowestItemNb] = React.useState(5) //Item untuk slider lowest
   const [overflowItemNb, setOverflowItemNb] = React.useState(5) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(7) //item untuk critical
+  const [itemNb, setItemNb] = React.useState(5) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('DESC')
   const [selectedChart, setSelectedChart] = useState('critical')
@@ -434,9 +434,7 @@ const Dashboard = () => {
               </Box>
               {selectedChart === 'critical' && (
                 <>
-                  <Typography id="input-item-number-lowest" gutterBottom>
-                    Number of items for Lowest
-                  </Typography>
+                
                   <Slider
                     value={lowestItemNb}
                     onChange={handlelowestItemNbChange}

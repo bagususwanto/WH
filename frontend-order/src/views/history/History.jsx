@@ -132,50 +132,50 @@ const History = () => {
           </CCardBody>
         </CCard>
       </CRow>
-      <CRow className="d-flex justify-content-between">
+      <CRow>
         {/* Left side: Search field */}
-        <CCol xs={4}>
-        <div className="d-flex flex-wrap">
-          <IconField iconPosition="left">
-            <InputIcon className="pi pi-search" />
-            <InputText
-              value={globalFilterValue}
-              onChange={onGlobalFilterChange}
-              placeholder="Search by Order Number or Product Description"
-              style={{ width: '100%', borderRadius: '5px' }}
-            />
-          </IconField>
-        </div>
-        </CCol>
-        <CCol xs={2}>
-        {/* Right side: Date picker */}
-        <div className="d-flex align-items-center">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '5px',
-            }}
-          >
-            <CIcon icon={cilCalendar} size="xl" className="px-1" />
-            <Flatpickr
-              value={dates}
-              onChange={(selectedDates) => setDates(selectedDates)}
-              options={{
-                mode: 'range',
-                dateFormat: 'Y-m-d',
-                placeholder: 'Select a date range',
-              }}
-              className="border-0 fw-light"
-              style={{
-                outline: 'none',
-                boxShadow: 'none',
-              }}
-            />
+        <CCol xs={5}>
+          <div className="d-flex flex-wrap">
+            <IconField iconPosition="left">
+              <InputIcon className="pi pi-search" />
+              <InputText
+                value={globalFilterValue}
+                onChange={onGlobalFilterChange}
+                placeholder="Search by Order Number or Product Description"
+                style={{ width: '100%', borderRadius: '5px' }}
+              />
+            </IconField>
           </div>
-        </div>
+        </CCol>
+        <CCol xs={7} className="d-flex justify-content-end">
+          {/* Right side: Date picker */}
+          <div className="d-flex align-items-center ms-auto">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                padding: '5px',
+              }}
+            >
+              <CIcon icon={cilCalendar} size="xl" className="px-1" />
+              <Flatpickr
+                value={dates}
+                onChange={(selectedDates) => setDates(selectedDates)}
+                options={{
+                  mode: 'range',
+                  dateFormat: 'Y-m-d',
+                  placeholder: 'Select a date range',
+                }}
+                className="border-0 fw-light"
+                style={{
+                  outline: 'none',
+                  boxShadow: 'none',
+                }}
+              />
+            </div>
+          </div>
         </CCol>
       </CRow>
 

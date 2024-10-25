@@ -45,7 +45,7 @@ export const getInventoryDashboard = async (req, res) => {
     }
 
     // Determining dynamic length for truncation based on your conditions
-    const dynamicLength = 17; // Set this to any dynamic value you need, or compute based on conditions
+    const dynamicLength = 22; // Set this to any dynamic value you need, or compute based on conditions
 
     // Determining whereCondition based on status
     if (status === "critical" || status === "lowest") {

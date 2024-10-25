@@ -444,8 +444,8 @@ const AppHeader = () => {
         </CModal>
       </CContainer>
 
-      <CContainer className="border-bottom px-4" fluid>
-        <CCol sm={2}>
+      <CContainer className="border-bottom px-2" fluid>
+        <CCol xs={2}>
           <a href="/" className="d-flex align-items-center">
             <img
               src="/src/assets/brand/TWIIS-NEW.png"
@@ -454,7 +454,7 @@ const AppHeader = () => {
             />
           </a>
         </CCol>
-        <CCol sm={2}>
+        <CCol xs={2}>
           <CButton onClick={handleToggleCategories}>Category</CButton>
         </CCol>
         <CCol sm={4}>
@@ -472,7 +472,7 @@ const AppHeader = () => {
                 borderRadius: '4px',
                 boxShadow: 'none',
                 outline: '1px solid #ddd',
-                width: '500px',
+                width: '410px',
               }}
             />
             {(filteredSuggestions.length > 0 ||
