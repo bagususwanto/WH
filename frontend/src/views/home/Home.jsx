@@ -77,7 +77,7 @@ const Home = () => {
         backgroundSize: 'cover', // Ensure the image covers the entire viewport
         backgroundPosition: 'center', // Center the background image
         backgroundRepeat: 'no-repeat', // Prevent the image from repeating
-        height: '100vh', // Full viewport height
+        height: '88vh', // Full viewport height
         width: '100vw', // Full viewport width
         margin: '0', // Ensure no margin around the container
         padding: '0', // Ensure no padding inside the container

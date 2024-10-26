@@ -68,9 +68,9 @@ const Dashboard = () => {
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(5) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(5) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(5) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(8) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(8) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(8) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('DESC')
   const [selectedChart, setSelectedChart] = useState('critical')
@@ -240,9 +240,9 @@ const Dashboard = () => {
             name="options-outlined"
             id="primary-outlined"
             autoComplete="off"
-            label="Highest"
-            value="DESC"
-            checked={order === 'DESC'}
+            label="Lowest"
+            value="ASC"
+            checked={order === 'ASC'}
             onChange={handleOrderChange}
           />
           <CFormCheck
@@ -251,23 +251,23 @@ const Dashboard = () => {
             name="options-outlined"
             id="second-outlined"
             autoComplete="off"
-            label="Lowest"
-            value="ASC"
-            checked={order === 'ASC'}
+            label="Highest"
+            value="DESC"
+            checked={order === 'DESC'}
             onChange={handleOrderChange}
           />
           <CDropdown className="ml-auto">
             <CDropdownToggle color="secondary">Status</CDropdownToggle>
             <CDropdownMenu>
               <CDropdownItem onClick={() => setSelectedChart('critical')}>Critical</CDropdownItem>
-              <CDropdownItem onClick={() => setSelectedChart('lowest')}>Lowest</CDropdownItem>
+              <CDropdownItem onClick={() => setSelectedChart('lowest')}>Low</CDropdownItem>
               <CDropdownItem onClick={() => setSelectedChart('overflow')}>Overflow</CDropdownItem>
             </CDropdownMenu>
           </CDropdown>
         </div>
 
         {/* Single Card for Conditional Rendering */}
-        <CCard className="mb-3">
+        <CCard className="mb-4">
           <CCardHeader>
             {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
           </CCardHeader>
@@ -279,7 +279,9 @@ const Dashboard = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   width: '100%',
-                  height: { xs: 170, sm: 270, md: 370 }, // Responsive height
+                  height: { xs: 180, sm: 280, md: 380 },
+                  marginBottom: '3rem', // Add margin-bottom to create space below the chart
+                  marginTop: '3rem', // Add margin-bottom to create space below the chart
                 }}
               >
                 {selectedChart === 'critical' && (
@@ -298,6 +300,8 @@ const Dashboard = () => {
                       {
                         scaleType: 'band',
                         dataKey: 'name',
+                        categoryGapRatio: 0.1, // Gap between categories
+                        barGapRatio: 0, // Gap between bars in the same category
                         tick: {
                           sx: {
                             fontSize: '20px',
@@ -338,16 +342,24 @@ const Dashboard = () => {
                       {
                         dataKey: 'stock',
                         stack: 'Stock Difference',
-                        label: 'Lowest Stock',
+                        label: 'Low Stock',
                         value: 'stock',
                         type: 'bar',
                         color: 'skyblue',
+                        showLabel: true, // Ensures the label is visible
+                        labelStyle: {
+                          position: 'top', // Position label above the bar
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        },
                       },
                     ]}
                     xAxis={[
                       {
                         scaleType: 'band',
                         dataKey: 'name',
+                        categoryGapRatio: 0.1, // Gap between categories
+                        barGapRatio: 0, // Gap between bars in the same category
                         tick: {
                           sx: {
                             fontSize: '20px',
@@ -409,7 +421,7 @@ const Dashboard = () => {
                       {
                         type: 'number',
                         min: 0,
-                        max: 10,
+                        max: 7,
                         tick: {
                           sx: {
                             fontSize: '20px',
@@ -432,50 +444,8 @@ const Dashboard = () => {
                   </BarChart>
                 )}
               </Box>
-              {selectedChart === 'critical' && (
-                <>
-                
-                  <Slider
-                    value={lowestItemNb}
-                    onChange={handlelowestItemNbChange}
-                    valueLabelDisplay="auto"
-                    min={1}
-                    max={10}
-                    aria-labelledby="input-item-number-lowest"
-                  />
-                </>
-              )}
-              {selectedChart === 'lowest' && (
-                <>
-                  <Typography id="input-item-number-lowest" gutterBottom>
-                    Number of items for Lowest
-                  </Typography>
-                  <Slider
-                    value={lowestItemNb}
-                    onChange={handlelowestItemNbChange}
-                    valueLabelDisplay="auto"
-                    min={1}
-                    max={10}
-                    aria-labelledby="input-item-number-lowest"
-                  />
-                </>
-              )}
-              {selectedChart === 'overflow' && (
-                <>
-                  <Typography id="input-item-number-overflow" gutterBottom>
-                    Number of items for Overflow
-                  </Typography>
-                  <Slider
-                    value={overflowItemNb}
-                    onChange={handleoverflowItemNbChange}
-                    valueLabelDisplay="auto"
-                    min={1}
-                    max={10}
-                    aria-labelledby="input-item-number-overflow"
-                  />
-                </>
-              )}
             </ThemeProvider>
+
             <DataTable
               value={
                 selectedChart === 'critical'
@@ -488,9 +458,6 @@ const Dashboard = () => {
               }
               tableStyle={{ minWidth: '30rem' }}
               className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              paginator
-              rowsPerPageOptions={[10, 50, 100, 500]}
-              rows={10}
               // dataKey="id"
               loading={loading}
               emptyMessage="Tidak ada data inventaris."
@@ -526,7 +493,7 @@ const Dashboard = () => {
               />
               <Column
                 field="evaluation"
-                header="Penilaian"
+                header="Evaluation"
                 body={statusBodyTemplate}
                 bodyStyle={{ textAlign: 'center' }}
                 sortable
