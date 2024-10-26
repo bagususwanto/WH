@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.css'
+import { InputText } from 'primereact/inputtext'
 import {
   CCard,
   CCardBody,
@@ -38,7 +39,7 @@ import {
   cilUser,
   cilCart,
   cilCalendar,
-  cilHeart,
+  cilSearch,
   cilArrowRight,
   cilArrowLeft,
   cilTrash,
@@ -74,6 +75,7 @@ const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
   const [userData, setUserData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
+  const [searchQuery, setSearchQuery] = useState('') // New state for search query
   const [dates, setDates] = useState([null, null]) // State for date range
   const { getProduct } = useProductService()
   const [selectedDate, setSelectedDate] = useState(null) // State for selected date
@@ -155,6 +157,35 @@ const ApproveAll = () => {
     setVisible(true)
     navigate('/confirmapp', { state: { product } })
   }
+  const handleSearchInputChange = (e) => {
+    const query = e.target.value
+    setSearchQuery(query)
+
+    if (query) {
+      const results = searchProducts(query)
+      setFilteredSuggestions(results.slice(0, 5))
+      setShowRecentSearches(false)
+    } else {
+      setFilteredSuggestions([])
+      setShowRecentSearches(searchHistory.length > 0)
+    }
+  }
+
+  // Function to filter through productsData
+  const searchProducts = (query) => {
+    if (!query) return []
+    const lowerCaseQuery = query.toLowerCase()
+
+    return myOrderData.filter((product) => {
+      const productName = product.Detail_Orders[0].Inventory.Material.description?.toLowerCase()
+      const productTransaction = product.Detail_Orders[0].order.transactionNumber?.toLowerCase()
+
+      return (
+        (productName && productName.includes(lowerCaseQuery)) ||
+        (productTransaction && productTransaction.includes(lowerCaseQuery))
+      )
+    })
+  }
 
   return (
     <>
@@ -217,43 +248,67 @@ const ApproveAll = () => {
         </CCard>
       </CRow> */}
 
-      <CRow className="mt-1">
+      <CRow>
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            <h3 className="fw-bold fs-4">Order Approval</h3>
+            <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+
+            <CRow>
+              {/* Left side: Search field */}
+              <CCol xs={3} className="py-2">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    padding: '4px 8px',
+                  }}
+                >
+                  {/* CoreUI Search Icon */}
+                  <CIcon
+                    icon={cilSearch}
+                    style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+                  />
+
+                  {/* Input Text Field */}
+                  <InputText
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    placeholder="Search"
+                    style={{ width: '100%', border: 'none', outline: 'none' }}
+                  />
+                </div>
+              </CCol>
+              <CCol xs={9} className="d-flex justify-content-end">
+                {/* Right side: Date picker */}
+                <div
+                  className="d-flex align-items-center border rounded p-2"
+                  style={{ width: '250px' }}
+                >
+                  <CIcon icon={cilCalendar} size="xl" className="px-1" />
+                  <Flatpickr
+                    value={dates}
+                    onChange={(selectedDates) => setDates(selectedDates)}
+                    options={{
+                      mode: 'range',
+                      dateFormat: 'Y-m-d',
+                      placeholder: 'Select a date range',
+                    }}
+                    className="border-0 fw-light"
+                    style={{
+                      outline: 'none',
+                      boxShadow: 'none',
+                      width: '100%', // Ensures Flatpickr fills container width
+                    }}
+                  />
+                </div>
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
       </CRow>
-      <div className="mt-0 mb-1 d-flex justify-content-end">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            border: '1px solid #ccc', // Border around the icon and date picker
-            borderRadius: '4px', // Optional: rounded corners
-            padding: '5px', // Optional: padding inside the border
-          }}
-        >
-          <CIcon icon={cilCalendar} size="xl" className="px-1" /> {/* Your calendar icon */}
-          <Flatpickr
-            value={dates}
-            onChange={(selectedDates) => {
-              setDates(selectedDates) // Update the state with the selected date range
-              // Logic to filter products based on selected date range can go here
-            }}
-            options={{
-              mode: 'range', // Enable range selection
-              dateFormat: 'Y-m-d', // Desired date format
-              placeholder: 'Select a date range',
-            }}
-            className="border-0 fw-light" // Remove the border from Flatpickr
-            style={{
-              outline: 'none', // Remove outline
-              boxShadow: 'none', // Remove any box shadow
-            }}
-          />
-        </div>
-      </div>
       <CTabs activeItemKey={2}>
         <CTabList variant="pills">
           <CTab aria-controls="Confirmation-tab-pane" itemKey={1}>
@@ -288,8 +343,12 @@ const ApproveAll = () => {
                               <CCol>
                                 <CIcon className="me-2" icon={cilUser} />
                                 <label className="me-2 fs-6">3 Oktober 2024</label>
-                                <CBadge className="me-2" size="sm" color={getSeverity('On Process')}>
-                                 Waiting Approval
+                                <CBadge
+                                  className="me-2"
+                                  size="sm"
+                                  color={getSeverity('On Process')}
+                                >
+                                  Waiting Approval
                                 </CBadge>
                                 <label className="me-2 fw-light">X21000000000/20/20</label>
                               </CCol>
@@ -302,7 +361,6 @@ const ApproveAll = () => {
                                   <CCardImage
                                     key={user.id}
                                     src={user.img}
-                                    
                                     style={{ height: '100%', width: '100%' }}
                                   />
                                 ))}
@@ -405,75 +463,7 @@ const ApproveAll = () => {
                               </CCol>
                             </CRow>
 
-                            <hr />
-
                             {/* History Order Timeline */}
-                            <label className="fw-bold mb-2">MY HISTORY ORDER</label>
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                              }}
-                            >
-                              {[
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilLocationPin,
-                                  label: 'YOUR ITEM RECEIVED',
-                                },
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilCarAlt,
-                                  label: 'DELIVERY OTODOKE',
-                                },
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilHome,
-                                  label: 'ACCEPTED WAREHOUSE STAFF',
-                                },
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilUser,
-                                  label: 'APPROVAL SECTION HEAD',
-                                },
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilUser,
-                                  label: 'APPROVAL LINE HEAD',
-                                },
-                                {
-                                  date: '20 JANUARI 2024 20:34 WIB',
-                                  icon: cilUser,
-                                  label: 'ORDER CREATED',
-                                },
-                              ].map((item, index) => (
-                                <div
-                                  key={index}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    marginBottom: '16px',
-                                  }}
-                                >
-                                  <label style={{ marginRight: '8px' }}>{item.date}</label>
-                                  <div
-                                    style={{
-                                      border: '2px solid #000',
-                                      borderRadius: '50%',
-                                      width: '40px',
-                                      height: '40px',
-                                      display: 'flex',
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                    }}
-                                  >
-                                    <CIcon icon={item.icon} size="lg" />
-                                  </div>
-                                  <label style={{ marginLeft: '8px' }}>{item.label}</label>
-                                </div>
-                              ))}
-                            </div>
 
                             <CRow></CRow>
                           </CCardBody>
@@ -482,6 +472,82 @@ const ApproveAll = () => {
                     )}
                   </CModalBody>
                 </CModal>
+              </CCard>
+            </CRow>
+          </CTabPanel>
+
+          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={4}>
+            <CRow className="mt-1">
+              <CCard style={{ border: 'none' }}>
+                {/* Scrollable product cards */}
+                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                  <CRow className="g-1 mt-1">
+                    {productsData.map((product, index) => (
+                      <CCard className="h-78 mb-2" key={index}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            {/* Order information */}
+                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                              <CCol>
+                                <CIcon className="me-2" icon={cilUser} />
+                                <label className="me-2 fs-6">3 Oktober 2024</label>
+                                <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
+                                  Approved
+                                </CBadge>
+                                <label className="me-2 fw-light">X21000000000/20/20</label>
+                              </CCol>
+                            </div>
+
+                            {/* Product and user information */}
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>Form:</strong> ANDI (TEAM LEADER)
+                                  </div>
+                                  <div>
+                                    <strong>Grup:</strong> ASSY PRE TRIM 2 OPR RED
+                                  </div>
+                                  <div>
+                                    <small>Request at 11:19</small>
+                                  </div>
+                                </div>
+                              </CCol>
+                              <CCol xs="4">
+                                <label>{product.Material.description}</label>
+                                <br />
+                                <label className="fw-bold fs-6">Total: 4 Item</label>
+                              </CCol>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp {product.Material.price.toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-2">WBS : 20000000</label>
+                              </CCol>
+                            </CRow>
+
+                            {/* View Detail button */}
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end"></CCol>
+                            </CRow>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))}
+                  </CRow>
+                </div>
+
+                {/* Modal for product details */}
               </CCard>
             </CRow>
           </CTabPanel>

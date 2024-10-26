@@ -320,6 +320,7 @@ const AppHeader = () => {
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
 
+  
   const handleCategoryHeadClick = (categoryId) => {
     // Membuat query string berdasarkan input pencarian dan params default
     const params = new URLSearchParams({

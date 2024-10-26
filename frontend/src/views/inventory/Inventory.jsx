@@ -104,6 +104,11 @@ const Inventory = () => {
     //   matchMode: FilterMatchMode.EQUALS,
     // },
   })
+  const updateRemarksForZeroQuantity = (rowData) => {
+    // If 'Act' is 0, set 'Remarks' to "isi ya"
+    return rowData.quantityActualCheck === 0 ? 'isi ya' : rowData.remarks
+  }
+  
 
   const initFilters = () => {
     setFilters({
@@ -673,7 +678,7 @@ const Inventory = () => {
                   <Column field="Material.uom" header="UoM" sortable />
                   <Column field="Material.minStock" header="Min" sortable />
                   <Column field="Material.maxStock" header="Max" sortable />
-                  <Column field="quantityActualCheck" header="SoH" sortable />
+                  <Column field="quantityActualCheck" header="Act" sortable />
                   <Column
                     field="evaluation"
                     header="Eval."
@@ -681,7 +686,12 @@ const Inventory = () => {
                     bodyStyle={{ textAlign: 'center' }}
                     sortable
                   />
-                  <Column field="remarks" header="Remarks" sortable />
+                  <Column
+                    field="remarks"
+                    header="Remarks"
+                    body={(rowData) => updateRemarksForZeroQuantity(rowData)}
+                  
+                  />
 
                   {visibleColumns.map((col, index) => (
                     <Column

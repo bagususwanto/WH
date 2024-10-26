@@ -24,7 +24,7 @@ import {
   CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCart, cilCalendar } from '@coreui/icons'
+import { cilCart, cilCalendar, cilSearch } from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
@@ -48,6 +48,7 @@ const History = () => {
   const [visible, setVisible] = useState(false)
   const [dates, setDates] = useState([null, null]) // State for date range
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('') // New state for search query
   const [globalFilterValue, setGlobalFilterValue] = useState('') // State for global search filter
   const { getMyorder } = useOrderService()
   const { warehouse } = useContext(GlobalContext)
@@ -94,6 +95,36 @@ const History = () => {
         return 'primary'
     }
   }
+  // Function to handle search input changes and filter suggestions
+  const handleSearchInputChange = (e) => {
+    const query = e.target.value
+    setSearchQuery(query)
+
+    if (query) {
+      const results = searchProducts(query)
+      setFilteredSuggestions(results.slice(0, 5))
+      setShowRecentSearches(false)
+    } else {
+      setFilteredSuggestions([])
+      setShowRecentSearches(searchHistory.length > 0)
+    }
+  }
+
+  // Function to filter through productsData
+  const searchProducts = (query) => {
+    if (!query) return []
+    const lowerCaseQuery = query.toLowerCase()
+
+    return myOrderData.filter((product) => {
+      const productName = product.Detail_Orders[0].Inventory.Material.description?.toLowerCase()
+      const productTransaction = product.Detail_Orders[0].order.transactionNumber?.toLowerCase()
+
+      return (
+        (productName && productName.includes(lowerCaseQuery)) ||
+        (productTransaction && productTransaction.includes(lowerCaseQuery))
+      )
+    })
+  }
   // Search filter handler
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value)
@@ -125,58 +156,66 @@ const History = () => {
   ]
   return (
     <>
-      <CRow className="mt-1">
+      <CRow>
         <CCard style={{ border: 'none' }}>
           <CCardBody>
             <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+
+            <CRow>
+              {/* Left side: Search field */}
+              <CCol xs={3} className="py-2">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    padding: '4px 8px',
+                  }}
+                >
+                  {/* CoreUI Search Icon */}
+                  <CIcon
+                    icon={cilSearch}
+                    style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+                  />
+
+                  {/* Input Text Field */}
+                  <InputText
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    placeholder="Search"
+                    style={{ width: '100%', border: 'none', outline: 'none' }}
+                  />
+                </div>
+              </CCol>
+              <CCol xs={9} className="d-flex justify-content-end">
+                {/* Right side: Date picker */}
+                <div
+                  className="d-flex align-items-center border rounded p-2"
+                  style={{ width: '250px' }}
+                >
+                  <CIcon icon={cilCalendar} size="xl" className="px-1" />
+                  <Flatpickr
+                    value={dates}
+                    onChange={(selectedDates) => setDates(selectedDates)}
+                    options={{
+                      mode: 'range',
+                      dateFormat: 'Y-m-d',
+                      placeholder: 'Select a date range',
+                    }}
+                    className="border-0 fw-light"
+                    style={{
+                      outline: 'none',
+                      boxShadow: 'none',
+                      width: '100%', // Ensures Flatpickr fills container width
+                    }}
+                  />
+                </div>
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
-      </CRow>
-      <CRow>
-        {/* Left side: Search field */}
-        <CCol xs={5}>
-          <div className="d-flex flex-wrap">
-            <IconField iconPosition="left">
-              <InputIcon className="pi pi-search" />
-              <InputText
-                value={globalFilterValue}
-                onChange={onGlobalFilterChange}
-                placeholder="Search by Order Number or Product Description"
-                style={{ width: '100%', borderRadius: '5px' }}
-              />
-            </IconField>
-          </div>
-        </CCol>
-        <CCol xs={7} className="d-flex justify-content-end">
-          {/* Right side: Date picker */}
-          <div className="d-flex align-items-center ms-auto">
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                padding: '5px',
-              }}
-            >
-              <CIcon icon={cilCalendar} size="xl" className="px-1" />
-              <Flatpickr
-                value={dates}
-                onChange={(selectedDates) => setDates(selectedDates)}
-                options={{
-                  mode: 'range',
-                  dateFormat: 'Y-m-d',
-                  placeholder: 'Select a date range',
-                }}
-                className="border-0 fw-light"
-                style={{
-                  outline: 'none',
-                  boxShadow: 'none',
-                }}
-              />
-            </div>
-          </div>
-        </CCol>
       </CRow>
 
       <CTabs activeItemKey={activeTab}>
