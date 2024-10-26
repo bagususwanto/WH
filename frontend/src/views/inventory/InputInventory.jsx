@@ -32,11 +32,14 @@ const InputInventory = () => {
   const [storage, setStorage] = useState([])
   const [storageOptions, setStorageOptions] = useState([])
   const [inventory, setInventory] = useState([])
+  const [selectedPlantVal, setSelectedPlantVal] = useState(null)
+  const [selectedStorageVal, setSelectedStorageVal] = useState(null)
+  const [selectedAddressCodeVal, setSelectedAddressCodeVal] = useState(null)
   const [selectedMaterialNo, setSelectedMaterialNo] = useState(null)
   const [selectedDescription, setSelectedDescription] = useState(null)
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [selectedUom, setSelectedUom] = useState(null)
-  const [quantity, setQuantity] = useState(0) // State untuk quantity
+  const [quantity, setQuantity] = useState('') // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
   const [filteredInventory, setFilteredInventory] = useState([])
@@ -94,36 +97,53 @@ const InputInventory = () => {
     }
   }
 
-  const materialNoOptions = inventory.map((i) => ({
-    value: i.id,
-    label: i.Material.materialNo,
-  }))
-
-  const descriptionOptions = inventory.map((i) => ({
-    value: i.id,
-    label: i.Material.description,
-  }))
-
-  const addressOptions = inventory.map((i) => ({
-    value: i.id,
-    label: i.Address_Rack.addressRackName,
-  }))
-
-  const uomOptions = inventory.map((i) => ({
-    value: i.id,
-    label: i.Material.uom,
-  }))
-
   const plantOptions = plant.map((plant) => ({
     value: plant.id,
     label: plant.plantName,
   }))
 
   const handlePlantChange = (selectedPlant) => {
+    if (items && items.length > 0) {
+      MySwal.fire({
+        title: 'Warning',
+        html: `You have unsaved changes. <br/>
+    Please submit the current inventory before making any changes.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Submit',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleSubmit()
+        }
+      })
+      setSelectedPlantVal(selectedPlantVal)
+      return
+    }
+
+    if (!selectedPlant) {
+      // Jika dropdown di-clear
+      setSelectedPlantVal(null)
+      setPlantId(null)
+      setStorageOptions([]) // Kosongkan opsi storage jika plant di-clear
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setSelectedAddressCodeVal(null)
+      setSelectedStorageVal(null)
+      setQuantity('')
+      return
+    }
+
     setIsLoading(true) // Set loading to true when plant change starts
 
     if (selectedPlant) {
       setPlantId(selectedPlant.value)
+      setSelectedPlantVal(selectedPlant)
 
       const filteredStorages = storage
         .filter((s) => s.plantId === selectedPlant.value)
@@ -139,7 +159,21 @@ const InputInventory = () => {
   }
 
   const handleStorageChange = async (selectedStorage) => {
+    if (!selectedStorage) {
+      // Jika dropdown di-clear
+      setSelectedStorageVal(null)
+      setInventory([]) // Kosongkan inventory jika storage di-clear
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setSelectedAddressCodeVal(null)
+      setQuantity('')
+      return
+    }
+
     if (selectedStorage) {
+      setSelectedStorageVal(selectedStorage)
       setIsLoading(true) // Aktifkan loading
       try {
         await getInventories(selectedStorage.value)
@@ -147,6 +181,12 @@ const InputInventory = () => {
         console.error(error)
       } finally {
         setIsLoading(false) // Nonaktifkan loading setelah data ter-load
+        setSelectedMaterialNo(null)
+        setSelectedDescription(null)
+        setSelectedAddress(null)
+        setSelectedUom(null)
+        setSelectedAddressCodeVal(null)
+        setQuantity('')
       }
     } else {
       setInventory([])
@@ -189,7 +229,7 @@ const InputInventory = () => {
         setSelectedDescription(null)
         setSelectedAddress(null)
         setSelectedUom(null)
-        setQuantity(0)
+        setQuantity('')
       }
     } else {
       MySwal.fire({
@@ -315,7 +355,20 @@ const InputInventory = () => {
 
   // Fungsi untuk menangani perubahan pada Address Code
   const handleAddressCodeChange = (selectedAddressCode) => {
+    if (!selectedAddressCode) {
+      // Jika dropdown di-clear
+      setSelectedAddressCodeVal(null)
+      setFilteredInventory([]) // Kosongkan filteredInventory jika address code di-clear
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setQuantity('')
+      return
+    }
+
     if (selectedAddressCode) {
+      setSelectedAddressCodeVal(selectedAddressCode)
       // Filter data inventory berdasarkan address code yang dipilih
       const inventoryByAddress = inventory.filter(
         (item) => item.Address_Rack.addressRackName.slice(0, 2) === selectedAddressCode.label,
@@ -356,6 +409,7 @@ const InputInventory = () => {
                     id="plant"
                     onChange={handlePlantChange}
                     styles={customStyles}
+                    value={selectedPlantVal}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3}>
@@ -369,6 +423,7 @@ const InputInventory = () => {
                     id="storage"
                     onChange={handleStorageChange}
                     styles={customStyles}
+                    value={selectedStorageVal}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3}>
@@ -389,6 +444,7 @@ const InputInventory = () => {
                       )}
                     id="address"
                     onChange={handleAddressCodeChange}
+                    value={selectedAddressCodeVal}
                   />
                 </CCol>
               </CRow>
@@ -479,7 +535,7 @@ const InputInventory = () => {
                     aria-describedby="quantity"
                     required
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    value={quantity == 0 ? '' : quantity}
+                    value={quantity}
                   />
                 </CCol>
                 <CCol
