@@ -400,11 +400,13 @@ const Material = () => {
           uom: '',
           price: '',
           type: '',
-          category: '',
-          supplier: '',
+          mrpType: '',
           minStock: '',
           maxStock: '',
           img: '',
+          minOrder: '',
+          category: '',
+          supplier: '',
         },
       ]
 

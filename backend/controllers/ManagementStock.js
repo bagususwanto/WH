@@ -30,28 +30,22 @@ export const getInventory = async (req, res) => {
         include: [
           {
             model: Material,
-            where: { flag: 1 },
-            include: [
-              {
-                model: Category,
-                where: { flag: 1 },
-              },
-              {
-                model: Supplier,
-                where: { flag: 1 },
-              },
-            ],
+            attributes: ["id", "materialNo", "description", "uom", "type"],
+            where: { flag: 1, type: "DIRECT" },
           },
           {
             model: AddressRack,
+            attributes: ["id", "addressRackName"],
             where: { flag: 1 },
             include: [
               {
                 model: Storage,
+                attributes: ["id", "storageName"],
                 where: { flag: 1, id: storageId },
                 include: [
                   {
                     model: Plant,
+                    attributes: ["id", "plantName"],
                     where: { flag: 1 },
                   },
                 ],
@@ -386,28 +380,22 @@ export const getAllInventory = async (req, res) => {
         include: [
           {
             model: Material,
+            attributes: ["id", "materialNo", "description", "uom", "minStock", "maxStock", "type"],
             where: { flag: 1 },
-            include: [
-              {
-                model: Category,
-                where: { flag: 1 },
-              },
-              {
-                model: Supplier,
-                where: { flag: 1 },
-              },
-            ],
           },
           {
             model: AddressRack,
+            attributes: ["id", "addressRackName"],
             where: { flag: 1 },
             include: [
               {
                 model: Storage,
+                attributes: ["id", "storageName"],
                 where: { flag: 1 },
                 include: [
                   {
                     model: Plant,
+                    attributes: ["id", "plantName"],
                     where: { flag: 1 },
                   },
                 ],
@@ -478,19 +466,23 @@ export const submitInventory = async (req, res) => {
 
     await Promise.all(updatePromises);
 
+    // Membuat log untuk setiap item yang di-update
+    const logEntries = items.map((item) => ({
+      inventoryId: item.id,
+      typeLogEntry: "update inventory",
+      quantity: item.quantity,
+      userId: req.user.userId,
+      detailOrder: null,
+      incomingId: null,
+    }));
+
+    // Menyimpan log entries ke database
+    await LogEntry.bulkCreate(logEntries);
+
     // Menggunakan for...of dengan await jika setQuantityActualCheck adalah async
     for (const inventory of inventories) {
       if (inventory) {
         await setQuantityActualCheck(inventory.materialId, inventory.addressId);
-
-        await LogEntry.create({
-          inventoryId: inventory.id,
-          typeLogEntry: "update inventory",
-          quantity: inventory.quantityActual,
-          userId: req.user.userId,
-          detailOrder: null,
-          incomingId: null,
-        });
       }
     }
 
