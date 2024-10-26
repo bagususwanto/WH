@@ -39,7 +39,7 @@ const InputInventory = () => {
   const [quantity, setQuantity] = useState(0) // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
-  const [previousPlant, setPreviousPlant] = useState(null)
+  const [filteredInventory, setFilteredInventory] = useState([])
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -313,6 +313,31 @@ const InputInventory = () => {
     })
   }
 
+  // Fungsi untuk menangani perubahan pada Address Code
+  const handleAddressCodeChange = (selectedAddressCode) => {
+    if (selectedAddressCode) {
+      // Filter data inventory berdasarkan address code yang dipilih
+      const inventoryByAddress = inventory.filter(
+        (item) => item.Address_Rack.addressRackName.slice(0, 2) === selectedAddressCode.label,
+      )
+      setFilteredInventory(inventoryByAddress) // Simpan data yang sudah difilter ke state
+    } else {
+      // Reset jika tidak ada address code yang dipilih
+      setFilteredInventory([]) // Set empty jika tidak ada address code
+    }
+  }
+
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      borderColor: '#b22e2e', // Ganti dengan warna border yang diinginkan
+      boxShadow: 'none', // Menghilangkan efek shadow
+      '&:hover': {
+        borderColor: '#b22e2e', // Warna border saat hover
+      },
+    }),
+  }
+
   return (
     <CRow>
       <CCol>
@@ -330,6 +355,7 @@ const InputInventory = () => {
                     options={plantOptions}
                     id="plant"
                     onChange={handlePlantChange}
+                    styles={customStyles}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3}>
@@ -342,6 +368,27 @@ const InputInventory = () => {
                     options={storageOptions}
                     id="storage"
                     onChange={handleStorageChange}
+                    styles={customStyles}
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3}>
+                  <CFormLabel htmlFor="address">Address Code</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={inventory
+                      .map((i) => ({
+                        value: i.id,
+                        label: i.Address_Rack.addressRackName.slice(0, 2),
+                      }))
+                      .filter(
+                        (option, index, self) =>
+                          index === self.findIndex((o) => o.label === option.label),
+                      )}
+                    id="address"
+                    onChange={handleAddressCodeChange}
                   />
                 </CCol>
               </CRow>
@@ -353,7 +400,12 @@ const InputInventory = () => {
                     classNamePrefix="select"
                     isLoading={isLoading}
                     isClearable={isClearable}
-                    options={descriptionOptions}
+                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
+                      (i) => ({
+                        value: i.id,
+                        label: i.Material.description,
+                      }),
+                    )}
                     id="description"
                     onChange={handleDescriptionChange}
                     value={selectedDescription}
@@ -366,7 +418,12 @@ const InputInventory = () => {
                     classNamePrefix="select"
                     isLoading={isLoading}
                     isClearable={isClearable}
-                    options={materialNoOptions}
+                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
+                      (i) => ({
+                        value: i.id,
+                        label: i.Material.materialNo,
+                      }),
+                    )}
                     id="materialNo"
                     onChange={handleMaterialNoChange}
                     value={selectedMaterialNo}
@@ -379,7 +436,12 @@ const InputInventory = () => {
                     classNamePrefix="select"
                     isLoading={isLoading}
                     isClearable={isClearable}
-                    options={addressOptions}
+                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
+                      (i) => ({
+                        value: i.id,
+                        label: i.Address_Rack.addressRackName,
+                      }),
+                    )}
                     id="address"
                     onChange={setSelectedAddress}
                     value={selectedAddress}
@@ -393,7 +455,12 @@ const InputInventory = () => {
                     classNamePrefix="select"
                     isLoading={isLoading}
                     isClearable={isClearable}
-                    options={uomOptions}
+                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
+                      (i) => ({
+                        value: i.id,
+                        label: i.Material.uom,
+                      }),
+                    )}
                     id="uom"
                     onChange={setSelectedUom}
                     value={selectedUom}
