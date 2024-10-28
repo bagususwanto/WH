@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   CCard,
   CCardHeader,
@@ -56,6 +56,7 @@ const InputInventory = () => {
   const [editId, setEditId] = useState(null) // Untuk menyimpan id item yang sedang di-edit
   const [newQuantity, setNewQuantity] = useState('')
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false)
+  const quantityInputRef = useRef(null) // Reference for quantity input field
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -134,7 +135,6 @@ const InputInventory = () => {
         }
       })
       setSelectedPlantVal(selectedPlantVal)
-      return
     }
 
     if (!selectedPlant) {
@@ -149,6 +149,8 @@ const InputInventory = () => {
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
       setQuantity('')
+      setInventory([])
+      setFilteredInventory([])
       return
     }
 
@@ -424,14 +426,40 @@ const InputInventory = () => {
   }
 
   const handleScan = (result) => {
-    console.log('Scan Result:', result)
+    if (!selectedPlantVal) {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Plant is required, please select a dropdown plant',
+        icon: 'error',
+      })
+
+      return
+    }
+
+    if (!selectedStorageVal) {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Storage is required, please select a dropdown storage',
+        icon: 'error',
+      })
+
+      return
+    }
+
+    if (result[0].rawValue === null) {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Qr code is empty, please scan again',
+        icon: 'error',
+      })
+
+      return
+    }
 
     // Mencari item yang sesuai dengan materialNo yang dipindai
     const selectedMaterialData = inventory.find(
       (item) => item.Material.materialNo === result[0].rawValue,
     )
-
-    console.log('selectedData', selectedMaterialData)
 
     if (selectedMaterialData) {
       // Mengatur selectedMaterialNo dengan objek yang berisi value dan label
@@ -441,14 +469,40 @@ const InputInventory = () => {
       }
 
       setSelectedMaterialNo(selectedOption) // Simpan hasil pemindaian ke state
+      handleMaterialNoChange(selectedOption)
+
+      setIsQrScannerOpen(false)
+
+      MySwal.fire({
+        title: 'Success!',
+        text: 'Material found, please input quantity',
+        icon: 'success',
+        timer: 2000, 
+        timerProgressBar: true, // Show progress bar
+        didClose: () => {
+          quantityInputRef.current?.focus() // Focus on quantity input after closing
+        },
+      })
+
+      return
+    } else {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Material not found, please check the QR code',
+        icon: 'error',
+      })
+
+      return
     }
   }
 
-  useEffect(() => {
-    console.log('materialNo now', selectedMaterialNo)
-  }, [selectedMaterialNo])
-
   const handleError = (error) => {
+    setIsQrScannerOpen(false)
+    MySwal.fire({
+      title: 'Error!',
+      text: 'Error on scan, please scan again',
+      icon: 'error',
+    })
     console.error('Error saat scan QR: ', error)
   }
 
@@ -599,6 +653,7 @@ const InputInventory = () => {
               <CRow className="mt-3">
                 <CCol xs={12} sm={6} md={3}>
                   <CFormInput
+                    ref={quantityInputRef}
                     type="number"
                     id="quantity"
                     label="Quantity"
