@@ -48,12 +48,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Mengambil path direktori saat ini
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+// Mengambil path direktori saat ini dan menghilangkan duplicate C:
+let __dirname = path.dirname(new URL(import.meta.url).pathname);
+if (process.platform === "win32") {
+  __dirname = __dirname.substring(1); // Removes extra leading slash on Windows
+}
 
 // Mengambil sertifikat dan kunci
-const privateKey = fs.readFileSync(path.resolve("C:\\Project\\wh\\backend\\server.key"), "utf8");
-const certificate = fs.readFileSync(path.resolve("C:\\Project\\wh\\backend\\server.crt"), "utf8");
+const privateKey = fs.readFileSync(path.join(__dirname, "certificates", "server.key"), "utf8");
+const certificate = fs.readFileSync(path.join(__dirname, "certificates", "server.crt"), "utf8");
 const credentials = { key: privateKey, cert: certificate };
 
 // Middleware
