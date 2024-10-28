@@ -12,13 +12,23 @@ import {
   CTableBody,
   CTableDataCell,
   CTableCaption,
+  CFormInput,
+  CButton,
+  CFormLabel,
+  CForm,
+  CTable,
+  CInputGroup,
+  CInputGroupText,
+  CModal,
+  CModalHeader,
+  CModalBody,
 } from '@coreui/react'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import { CFormInput, CButton, CFormLabel, CForm, CTable } from '@coreui/react'
 import Select from 'react-select'
 import { CIcon } from '@coreui/icons-react'
-import { cilXCircle } from '@coreui/icons'
+import { cilPencil, cilQrCode, cilTrash, cilXCircle } from '@coreui/icons'
+import { Scanner } from '@yudiel/react-qr-scanner'
 
 import useMasterDataService from '../../services/MasterDataService'
 import useManageStockService from '../../services/ManageStockService'
@@ -43,6 +53,9 @@ const InputInventory = () => {
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
   const [filteredInventory, setFilteredInventory] = useState([])
+  const [editId, setEditId] = useState(null) // Untuk menyimpan id item yang sedang di-edit
+  const [newQuantity, setNewQuantity] = useState('')
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -391,6 +404,54 @@ const InputInventory = () => {
     }),
   }
 
+  // Fungsi untuk memulai edit quantity
+  const handleEditClick = (item) => {
+    setEditId(item.id)
+    setNewQuantity(item.quantity) // Mengisi dengan nilai quantity saat ini
+  }
+
+  // Fungsi untuk menyimpan perubahan quantity
+  const handleSaveQuantity = (id) => {
+    setItems((prevItems) =>
+      prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)),
+    )
+    setEditId(null) // Keluar dari mode edit setelah menyimpan
+    setNewQuantity('') // Reset input
+  }
+
+  const handleQrCode = () => {
+    setIsQrScannerOpen(true)
+  }
+
+  const handleScan = (result) => {
+    console.log('Scan Result:', result)
+
+    // Mencari item yang sesuai dengan materialNo yang dipindai
+    const selectedMaterialData = inventory.find(
+      (item) => item.Material.materialNo === result[0].rawValue,
+    )
+
+    console.log('selectedData', selectedMaterialData)
+
+    if (selectedMaterialData) {
+      // Mengatur selectedMaterialNo dengan objek yang berisi value dan label
+      const selectedOption = {
+        value: selectedMaterialData.id, // Mengambil ID sebagai value
+        label: selectedMaterialData.Material.materialNo, // Mengambil materialNo sebagai label
+      }
+
+      setSelectedMaterialNo(selectedOption) // Simpan hasil pemindaian ke state
+    }
+  }
+
+  useEffect(() => {
+    console.log('materialNo now', selectedMaterialNo)
+  }, [selectedMaterialNo])
+
+  const handleError = (error) => {
+    console.error('Error saat scan QR: ', error)
+  }
+
   return (
     <CRow>
       <CCol>
@@ -469,21 +530,32 @@ const InputInventory = () => {
                 </CCol>
                 <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
-                  <Select
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isLoading={isLoading}
-                    isClearable={isClearable}
-                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
-                      (i) => ({
-                        value: i.id,
-                        label: i.Material.materialNo,
-                      }),
-                    )}
-                    id="materialNo"
-                    onChange={handleMaterialNoChange}
-                    value={selectedMaterialNo}
-                  />
+                  <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
+                    <Select
+                      className="basic-single"
+                      classNamePrefix="select"
+                      isLoading={isLoading}
+                      isClearable={isClearable}
+                      options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
+                        (i) => ({
+                          value: i.id,
+                          label: i.Material.materialNo,
+                        }),
+                      )}
+                      id="materialNo"
+                      onChange={handleMaterialNoChange}
+                      value={selectedMaterialNo}
+                      styles={{ container: (provided) => ({ ...provided, width: '100%' }) }}
+                    />
+                    <CInputGroupText id="addon-wrapping">
+                      <CIcon
+                        icon={cilQrCode}
+                        size="xl"
+                        style={{ fontSize: '80px', cursor: 'pointer', color: 'black' }} // Memperbesar ukuran dan ubah warna
+                        onClick={handleQrCode}
+                      />
+                    </CInputGroupText>
+                  </CInputGroup>
                 </CCol>
                 <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="address">Address</CFormLabel>
@@ -548,6 +620,19 @@ const InputInventory = () => {
                     Add
                   </CButton>
                 </CCol>
+
+                {/* Modal untuk QR Scanner */}
+                <CModal visible={isQrScannerOpen} onClose={() => setIsQrScannerOpen(false)}>
+                  <CModalHeader closeButton>Scan QR Code</CModalHeader>
+                  <CModalBody>
+                    <Scanner
+                      onError={handleError}
+                      constraints={{ facingMode: 'environment' }}
+                      onScan={handleScan}
+                      style={{ width: '100%' }}
+                    />
+                  </CModalBody>
+                </CModal>
               </CRow>
               <hr />
               <CRow className="mt-4">
@@ -572,10 +657,35 @@ const InputInventory = () => {
                         <CTableDataCell>{item.description}</CTableDataCell>
                         <CTableDataCell>{item.address}</CTableDataCell>
                         <CTableDataCell>{item.uom}</CTableDataCell>
-                        <CTableDataCell>{item.quantity}</CTableDataCell>
+                        <CTableDataCell>
+                          {editId === item.id ? (
+                            <input
+                              type="number"
+                              value={newQuantity}
+                              onChange={(e) => setNewQuantity(e.target.value)}
+                              onBlur={() => handleSaveQuantity(item.id)} // Simpan saat kehilangan fokus
+                              autoFocus
+                              style={{ width: '80px', padding: '4px', fontSize: '14px' }}
+                            />
+                          ) : (
+                            <span
+                              onClick={() => handleEditClick(item)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {item.quantity}
+                            </span>
+                          )}
+                        </CTableDataCell>
                         <CTableDataCell>
                           <CIcon
-                            icon={cilXCircle}
+                            className="me-3"
+                            icon={cilPencil}
+                            size="xl"
+                            style={{ fontSize: '80px', cursor: 'pointer', color: 'black' }} // Memperbesar ukuran dan ubah warna
+                            onClick={() => handleEditClick(item)}
+                          />
+                          <CIcon
+                            icon={cilTrash}
                             size="xl"
                             style={{ fontSize: '80px', cursor: 'pointer', color: 'red' }} // Memperbesar ukuran dan ubah warna
                             onClick={() => handleDeleteInventory(index)}

@@ -2,6 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import https from "https";
+import fs from "fs";
+import path from "path";
 import categoryRouter from "./routes/CategoryRouter.js";
 import supplierRouter from "./routes/SupplierRouter.js";
 import materialRouter from "./routes/MaterialRouter.js";
@@ -35,7 +38,7 @@ import cartRouter from "./routes/CartRouter.js";
 import wishlistRouter from "./routes/WishlistRouter.js";
 import myOrderRouter from "./routes/MyOrderRouter.js";
 import orderRouter from "./routes/OrderRouter.js";
-import userWarehouseROuter from "./routes/UserWarehouseRouter.js";
+import userWarehouseRouter from "./routes/UserWarehouseRouter.js";
 import approvalRouter from "./routes/ApprovalRouter.js";
 import "./models/index.js";
 import "./jobs/CronJob.js";
@@ -45,15 +48,26 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors({ credentials: true, origin: ["http://localhost:3000", "http://localhost:4000"] }));
+// Mengambil path direktori saat ini
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+// Mengambil sertifikat dan kunci
+const privateKey = fs.readFileSync(path.resolve("C:\\Project\\wh\\backend\\server.key"), "utf8");
+const certificate = fs.readFileSync(path.resolve("C:\\Project\\wh\\backend\\server.crt"), "utf8");
+const credentials = { key: privateKey, cert: certificate };
+
+// Middleware
+app.use(
+  cors({ credentials: true, origin: ["http://10.65.133.99:3000", "http://localhost:4000", "http://localhost:3000", "https://twiis-toyota.web.app"] })
+);
 app.use(cookieParser());
 app.use(express.json());
 
-// auth router
+// Auth router
 app.use("/api", authRouter);
 app.use(verifyToken);
 
-// master data router
+// Master data router
 app.use("/api", categoryRouter);
 app.use("/api", supplierRouter);
 app.use("/api", materialRouter);
@@ -77,9 +91,9 @@ app.use("/api", organizationRouter);
 app.use("/api", serviceHoursRouter);
 app.use("/api", userPlantRouter);
 app.use("/api", divisionPlantRouter);
-app.use("/api", userWarehouseROuter);
+app.use("/api", userWarehouseRouter);
 
-// management stock router
+// Management stock router
 app.use("/api", managementStockRouter);
 
 // eCommerce router
@@ -89,16 +103,19 @@ app.use("/api", wishlistRouter);
 app.use("/api", myOrderRouter);
 app.use("/api", orderRouter);
 
-// approval router
+// Approval router
 app.use("/api", approvalRouter);
 
-// incoming router
+// Incoming router
 app.use("/api", incomingRouter);
 
-// upload router
+// Upload router
 app.use("/api", uploadRouter);
 
-// chart router
+// Chart router
 app.use("/api", chartRouter);
 
-app.listen(port, () => console.log(`Server running at port ${port}`));
+// Membuat server HTTPS
+https.createServer(credentials, app).listen(port, () => {
+  console.log(`Server running at https://localhost:${port}`);
+});
