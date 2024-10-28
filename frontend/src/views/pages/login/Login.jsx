@@ -80,7 +80,7 @@ const Login = () => {
   >
       <CContainer>
         <CRow className="justify-content-center">
-          <CCol md={8}>
+          <CCol md={6}>
             <CCardGroup>
               <CCard className="p-4">
                 <CCardBody>
@@ -111,7 +111,7 @@ const Login = () => {
                       />
                     </CInputGroup>
                     <CRow>
-                      <CCol xs={6}>
+                      <CCol xs={8}>
                         <CButton color="primary" className="px-4" type="submit">
                           Login
                         </CButton>
@@ -120,7 +120,7 @@ const Login = () => {
                   </CForm>
                 </CCardBody>
               </CCard>
-              <CCard className="text-white bg-white py-5  px-1" style={{ width: '42%' }}>
+              <CCard className="text-white bg-white py-5  px-1" style={{ width: '%' }}>
                 <CCardBody className="text-center">
                   <img src={logo} alt="Logo" className="sidebar-brand-full" height={80} />
 

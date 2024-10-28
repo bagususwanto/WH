@@ -53,16 +53,19 @@ const AppHeader = () => {
   return (
     <CHeader position="sticky" className={headerClass} ref={headerRef}>
       <CContainer className="border-bottom px-1" fluid>
-        <CCol xs={1}>
-          <CHeaderToggler onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}>
-            <CIcon icon={cilMenu} size="lg" />
-          </CHeaderToggler>
-        </CCol>
-        <CCol xs={1} className="px-1">
-          <a href="/" className="d-flex align-items-center">
-            <img src="/src/assets/brand/TWIIS-NEW.png" alt="Logo" style={{ height: '40px' }} />
-          </a>
-        </CCol>
+        <CHeaderToggler onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}>
+          <CIcon icon={cilMenu} size="lg" />
+        </CHeaderToggler>
+
+        <a href="/" className="d-flex align-items-center">
+          <img
+            src="/src/assets/brand/TWIIS-NEW.png"
+            alt="Logo"
+            style={{ height: '40px' }}
+            className="px-5"
+          />
+        </a>
+
         <CCol sm={2}></CCol>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
         <CHeaderNav className="ms-auto">

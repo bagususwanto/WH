@@ -92,7 +92,7 @@ export const getInventoryDashboard = async (req, res) => {
       ],
       where: whereCondition,
       attributes: [
-        [Sequelize.literal(`LEFT("Material"."description", ${dynamicLength})`), "name"], // Use dynamicLength here
+        [Sequelize.literal(`LEFT("Material"."materialNO", ${dynamicLength})`), "name"], // Use dynamicLength here
         [Sequelize.literal(rumus), "stock"], // Calculate stock using dynamic formula
         "quantityActualCheck",
       ],
