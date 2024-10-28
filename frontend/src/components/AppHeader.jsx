@@ -15,6 +15,7 @@ import { cilBell, cilMenu } from '@coreui/icons'
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
+import logo from 'src/assets/brand/TWIIS-NEW.png'
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -56,16 +57,7 @@ const AppHeader = () => {
         <CHeaderToggler onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}>
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
-
-        <a href="/" className="d-flex align-items-center">
-          <img
-            src="/src/assets/brand/TWIIS-NEW.png"
-            alt="Logo"
-            style={{ height: '40px' }}
-            className="px-5"
-          />
-        </a>
-
+        <img src={logo} alt="Logo" className="sidebar-brand-full" height={50} />
         <CCol sm={2}></CCol>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
         <CHeaderNav className="ms-auto">

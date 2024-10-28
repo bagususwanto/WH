@@ -44,7 +44,7 @@ const Inventory = () => {
   const [loadingSave, setLoadingSave] = useState(false)
   const [plantId, setPlantId] = useState()
   const [plantName, setPlantName] = useState()
-
+  const [remarks, setRemarks] = useState('') // State to store remarks entered in CModal
   const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
@@ -85,8 +85,23 @@ const Inventory = () => {
       sortable: true,
     },
     { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
+    {
+      field: 'Filling Note',
+      header: 'Note',
+      sortable: true,
+      body: (rowData) => {
+        const { status, severity } = getNoteStatus(rowData);
+        return <Tag value={status} severity={severity} />;
+      }
+    }
   ]
-
+  const getNoteStatus = (rowData) => {
+    const status = rowData.quantityActual ? "ALREADY FILLED" : "NOT FILLED YET";
+    const severity = rowData.quantityActual ? getSeverity('ok') : getSeverity('over');
+    
+    return { status, severity };
+  };
+  
   const [visibleColumns, setVisibleColumns] = useState([])
 
   const [filters, setFilters] = useState({
@@ -104,11 +119,6 @@ const Inventory = () => {
     //   matchMode: FilterMatchMode.EQUALS,
     // },
   })
-  const updateRemarksForZeroQuantity = (rowData) => {
-    // If 'Act' is 0, set 'Remarks' to "isi ya"
-    return rowData.quantityActualCheck === 0 ? 'isi ya' : rowData.remarks
-  }
-  
 
   const initFilters = () => {
     setFilters({
@@ -302,7 +312,28 @@ const Inventory = () => {
     _filters['Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
   }
-
+  const handleSave = async () => {
+    setLoadingSave(true);
+    setModalInventory(false);
+    try {
+      if (!plantId) {
+        setLoadingSave(false);
+        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error');
+        return;
+      }
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId);
+  
+      await updateInventoryById(editData.id, warehouseId.id, editData);  // editData now contains updated remarks
+      fetchInventory();
+      MySwal.fire('Updated!', 'Data has been updated.', 'success');
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    } finally {
+      setLoadingSave(false);
+      setModalInventory(false);
+    }
+  };
+  
   const onGlobalFilterChange = (e) => {
     const value = e.target.value
     let _filters = { ...filters }
@@ -348,7 +379,9 @@ const Inventory = () => {
 
     setVisibleData(filteredData)
   }
-
+  const updateRemarks = (rowData) => {
+    return rowData.id === editData.id ? editData.remarks : rowData.remarks;
+  };
   const renderHeader = () => {
     return (
       <div>
@@ -441,28 +474,6 @@ const Inventory = () => {
   const handleInputInventory = (rowData) => {
     setEditData(rowData)
     setModalInventory(true)
-  }
-
-  const handleSave = async () => {
-    setLoadingSave(true)
-    setModalInventory(false)
-    try {
-      if (!plantId) {
-        setLoadingSave(false)
-        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
-        return
-      }
-      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
-
-      await updateInventoryById(editData.id, warehouseId.id, editData)
-      fetchInventory()
-      MySwal.fire('Updated!', 'Data has been updated.', 'success')
-    } catch (error) {
-      console.error('Error fetching inventory:', error)
-    } finally {
-      setLoadingSave(false)
-      setModalInventory(false)
-    }
   }
 
   const statusBodyTemplate = (rowData) => {
@@ -689,8 +700,7 @@ const Inventory = () => {
                   <Column
                     field="remarks"
                     header="Remarks"
-                    body={(rowData) => updateRemarksForZeroQuantity(rowData)}
-                  
+                    body={(rowData) => updateRemarks(rowData)}
                   />
 
                   {visibleColumns.map((col, index) => (
@@ -772,16 +782,14 @@ const Inventory = () => {
             </CCol>
           </CRow>
           <CRow>
-            <CCol>
-              <CCol md={12}>
-                <CFormTextarea
-                  type="text"
-                  value={editData?.remarks || ''}
-                  onChange={(e) => setEditData({ ...editData, remarks: e.target.value })}
-                  label="Remarks"
-                  className="mb-3"
-                />
-              </CCol>
+            <CCol md={12}>
+              <CFormTextarea
+                type="text"
+                value={editData.remarks || ''} // Directly use editData.remarks for real-time binding
+                onChange={(e) => setEditData({ ...editData, remarks: e.target.value })} // Update editData
+                label="Remarks"
+                className="mb-3"
+              />
             </CCol>
           </CRow>
         </CModalBody>
