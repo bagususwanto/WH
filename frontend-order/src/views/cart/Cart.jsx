@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-
+import AppFooter from '../../components/AppFooter'; // Import your AppFooter
 import '../../scss/home.scss'
+import '../../scss/stickyfooter.scss';
 import {
   CCard,
   CCardBody,
@@ -39,8 +40,8 @@ import useMasterDataService from '../../services/MasterDataService'
 import useCartService from '../../services/CartService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 // Icon mapping based on your category names
 
@@ -58,7 +59,7 @@ const Cart = () => {
   const [quantities, setQuantities] = useState({})
 
   const [modalVisible, setModalVisible] = useState(false)
-  const MySwal = withReactContent(Swal);
+  const MySwal = withReactContent(Swal)
 
   const [currentProducts, setCurrentProducts] = useState([])
   const { warehouse } = useContext(GlobalContext)
@@ -200,24 +201,24 @@ const Cart = () => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, proceed',
       cancelButtonText: 'No, cancel',
-      reverseButtons: true,  // This option will reverse the positions of the buttons
+      reverseButtons: true, // This option will reverse the positions of the buttons
     }).then((result) => {
       if (result.isConfirmed) {
         // Jika pengguna mengonfirmasi, panggil fungsi checkout
-        checkouts();
+        checkouts()
       }
-    });
-  };
+    })
+  }
 
   const totalQuantity = cartData.reduce((acc, product) => {
     // Check if the product's inventoryId has already been added to the accumulator
     if (!acc.includes(product.inventoryId)) {
-      acc.push(product.inventoryId);
+      acc.push(product.inventoryId)
     }
-    return acc;
-  }, []).length; // Return the length of the array which holds distinct inventoryIds
-  
-  console.log(totalQuantity);
+    return acc
+  }, []).length // Return the length of the array which holds distinct inventoryIds
+
+  console.log(totalQuantity)
   const handleCancel = () => {
     setModalVisible(false)
   }
@@ -315,17 +316,18 @@ const Cart = () => {
               </CCard>
             ))}
           </CRow>
-
-          {/* Sticky Footer */}
-          <div className="p-3 bg-light shadow-sm sticky-bottom d-flex justify-content-between align-items-center">
-          <h5>Total Item: {totalQuantity}</h5>
-            <CButton color="primary" onClick={handleCheckout}>
-              Checkout
-            </CButton>
-         
-          </div>
         </CCard>
       </CRow>
+
+        {/* Sticky Footer */}
+        <div className="sticky-footer">
+        <h5>Total Item: {totalQuantity}</h5>
+        <CButton color="primary" onClick={handleCheckout}>
+          Checkout
+        </CButton>
+      </div>
+
+      
     </>
   )
 }

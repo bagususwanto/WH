@@ -30,22 +30,11 @@ import { DataTable } from 'primereact/datatable'
 import { BarChart } from '@mui/x-charts/BarChart'
 import useManageStockService from '../../services/ManageStockService'
 import useDashboardService from '../../services/DashboardService'
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 //import '../../scss/customchart.scss'
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const MySwal = withReactContent(Swal)
 
@@ -240,86 +229,7 @@ const Dashboard = () => {
     }))
   }
 
-  const prepareChartData = (data, chartTitle, shiftLevel) => ({
-    labels: data.map((item) => item.name),
-    datasets: [
-      {
-        label: chartTitle,
-        data: data.map((item) => item.stock),
-        backgroundColor: 'skyblue',
-      },
-    ],
-    shiftLevel, // Used to draw red line
-  })
-
-  const chartOptions = (minValue, maxValue, referenceLineValue) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        min: minValue,
-        max: maxValue,
-        ticks: {
-          font: {
-            size: 14,
-          },
-        },
-        title: {
-          display: true,
-          text: 'Stock Levels',
-          font: {
-            size: 16,
-          },
-        },
-      },
-      x: {
-        ticks: {
-          font: {
-            size: 14,
-          },
-        },
-        title: {
-          display: true,
-          text: 'Inventory Items',
-          font: {
-            size: 16,
-          },
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-        labels: {
-          font: {
-            size: 14,
-          },
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (tooltipItem) => `Stock: ${tooltipItem.raw.toLocaleString()}`,
-        },
-      },
-      annotation: {
-        annotations: {
-          line: {
-            type: 'line',
-            yMin: referenceLineValue,
-            yMax: referenceLineValue,
-            borderColor: 'red',
-            borderWidth: 2,
-            label: {
-              enabled: true,
-              content: `Reference: ${referenceLineValue}`,
-              position: 'end',
-              color: 'red',
-            },
-          },
-        },
-      },
-    },
-  });
+  
   //Critical Grafik
 
   return (
@@ -364,25 +274,194 @@ const Dashboard = () => {
             {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
           </CCardHeader>
           <CCardBody>
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
-              <Bar
-                data={
-                  selectedChart === 'critical'
-                    ? prepareChartData(inventoriescritical, 'Critical Stock', 2)
-                    : selectedChart === 'lowest'
-                      ? prepareChartData(inventorieslowest, 'Low Stock', 1)
-                      : prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)
-                }
-                options={
-                  selectedChart === 'critical'
-                    ? chartOptions(0, 2, 2) // Set min 0, max 2, reference line at 2 for critical
-                    : selectedChart === 'lowest'
-                      ? chartOptions(0, 1, 1) // Set min 0, max 1, reference line at 1 for lowest
-                      : chartOptions(0, 5, 5) // Set min 0, max 5, reference line at 5 for overflow
-                }
-                height={300}
-              />
-            </Box>
+            <ThemeProvider theme={darkTheme}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '100%',
+                  height: { xs: 180, sm: 280, md: 380 },
+                  marginBottom: '3rem', // Add margin-bottom to create space below the chart
+                  marginTop: '3rem', // Add margin-bottom to create space below the chart
+                }}
+              >
+                {selectedChart === 'critical' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventoriescritical)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Critical Stock',
+                        value: 'stock',
+                        type: 'bar',
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        valueFormatter: (value, context) =>
+                          context.location === 'tooltip'
+                            ? inventoriescritical.find((item) => item.name === value)?.Material
+                                ?.description || value
+                            : value,
+                        categoryGapRatio: 0.2, // Gap between categories
+                        barGapRatio: 0, // Gap between bars in the same category
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 2,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    width={1400}
+                    height={460}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={2}
+                      label="2 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
+                {selectedChart === 'lowest' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventorieslowest)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Low Stock',
+                        value: 'stock',
+                        type: 'bar',
+                        color: 'skyblue',
+                        showLabel: true, // Ensures the label is visible
+                        labelStyle: {
+                          position: 'top', // Position label above the bar
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                        },
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        valueFormatter: (value, context) =>
+                          context.location === 'tooltip'
+                            ? inventorieslowest.find((item) => item.name === value)?.Material
+                                ?.description || value
+                            : value,
+                        categoryGapRatio: 0.2, // Gap between categories
+                        barGapRatio: 0, // Gap between bars in the same category
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 1,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    width={1400}
+                    height={500}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={1}
+                      label="1 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
+                {selectedChart === 'overflow' && (
+                  <BarChart
+                    dataset={prepareBarChartData1(inventoriesoverflow)}
+                    series={[
+                      {
+                        dataKey: 'stock',
+                        stack: 'Stock Difference',
+                        label: 'Overflow Stock',
+                        value: 'stock',
+                        type: 'bar',
+                        color: 'lightblue',
+                      },
+                    ]}
+                    xAxis={[
+                      {
+                        scaleType: 'band',
+                        dataKey: 'name',
+                        valueFormatter: (value, context) =>
+                          context.location === 'tooltip'
+                            ? inventoriesoverflow.find((item) => item.name === value)?.Material
+                                ?.description || value
+                            : value,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    yAxis={[
+                      {
+                        type: 'number',
+                        min: 0,
+                        max: 7,
+                        tick: {
+                          sx: {
+                            fontSize: '20px',
+                          },
+                        },
+                      },
+                    ]}
+                    width={1400}
+                    height={500}
+                    barLabel="value"
+                  >
+                    <ChartsReferenceLine
+                      y={5}
+                      label="5 Shift"
+                      labelAlign="end"
+                      lineStyle={{ stroke: 'red' }}
+                    />
+                    <ChartsXAxis sx={{ fontSize: '22px' }} />
+                    <ChartsYAxis sx={{ fontSize: '22px' }} />
+                  </BarChart>
+                )}
+              </Box>
+            </ThemeProvider>
 
             <DataTable
               value={

@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import Lottie from 'lottie-react'
-
+import { Link } from 'react-router-dom'
+import config from '../../utils/Config'
 import animationData2 from '../../assets/lottie/Animation - order.json'
 import animationData3 from '../../assets/lottie/Animation - incoming.json'
 import animationData4 from '../../assets/lottie/Animation - 1729593009638.json'
 import animationData5 from '../../assets/lottie/Animation - Forklift.json'
 import animationData6 from '../../assets/lottie/Animation - 1729819077387.json'
-import { CRow, CCol } from '@coreui/react'
+import useVerify from '../../hooks/UseVerify'
+import {
+  CRow,
+  CCol,
+  CButton,
+  CDropdown,
+  CDropdownMenu,
+  CDropdownItem,
+  CDropdownToggle,
+} from '@coreui/react'
 import backgroundImage from '../../assets/brand/bghome.png'
 const lottieStyle = {
   display: 'flex',
@@ -17,6 +27,7 @@ const lottieStyle = {
 }
 
 const Home = () => {
+  const { roleName } = useVerify()
   const animations = [
     animationData2,
     animationData3,
@@ -39,10 +50,11 @@ const Home = () => {
   const lottieStyle = {
     position: 'relative', // Fix the position relative to the viewport
     right: '0', // Align to the right edge
-    top: '60%', // Align vertically to the middle
-    transform: 'translateY(-50%)', // Keep the element vertically centered
-    width: '34vw', // Responsive width based on viewport width
-    height: '30vh', // Responsive height based on viewport height
+    top: '100%', // Align vertically to the middle
+    transform: 'translateY(100%)', // Keep the element vertically centered
+    transform: 'translateX(20%)', // Keep the element vertically centered
+    width: '42vw', // Responsive width based on viewport width
+    height: '34vh', // Responsive height based on viewport height
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -64,7 +76,7 @@ const Home = () => {
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'flex-start', // Align items at the top
+
     height: '100%', // Use full height of the column
     paddingTop: '2rem', // Add padding at the top to give some space from the top
   }
@@ -85,8 +97,8 @@ const Home = () => {
         maxWidth: '100%',
       }}
     >
-      <CRow>
-        <CCol xs={5} className="me-5">
+      <CRow className="align-items-center mt-5">
+        <CCol xs={12} md={6} lg={5}>
           <div style={containerStyle}>
             <label style={labelStyle}>
               Makes it Easier and Shortens the Time to Order Goods. Awesome!
@@ -94,10 +106,68 @@ const Home = () => {
             <label style={secondaryLabelStyle}>
               Please choose what you want, ordering up to inventory is very easy with TWIIS!
             </label>
+            <div className="d-flex flex-column flex-md-row align-items-center justify-content-center mt-4">
+              <CButton
+                className="py-2 px-4 py-md-3 px-md-5 me-md-4 mb-3 mb-md-0"
+                color="primary"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault() // Prevent default button behavior
+
+                  // Define the URL based on the user's role
+                  let url
+                  if (roleName === 'super admin') {
+                    url = `${config.ORDER_URL}/home`
+                  } else if (roleName === 'group head') {
+                    url = `${config.ORDER_URL}/home`
+                     } else if (roleName === 'line head') {
+                    url = `${config.ORDER_URL}/approveall`
+                        } else if (roleName === 'group head') {
+                    url = `${config.ORDER_URL}/approveall`
+                       } else if (roleName === 'section head') {
+                    url = `${config.ORDER_URL}/approveall`
+                  } else {
+                    // Optional: handle other roles or show a message if the role is not recognized
+                    alert('You do not have access to this link.')
+                    return
+                  }
+
+                  // Open the determined URL in a new tab
+                  window.open(url, '_blank')
+                }}
+              >
+                GO TO ORDER
+              </CButton>
+
+              <CDropdown>
+                <CDropdownToggle className="px-4 py-2 px-md-5 py-md-3" color="secondary" size="sm">
+                  INVENTORY
+                </CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem>
+                    <Link to="/inventory/input" style={{ textDecoration: 'none' }}>
+                      INPUT INVENTORY
+                    </Link>
+                  </CDropdownItem>
+                  <CDropdownItem>
+                    <Link to="/inventory/data" style={{ textDecoration: 'none' }}>
+                      TABEL INVENTORY
+                    </Link>
+                  </CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+            </div>
           </div>
         </CCol>
-        <CCol xs={6} className="ms-4">
-          <div style={lottieStyle}>
+        <CCol xs={6} md={6} lg={7}>
+          <div
+            style={{
+              ...lottieStyle,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Lottie animationData={animations[currentAnimationIndex]} loop={true} />
           </div>
         </CCol>

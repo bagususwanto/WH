@@ -1,0 +1,46 @@
+/* styles.css */
+.sticky-footer {
+    position: fixed; /* Use fixed positioning */
+    bottom: 50px; /* Adjust if needed to place it above AppFooter */
+    width: 100%; /* Full width */
+    max-width: 1300px; /* Matches width of card container */
+    left: 50%; /* Center it horizontally */
+    transform: translateX(-50%); /* Adjust to center properly */
+    z-index: 1000; /* Ensure it stays on top */
+    padding: 1rem; /* Add some padding for aesthetics */
+    background-color: #f8f9fa; /* Background color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space between items */
+    align-items: center; /* Center items vertically */
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .sticky-footer {
+      max-width: 100%; /* Full width on smaller screens */
+      padding: 0.5rem; /* Reduce padding on smaller screens */
+      flex-direction: column; /* Stack items vertically */
+      align-items: flex-start; /* Align items to start */
+    }
+  
+    .sticky-footer h5 {
+      margin-bottom: 0.5rem; /* Add margin below title */
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .sticky-footer {
+      padding: 0.5rem; /* Further reduce padding for extra small screens */
+    }
+  
+    .sticky-footer h5 {
+      font-size: 1rem; /* Adjust font size for small screens */
+    }
+  
+    .sticky-footer .btn {
+      width: 100%; /* Full width button */
+      text-align: center; /* Center text in button */
+    }
+  }
+  
