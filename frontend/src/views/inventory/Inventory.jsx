@@ -44,6 +44,7 @@ const Inventory = () => {
   const [loadingSave, setLoadingSave] = useState(false)
   const [plantId, setPlantId] = useState()
   const [plantName, setPlantName] = useState()
+  const [typeMaterial, setTypeMaterial] = useState()
   const [remarks, setRemarks] = useState('') // State to store remarks entered in CModal
   const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -52,6 +53,7 @@ const Inventory = () => {
   const apiShop = 'shop-plant'
   const apiStorage = 'storage-plant'
   const apiWarehousePlant = 'warehouse-plant'
+  const apiTypeMaterial = 'material-type'
 
   const columns = [
     {
@@ -90,18 +92,19 @@ const Inventory = () => {
       header: 'Note',
       sortable: true,
       body: (rowData) => {
-        const { status, severity } = getNoteStatus(rowData);
-        return <Tag value={status} severity={severity} />;
-      }
-    }
+        const { status, severity } = getNoteStatus(rowData)
+        return <Tag value={status} severity={severity} />
+      },
+    },
+    { field: 'Material.type', header: 'Type', sortable: true },
   ]
   const getNoteStatus = (rowData) => {
-    const status = rowData.quantityActual ? "ALREADY FILLED" : "NOT FILLED YET";
-    const severity = rowData.quantityActual ? getSeverity('ok') : getSeverity('over');
-    
-    return { status, severity };
-  };
-  
+    const status = rowData.quantityActual ? 'ALREADY FILLED' : 'NOT FILLED YET'
+    const severity = rowData.quantityActual ? getSeverity('ok') : getSeverity('over')
+
+    return { status, severity }
+  }
+
   const [visibleColumns, setVisibleColumns] = useState([])
 
   const [filters, setFilters] = useState({
@@ -114,6 +117,7 @@ const Inventory = () => {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
+    'Material.type': { value: null, matchMode: FilterMatchMode.EQUALS },
     // 'Address_Rack.Storage.shopName': {
     //   value: null,
     //   matchMode: FilterMatchMode.EQUALS,
@@ -131,10 +135,10 @@ const Inventory = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      // 'Address_Rack.Storage.shopName': {
-      //   value: null,
-      //   matchMode: FilterMatchMode.EQUALS,
-      // },
+      'Material.type': {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
     })
     setGlobalFilterValue('')
   }
@@ -142,6 +146,7 @@ const Inventory = () => {
   useEffect(() => {
     // fetchInventory()
     getPlant()
+    getTypeMaterial()
     setLoading(false)
     initFilters()
   }, [])
@@ -247,6 +252,22 @@ const Inventory = () => {
     }
   }
 
+  const getTypeMaterial = async () => {
+    try {
+      const response = await getMasterData(apiTypeMaterial)
+      console.log(response)
+
+      const typeMaterialOptions = response.data.map((tm) => ({
+        label: tm.type,
+        value: tm.type,
+        id: tm.id,
+      }))
+      setTypeMaterial(typeMaterialOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
   const getShopByPlantId = async (id) => {
     if (!id) {
       return
@@ -287,6 +308,13 @@ const Inventory = () => {
     setFilters(_filters)
   }
 
+  const handleTypeChange = (e) => {
+    const value = e.value
+    let _filters = { ...filters }
+    _filters['Material.type'].value = value
+    setFilters(_filters)
+  }
+
   const handleShopChange = (e) => {
     const selectedShopName = e.value
     const selectedShop = shop.find((s) => s.value === selectedShopName) // Cari objek shop berdasarkan shopName
@@ -313,27 +341,27 @@ const Inventory = () => {
     setFilters(_filters)
   }
   const handleSave = async () => {
-    setLoadingSave(true);
-    setModalInventory(false);
+    setLoadingSave(true)
+    setModalInventory(false)
     try {
       if (!plantId) {
-        setLoadingSave(false);
-        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error');
-        return;
+        setLoadingSave(false)
+        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
+        return
       }
-      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId);
-  
-      await updateInventoryById(editData.id, warehouseId.id, editData);  // editData now contains updated remarks
-      fetchInventory();
-      MySwal.fire('Updated!', 'Data has been updated.', 'success');
+      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
+
+      await updateInventoryById(editData.id, warehouseId.id, editData) // editData now contains updated remarks
+      fetchInventory()
+      MySwal.fire('Updated!', 'Data has been updated.', 'success')
     } catch (error) {
-      console.error('Error fetching inventory:', error);
+      console.error('Error fetching inventory:', error)
     } finally {
-      setLoadingSave(false);
-      setModalInventory(false);
+      setLoadingSave(false)
+      setModalInventory(false)
     }
-  };
-  
+  }
+
   const onGlobalFilterChange = (e) => {
     const value = e.target.value
     let _filters = { ...filters }
@@ -380,8 +408,8 @@ const Inventory = () => {
     setVisibleData(filteredData)
   }
   const updateRemarks = (rowData) => {
-    return rowData.id === editData.id ? editData.remarks : rowData.remarks;
-  };
+    return rowData.id === editData.id ? editData.remarks : rowData.remarks
+  }
   const renderHeader = () => {
     return (
       <div>
@@ -613,6 +641,17 @@ const Inventory = () => {
                   options={storage}
                   onChange={handleStorageChange}
                   placeholder="Select Storage"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={4}>
+                <Dropdown
+                  value={filters['Material.type'].value}
+                  options={typeMaterial}
+                  onChange={handleTypeChange}
+                  placeholder="Select Type"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
