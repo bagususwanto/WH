@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get("/inventory/:storageId", checkRole(["super admin", "warehouse member"]), getInventory);
 router.put("/inventory/:id/:warehouseId", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, updateInventory);
-router.put("/incoming/:id", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, updateIncoming);
+router.put("/incoming/:id/:warehouseId", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, updateIncoming);
 router.get("/inventory-execute/:plantId/:warehouseId", checkRole(["super admin", "warehouse member"]), executeInventory);
 router.get("/inventory-all", checkRole(["super admin", "warehouse member"]), getAllInventory);
 router.post("/inventory-submit/:warehouseId", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, submitInventory);

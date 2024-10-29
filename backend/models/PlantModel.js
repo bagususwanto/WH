@@ -10,7 +10,6 @@ const Plant = db.define(
     plantCode: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
     },
     plantName: {
       type: DataTypes.STRING,

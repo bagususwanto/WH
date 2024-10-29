@@ -10,7 +10,6 @@ const Storage = db.define(
     storageCode: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
     },
     storageName: {
       type: DataTypes.STRING,

@@ -488,12 +488,28 @@ export const getSupplierIdBySupplierName = async (supplierName) => {
 };
 
 const validateHeaderMaterial = (header) => {
-  const expectedHeader = ["materialNo", "description", "uom", "price", "type", "category", "supplier", "minStock", "maxStock", "img"];
+  const expectedHeader = [
+    "materialNo",
+    "description",
+    "uom",
+    "price",
+    "type",
+    "mrpType",
+    "minStock",
+    "maxStock",
+    "img",
+    "minOrder",
+    "category",
+    "supplier",
+  ];
   return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
 };
 
+const BATCH_SIZE = 500; // Set batch size sesuai kebutuhan
+
 export const uploadMasterMaterial = async (req, res) => {
   let transaction, transaction2;
+  let materialsCache = null;
 
   try {
     if (!req.file) {
@@ -505,21 +521,65 @@ export const uploadMasterMaterial = async (req, res) => {
     const rows = await readXlsxFile(path, { sheet: sheetName });
     const header = rows.shift();
 
+    if (rows.length > 5000) {
+      return res.status(400).send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
+    }
+
     if (!validateHeaderMaterial(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
+    let materialMap;
+    if (materialsCache) {
+      materialMap = new Map(materialsCache.map((material) => [material.materialNo, material]));
+    } else {
+      const existingMaterials = await Material.findAll({ where: { flag: 1 } });
+      materialsCache = existingMaterials;
+      materialMap = new Map(existingMaterials.map((material) => [material.materialNo, material]));
+    }
+
     transaction = await db.transaction();
+    const newMaterials = [];
 
-    // Process rows
-    const masterMaterialPromises = rows.map(async (row) => {
-      const materialNo = row[0];
+    // Fungsi untuk memproses setiap batch
+    const processBatch = async (batch) => {
+      const updatePromises = batch.map(async (row) => {
+        const materialNo = row[0];
+        const existingMaterial = materialMap.get(materialNo);
+        const categoryId = await getCategoryIdByCategoryName(row[10]);
+        const supplierId = await getSupplierIdBySupplierName(row[11]);
 
-      const existingMaterial = await Material.findOne({ where: { materialNo, flag: 1 }, transaction });
+        if (!categoryId) throw new Error(`Category: ${row[10]} does not exist`);
+        if (!supplierId) throw new Error(`Supplier: ${row[11]} does not exist`);
 
-      if (existingMaterial) {
-        await existingMaterial.update(
-          {
+        if (!row[0] || !row[1] || !row[2] || !row[4] || !row[5] || !row[8]) {
+          throw new Error(`Invalid data in row ${materialNo}, ${row[1]}`);
+        }
+
+        if (typeof row[3] !== "number" || typeof row[6] !== "number" || typeof row[7] !== "number" || typeof row[9] !== "number") {
+          throw new Error(`Data must be number in row ${materialNo}, ${row[1]}`);
+        }
+
+        if (existingMaterial) {
+          return existingMaterial.update(
+            {
+              description: row[1],
+              uom: row[2],
+              price: row[3],
+              type: row[4],
+              mrpType: row[5],
+              minStock: row[6],
+              maxStock: row[7],
+              img: row[8],
+              minOrder: row[9],
+              categoryId,
+              supplierId,
+            },
+            { transaction }
+          );
+        } else {
+          newMaterials.push({
+            materialNo,
             description: row[1],
             uom: row[2],
             price: row[3],
@@ -529,51 +589,28 @@ export const uploadMasterMaterial = async (req, res) => {
             maxStock: row[7],
             img: row[8],
             minOrder: row[9],
-            categoryId: await getCategoryIdByCategoryName(row[10]),
-            supplierId: await getSupplierIdBySupplierName(row[11]),
-          },
-          { transaction }
-        );
-
-        return null; // Skip insert
-      } else {
-        const category = await Category.findOne({ where: { categoryName: row[5], flag: 1 }, transaction });
-        if (!category) {
-          throw new Error(`Category: ${row[5]} does not exist`);
+            categoryId,
+            supplierId,
+          });
         }
+      });
 
-        const supplier = await Supplier.findOne({ where: { supplierName: row[6], flag: 1 }, transaction });
-        if (!supplier) {
-          throw new Error(`Supplier: ${row[6]} does not exist`);
-        }
+      await Promise.all(updatePromises);
+    };
 
-        return {
-          materialNo,
-          description: row[1],
-            uom: row[2],
-            price: row[3],
-            type: row[4],
-            mrpType: row[5],
-            minStock: row[6],
-            maxStock: row[7],
-            img: row[8],
-            minOrder: row[9],
-            categoryId: category.id,
-            supplierId: supplier.id,
-        };
-      }
-    });
+    // Proses data dalam batch
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      await processBatch(batch); // Proses batch saat ini
+    }
 
-    const masterMaterial = (await Promise.all(masterMaterialPromises)).filter(Boolean);
-
-    if (masterMaterial.length > 0) {
-      await Material.bulkCreate(masterMaterial, { transaction });
+    if (newMaterials.length > 0) {
+      await Material.bulkCreate(newMaterials, { transaction });
       await transaction.commit();
 
-      // Create second transaction for logging
+      // Logging
       transaction2 = await db.transaction();
-
-      const logImportPromises = masterMaterial.map(async (material) => {
+      const logImportPromises = newMaterials.map(async (material) => {
         await LogImport.create(
           {
             typeLog: "master material",
@@ -585,11 +622,10 @@ export const uploadMasterMaterial = async (req, res) => {
           { transaction: transaction2 }
         );
       });
-
       await Promise.all(logImportPromises);
       await transaction2.commit();
     } else {
-      await transaction.commit(); // Commit the first transaction even if no new records are created
+      await transaction.commit();
     }
 
     res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
@@ -597,6 +633,6 @@ export const uploadMasterMaterial = async (req, res) => {
     if (transaction) await transaction.rollback();
     if (transaction2) await transaction2.rollback();
     console.error(error);
-    res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. Error: ${error.message}` });
+    res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. ${error}` });
   }
 };

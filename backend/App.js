@@ -40,6 +40,7 @@ import myOrderRouter from "./routes/MyOrderRouter.js";
 import orderRouter from "./routes/OrderRouter.js";
 import userWarehouseRouter from "./routes/UserWarehouseRouter.js";
 import approvalRouter from "./routes/ApprovalRouter.js";
+import harcodedRouter from "./routes/HarcodedRouter.js";
 import "./models/index.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
@@ -95,6 +96,9 @@ app.use("/api", serviceHoursRouter);
 app.use("/api", userPlantRouter);
 app.use("/api", divisionPlantRouter);
 app.use("/api", userWarehouseRouter);
+
+// Harcoded router
+app.use("/api", harcodedRouter);
 
 // Management stock router
 app.use("/api", managementStockRouter);

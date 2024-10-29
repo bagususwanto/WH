@@ -15,6 +15,7 @@ import {
   CFormLabel,
   CFormCheck,
   CSpinner,
+  CFormSelect,
 } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
@@ -176,11 +177,6 @@ const Incoming = () => {
       })
       setIncoming(dataWithFormattedFields)
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch incoming data.',
-      })
       console.error('Error fetching incoming:', error)
     } finally {
       setLoading(false) // Set loading to false after data is fetched
@@ -206,11 +202,6 @@ const Incoming = () => {
         })
         setIncoming(dataWithFormattedFields)
       } catch (error) {
-        MySwal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to fetch incoming data.',
-        })
         console.error('Error fetching incoming:', error)
       } finally {
         setLoading(false) // Set loading to false after data is fetched
@@ -794,7 +785,19 @@ const Incoming = () => {
         </CModalHeader>
         <CModalBody>
           <div className="mb-3">
-            <CFormLabel>Date</CFormLabel>
+            <CFormSelect
+              label="Plant"
+              aria-label="Select Plant"
+              options={[
+                'Select Plant',
+                ...plant.map((plant) => ({ label: plant.label, value: plant.id })),
+              ]}
+              value={plantId}
+              onChange={(e) => setPlantId(e.target.value)}
+            />
+          </div>
+          <CFormLabel>Date</CFormLabel>
+          <div className="mb-3">
             <Flatpickr
               value={date}
               options={{

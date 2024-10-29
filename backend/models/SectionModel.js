@@ -11,7 +11,6 @@ const Section = db.define(
     sectionCode: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      unique: true,
     },
     sectionName: {
       type: DataTypes.STRING,
