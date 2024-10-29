@@ -11,7 +11,6 @@ const Material = db.define(
     materialNo: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     description: {
       type: DataTypes.STRING,

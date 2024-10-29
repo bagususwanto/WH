@@ -42,9 +42,9 @@ const storage = multer.diskStorage({
 });
 
 // Konfigurasi multer dengan penyimpanan dan filter
-const uploadFile = multer({ 
-  storage: storage, 
-  fileFilter: excelFilter 
+const uploadFile = multer({
+  storage: storage,
+  fileFilter: excelFilter,
 });
 
 export default uploadFile;

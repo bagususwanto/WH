@@ -40,13 +40,12 @@ import LogEntry from "./LogEntryModel.js";
 import LogImport from "./LogImportModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 
-
 (async () => {
   try {
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await ServiceHours.sync({ alter: true });
+    // await LogImport.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

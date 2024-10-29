@@ -270,14 +270,14 @@ const generateDummyData = async () => {
   await generateSection();
   await generatePlant();
   await generateStorage();
-  await generateMaterial();
+  // await generateMaterial();
   await generateOrganization();
   await generateAddressRack();
   await generateServiceHours();
 
-  await generateMaterialPlant();
+  // await generateMaterialPlant();
 
-  await generateInventory();
+  // await generateInventory();
 };
 
 generateDummyData()

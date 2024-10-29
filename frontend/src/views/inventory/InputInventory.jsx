@@ -56,6 +56,9 @@ const InputInventory = () => {
   const [editId, setEditId] = useState(null) // Untuk menyimpan id item yang sedang di-edit
   const [newQuantity, setNewQuantity] = useState('')
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false)
+  const [typeMaterial, setTypeMaterial] = useState([])
+  const [selectedTypeMaterial, setSelectedTypeMaterial] = useState(null)
+  const [typeMaterialOptions, setTypeMaterialOptions] = useState([])
   const quantityInputRef = useRef(null) // Reference for quantity input field
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
@@ -64,6 +67,7 @@ const InputInventory = () => {
   const apiPlant = 'plant-public'
   const apiStorage = 'storage-public'
   const apiWarehousePlant = 'warehouse-plant'
+  const apiMaterialType = 'material-type'
 
   // Konfirmasi sebelum refresh halaman
   useEffect(() => {
@@ -82,6 +86,7 @@ const InputInventory = () => {
   useEffect(() => {
     getPlant()
     getStorage()
+    getMaterialType()
   }, [])
 
   const getPlant = async () => {
@@ -102,9 +107,18 @@ const InputInventory = () => {
     }
   }
 
-  const getInventories = async (id) => {
+  const getMaterialType = async () => {
     try {
-      const response = await getInventory(id)
+      const response = await getMasterData(apiMaterialType)
+      setTypeMaterial(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const getInventories = async (id, type) => {
+    try {
+      const response = await getInventory(id, type)
       setInventory(response.data)
     } catch (error) {
       console.error(error)
@@ -148,6 +162,7 @@ const InputInventory = () => {
       setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
+      setSelectedTypeMaterial(null)
       setQuantity('')
       setInventory([])
       setFilteredInventory([])
@@ -167,6 +182,17 @@ const InputInventory = () => {
           label: s.storageName,
         }))
       setStorageOptions(filteredStorages)
+      setTypeMaterialOptions([])
+      setInventory([])
+      setFilteredInventory([])
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setSelectedAddressCodeVal(null)
+      setSelectedStorageVal(null)
+      setSelectedTypeMaterial(null)
+      setQuantity('')
     } else {
       setStorageOptions([])
     }
@@ -183,15 +209,27 @@ const InputInventory = () => {
       setSelectedAddress(null)
       setSelectedUom(null)
       setSelectedAddressCodeVal(null)
+      setSelectedTypeMaterial(null)
       setQuantity('')
       return
     }
 
     if (selectedStorage) {
+      setInventory([])
+      setQuantity('')
       setSelectedStorageVal(selectedStorage)
       setIsLoading(true) // Aktifkan loading
+
+      const mapTypeMaterial = typeMaterial.map((tm) => ({
+        value: tm.id,
+        label: tm.type,
+      }))
+
+      setTypeMaterialOptions(mapTypeMaterial)
       try {
-        await getInventories(selectedStorage.value)
+        await getInventories(selectedStorage.value, 'DIRECT')
+        const selectedTypeMaterialOpt = mapTypeMaterial.find((tm) => tm.label === 'DIRECT')
+        setSelectedTypeMaterial(selectedTypeMaterialOpt)
       } catch (error) {
         console.error(error)
       } finally {
@@ -208,13 +246,53 @@ const InputInventory = () => {
     }
   }
 
+  const handleTypeChange = async (selectedType) => {
+    if (!selectedType) {
+      // Jika dropdown di-clear
+      setSelectedStorageVal(null)
+      setInventory([]) // Kosongkan inventory jika storage di-clear
+      setFilteredInventory([])
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setSelectedAddressCodeVal(null)
+      setSelectedTypeMaterial(null)
+      setQuantity('')
+      return
+    }
+
+    if (selectedType) {
+      setInventory([])
+      setFilteredInventory([])
+      setSelectedAddressCodeVal(null)
+      setQuantity('')
+      setSelectedTypeMaterial(selectedType)
+      setIsLoading(true) // Aktifkan loading
+      try {
+        await getInventories(selectedStorageVal.value, selectedType.label)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoading(false) // Nonaktifkan loading setelah data ter-load
+        setSelectedMaterialNo(null)
+        setSelectedDescription(null)
+        setSelectedAddress(null)
+        setSelectedUom(null)
+        setQuantity('')
+      }
+    } else {
+      setInventory([])
+    }
+  }
+
   const handleAddInventory = () => {
     if (
       selectedMaterialNo &&
       selectedDescription &&
       selectedAddress &&
       selectedUom &&
-      quantity > 0
+      quantity !== ''
     ) {
       const newInventoryItem = {
         id: selectedMaterialNo.value,
@@ -378,11 +456,20 @@ const InputInventory = () => {
       setSelectedDescription(null)
       setSelectedAddress(null)
       setSelectedUom(null)
+      setSelectedTypeMaterial(null)
       setQuantity('')
       return
     }
 
     if (selectedAddressCode) {
+      setFilteredInventory([]) // Kosongkan filteredInventory jika address code di-clear
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setSelectedUom(null)
+      setSelectedTypeMaterial(null)
+      setQuantity('')
+
       setSelectedAddressCodeVal(selectedAddressCode)
       // Filter data inventory berdasarkan address code yang dipilih
       const inventoryByAddress = inventory.filter(
@@ -477,7 +564,7 @@ const InputInventory = () => {
         title: 'Success!',
         text: 'Material found, please input quantity',
         icon: 'success',
-        timer: 2000, 
+        timer: 2000,
         timerProgressBar: true, // Show progress bar
         didClose: () => {
           quantityInputRef.current?.focus() // Focus on quantity input after closing
@@ -514,7 +601,7 @@ const InputInventory = () => {
           <CForm>
             <CCardBody>
               <CRow>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
                     className="basic-single"
@@ -527,7 +614,7 @@ const InputInventory = () => {
                     value={selectedPlantVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="storage">Storage</CFormLabel>
                   <Select
                     className="basic-single"
@@ -541,7 +628,21 @@ const InputInventory = () => {
                     value={selectedStorageVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
+                  <CFormLabel htmlFor="type">Type</CFormLabel>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isLoading={isLoading}
+                    isClearable={isClearable}
+                    options={typeMaterialOptions}
+                    id="type"
+                    onChange={handleTypeChange}
+                    styles={customStyles}
+                    value={selectedTypeMaterial}
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="address">Address Code</CFormLabel>
                   <Select
                     className="basic-single"
@@ -564,7 +665,7 @@ const InputInventory = () => {
                 </CCol>
               </CRow>
               <CRow className="mt-3">
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="description">Description</CFormLabel>
                   <Select
                     className="basic-single"
@@ -582,7 +683,7 @@ const InputInventory = () => {
                     value={selectedDescription}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
                   <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
                     <Select
@@ -611,7 +712,7 @@ const InputInventory = () => {
                     </CInputGroupText>
                   </CInputGroup>
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="address">Address</CFormLabel>
                   <Select
                     className="basic-single"
@@ -630,7 +731,7 @@ const InputInventory = () => {
                     isDisabled={true}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormLabel htmlFor="uom">UoM</CFormLabel>
                   <Select
                     className="basic-single"
@@ -651,7 +752,7 @@ const InputInventory = () => {
                 </CCol>
               </CRow>
               <CRow className="mt-3">
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mb-3">
                   <CFormInput
                     ref={quantityInputRef}
                     type="number"

@@ -18,6 +18,7 @@ endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventory = async (req, res) => {
   const storageId = req.params.storageId;
+  const type = req.query.type;
   const limit = 1000; // Tentukan jumlah data per batch
   let offset = 0;
   let hasMoreData = true;
@@ -31,7 +32,7 @@ export const getInventory = async (req, res) => {
           {
             model: Material,
             attributes: ["id", "materialNo", "description", "uom", "type"],
-            where: { flag: 1, type: "DIRECT" },
+            where: { flag: 1, type: type },
           },
           {
             model: AddressRack,
@@ -253,7 +254,6 @@ export const updateIncoming = async (req, res) => {
       quantity: req.body.actual,
       userId: req.user.userId,
       detailOrder: null,
-      incomingId: null,
     });
 
     await updateQuantitySistem(inventory.id);
