@@ -1,7 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import User from "./UserModel.js";
-import Material from "./MaterialModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -23,14 +22,6 @@ const LogImport = db.define(
         model: User,
         key: "id",
       },
-      materialId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: Material,
-          key: "id",
-        },
-      }
     },
     importDate: {
       type: DataTypes.DATEONLY,
@@ -44,8 +35,5 @@ const LogImport = db.define(
 
 User.hasMany(LogImport, { foreignKey: "userId", onDelete: "NO ACTION" });
 LogImport.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
-
-Material.hasMany(LogImport, { foreignKey: "materialId", onDelete: "NO ACTION" });
-LogImport.belongsTo(Material, { foreignKey: "materialId", onDelete: "NO ACTION" });
 
 export default LogImport;

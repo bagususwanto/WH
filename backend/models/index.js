@@ -25,6 +25,7 @@ import User from "./UserModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
 import MaterialPlant from "./MaterialPlantModel.js";
+import AddressRack from "./AddressRackModel.js";
 
 // transaksi
 import Inventory from "./InventoryModel.js";
@@ -45,7 +46,7 @@ import OrderHistory from "./OrderHistoryModel.js";
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await LogImport.sync({ alter: true });
+    // await AddressRack.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

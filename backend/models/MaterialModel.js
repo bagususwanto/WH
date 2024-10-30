@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import Supplier from "./SupplierModel.js";
 import Category from "./CategoryModel.js";
+import LogImport from "./LogImportModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -64,6 +65,14 @@ const Material = db.define(
         key: "id",
       },
     },
+    logImportId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: LogImport,
+        key: "id",
+      },
+    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -80,5 +89,8 @@ Material.belongsTo(Category, { foreignKey: "categoryId" });
 
 Supplier.hasMany(Material, { foreignKey: "supplierId" });
 Material.belongsTo(Supplier, { foreignKey: "supplierId" });
+
+LogImport.hasMany(Material, { foreignKey: "logImportId" });
+Material.belongsTo(LogImport, { foreignKey: "logImportId" });
 
 export default Material;

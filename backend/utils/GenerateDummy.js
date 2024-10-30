@@ -255,7 +255,7 @@ const generateInventory = async () => {
 
 const generateDummyData = async () => {
   await generateCategories();
-  await generateSuppliers();
+  // await generateSuppliers();
   await generateRoles();
   await generateWarehouse();
   await generateDivisions();
@@ -272,7 +272,7 @@ const generateDummyData = async () => {
   await generateStorage();
   // await generateMaterial();
   await generateOrganization();
-  await generateAddressRack();
+  // await generateAddressRack();
   await generateServiceHours();
 
   // await generateMaterialPlant();
