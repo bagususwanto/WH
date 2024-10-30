@@ -52,7 +52,7 @@ const Home = () => {
     right: '0', // Align to the right edge
     top: '100%', // Align vertically to the middle
     transform: 'translateY(100%)', // Keep the element vertically centered
-    transform: 'translateX(20%)', // Keep the element vertically centered
+    transform: 'translateX(7%)', // Keep the element vertically centered
     width: '42vw', // Responsive width based on viewport width
     height: '34vh', // Responsive height based on viewport height
     display: 'flex',
@@ -98,7 +98,7 @@ const Home = () => {
       }}
     >
       <CRow className="align-items-center mt-5">
-        <CCol xs={12} md={6} lg={5}>
+        <CCol xs={6} md={6} lg={5}>
           <div style={containerStyle}>
             <label style={labelStyle}>
               Makes it Easier and Shortens the Time to Order Goods. Awesome!
@@ -106,10 +106,11 @@ const Home = () => {
             <label style={secondaryLabelStyle}>
               Please choose what you want, ordering up to inventory is very easy with TWIIS!
             </label>
-            <div className="d-flex flex-column flex-md-row align-items-center justify-content-center mt-4">
+            <div className="d-flex flex-column flex-md-row align-items-center justify-content-center mt-5">
               <CButton
-                className="py-2 px-4 py-md-3 px-md-5 me-md-4 mb-3 mb-md-0"
+                className="py-2 px-4 py-md-3 px-md-5 me-md-4 mb-3 mb-md-0 fw-bold"
                 color="primary"
+                
                 size="sm"
                 onClick={(e) => {
                   e.preventDefault() // Prevent default button behavior
@@ -140,7 +141,7 @@ const Home = () => {
               </CButton>
 
               <CDropdown>
-                <CDropdownToggle className="px-4 py-2 px-md-5 py-md-3" color="secondary" size="sm">
+                <CDropdownToggle className="px-4 py-2 px-md-5 py-md-3 fw-bold" color="secondary" size="sm">
                   INVENTORY
                 </CDropdownToggle>
                 <CDropdownMenu>

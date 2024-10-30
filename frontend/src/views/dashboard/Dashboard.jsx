@@ -11,23 +11,21 @@ import {
   CDropdownToggle,
   CDropdownMenu,
   CDropdownItem,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CButton,
 } from '@coreui/react'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
-import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
-import Typography from '@mui/material/Typography'
-import Slider from '@mui/material/Slider'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
+
 import 'primeicons/primeicons.css'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
-import { MultiSelect } from 'primereact/multiselect'
-import { BarPlot } from '@mui/x-charts/BarChart'
-import { ChartsXAxis } from '@mui/x-charts/ChartsXAxis'
-import { ChartsYAxis } from '@mui/x-charts/ChartsYAxis'
+
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
-import { BarChart } from '@mui/x-charts/BarChart'
+import { Modal, Button } from '@mui/material' // Importing Material-UI components
 import useManageStockService from '../../services/ManageStockService'
 import useDashboardService from '../../services/DashboardService'
 import { Bar } from 'react-chartjs-2'
@@ -40,12 +38,24 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
+import annotationPlugin from 'chartjs-plugin-annotation'
+import ChartDataLabels from 'chartjs-plugin-datalabels'
 //import '../../scss/customchart.scss'
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  annotationPlugin,
+  ChartDataLabels,
+)
 
 const MySwal = withReactContent(Swal)
 
@@ -61,13 +71,6 @@ export function tambahLabel(series) {
   }))
 }
 
-// Create dark theme
-const darkTheme = createTheme({
-  palette: {
-    mode: 'light',
-  },
-})
-
 const MAX_NAME_LENGTH = 10 // Maksimal karakter untuk label sumbu X
 
 const Dashboard = () => {
@@ -78,14 +81,17 @@ const Dashboard = () => {
   const { getInventoryOverflowStock } = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
+  const [isTableVisible, setIsTableVisible] = useState(false) // Toggle for table visibility
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
   const [lowestItemNb, setLowestItemNb] = React.useState(8) //Item untuk slider lowest
   const [overflowItemNb, setOverflowItemNb] = React.useState(8) //Item untuk slider over flow
   const [itemNb, setItemNb] = React.useState(8) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
-  const [order, setOrder] = useState('DESC')
+  const [order, setOrder] = useState('ASC')
   const [selectedChart, setSelectedChart] = useState('critical')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedData, setSelectedData] = useState(null)
 
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
@@ -241,7 +247,7 @@ const Dashboard = () => {
   }
 
   const prepareChartData = (data, chartTitle, shiftLevel) => ({
-    labels: data.map((item) => item.name),
+    labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
     datasets: [
       {
         label: chartTitle,
@@ -252,7 +258,7 @@ const Dashboard = () => {
     shiftLevel, // Used to draw red line
   })
 
-  const chartOptions = (minValue, maxValue, referenceLineValue) => ({
+  const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -275,8 +281,17 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 14,
+            size: 12,
           },
+          callback: function (value, index, ticks) {
+            const item = data[index]
+            const materialNo = item.Material.materialNo
+            const description = item.Material.description
+
+            return `${materialNo}`
+          },
+          maxRotation: 0, // Prevents diagonal rotation
+          autoSkip: false, // Ensures labels are displayed without skipping
         },
         title: {
           display: true,
@@ -289,7 +304,7 @@ const Dashboard = () => {
     },
     plugins: {
       legend: {
-        display: true,
+        display: false,
         labels: {
           font: {
             size: 14,
@@ -298,8 +313,56 @@ const Dashboard = () => {
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem) => `Stock: ${tooltipItem.raw.toLocaleString()}`,
+          label: (tooltipItem) => {
+            const dataIndex = tooltipItem.dataIndex
+            const item = dataIndex !== undefined ? data[dataIndex] : null
+            return item ? `Stock: ${tooltipItem.raw.toLocaleString()}` : ''
+          },
         },
+      },
+      datalabels: {
+        display: true,
+        // For the top label
+        color: 'black', // Color of the label text for top label
+        anchor: 'end', // Anchor position of the label
+        align: 'top', // Align the label on top of the bar
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        formatter: (value, context) => {
+          // Display "Remain Stock" for the top label
+          return context.dataset.label === 'Remain Stock' ? value.toLocaleString() : ''
+        },
+        // Second label configuration
+        backgroundColor: 'white', // Background color for better visibility
+        borderRadius: 4, // Optional: rounded corners
+        padding: 4, // Optional: padding around the label
+        // Using this configuration to create another label for "Actual Stock"
+        label: {
+          display: true,
+          color: 'black', // Color of the label text for bottom label
+          anchor: 'end', // Anchor position for the bottom label
+          align: 'bottom', // Align the label at the bottom of the bar
+          font: {
+            size: 15,
+            weight: 'bold',
+          },
+          formatter: (value, context) => {
+            // Display "Actual Stock" for the bottom label
+            return context.dataset.label === 'Actual Stock' ? value.toLocaleString() : ''
+          },
+        },
+
+        formatter: (value) => value.toLocaleString(), // Format the label value
+        background: {
+          color: 'yellow', // Background color of the label
+          padding: 6, // Padding around the label
+          borderRadius: 4, // Rounded corners for the background
+          // Optionally you can add a shadow or other styles
+        },
+        // Optional: Add an offset if needed to move the label up or down
+        offset: 10, // Adjust this to move the label away from the bar
       },
       annotation: {
         annotations: {
@@ -307,20 +370,39 @@ const Dashboard = () => {
             type: 'line',
             yMin: referenceLineValue,
             yMax: referenceLineValue,
-            borderColor: 'red',
+            borderColor: 'orange',
             borderWidth: 2,
             label: {
-              enabled: true,
-              content: `Reference: ${referenceLineValue}`,
-              position: 'end',
-              color: 'red',
+              display: true,
+              content: `Min Stock: ${referenceLineValue} Shift`,
+              position: 'end', // Positions the label at the start of the line
+              yAdjust: -7, // Moves the label above the line (negative value)
+
+              color: 'white',
             },
           },
         },
       },
     },
-  });
+    onClick: (event, elements) => {
+      if (elements.length > 0) {
+        const index = elements[0].index
+        if (index >= 0 && index < data.length) {
+          // Ensure index is valid
+          const dataItem = data[index]
+          setSelectedData(dataItem)
+          setModalOpen(true)
+        }
+      } else {
+        console.log('No elements clicked on the chart.')
+      }
+    },
+  })
   //Critical Grafik
+
+  const handleCloseModal = () => {
+    setModalOpen(false)
+  }
 
   return (
     <CRow>
@@ -354,8 +436,12 @@ const Dashboard = () => {
               <CDropdownItem onClick={() => setSelectedChart('critical')}>Critical</CDropdownItem>
               <CDropdownItem onClick={() => setSelectedChart('lowest')}>Low</CDropdownItem>
               <CDropdownItem onClick={() => setSelectedChart('overflow')}>Overflow</CDropdownItem>
+              <CDropdownItem onClick={() => setIsTableVisible(!isTableVisible)}>
+                {isTableVisible ? 'Hide Table' : 'Show Table'}
+              </CDropdownItem>
             </CDropdownMenu>
           </CDropdown>
+          
         </div>
 
         {/* Single Card for Conditional Rendering */}
@@ -375,68 +461,78 @@ const Dashboard = () => {
                 }
                 options={
                   selectedChart === 'critical'
-                    ? chartOptions(0, 2, 2) // Set min 0, max 2, reference line at 2 for critical
+                    ? chartOptions(inventoriescritical, 0, 2.2, 2)
                     : selectedChart === 'lowest'
-                      ? chartOptions(0, 1, 1) // Set min 0, max 1, reference line at 1 for lowest
-                      : chartOptions(0, 5, 5) // Set min 0, max 5, reference line at 5 for overflow
+                      ? chartOptions(inventorieslowest, 0, 1.1, 1)
+                      : chartOptions(inventoriesoverflow, 0, 10, 5)
                 }
-                height={300}
+                height={500}
               />
             </Box>
-
-            <DataTable
-              value={
-                selectedChart === 'critical'
-                  ? inventoriescritical
-                  : selectedChart === 'lowest'
-                    ? inventorieslowest
-                    : selectedChart === 'overflow'
-                      ? inventoriesoverflow
-                      : []
-              }
-              tableStyle={{ minWidth: '30rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              // dataKey="id"
-              loading={loading}
-              emptyMessage="Tidak ada data inventaris."
-              size="small"
-              scrollable
+            {/* Modal for displaying selected data */}
+            <CModal
+              visible={modalOpen}
+              onClose={handleCloseModal}
+              alignment="center" // This aligns the modal in the center of the screen
             >
-              <Column
-                field="Material.materialNo"
-                header="Material"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column
-                field="Material.description"
-                header="Deskripsi"
-                frozen={true}
-                alignFrozen="left"
-                sortable
-              />
-              <Column field="Material.uom" header="UoM" sortable />
-              <Column field="Material.minStock" header="Min" sortable />
-              <Column
-                field="quantityActualCheck"
-                header="Actual"
-                style={{ width: '5%' }}
-                sortable
-              />
-              <Column
-                field="stock" // Kolom baru untuk use by shift
-                header="Remain Stock"
-                sortable
-              />
-              <Column
-                field="evaluation"
-                header="Evaluation"
-                body={statusBodyTemplate}
-                bodyStyle={{ textAlign: 'center' }}
-                sortable
-              />
-            </DataTable>
+              <CModalHeader>
+                <CModalTitle>Detail Information</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                {selectedData && (
+                  <>
+                    <p>
+                      <strong>Material Number:</strong> {selectedData.Material.materialNo}
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {selectedData.Material.description}
+                    </p>
+                    <p>
+                      <strong>Supplier:</strong> {selectedData.Material.supplier}
+                    </p>
+                    <p>
+                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}
+                    </p>
+                  </>
+                )}
+              </CModalBody>
+              <CModalFooter>
+                <CButton color="secondary" onClick={handleCloseModal}>
+                  Close
+                </CButton>
+              </CModalFooter>
+            </CModal>
+            {isTableVisible && (
+              <DataTable
+                value={
+                  selectedChart === 'critical'
+                    ? inventoriescritical
+                    : selectedChart === 'lowest'
+                    ? inventorieslowest
+                    : inventoriesoverflow
+                }
+                tableStyle={{ minWidth: '30rem' }}
+                className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                loading={loading}
+                emptyMessage="Tidak ada data inventaris."
+                size="small"
+                scrollable
+              >
+                <Column field="Material.materialNo" header="Material" sortable />
+                <Column field="Material.description" header="Deskripsi" sortable />
+                <Column field="Material.uom" header="UoM" sortable />
+                <Column field="Material.minStock" header="Min" sortable />
+                <Column field="quantityActualCheck" header="Actual" sortable />
+                <Column field="stock" header="Remain Stock" sortable />
+                <Column
+                  field="evaluation"
+                  header="Evaluation"
+                  body={statusBodyTemplate}
+                  bodyStyle={{ textAlign: 'center' }}
+                  sortable
+                />
+              </DataTable>
+            )}
           </CCardBody>
         </CCard>
       </CCol>
