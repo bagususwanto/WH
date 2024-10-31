@@ -48,15 +48,21 @@ const Profile = () => {
   const apiUser = 'user'
 
   const getusers = async () => {
-    const response = await getMasterData(apiUser)
-    setUserData(response.data)
-
-    // Check if image data exists in the response and update states
-    if (response.data && response.data[0] && response.data[0].img) {
-      setApiImage(response.data[0].img) // Store the image from API in state
-      setSelectedImage(response.data[0].img) // Set the selected image to the API image initially
+    const response = await getMasterData(apiUser);
+    
+    // Filter user data to get only the user with id 2
+    const filteredUserData = response.data.filter(user => user.id === 2);
+    
+    // Update state with the filtered data
+    setUserData(filteredUserData);
+  
+    // Check if image data exists in the filtered response and update states
+    if (filteredUserData.length > 0 && filteredUserData[0].img) {
+      setApiImage(filteredUserData[0].img); // Store the image from API in state
+      setSelectedImage(filteredUserData[0].img); // Set the selected image to the API image initially
     }
   }
+  
   useEffect(() => {
     getusers()
   }, [])
@@ -101,6 +107,7 @@ const Profile = () => {
       <CTabContent>
         <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={1}>
           <CContainer>
+       
             <CRow>
               <CCol xs={4}>
                 <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
@@ -139,7 +146,7 @@ const Profile = () => {
                   <CModalBody>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <div>
-                        <CButton color="primary" onClick={openFileExplorer}>
+                        <CButton className=' px-5 py-3' color="primary" onClick={openFileExplorer}>
                           From Gallery
                         </CButton>
                         {/* Hidden input for file selection */}
@@ -168,64 +175,64 @@ const Profile = () => {
                       {userData.map((user, index) => (
                         <div key={index}>
                           <CRow className="text-start">
-                            <CCol xs="3">
+                            <CCol xs="12">
                               <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Name</label>
                             </CCol>
-                            <CCol xs="7">
+                            <CCol xs="8">
                               <label className="py-2">{user.name}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Position</label>
                             </CCol>
-                            <CCol xs="7">
+                            <CCol xs="8">
                               <label className="py-2 "> {user.position}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Line</label>
                             </CCol>
-                            <CCol xs="7">
+                            <CCol xs="8">
                               <label className="py-2 ">{user.Organization.Line.lineName}</label>
                             </CCol>
                           </CRow>
                           <CRow>
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Section</label>
                             </CCol>
-                            <CCol xs="7">
+                            <CCol xs="8">
                               <label className="py-2 ">
                                 {user.Organization.Section.sectionName},{' '}
                               </label>
                             </CCol>
                           </CRow>
                           <CRow className="">
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Departement</label>
                             </CCol>
-                            <CCol xs="6">
+                            <CCol xs="8">
                               <label className="py-2 ">
                                 {user.Organization.Department.departmentName}
                               </label>
                             </CCol>
                           </CRow>
                           <CRow>
-                            <CCol xs="3">
+                            <CCol xs="12">
                               <label className="fw-bold py-2 text-muted">Change Contact</label>
                             </CCol>
                           </CRow>
                           <CRow>
-                            <CCol xs="3">
+                            <CCol xs="4">
                               <label className="py-2">Email</label>
                             </CCol>
-                            <CCol xs="6">
+                            <CCol xs="8">
                               <label className="py-2">{user.email}</label>
                             </CCol>
                           </CRow>
@@ -241,6 +248,7 @@ const Profile = () => {
                 </CRow>
               </CCol>
             </CRow>
+        
           </CContainer>
         </CTabPanel>
 
@@ -375,15 +383,7 @@ const Profile = () => {
             </CRow>
           </CContainer>
         </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={3}>
-          Contact tab content
-        </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={4}>
-          Contact tab content
-        </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={4}>
-          Contact tab content
-        </CTabPanel>
+      
       </CTabContent>
     </CTabs>
   )
