@@ -799,18 +799,20 @@ const Home = () => {
       {/* )} */}
 
       {/* Modal for adding product to cart */}
-      {selectedProduct && (
+      {selectedProduct && selectedProduct.Material && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
+              {selectedProduct.Material.img && (
                 <CImage
                   src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
                   alt={selectedProduct.Material.description}
                   fluid
                   className="rounded"
                 />
+              )}
               </CCol>
               <CCol md="8">
                 <strong>
