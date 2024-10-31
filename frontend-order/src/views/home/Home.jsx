@@ -470,7 +470,7 @@ const Home = () => {
                 <CCard className="h-100">
                   <CCardImage
                     orientation="top"
-                    src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                    src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                     alt={product.Inventory.Material.description}
                     className="img-fluid custom-card-image"
                   />
@@ -612,10 +612,7 @@ const Home = () => {
                 <CRow className="d-flex justify-content-between my-2 ">
                   <CCol xs="1">
                     <CCardImage
-                      src={
-                        order.Detail_Orders[0].Inventory.Material.img ||
-                        'https://via.placeholder.com/150'
-                      }
+                      src={`${config.BACKEND_URL}${product.Material.img}`}
                       alt={order.Detail_Orders[0].Inventory.Material.description}
                       style={{ height: '100%', width: '100%' }}
                     />
@@ -809,8 +806,8 @@ const Home = () => {
             <CRow>
               <CCol md="4">
                 <CImage
-                  src={'https://via.placeholder.com/150'}
-                  // alt={selectedProduct.Material.description}
+                  src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
+                  alt={selectedProduct.Material.description}
                   fluid
                   className="rounded"
                 />

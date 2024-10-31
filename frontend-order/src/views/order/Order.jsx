@@ -31,6 +31,7 @@ import useCartService from '../../services/CartService'
 import useOrderService from '../../services/OrderService'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import config from '../../utils/Config'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
@@ -305,7 +306,7 @@ const ProductList = () => {
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={'https://via.placeholder.com/150'}
+                src={`${config.BACKEND_URL}${product.Material.img}`} 
                 alt={product.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />
