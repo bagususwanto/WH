@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-
+import { Link } from 'react-router-dom'
 import {
   CCard,
   CCardHeader,
@@ -17,6 +17,7 @@ import {
   CModalBody,
   CModalFooter,
   CButton,
+  CButtonGroup,
 } from '@coreui/react'
 
 import 'primeicons/primeicons.css'
@@ -92,6 +93,7 @@ const Dashboard = () => {
   const [selectedChart, setSelectedChart] = useState('critical')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedData, setSelectedData] = useState(null)
+
 
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
@@ -374,10 +376,12 @@ const Dashboard = () => {
             borderWidth: 2,
             label: {
               display: true,
-              content: `Min Stock: ${referenceLineValue} Shift`,
-              position: 'end', // Positions the label at the start of the line
-              yAdjust: -7, // Moves the label above the line (negative value)
-
+              content:
+                selectedChart === 'overflow'
+                  ? `Max Stock: ${referenceLineValue} Shift`
+                  : `Min Stock: ${referenceLineValue} Shift`,
+              position: 'end',
+              yAdjust: -7,
               color: 'white',
             },
           },
@@ -407,43 +411,63 @@ const Dashboard = () => {
   return (
     <CRow>
       <CCol>
-        <div className="mb-3" style={{ display: 'flex', gap: '0.5rem' }}>
-          <CFormCheck
-            button={{ color: 'primary', variant: 'outline' }}
-            type="radio"
-            name="options-outlined"
-            id="primary-outlined"
-            autoComplete="off"
-            label="Lowest"
-            value="ASC"
-            checked={order === 'ASC'}
-            onChange={handleOrderChange}
-          />
-          <CFormCheck
-            button={{ color: 'primary', variant: 'outline' }}
-            type="radio"
-            name="options-outlined"
-            id="second-outlined"
-            autoComplete="off"
-            label="Highest"
-            value="DESC"
-            checked={order === 'DESC'}
-            onChange={handleOrderChange}
-          />
-          <CDropdown className="ml-auto">
-            <CDropdownToggle color="secondary">Status</CDropdownToggle>
-            <CDropdownMenu>
-              <CDropdownItem onClick={() => setSelectedChart('critical')}>Critical</CDropdownItem>
-              <CDropdownItem onClick={() => setSelectedChart('lowest')}>Low</CDropdownItem>
-              <CDropdownItem onClick={() => setSelectedChart('overflow')}>Overflow</CDropdownItem>
-              <CDropdownItem onClick={() => setIsTableVisible(!isTableVisible)}>
+        <CCard className="mb-2">
+          <CCardHeader>Filter Dashboard</CCardHeader>
+          <CCardBody>
+            <div className="mb-1" style={{ display: 'flex', gap: '0.5rem' }}>
+              <CButtonGroup>
+                <CFormCheck
+                  button={{ color: 'primary', variant: 'outline' }}
+                  type="radio"
+                  name="options-outlined"
+                  id="primary-outlined"
+                  autoComplete="off"
+                  label="Lowest"
+                  value="ASC"
+                  checked={order === 'ASC'}
+                  onChange={handleOrderChange}
+                />
+                <CFormCheck
+                  button={{ color: 'primary', variant: 'outline' }}
+                  type="radio"
+                  name="options-outlined"
+                  id="second-outlined"
+                  autoComplete="off"
+                  label="Highest"
+                  value="DESC"
+                  checked={order === 'DESC'}
+                  onChange={handleOrderChange}
+                />
+              </CButtonGroup>
+              <CDropdown className="ms-2">
+                <CDropdownToggle color="secondary">Status</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem onClick={() => setSelectedChart('critical')}>
+                    Critical
+                  </CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedChart('lowest')}>Low</CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedChart('overflow')}>
+                    Overflow
+                  </CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+              <CButton
+                className="ms-2"
+                color="secondary"
+                onClick={() => setIsTableVisible(!isTableVisible)}
+              >
                 {isTableVisible ? 'Hide Table' : 'Show Table'}
-              </CDropdownItem>
-            </CDropdownMenu>
-          </CDropdown>
-          
-        </div>
-
+              </CButton>
+              <div style={{ marginLeft: 'auto' }}>
+                <Link to="/dashboardall" style={{ textDecoration: 'none' }}>
+                  <CButton color="primary" variant="outline">
+                   ALWAYS DISPLAY 
+                  </CButton>
+                </Link>
+              </div>
+            </div>
+          </CCardBody>
+        </CCard>
         {/* Single Card for Conditional Rendering */}
         <CCard className="mb-4">
           <CCardHeader>
@@ -464,9 +488,9 @@ const Dashboard = () => {
                     ? chartOptions(inventoriescritical, 0, 2.2, 2)
                     : selectedChart === 'lowest'
                       ? chartOptions(inventorieslowest, 0, 1.1, 1)
-                      : chartOptions(inventoriesoverflow, 0, 10, 5)
+                      : chartOptions(inventoriesoverflow, 0, 7, 5)
                 }
-                height={500}
+                height={510}
               />
             </Box>
             {/* Modal for displaying selected data */}
@@ -481,18 +505,20 @@ const Dashboard = () => {
               <CModalBody>
                 {selectedData && (
                   <>
-                    <p>
+                   <p>
                       <strong>Material Number:</strong> {selectedData.Material.materialNo}
                     </p>
                     <p>
                       <strong>Description:</strong> {selectedData.Material.description}
                     </p>
                     <p>
-                      <strong>Supplier:</strong> {selectedData.Material.supplier}
+                      <strong>Supplier:</strong> {selectedData.Material.Supplier.supplierName}
                     </p>
                     <p>
-                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}
+                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
+                      {selectedData.Material.uom}
                     </p>
+                    <strong>Incoming:</strong> {selectedData.Incomings}
                   </>
                 )}
               </CModalBody>
@@ -508,8 +534,8 @@ const Dashboard = () => {
                   selectedChart === 'critical'
                     ? inventoriescritical
                     : selectedChart === 'lowest'
-                    ? inventorieslowest
-                    : inventoriesoverflow
+                      ? inventorieslowest
+                      : inventoriesoverflow
                 }
                 tableStyle={{ minWidth: '30rem' }}
                 className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
@@ -518,9 +544,10 @@ const Dashboard = () => {
                 size="small"
                 scrollable
               >
-                <Column field="Material.materialNo" header="Material" sortable />
-                <Column field="Material.description" header="Deskripsi" sortable />
+                  <Column field="Material.materialNo" header="Material No" sortable />
+                <Column field="Material.description" header="Description" sortable />
                 <Column field="Material.uom" header="UoM" sortable />
+                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
                 <Column field="Material.minStock" header="Min" sortable />
                 <Column field="quantityActualCheck" header="Actual" sortable />
                 <Column field="stock" header="Remain Stock" sortable />

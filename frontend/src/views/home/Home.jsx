@@ -52,9 +52,9 @@ const Home = () => {
     right: '0', // Align to the right edge
     top: '100%', // Align vertically to the middle
     transform: 'translateY(100%)', // Keep the element vertically centered
-    transform: 'translateX(7%)', // Keep the element vertically centered
-    width: '42vw', // Responsive width based on viewport width
-    height: '34vh', // Responsive height based on viewport height
+    transform: 'translateX(9%)', // Keep the element vertically centered
+    width: '41vw', // Responsive width based on viewport width
+    height: '33vh', // Responsive height based on viewport height
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -64,7 +64,7 @@ const Home = () => {
     fontWeight: '900', // Adjust for boldness
     color: '#343a40', // Text color
     textAlign: 'center', // Center the text horizontally
-    marginBottom: '1rem', // Add some space below the heading
+    marginBottom: '2rem', // Add some space below the heading
   }
 
   const secondaryLabelStyle = {
@@ -97,7 +97,7 @@ const Home = () => {
         maxWidth: '100%',
       }}
     >
-      <CRow className="align-items-center mt-5">
+      <CRow className="align-items-center mt-5  ">
         <CCol xs={6} md={6} lg={5}>
           <div style={containerStyle}>
             <label style={labelStyle}>
@@ -141,7 +141,7 @@ const Home = () => {
               </CButton>
 
               <CDropdown>
-                <CDropdownToggle className="px-4 py-2 px-md-5 py-md-3 fw-bold" color="secondary" size="sm">
+                <CDropdownToggle className="px-5 py-1 px-md-4 py-md-3 fw-bold" color="secondary" size="sm">
                   INVENTORY
                 </CDropdownToggle>
                 <CDropdownMenu>
