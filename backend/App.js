@@ -55,6 +55,9 @@ if (process.platform === "win32") {
   __dirname = __dirname.substring(1); // Removes extra leading slash on Windows
 }
 
+// Mengatur path untuk menyimpan gambar produk
+app.use("/uploads/products", express.static(path.join(__dirname, "resources/uploads/products")));
+
 // Mengambil sertifikat dan kunci
 const privateKey = fs.readFileSync(path.join(__dirname, "certificates", "server.key"), "utf8");
 const certificate = fs.readFileSync(path.join(__dirname, "certificates", "server.crt"), "utf8");

@@ -587,7 +587,7 @@ const Incoming = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading inventory data...</p>
+      <p>Loading incoming data...</p>
     </div>
   )
 
