@@ -54,6 +54,7 @@ import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import useCartService from '../../services/CartService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import config from '../../utils/Config'
 
 // Icon mapping based on your category names
 const iconMap = {
@@ -713,7 +714,7 @@ const Home = () => {
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={product.Material.img || 'https://via.placeholder.com/150'}
+                src={`${config.BACKEND_URL}${product.Material.img}`}
                 alt={product.Material.description}
                 style={{ height: '150px', objectFit: 'cover' }}
               />

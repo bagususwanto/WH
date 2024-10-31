@@ -1,7 +1,8 @@
 import axios from 'axios'
+import config from './Config'
 
 const axiosInstance = axios.create({
-  baseURL: 'https://10.65.133.99:5000/api',
+  baseURL: `${config.BACKEND_URL}/api`,
   withCredentials: true,
 })
 
