@@ -1,8 +1,15 @@
 import Sequelize from "sequelize";
 import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
+import Supplier from "../models/SupplierModel.js";
+import Incoming from "../models/IncomingModel.js";
 
 const { Op } = Sequelize;
+const startOfToday = new Date();
+startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
+
+const endOfToday = new Date();
+endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventoryDashboard = async (req, res) => {
   try {
@@ -79,13 +86,32 @@ export const getInventoryDashboard = async (req, res) => {
 
     // Query to get inventory with critical conditions
     const inventoryData = await Inventory.findAll({
+      attributes: ["id", "quantityActualCheck"],
       include: [
         {
           model: Material,
-          attributes: ["materialNo", "uom", "description", "minStock", "maxStock"],
+          attributes: ["materialNo", "uom", "description", "minStock", "maxStock", "supplierId"],
+          include: [
+            {
+              model: Supplier,
+              required: false,
+              attributes: ["supplierName"],
+            },
+          ],
           where: {
             minStock: {
               [Op.ne]: null, // Ensure minStock is not NULL
+            },
+          },
+        },
+        {
+          model: Incoming,
+          required: false,
+          limit: 1,
+          order: [["createdAt", "DESC"]],
+          where: {
+            createdAt: {
+              [Op.between]: [startOfToday, endOfToday],
             },
           },
         },
@@ -106,6 +132,9 @@ export const getInventoryDashboard = async (req, res) => {
         "Material.minStock", // Group by minStock
         "Material.maxStock", // Group by maxStock
         "Material.materialNo", // Group by materialNo
+        "Material.supplierId", // Group by supplierId
+        "Material->Supplier.id",
+        "Material->Supplier.supplierName",
       ],
       limit, // Limit number of results
     });
