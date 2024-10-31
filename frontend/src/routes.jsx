@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-
+const DashboardAll = React.lazy(() => import('./views/dashboard/DashboardAll'))
 const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Inventory = React.lazy(() => import('./views/inventory/Inventory'))
 const Incoming = React.lazy(() => import('./views/incoming/incoming'))
@@ -22,6 +22,7 @@ const InputInventory = React.lazy(() => import('./views/inventory/InputInventory
 const routes = [
   { path: '/login', name: '', element: Login },
   { path: '/dashboard', name: 'dashboard', element: Dashboard },
+  { path: '/dashboardall', name: 'dashboardall', element: DashboardAll },
   { path: '/home', name: '', element: Home },
   { path: '/inventory/data', name: 'Inventory / data', element: Inventory },
   { path: '/inventory/input', name: 'Inventory / Input', element: InputInventory },
