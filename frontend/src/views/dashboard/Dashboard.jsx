@@ -518,7 +518,8 @@ const Dashboard = () => {
                       <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
                       {selectedData.Material.uom}
                     </p>
-                    <strong>Incoming:</strong> {selectedData.Incomings}
+                    <strong>Planning Incoming:</strong> {selectedData.Incomings[0].planning}{' '}
+                    {selectedData.Material.uom}
                   </>
                 )}
               </CModalBody>

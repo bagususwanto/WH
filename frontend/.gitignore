@@ -1,13 +1,15 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
 # dependencies
-/.firebase
 /node_modules
 package-lock.json
 yarn.lock
 
 # testing
 /coverage
+
+# firebase
+/.firebase
 
 # production
 /build
