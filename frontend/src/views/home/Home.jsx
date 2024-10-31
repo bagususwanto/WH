@@ -110,7 +110,6 @@ const Home = () => {
               <CButton
                 className="py-2 px-4 py-md-3 px-md-5 me-md-4 mb-3 mb-md-0 fw-bold"
                 color="primary"
-                
                 size="sm"
                 onClick={(e) => {
                   e.preventDefault() // Prevent default button behavior
@@ -121,11 +120,11 @@ const Home = () => {
                     url = `${config.ORDER_URL}/home`
                   } else if (roleName === 'group head') {
                     url = `${config.ORDER_URL}/home`
-                     } else if (roleName === 'line head') {
+                  } else if (roleName === 'line head') {
                     url = `${config.ORDER_URL}/approveall`
-                        } else if (roleName === 'group head') {
+                  } else if (roleName === 'group head') {
                     url = `${config.ORDER_URL}/approveall`
-                       } else if (roleName === 'section head') {
+                  } else if (roleName === 'section head') {
                     url = `${config.ORDER_URL}/approveall`
                   } else {
                     // Optional: handle other roles or show a message if the role is not recognized
@@ -141,7 +140,11 @@ const Home = () => {
               </CButton>
 
               <CDropdown>
-                <CDropdownToggle className="px-5 py-1 px-md-4 py-md-3 fw-bold" color="secondary" size="sm">
+                <CDropdownToggle
+                  className="px-5 py-1 px-md-4 py-md-3 fw-bold"
+                  color="secondary"
+                  size="sm"
+                >
                   INVENTORY
                 </CDropdownToggle>
                 <CDropdownMenu>
