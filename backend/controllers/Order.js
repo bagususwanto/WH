@@ -193,10 +193,8 @@ export const setApproval = async (userId, carts) => {
             });
             return approval;
           }
-        }
-
-        // Jika lineId tidak ada atau tidak relevan, cek sectionId
-        if (user.Organization.sectionId) {
+        } // Jika lineId tidak ada atau tidak relevan, cek sectionId
+        else if (user.Organization.sectionId) {
           const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
           if (roleIdApproval) {
             approval.push({
@@ -206,10 +204,8 @@ export const setApproval = async (userId, carts) => {
             });
             return approval;
           }
-        }
-
-        // Jika sectionId tidak ada, cek departmentId
-        if (user.Organization.departmentId) {
+        } // Jika sectionId tidak ada, cek departmentId
+        else if (user.Organization.departmentId) {
           const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
           if (roleIdApproval) {
             approval.push({
@@ -233,10 +229,8 @@ export const setApproval = async (userId, carts) => {
             });
             return approval;
           }
-        }
-
-        // Jika lineId tidak ada atau tidak relevan, cek sectionId
-        if (user.Organization.sectionId) {
+        } // Jika lineId tidak ada atau tidak relevan, cek sectionId
+        else if (user.Organization.sectionId) {
           const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
           if (roleIdApproval) {
             approval.push({
@@ -246,10 +240,8 @@ export const setApproval = async (userId, carts) => {
             });
             return approval;
           }
-        }
-
-        // Jika sectionId tidak ada, cek departmentId
-        if (user.Organization.departmentId) {
+        } // Jika sectionId tidak ada, cek departmentId
+        else if (user.Organization.departmentId) {
           const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
           if (roleIdApproval) {
             approval.push({
@@ -276,10 +268,8 @@ export const setApproval = async (userId, carts) => {
           });
           return approval;
         }
-      }
-
-      // Jika sectionId tidak ada, cek departmentId
-      if (user.Organization.departmentId) {
+      } // Jika sectionId tidak ada, cek departmentId
+      else if (user.Organization.departmentId) {
         const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
         if (roleIdApproval) {
           approval.push({
@@ -298,6 +288,7 @@ export const setApproval = async (userId, carts) => {
       isLastApproval: 1,
       isApproval: 1,
     });
+
     return approval;
   } catch (error) {
     console.log(error);
