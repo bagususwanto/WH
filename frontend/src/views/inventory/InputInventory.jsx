@@ -370,6 +370,7 @@ const InputInventory = () => {
           label: selectedItem.Address_Rack.addressRackName,
         })
         setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        quantityInputRef.current?.focus()
       }
     } else {
       // Reset semua state jika tidak ada material yang dipilih
@@ -394,6 +395,7 @@ const InputInventory = () => {
           label: selectedItem.Address_Rack.addressRackName,
         })
         setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        quantityInputRef.current?.focus()
       }
     } else {
       // Reset semua state jika tidak ada material yang dipilih
@@ -601,7 +603,7 @@ const InputInventory = () => {
           <CForm>
             <CCardBody>
               <CRow>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
                     className="basic-single"
@@ -614,7 +616,7 @@ const InputInventory = () => {
                     value={selectedPlantVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="storage">Storage</CFormLabel>
                   <Select
                     className="basic-single"
@@ -628,7 +630,7 @@ const InputInventory = () => {
                     value={selectedStorageVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="type">Type</CFormLabel>
                   <Select
                     className="basic-single"
@@ -642,7 +644,7 @@ const InputInventory = () => {
                     value={selectedTypeMaterial}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3}>
                   <CFormLabel htmlFor="address">Address Code</CFormLabel>
                   <Select
                     className="basic-single"
@@ -664,8 +666,8 @@ const InputInventory = () => {
                   />
                 </CCol>
               </CRow>
-              <CRow className="mt-3">
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+              <CRow>
+                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
                   <CFormLabel htmlFor="description">Description</CFormLabel>
                   <Select
                     className="basic-single"
@@ -683,7 +685,7 @@ const InputInventory = () => {
                     value={selectedDescription}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
                   <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
                     <Select
@@ -712,7 +714,7 @@ const InputInventory = () => {
                     </CInputGroupText>
                   </CInputGroup>
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormLabel htmlFor="address">Address</CFormLabel>
                   <Select
                     className="basic-single"
@@ -731,7 +733,7 @@ const InputInventory = () => {
                     isDisabled={true}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormLabel htmlFor="uom">UoM</CFormLabel>
                   <Select
                     className="basic-single"
@@ -750,9 +752,7 @@ const InputInventory = () => {
                     isDisabled={true}
                   />
                 </CCol>
-              </CRow>
-              <CRow className="mt-3">
-                <CCol xs={12} sm={6} md={3} className="mb-3">
+                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
                     ref={quantityInputRef}
                     type="number"
@@ -770,13 +770,15 @@ const InputInventory = () => {
                   xs={12}
                   sm={6}
                   md={3}
-                  className="d-flex justify-content-start align-items-center"
+                  xl={3}
+                  className="d-flex justify-content-start align-items-center mt-3"
                 >
                   <CButton onClick={handleAddInventory} color="primary">
                     Add
                   </CButton>
                 </CCol>
-
+              </CRow>
+              <CRow className="mt-3">
                 {/* Modal untuk QR Scanner */}
                 <CModal visible={isQrScannerOpen} onClose={() => setIsQrScannerOpen(false)}>
                   <CModalHeader closeButton>Scan QR Code</CModalHeader>
