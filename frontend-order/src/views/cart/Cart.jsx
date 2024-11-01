@@ -81,7 +81,7 @@ const Cart = () => {
   const checkouts = async () => {
     try {
       const cartIds = cartData.map((item) => item.id)
-      const response = await checkout({ cartIds: cartIds })
+      const response = await checkout({ cartIds: cartIds }, warehouse.id)
       console.log(response)
 
       navigate('/confirmrec', { state: { verifiedCartItems: response.data } })

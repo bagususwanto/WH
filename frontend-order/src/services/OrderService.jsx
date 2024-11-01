@@ -79,9 +79,9 @@ const useOrderService = () => {
     }
   }
 
-  const checkout = async (data) => {
+  const checkout = async (data, warehouseId) => {
     try {
-      const response = await axiosJWT.post('/checkout', data, {
+      const response = await axiosJWT.post(`/checkout/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -91,9 +91,9 @@ const useOrderService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const createOrder = async (data) => {
+  const createOrder = async (data, warehouseId) => {
     try {
-      const response = await axiosJWT.post('/order', data, {
+      const response = await axiosJWT.post(`/order/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

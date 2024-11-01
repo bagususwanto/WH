@@ -115,78 +115,79 @@ const Confirm = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         // If confirmed, proceed with checkout function
-        order();  // Directly proceed with the order function
+        order() // Directly proceed with the order function
       }
     })
   }
-  
+
   const order = async () => {
     try {
-      const cartIds = verifiedCartItems.map((item) => item.id);
-      console.log('Cart IDs:', cartIds);
-  
+      const cartIds = verifiedCartItems.map((item) => item.id)
+      console.log('Cart IDs:', cartIds)
+
       // Check if no items in the cart
       if (cartIds.length === 0) {
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
           text: 'No items to order. Please add items to the cart before proceeding.',
-        });
+        })
       }
-  
-      let orderTime;
+
+      let orderTime
       if (!isPickup) {
         // Only enforce shift selection for "Otodoke"
         const selectedServiceHour =
           verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.find(
             (serviceHour) => `shift${serviceHour.shiftId}` === deadline,
-          );
-  
+          )
+
         // Enforce orderTime selection for "Otodoke", prevent "No specific time"
         if (!selectedServiceHour) {
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please select a valid schedule for Otodoke. Order time is required.',
-          });
+          })
         }
-        orderTime = selectedServiceHour.time;
+        orderTime = selectedServiceHour.time
       }
-  
+
       const paymentNumber = iswbs
         ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber // WBS number
         : verifiedCartItems[0].User.Organization.Section.GIC.gicNumber // GIC number
-  
-      const paymentMethod = iswbs ? 'WBS' : 'GIC'; // Payment method based on user choice
-      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke'; // Dynamic delivery method
-  
+
+      const paymentMethod = iswbs ? 'WBS' : 'GIC' // Payment method based on user choice
+      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Dynamic delivery method
+
       // Validate if all required fields are provided
       if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
           text: 'Please ensure all order details are filled out before proceeding.',
-        });
+        })
       }
-  
-      console.log('Order Details:', orderTime, paymentNumber, paymentMethod, deliveryMethod);
-  
-      const response = await createOrder({
-        cartIds: cartIds, // Cart item IDs
-        orderTime: orderTime || null, // Provide orderTime only if it's Otodoke
-        paymentNumber: paymentNumber,
-        paymentMethod: paymentMethod,
-        deliveryMethod: deliveryMethod,
-      });
-  
-      console.log('Order response:', response);
-      navigate('/history'); // Navigate to history page after successful order
+
+      console.log('Order Details:', orderTime, paymentNumber, paymentMethod, deliveryMethod)
+
+      const response = await createOrder(
+        {
+          cartIds: cartIds, // Cart item IDs
+          orderTime: orderTime || null, // Provide orderTime only if it's Otodoke
+          paymentNumber: paymentNumber,
+          paymentMethod: paymentMethod,
+          deliveryMethod: deliveryMethod,
+        },
+        warehouse.id,
+      )
+
+      console.log('Order response:', response)
+      navigate('/history') // Navigate to history page after successful order
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Error creating order:', error)
     }
-  };
-  
-  
+  }
 
   // // Total harga produk
   // useEffect(() => {
@@ -274,10 +275,10 @@ const Confirm = () => {
                   </>
                 )}
               </div>
-             
+
               {!isPickup && (
                 <>
-                 <hr />
+                  <hr />
                   <label className="fw-bold mb-2">Schedule Otodoke</label>
                   <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
                     <option className="fw-light" value="">
