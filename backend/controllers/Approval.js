@@ -10,6 +10,7 @@ import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import { generateOrderNumber } from "./Order.js";
 import { postOrderHistory } from "./OrderHistory.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 const getOrganizationCondition = (user, role) => {
   switch (role) {
@@ -24,7 +25,7 @@ const getOrganizationCondition = (user, role) => {
   }
 };
 
-const findRoleAndOrders = async (roleName, organizationField, organizationId) => {
+const findRoleAndOrders = async (roleName, organizationField, organizationId, warehouseId) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
   return await Order.findAll({
     where: { isApproval: 0, currentRoleApprovalId: role.id },
@@ -32,7 +33,13 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId) =>
       {
         model: User,
         attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
-        include: [{ model: Organization, where: { [organizationField]: organizationId } }],
+        include: [
+          { model: Organization, where: { [organizationField]: organizationId } },
+          {
+            model: Warehouse,
+            where: { id: warehouseId },
+          },
+        ],
       },
     ],
   });
@@ -41,11 +48,12 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId) =>
 export const getOrderApproval = async (req, res) => {
   const role = req.query.role;
   const condition = getOrganizationCondition(req.user, role);
+  const warehouseId = req.params.warehouseId;
 
   if (!condition) return res.status(400).json({ message: "Invalid role" });
 
   try {
-    const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId);
+    const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId);
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -53,7 +61,7 @@ export const getOrderApproval = async (req, res) => {
   }
 };
 
-const findRoleAndDetailOrders = async (roleName, organizationField, organizationId) => {
+const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, warehouseId) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
   return await Order.findAll({
     where: { isApproval: 0, currentRoleApprovalId: role.id },
@@ -76,7 +84,13 @@ const findRoleAndDetailOrders = async (roleName, organizationField, organization
       {
         model: User,
         attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
-        include: [{ model: Organization, where: { [organizationField]: organizationId } }],
+        include: [
+          { model: Organization, where: { [organizationField]: organizationId } },
+          {
+            model: Warehouse,
+            where: { id: warehouseId },
+          },
+        ],
       },
     ],
   });
@@ -85,11 +99,12 @@ const findRoleAndDetailOrders = async (roleName, organizationField, organization
 export const getDetailOrderApproval = async (req, res) => {
   const role = req.query.role;
   const condition = getOrganizationCondition(req.user, role);
+  const warehouseId = req.params.warehouseId;
 
   if (!condition) return res.status(400).json({ message: "Invalid role" });
 
   try {
-    const orders = await findRoleAndDetailOrders(role, condition.organizationField, condition.organizationId);
+    const orders = await findRoleAndDetailOrders(role, condition.organizationField, condition.organizationId, warehouseId);
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);

@@ -205,10 +205,13 @@ const Home = () => {
         }
 
         // Update the cart with the new quantity (use API updateCart)
-        const updatedCartResponse = await updateCart({
-          inventoryId: product.id,
-          quantity: updatedProduct.quantity,
-        })
+        const updatedCartResponse = await updateCart(
+          {
+            inventoryId: product.id,
+            quantity: updatedProduct.quantity,
+          },
+          warehouse.id,
+        )
         if (updatedCartResponse) {
           // Update the cart state with the updated product
           setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
@@ -223,7 +226,7 @@ const Home = () => {
         const arraycartIds = []
 
         // Post the new cart item to the API (use postCart)
-        const addToCartResponse = await postCart(newCartItem)
+        const addToCartResponse = await postCart(newCartItem, warehouse.id)
         if (addToCartResponse) {
           // Add the new product to the cart state
           setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])

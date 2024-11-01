@@ -25,9 +25,9 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const postCart = async (data) => {
+  const postCart = async (data, warehouseId) => {
     try {
-      const response = await axiosJWT.post('/cart', data, {
+      const response = await axiosJWT.post(`/cart/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,9 +37,9 @@ const useCartService = () => {
       handleError(error, 'Error post:')
     }
   }
-  const updateCart = async (data) => {
+  const updateCart = async (data, warehouseId) => {
     try {
-      const response = await axiosJWT.put('/cart', data, {
+      const response = await axiosJWT.put(`/cart/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,9 +49,9 @@ const useCartService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
-  const deleteCart = async (id) => {
+  const deleteCart = async (id, warehouseId) => {
     try {
-      const response = await axiosJWT.delete(`/cart/${id}`, {
+      const response = await axiosJWT.delete(`/cart/${id}/${warehouseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

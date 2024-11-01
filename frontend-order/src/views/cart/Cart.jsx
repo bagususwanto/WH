@@ -93,7 +93,7 @@ const Cart = () => {
   const handleDeleteCart = async (productId) => {
     try {
       console.log(productId)
-      await deleteCart(productId)
+      await deleteCart(productId, warehouse.id)
       setCartData(cartData.filter((product) => product.id !== productId))
     } catch (error) {
       console.error('Error deleting cart:', error)
@@ -124,7 +124,7 @@ const Cart = () => {
             inventoryId: productId,
             quantity: quantity,
           }
-          await updateCart(updateCartItem)
+          await updateCart(updateCartItem, warehouse.id)
           console.log(`Updated product ${productId} to quantity ${quantity}`)
         } catch (error) {
           console.error(`Error updating product ${productId}:`, error)
