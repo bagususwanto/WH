@@ -31,6 +31,7 @@ import useCartService from '../../services/CartService'
 import useOrderService from '../../services/OrderService'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import config from '../../utils/Config'
 
 const ProductList = () => {
   const [productsData, setProductsData] = useState([])
@@ -305,9 +306,13 @@ const ProductList = () => {
             <CCard className="h-100">
               <CCardImage
                 orientation="top"
-                src={'https://via.placeholder.com/150'}
+                src={`${config.BACKEND_URL}${product.Material.img}`}
                 alt={product.Material.description}
-                style={{ height: '150px', objectFit: 'cover' }}
+                style={{
+                  width: '100%', // Ensure it takes the full width
+                  height: '150px', // Fixed height for uniformity
+                  objectFit: 'contain', // Keep the aspect ratio
+                }}
               />
               <CCardBody className="d-flex flex-column justify-content-between">
                 <div>
@@ -400,18 +405,20 @@ const ProductList = () => {
         </div>
       )}
       {/* modal add to cart */}
-      {selectedProduct && (
+      {selectedProduct && selectedProduct.Material && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
-                <CImage
-                  src={'https://via.placeholder.com/150'}
-                  alt={selectedProduct.Material.description}
-                  fluid
-                  className="rounded"
-                />
+                {selectedProduct.Material.img && (
+                  <CImage
+                    src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
+                    alt={selectedProduct.Material.description}
+                    fluid
+                    className="rounded"
+                  />
+                )}
               </CCol>
               <CCol md="8">
                 <strong>{selectedProduct.Material.description}</strong>
