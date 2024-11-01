@@ -261,7 +261,7 @@ const Home = () => {
     if (isInWishlist(product.id)) {
       // Jika produk sudah ada di wishlist (unlove), lakukan DELETE
       try {
-        await deleteWishlist(product.Inventory.id)
+        await deleteWishlist(product.Inventory.id, warehouse.id)
         // Update state wishlist di frontend setelah berhasil menghapus dari database
         setWishlist((prevWishlist) => prevWishlist.filter((item) => item.id !== product.id))
         MySwal.fire('Success', 'Product removed from wishlist', 'success')
@@ -271,7 +271,7 @@ const Home = () => {
     } else {
       // Jika produk belum ada di wishlist (love), lakukan POST
       try {
-        await addWishlist({ inventoryId: product.Inventory.id })
+        await addWishlist({ inventoryId: product.Inventory.id }, warehouse.id)
         // Update state wishlist di frontend setelah berhasil menambahkan ke database
         const responseWish = await getWishlist(warehouse.id)
         setWishlist((prevWishlist) => [...prevWishlist, ...responseWish.data])
@@ -301,7 +301,7 @@ const Home = () => {
     if (isInWishlistProduct(product.id)) {
       // Jika produk sudah ada di wishlist (unlove), lakukan DELETE
       try {
-        await deleteWishlist(product.id)
+        await deleteWishlist(product.id, warehouse.id)
         // Update state wishlist di frontend setelah berhasil menghapus dari database
         setWishlist((prevWishlist) =>
           prevWishlist.filter((item) => item.Inventory.id !== product.id),
@@ -312,7 +312,7 @@ const Home = () => {
     } else {
       // Jika produk belum ada di wishlist (love), lakukan POST
       try {
-        await addWishlist({ inventoryId: product.id })
+        await addWishlist({ inventoryId: product.id }, warehouse.id)
         // Update state wishlist di frontend setelah berhasil menambahkan ke database
         const responseWish = await getWishlist(warehouse.id)
         setWishlist((prevWishlist) => [...prevWishlist, ...responseWish.data])
