@@ -90,7 +90,9 @@ Material.belongsTo(Category, { foreignKey: "categoryId" });
 Supplier.hasMany(Material, { foreignKey: "supplierId" });
 Material.belongsTo(Supplier, { foreignKey: "supplierId" });
 
-LogImport.hasMany(Material, { foreignKey: "logImportId" });
-Material.belongsTo(LogImport, { foreignKey: "logImportId" });
+LogImport.hasMany(Material, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+Material.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+
+
 
 export default Material;

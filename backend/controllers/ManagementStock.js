@@ -154,8 +154,8 @@ export const executeInventory = async (req, res) => {
           updatedQuantityActualCheck = inventory.quantityActual;
         }
 
-        // Update hanya jika ada perubahan
-        if (inventory.quantityActualCheck !== updatedQuantityActualCheck) {
+        // Update hanya jika ada perubahan dan quantityActual tidak null
+        if (inventory.quantityActual !== null && inventory.quantityActualCheck !== updatedQuantityActualCheck) {
           await Inventory.update({ quantityActualCheck: updatedQuantityActualCheck }, { where: { id: inventory.id } });
         }
       }

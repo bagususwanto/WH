@@ -42,7 +42,7 @@ const AddressRack = db.define(
 Storage.hasMany(AddressRack, { foreignKey: "storageId" });
 AddressRack.belongsTo(Storage, { foreignKey: "storageId" });
 
-LogImport.hasMany(AddressRack, { foreignKey: "logImportId" });
-AddressRack.belongsTo(LogImport, { foreignKey: "logImportId" });
+LogImport.hasMany(AddressRack, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+AddressRack.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
 
 export default AddressRack;

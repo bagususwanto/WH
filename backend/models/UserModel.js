@@ -150,4 +150,6 @@ User.belongsTo(Division, { foreignKey: "divisionId", onDelete: "NO ACTION" });
 Organization.hasMany(User, { foreignKey: "organizationId", onDelete: "NO ACTION" });
 User.belongsTo(Organization, { foreignKey: "organizationId", onDelete: "NO ACTION" });
 
+User.belongsTo(Warehouse, { as: "alternateWarehouse", foreignKey: "anotherWarehouseId", constraints: false });
+
 export default User;

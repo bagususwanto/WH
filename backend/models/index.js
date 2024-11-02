@@ -17,14 +17,14 @@ import Shift from "./ShiftModel.js";
 import Plant from "./PlantModel.js";
 import GIC from "./GICModel.js";
 import Section from "./SectionModel.js";
+import Organization from "./OrganizationModel.js";
+import User from "./UserModel.js";
+import LogImport from "./LogImportModel.js";
 import AdressRack from "./AddressRackModel.js";
 import Storage from "./StorageModel.js";
 import Material from "./MaterialModel.js";
-import Organization from "./OrganizationModel.js";
-import User from "./UserModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
-import MaterialPlant from "./MaterialPlantModel.js";
 import AddressRack from "./AddressRackModel.js";
 
 // transaksi
@@ -38,7 +38,6 @@ import DetailOrder from "./DetailOrderModel.js";
 import Cart from "./CartModel.js";
 import LogApproval from "./LogApprovalModel.js";
 import LogEntry from "./LogEntryModel.js";
-import LogImport from "./LogImportModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 
 (async () => {
@@ -47,7 +46,7 @@ import OrderHistory from "./OrderHistoryModel.js";
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
     // await AddressRack.sync({ alter: true });
-    console.log("Database synced successfully.");
+    // console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);
   }
