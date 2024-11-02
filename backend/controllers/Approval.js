@@ -38,6 +38,8 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
           { model: Organization, where: { [organizationField]: organizationId } },
           {
             model: Warehouse,
+            as: "alternateWarehouse", // Menggunakan alias di sini
+            required: true,
             // where: { id: warehouseId },
           },
         ],
@@ -90,8 +92,9 @@ const findRoleAndDetailOrders = async (roleName, organizationField, organization
           { model: Organization, where: { [organizationField]: organizationId } },
           {
             model: Warehouse,
-            as: 'alternateWarehouse',  // Menggunakan alias di sini
-            // required: true,
+            as: "alternateWarehouse", // Menggunakan alias di sini
+            required: true,
+            // where: { id: warehouseId },
           },
         ],
       },
