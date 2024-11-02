@@ -22,6 +22,7 @@ export const getUser = async (req, res) => {
         },
         {
           model: Organization,
+          required: false,
           where: { flag: 1 },
           include: [
             {
@@ -85,6 +86,7 @@ export const getUserById = async (req, res) => {
         },
         {
           model: Organization,
+          required: false,
           where: { flag: 1 },
           include: [
             {
@@ -145,7 +147,7 @@ export const createUser = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if ((!username || !password || !name || !roleId || !position, !organizationId || !isProduction)) {
+  if ((!username || !password || !name || !roleId || !position, !organizationId || isProduction == null)) {
     return res.status(400).json({ message: "username, password, name, roleId, position, organization and isProduction must be filled" });
   }
 
@@ -259,7 +261,7 @@ export const createUserAndOrg = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if (!username || !password || !name || !roleId || !position || !isProduction) {
+  if (!username || !password || !name || !roleId || !position || isProduction == null) {
     return res.status(400).json({ message: "username, password, name, roleId, position and isProduction must be filled" });
   }
 
@@ -272,12 +274,12 @@ export const createUserAndOrg = async (req, res) => {
     // Check if organization exists
     const organization = await Organization.findOne({
       where: {
-        groupId: groupId,
-        lineId: lineId,
-        sectionId: sectionId,
-        departmentId: departmentId,
-        divisionId: divisionId,
-        plantId: plantId,
+        groupId: groupId || null,
+        lineId: lineId || null,
+        sectionId: sectionId || null,
+        departmentId: departmentId || null,
+        divisionId: divisionId || null,
+        plantId: plantId || null,
         flag: 1,
       },
       transaction, // Pass the transaction object
