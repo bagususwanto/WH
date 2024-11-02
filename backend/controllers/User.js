@@ -8,6 +8,7 @@ import Section from "../models/SectionModel.js";
 import Department from "../models/DepartmentModel.js";
 import Division from "../models/DivisionModel.js";
 import Organization from "../models/OrganizationModel.js";
+import UserWarehouse from "../models/UserWarehouseModel.js";
 import db from "../utils/Database.js";
 
 export const getUser = async (req, res) => {
@@ -261,8 +262,8 @@ export const createUserAndOrg = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if (!username || !password || !name || !roleId || !position || isProduction == null) {
-    return res.status(400).json({ message: "username, password, name, roleId, position and isProduction must be filled" });
+  if (!username || !password || !name || !roleId || !position || !warehouseId || isProduction == null) {
+    return res.status(400).json({ message: "username, password, name, roleId, position, warehouseId and isProduction must be filled" });
   }
 
   let organizationId;
@@ -330,7 +331,7 @@ export const createUserAndOrg = async (req, res) => {
     }
 
     // Create the user
-    await User.create(
+    const user = await User.create(
       {
         username: username,
         password: hashPassword,
@@ -352,9 +353,27 @@ export const createUserAndOrg = async (req, res) => {
       { transaction }
     ); // Pass the transaction object
 
+    const userWarehouse = await UserWarehouse.findOne({
+      where: {
+        userId: user.id,
+        warehouseId: warehouseId,
+        flag: 1,
+      },
+    });
+
+    if (!userWarehouse) {
+      await UserWarehouse.create(
+        {
+          userId: user.id,
+          warehouseId: warehouseId,
+        },
+        { transaction }
+      );
+    }
+
     // Commit the transaction
     await transaction.commit();
-    res.status(201).json({ message: `${!organizationId ? "User and Organization Created" : "User Created"}` });
+    res.status(201).json({ message: "User Created" });
   } catch (error) {
     // Rollback the transaction in case of an error
     await transaction.rollback();

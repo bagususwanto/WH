@@ -192,11 +192,12 @@ const Home = () => {
   const handleAddToCart = async (product, quantity) => {
     try {
       // Find the existing product in the cart by matching inventoryId
-      const existingProduct = cart.find((item) =>
-        item.Inventory.materialId === product.Inventory
-          ? product.Inventory.materialId
-          : product.materialId,
+      const existingProduct = cart.find(
+        (item) =>
+          item.Inventory.materialId ===
+          (product.Inventory ? product.Inventory.materialId : product.materialId),
       )
+
       if (existingProduct) {
         // If product exists in the cart, update the quantity
         const updatedProduct = {
@@ -808,14 +809,14 @@ const Home = () => {
           <CModalBody>
             <CRow>
               <CCol md="4">
-              {selectedProduct.Material.img && (
-                <CImage
-                  src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
-                  alt={selectedProduct.Material.description}
-                  fluid
-                  className="rounded"
-                />
-              )}
+                {selectedProduct.Material.img && (
+                  <CImage
+                    src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
+                    alt={selectedProduct.Material.description}
+                    fluid
+                    className="rounded"
+                  />
+                )}
               </CCol>
               <CCol md="8">
                 <strong>

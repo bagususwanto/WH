@@ -12,6 +12,7 @@ const db = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.e
     options: {
       encrypt: false, // Set true jika menggunakan jaringan encrypt
       trustServerCertificate: true,
+      requestTimeout: 30000,
     },
   },
 });

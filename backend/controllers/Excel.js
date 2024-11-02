@@ -11,6 +11,8 @@ import Supplier from "../models/SupplierModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import Storage from "../models/StorageModel.js";
 
+const BATCH_SIZE = 500; // Set batch size sesuai kebutuhan
+
 export const cancelIncomingPlan = async (req, res) => {
   const transaction = await db.transaction();
 
@@ -288,7 +290,11 @@ export const uploadIncomingPlan = async (req, res) => {
     return res.status(400).send({ message: "Please upload an excel file!" });
   }
 
+  let logImportTransaction;
+  let mainTransaction;
+
   try {
+    // Cek import log actual dan log plan
     const logImportActual = await checkIncomingActualImport(req.body.importDate);
     if (logImportActual) {
       return res.status(400).send({ message: "Incoming actual already imported!" });
@@ -300,74 +306,87 @@ export const uploadIncomingPlan = async (req, res) => {
       await Incoming.destroy({ where: { logImportId } });
     }
 
-    const transaction = await db.transaction();
+    // Membuat transaksi untuk LogImport
+    logImportTransaction = await db.transaction();
+    const logImport = await LogImport.create(
+      {
+        typeLog: "incoming plan",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction: logImportTransaction }
+    );
 
-    try {
-      const path = `./resources/uploads/excel/${req.file.filename}`;
-      const sheetName = "incoming";
-      const rows = await readXlsxFile(path, { sheet: sheetName });
+    // Commit transaksi LogImport
+    await logImportTransaction.commit();
+    const logImportId = logImport.id;
 
-      if (rows.length > 5000) {
-        return res.status(400).send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
-      }
+    // Proses file excel
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "incoming";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
 
-      const header = rows.shift();
-      if (!validateHeaderIncoming(header)) {
-        return res.status(400).send({ message: "Invalid header!" });
-      }
-
-      const logImport = await LogImport.create(
-        {
-          typeLog: "incoming plan",
-          fileName: req.file.originalname,
-          userId: req.user.userId,
-          importDate: req.body.importDate,
-        },
-        { transaction }
-      );
-      const logImportId = logImport.id;
-
-      // Menggunakan for...of loop untuk proses asynchronous yang lebih stabil
-      const incomingPlan = [];
-      for (const row of rows) {
-        const materialNo = row[0];
-        if (!row[0] || !row[1] || !row[4] || typeof row[2] !== "number") {
-          throw new Error(`Invalid data in row with Material No: ${materialNo}`);
-        }
-
-        const materialNoExists = await checkMaterialNo(row[0]);
-        if (!materialNoExists) {
-          throw new Error(`Material No: ${row[0]} does not exist`);
-        }
-
-        const storageExists = await checkStorageName(row[4]);
-        if (!storageExists) {
-          throw new Error(`Storage Name: ${row[4]} does not exist`);
-        }
-
-        await checkAddressRackName(row[1], row[4], logImportId);
-
-        const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
-        const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]), row[4], logImportId);
-        const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
-
-        incomingPlan.push({
-          inventoryId,
-          planning: row[2],
-          logImportId,
-        });
-      }
-
-      await Incoming.bulkCreate(incomingPlan, { transaction, validate: true });
-      await transaction.commit();
-
-      res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
-    } catch (error) {
-      await transaction.rollback();
-      console.error("Transaction error:", error);
-      res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. ${error}` });
+    if (rows.length > 5000) {
+      return res.status(400).send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
     }
+
+    const header = rows.shift();
+    if (!validateHeaderIncoming(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    // Membuat transaksi utama untuk data Incoming
+    mainTransaction = await db.transaction();
+
+    const incomingPlan = [];
+
+    // Proses setiap baris data
+    for (const row of rows) {
+      const materialNo = row[0];
+      if (!row[0] || !row[1] || !row[4] || typeof row[2] !== "number") {
+        throw new Error(`Invalid data in row with Material No: ${materialNo}`);
+      }
+
+      const materialNoExists = await checkMaterialNo(row[0]);
+      if (!materialNoExists) {
+        throw new Error(`Material No: ${row[0]} does not exist`);
+      }
+
+      const storageExists = await checkStorageName(row[4]);
+      if (!storageExists) {
+        throw new Error(`Storage Name: ${row[4]} does not exist`);
+      }
+
+      await checkAddressRackName(row[1], row[4], logImportId);
+
+      const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
+      const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]), row[4], logImportId);
+      const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
+
+      incomingPlan.push({
+        inventoryId,
+        planning: row[2],
+        logImportId,
+      });
+
+      if (incomingPlan.length === BATCH_SIZE) {
+        await Incoming.bulkCreate(incomingPlan, { transaction: mainTransaction });
+        incomingPlan.length = 0;
+      }
+    }
+
+    if (incomingPlan.length > 0) {
+      await Incoming.bulkCreate(incomingPlan, { transaction: mainTransaction });
+    }
+
+    // Commit transaksi utama
+    await mainTransaction.commit();
+
+    res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
   } catch (error) {
+    if (logImportTransaction) await logImportTransaction.rollback();
+    if (mainTransaction) await mainTransaction.rollback();
     console.error("File processing error:", error);
     res.status(500).send({ message: `Could not process the file: ${req.file?.originalname}. ${error}` });
   }
@@ -523,22 +542,27 @@ export const getCategoryIdByCategoryName = async (categoryName) => {
   }
 };
 
-export const getSupplierIdBySupplierName = async (supplierName) => {
+export const getSupplierIdBySupplierName = async (SupplierName, logImportId) => {
   try {
-    const supplier = await Supplier.findOne({
-      where: { supplierName, flag: 1 },
+    // Cek apakah supplier sudah ada
+    let supplier = await Supplier.findOne({
+      where: { SupplierName, flag: 1 },
       attributes: ["id"],
     });
 
+    // Jika tidak ditemukan, buat supplier baru
     if (!supplier) {
-      console.warn(`Supplier ${supplierName} not found`);
-      return null;
+      supplier = await Supplier.create({
+        SupplierName,
+        logImportId,
+      });
     }
 
+    // Kembalikan id dari supplier yang ditemukan atau yang baru dibuat
     return supplier.id;
   } catch (error) {
     console.error(error.message);
-    return null; // Return null in case of an error
+    throw new Error("Failed to retrieve or create address ID");
   }
 };
 
@@ -560,12 +584,36 @@ const validateHeaderMaterial = (header) => {
   return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
 };
 
-const BATCH_SIZE = 500; // Set batch size sesuai kebutuhan
+// Fungsi checkSupplierName yang diperbarui untuk menggunakan cache
+const checkSupplierName = async (supplierName, logImportId, transaction) => {
+  const formattedSupplierName = supplierName.trim().toUpperCase();
+
+  const existingSupplier = await Supplier.findOne({
+    where: { supplierName: formattedSupplierName, flag: 1 },
+    transaction, // gunakan transaksi yang sedang berlangsung
+  });
+
+  let supplierId;
+  if (existingSupplier) {
+    supplierId = existingSupplier.id;
+  } else {
+    // Jika tidak ada, buat supplier baru
+    const newSupplier = await Supplier.create(
+      {
+        supplierName: formattedSupplierName,
+        logImportId,
+      },
+      { transaction } // gunakan transaksi yang sedang berlangsung
+    );
+    supplierId = newSupplier.id;
+  }
+
+  return supplierId;
+};
 
 export const uploadMasterMaterial = async (req, res) => {
   let transaction;
   let materialsCache = null;
-  let suppliersCache = new Map();
 
   try {
     if (!req.file) {
@@ -597,7 +645,7 @@ export const uploadMasterMaterial = async (req, res) => {
       },
       { transaction }
     );
-    const logImportId = logImport.id; // Dapatkan ID logImport untuk referensi ke Supplier dan Material
+    const logImportId = logImport.id;
 
     let materialMap;
     if (materialsCache) {
@@ -610,22 +658,21 @@ export const uploadMasterMaterial = async (req, res) => {
 
     const newMaterials = [];
 
+    // 1. Kumpulkan semua nama supplier dari rows
+    const supplierNames = new Set(rows.map((row) => row[11]?.trim().toUpperCase()));
+
+    // 2. Periksa dan simpan ID supplier dalam Map
+    const supplierMap = new Map();
+    for (const supplierName of supplierNames) {
+      const supplierId = await checkSupplierName(supplierName, logImportId, transaction);
+      supplierMap.set(supplierName, supplierId);
+    }
+
     const processBatch = async (batch) => {
       const updatePromises = batch.map(async (row) => {
         const materialNo = row[0];
         const existingMaterial = materialMap.get(materialNo);
         const categoryId = await getCategoryIdByCategoryName(row[10]);
-
-        let supplierId = suppliersCache.get(row[11]);
-        if (!supplierId) {
-          const [supplier] = await Supplier.findOrCreate({
-            where: { supplierName: row[11] },
-            defaults: { supplierName: row[11], logImportId: logImportId },
-            transaction,
-          });
-          supplierId = supplier.id;
-          suppliersCache.set(row[11], supplierId);
-        }
 
         if (!categoryId) throw new Error(`Category: ${row[10]} does not exist`);
 
@@ -636,6 +683,10 @@ export const uploadMasterMaterial = async (req, res) => {
         if (typeof row[3] !== "number" || typeof row[6] !== "number" || typeof row[7] !== "number" || typeof row[9] !== "number") {
           throw new Error(`Data must be number in row ${materialNo}, ${row[1]}`);
         }
+
+        // 3. Dapatkan supplierId dari supplierMap
+        const supplierName = row[11]?.trim().toUpperCase();
+        const supplierId = supplierMap.get(supplierName);
 
         if (existingMaterial) {
           return existingMaterial.update(
@@ -651,7 +702,7 @@ export const uploadMasterMaterial = async (req, res) => {
               minOrder: row[9],
               categoryId,
               supplierId,
-              logImportId, // Tambahkan logImportId pada update data yang sudah ada
+              logImportId,
             },
             { transaction }
           );
@@ -669,7 +720,7 @@ export const uploadMasterMaterial = async (req, res) => {
             minOrder: row[9],
             categoryId,
             supplierId,
-            logImportId, // Tambahkan logImportId pada data baru
+            logImportId,
           });
         }
       });
