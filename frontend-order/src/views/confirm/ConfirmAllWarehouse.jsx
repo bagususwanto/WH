@@ -306,12 +306,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 
@@ -384,12 +384,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 
@@ -462,12 +462,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 
@@ -540,12 +540,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 
@@ -618,12 +618,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 
@@ -692,12 +692,12 @@ const ApproveAll = () => {
                                 <br />
                                 <label className="fw-bold fs-6">Total: 4 Item</label>
                               </CCol>
-                              <CCol className="text-end">
+                              <CCol  xs="3"className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp {product.Material.price.toLocaleString('id-ID')}
                                 </label>
                                 <br />
-                                <label className="me-2">WBS : 20000000</label>
+                                <label >WBS : 20000000</label>
                               </CCol>
                             </CRow>
 

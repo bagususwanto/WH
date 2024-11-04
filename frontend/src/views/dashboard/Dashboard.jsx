@@ -549,7 +549,7 @@ const Dashboard = () => {
                 <Column field="Material.description" header="Description" sortable />
                 <Column field="Material.uom" header="UoM" sortable />
                 <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-                <Column field="Material.minStock" header="Min" sortable />
+                <Column field="Material.maxStock" header="Max" sortable />
                 <Column field="quantityActualCheck" header="Actual" sortable />
                 <Column field="stock" header="Remain Stock" sortable />
                 <Column

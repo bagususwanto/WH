@@ -14,15 +14,10 @@ import {
   CModalBody,
   CModalFooter,
   CModalHeader,
-  CAccordionItem,
-  CImage,
-  CNavLink,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
+  CFormLabel,
   CAccordionBody,
   CAccordion,
+  CAccordionItem,
   CAccordionHeader,
   CTab,
   CTabList,
@@ -42,6 +37,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
+  const [modalPassVisible, setModalPassVisible] = useState(false)
   const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
 
@@ -86,6 +82,9 @@ const Profile = () => {
   const toggleModal = () => {
     setModalVisible(!modalVisible)
   }
+  const toggleModalPassword = () => {
+    setModalPassVisible(!modalPassVisible)
+  }
 
   return (
     <CTabs activeItemKey={1}>
@@ -128,7 +127,9 @@ const Profile = () => {
 
                       <hr style={{ width: '100%' }} />
 
-                      <CButton color="light">Change Password</CButton>
+                      <CButton color="light" onClick={toggleModalPassword}>
+                        Change Password
+                      </CButton>
                     </div>
                   </CCardBody>
                 </CCard>
@@ -157,6 +158,28 @@ const Profile = () => {
                         </CButton>
                       </div>
                     </div>
+                  </CModalBody>
+                </CModal>
+                <CModal visible={modalPassVisible} onClose={toggleModalPassword}>
+                  <CModalHeader>Change Password</CModalHeader>
+                  <CModalBody>
+                    <CRow className="text-start mb-4">
+                      {' '}
+                      {/* Added margin bottom for spacing */}
+                      <CCol xs={9}>
+                        {' '}
+                        {/* Adjusted to 7 for more space */}
+                        <CFormLabel htmlFor="inputPassword2" className="visually-hidden">
+                          Password
+                        </CFormLabel>
+                        <CFormInput type="password" id="inputPassword2" placeholder="Password" />
+                      </CCol>
+                      <CCol xs={3}>
+                        <CButton color="primary" type="submit" className="mb-2">
+                          Confirm 
+                        </CButton>
+                      </CCol>
+                    </CRow>
                   </CModalBody>
                 </CModal>
               </CCol>

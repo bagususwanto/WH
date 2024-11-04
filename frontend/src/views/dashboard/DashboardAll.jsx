@@ -77,25 +77,29 @@ const Dashboard = () => {
     const interval = setInterval(() => {
       fetchData()
       updateURL() // Call to update the URL
-    }, 7000) // Fetch data every 25 seconds
+    }, 40000) // Fetch data every 25 seconds
     return () => clearInterval(interval) // Cleanup on unmount
   }, [order, itemNb, lowestItemNb, overflowItemNb]) // Dependencies
 
   const fetchData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
+      // Determine sorting order based on the current order state
+      const criticalOrder = order === 'ASC' ? 'ASC' : 'DESC';
+      const overflowOrder = order === 'ASC' ? 'DESC' : 'ASC';
+  
       await Promise.all([
-        fetchInventoryCriticalStock(itemNb, order),
+        fetchInventoryCriticalStock(itemNb, criticalOrder),
         fetchInventoryLowestStock(lowestItemNb, order),
-        fetchInventoryOverflowStock(overflowItemNb, order),
+        fetchInventoryOverflowStock(overflowItemNb, overflowOrder),
         fetchInventory(),
-      ])
+      ]);
     } catch (error) {
-      console.error('Error fetching inventory data:', error)
+      console.error('Error fetching inventory data:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchInventoryCriticalStock = async (itemNb, order) => {
     try {
@@ -300,17 +304,29 @@ const Dashboard = () => {
       },
       annotation: {
         annotations: {
-          line: {
+          criticalStockLine: {
             type: 'line',
             yMin: referenceLineValue,
             yMax: referenceLineValue,
-            borderColor: 'orange',
+            borderColor: 'red', // Color for critical stock
             borderWidth: 2,
             label: {
               display: true,
-              content: isMaxStock
-                ? `Max Stock: ${referenceLineValue} Shift`
-                : `Min Stock: ${referenceLineValue} Shift`,
+              content: `Max Stock: ${referenceLineValue} Shift`, // Keep your label here
+              position: 'end',
+              yAdjust: -7,
+              color: 'white',
+            },
+          },
+          overflowStockLine: {
+            type: 'line',
+            yMin: 5, // Adjust as needed
+            yMax: 5,
+            borderColor: 'orange', // Color for overflow stock
+            borderWidth: 2,
+            label: {
+              display: true,
+              content: `Min Stock: 5 Shift`, // Keep your label here
               position: 'end',
               yAdjust: -7,
               color: 'white',
@@ -332,7 +348,7 @@ const Dashboard = () => {
   return (
     <CRow>
       <CCol>
-        <CCard className="mb-2">
+        <CCard className="mb-1 ">
           <CCardHeader>Order Options</CCardHeader>
           <CCardBody>
             <div className="mb-1" style={{ display: 'flex', gap: '1 rem' }}>
@@ -367,14 +383,14 @@ const Dashboard = () => {
           </CCardBody>
         </CCard>
 
-        <CCard className="mb-2">
+        <CCard className="mb-1">
           <CCardHeader>Critical Stock</CCardHeader>
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
               <Bar
                 data={prepareChartData(inventoriesCritical, 'powderblue', 2)}
                 options={{
-                  ...chartOptions(inventoriesCritical, 0, 2.2, 2),
+                  ...chartOptions(inventoriesCritical, 0, 2.2, 2, false),
                   onClick: (evt, activeElements) => {
                     if (activeElements.length > 0) {
                       const index = activeElements[0].index
@@ -384,7 +400,7 @@ const Dashboard = () => {
                     }
                   },
                 }}
-                height={300}
+                height={260}
               />
             </Box>
 
@@ -531,7 +547,7 @@ const Dashboard = () => {
               <Bar
                 data={prepareChartData(inventoriesoverflow, 'steelblue', 5)}
                 options={{
-                  ...chartOptions(inventoriesoverflow, 0, 7, 5, true), // isMaxStock = true
+                  ...chartOptions(inventoriesoverflow, 0, 6, 5, true), // isMaxStock = true
                   onClick: (evt, activeElements) => {
                     if (activeElements.length > 0) {
                       const index = activeElements[0].index
@@ -541,7 +557,7 @@ const Dashboard = () => {
                     }
                   },
                 }}
-                height={300}
+                height={260}
               />
             </Box>
 
@@ -592,7 +608,7 @@ const Dashboard = () => {
                 <Column field="Material.description" header="Description" sortable />
                 <Column field="Material.uom" header="UoM" sortable />
                 <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-                <Column field="Material.minStock" header="Min" sortable />
+                <Column field="Material.maxStock" header="Max" sortable />
                 <Column field="quantityActualCheck" header="Actual" sortable />
                 <Column field="stock" header="Remain Stock" sortable />
                 <Column

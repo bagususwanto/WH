@@ -15,7 +15,7 @@ import {
   CModalFooter,
   CModalHeader,
   CAccordionItem,
-  CImage,
+  CFormLabel,
   CNavLink,
   CDropdown,
   CDropdownToggle,
@@ -42,27 +42,28 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
+  const [modalPassVisible, setModalPassVisible] = useState(false)
   const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
 
   const apiUser = 'user'
 
   const getusers = async () => {
-    const response = await getMasterData(apiUser);
-    
+    const response = await getMasterData(apiUser)
+
     // Filter user data to get only the user with id 2
-    const filteredUserData = response.data.filter(user => user.id === 2);
-    
+    const filteredUserData = response.data.filter((user) => user.id === 2)
+
     // Update state with the filtered data
-    setUserData(filteredUserData);
-  
+    setUserData(filteredUserData)
+
     // Check if image data exists in the filtered response and update states
     if (filteredUserData.length > 0 && filteredUserData[0].img) {
-      setApiImage(filteredUserData[0].img); // Store the image from API in state
-      setSelectedImage(filteredUserData[0].img); // Set the selected image to the API image initially
+      setApiImage(filteredUserData[0].img) // Store the image from API in state
+      setSelectedImage(filteredUserData[0].img) // Set the selected image to the API image initially
     }
   }
-  
+
   useEffect(() => {
     getusers()
   }, [])
@@ -92,6 +93,9 @@ const Profile = () => {
   const toggleModal = () => {
     setModalVisible(!modalVisible)
   }
+  const toggleModalPassword = () => {
+    setModalPassVisible(!modalPassVisible)
+  }
 
   return (
     <CTabs activeItemKey={1}>
@@ -107,7 +111,6 @@ const Profile = () => {
       <CTabContent>
         <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={1}>
           <CContainer>
-       
             <CRow>
               <CCol xs={4}>
                 <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
@@ -135,7 +138,9 @@ const Profile = () => {
 
                       <hr style={{ width: '100%' }} />
 
-                      <CButton color="light">Change Password</CButton>
+                      <CButton color="light" onClick={toggleModalPassword}>
+                        Change Password
+                      </CButton>
                     </div>
                   </CCardBody>
                 </CCard>
@@ -146,7 +151,7 @@ const Profile = () => {
                   <CModalBody>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <div>
-                        <CButton className=' px-5 py-3' color="primary" onClick={openFileExplorer}>
+                        <CButton className=" px-5 py-3" color="primary" onClick={openFileExplorer}>
                           From Gallery
                         </CButton>
                         {/* Hidden input for file selection */}
@@ -164,6 +169,28 @@ const Profile = () => {
                         </CButton>
                       </div>
                     </div>
+                  </CModalBody>
+                </CModal>
+                <CModal visible={modalPassVisible} onClose={toggleModalPassword}>
+                  <CModalHeader>Change Password</CModalHeader>
+                  <CModalBody>
+                    <CRow className="text-start mb-4">
+                      {' '}
+                      {/* Added margin bottom for spacing */}
+                      <CCol xs={8}>
+                        {' '}
+                        {/* Adjusted to 7 for more space */}
+                        <CFormLabel htmlFor="inputPassword2" className="visually-hidden">
+                          Password
+                        </CFormLabel>
+                        <CFormInput type="password" id="inputPassword2" placeholder="Password" />
+                      </CCol>
+                      <CCol xs={4}>
+                        <CButton color="primary" type="submit" className="mb-2">
+                          Confirm identity
+                        </CButton>
+                      </CCol>
+                    </CRow>
                   </CModalBody>
                 </CModal>
               </CCol>
@@ -248,7 +275,6 @@ const Profile = () => {
                 </CRow>
               </CCol>
             </CRow>
-        
           </CContainer>
         </CTabPanel>
 
@@ -383,7 +409,6 @@ const Profile = () => {
             </CRow>
           </CContainer>
         </CTabPanel>
-      
       </CTabContent>
     </CTabs>
   )
