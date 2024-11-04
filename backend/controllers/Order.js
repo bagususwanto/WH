@@ -402,6 +402,7 @@ export const getCheckoutData = async (cartIds) => {
           include: [
             {
               model: Organization,
+              required: false,
               where: { flag: 1 },
               include: [
                 {

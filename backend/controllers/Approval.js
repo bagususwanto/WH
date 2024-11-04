@@ -57,6 +57,9 @@ export const getOrderApproval = async (req, res) => {
 
   try {
     const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId);
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No orders found" });
+    }
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -64,53 +67,53 @@ export const getOrderApproval = async (req, res) => {
   }
 };
 
-const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, warehouseId) => {
+const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, orderId, warehouseId) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
-  return await Order.findAll({
-    where: { isApproval: 0, currentRoleApprovalId: role.id },
-    include: [
-      {
-        model: DetailOrder,
-        where: { isReject: 0 },
-        include: [
-          {
-            model: Inventory,
-            include: [
-              {
-                model: Material,
-                where: { flag: 1 },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        required: true,
-        attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
-        include: [
-          { model: Organization, where: { [organizationField]: organizationId } },
-          {
-            model: Warehouse,
-            as: "alternateWarehouse", // Menggunakan alias di sini
-            required: true,
-            // where: { id: warehouseId },
-          },
-        ],
-      },
-    ],
-  });
+  return;
 };
 
 export const getDetailOrderApproval = async (req, res) => {
-  const role = req.query.role;
-  const condition = getOrganizationCondition(req.user, role);
   const warehouseId = req.params.warehouseId;
-
-  if (!condition) return res.status(400).json({ message: "Invalid role" });
+  const orderId = req.params.orderId;
 
   try {
-    const orders = await findRoleAndDetailOrders(role, condition.organizationField, condition.organizationId, warehouseId);
+    const orders = await Order.findAll({
+      where: { id: orderId },
+      include: [
+        {
+          model: DetailOrder,
+          where: { isReject: 0 },
+          include: [
+            {
+              model: Inventory,
+              include: [
+                {
+                  model: Material,
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: User,
+          required: true,
+          attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Warehouse,
+              as: "alternateWarehouse", // Menggunakan alias di sini
+              required: true,
+              where: { id: warehouseId },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No approval order found" });
+    }
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -313,7 +316,10 @@ export const approveOrder = async (req, res) => {
 
     // Jika isLastApproval = 1, update isApproval = 1
     if (isLast == 1) {
-      const order = await Order.update({ isApproval: 1, transactionNumber: await generateOrderNumber(1) }, { where: { id: orderId }, transaction });
+      const order = await Order.update(
+        { isApproval: 1, transactionNumber: await generateOrderNumber(1), status: "on process" },
+        { where: { id: orderId }, transaction }
+      );
 
       // Commit transaksi setelah operasi berhasil
       await transaction.commit();

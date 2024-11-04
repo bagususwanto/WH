@@ -30,7 +30,7 @@ const LogApproval = db.define(
     },
     quantityBefore: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     quantityAfter: {
       type: DataTypes.INTEGER,
