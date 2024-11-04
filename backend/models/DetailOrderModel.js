@@ -46,6 +46,11 @@ const DetailOrder = db.define(
       allowNull: false,
       defaultValue: 0,
     },
+    isDelete: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     freezeTableName: true,

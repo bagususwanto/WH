@@ -82,7 +82,7 @@ export const getDetailOrderApproval = async (req, res) => {
       include: [
         {
           model: DetailOrder,
-          where: { isReject: 0 },
+          where: { isReject: 0, isDelete: 0 },
           include: [
             {
               model: Inventory,
@@ -431,7 +431,6 @@ export const deleteOrderItem = async (req, res) => {
   try {
     const detailOrderId = req.params.detailOrderId;
     const userId = req.user.userId;
-    const role = req.user.roleName;
 
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
@@ -441,6 +440,12 @@ export const deleteOrderItem = async (req, res) => {
         },
       ],
     });
+
+    // Cek isApproval
+    if (order.Order.isApproval == 1) {
+      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
+      return res.status(404).json({ message: "Order already approved" });
+    }
 
     // Cek apakah order ditemukan
     if (!order) {
@@ -456,8 +461,8 @@ export const deleteOrderItem = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // destroy di tabel DetailOrder
-    await DetailOrder.destroy({ where: { id: detailOrderId }, transaction });
+    // Update isDelete di tabel DetailOrder
+    await DetailOrder.update({ isDelete: 1 }, { where: { id: detailOrderId }, transaction });
 
     // Create history delete di tabel LogApproval
     await LogApproval.create(
@@ -468,6 +473,7 @@ export const deleteOrderItem = async (req, res) => {
       },
       { transaction }
     );
+
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 
