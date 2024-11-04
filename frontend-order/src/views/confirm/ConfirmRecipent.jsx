@@ -54,7 +54,7 @@ import withReactContent from 'sweetalert2-react-content'
 const Confirm = () => {
   const { createOrder } = useOrderService()
 
-  const { setCartCount } = useContext(GlobalContext)
+  const { warehouse } = useContext(GlobalContext)
 
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)

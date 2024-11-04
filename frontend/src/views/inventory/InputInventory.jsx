@@ -514,13 +514,17 @@ const InputInventory = () => {
   }
 
   const handleScan = (result) => {
+    if (!result || result.length === 0) return
+
+    // Menghapus karakter newline dari hasil scan
+    const rawValue = result[0].rawValue.replace(/\n/g, '')
+
     if (!selectedPlantVal) {
       MySwal.fire({
         title: 'Error!',
         text: 'Plant is required, please select a dropdown plant',
         icon: 'error',
       })
-
       return
     }
 
@@ -530,24 +534,20 @@ const InputInventory = () => {
         text: 'Storage is required, please select a dropdown storage',
         icon: 'error',
       })
-
       return
     }
 
-    if (result[0].rawValue === null) {
+    if (rawValue === '') {
       MySwal.fire({
         title: 'Error!',
-        text: 'Qr code is empty, please scan again',
+        text: 'QR code is empty, please scan again',
         icon: 'error',
       })
-
       return
     }
 
     // Mencari item yang sesuai dengan materialNo yang dipindai
-    const selectedMaterialData = inventory.find(
-      (item) => item.Material.materialNo === result[0].rawValue,
-    )
+    const selectedMaterialData = inventory.find((item) => item.Material.materialNo === rawValue)
 
     if (selectedMaterialData) {
       // Mengatur selectedMaterialNo dengan objek yang berisi value dan label
@@ -571,16 +571,12 @@ const InputInventory = () => {
           quantityInputRef.current?.focus() // Focus on quantity input after closing
         },
       })
-
-      return
     } else {
       MySwal.fire({
         title: 'Error!',
         text: 'Material not found, please check the QR code',
         icon: 'error',
       })
-
-      return
     }
   }
 

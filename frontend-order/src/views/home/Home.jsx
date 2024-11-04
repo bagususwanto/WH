@@ -621,7 +621,7 @@ const Home = () => {
                 <CRow className="d-flex justify-content-between my-2 ">
                   <CCol xs="1">
                     <CCardImage
-                      src={`${config.BACKEND_URL}${product.Material.img}`}
+                      src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
                       alt={order.Detail_Orders[0].Inventory.Material.description}
                       style={{ height: '100%', width: '100%' }}
                     />

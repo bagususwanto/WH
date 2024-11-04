@@ -40,9 +40,9 @@ const useOrderService = () => {
     }
   }
 
-  const deleteWishlist = async (id) => {
+  const deleteWishlist = async (id, warehouseId) => {
     try {
-      const response = await axiosJWT.delete(`/wishlist-delete/${id}`, {
+      const response = await axiosJWT.delete(`/wishlist-delete/${id}/${warehouseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -53,9 +53,9 @@ const useOrderService = () => {
     }
   }
 
-  const addWishlist = async (data) => {
+  const addWishlist = async (data, warehouseId) => {
     try {
-      const response = await axiosJWT.post('/wishlist', data, {
+      const response = await axiosJWT.post(`/wishlist/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
