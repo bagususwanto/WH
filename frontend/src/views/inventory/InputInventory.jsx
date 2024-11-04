@@ -469,7 +469,6 @@ const InputInventory = () => {
       setSelectedDescription(null)
       setSelectedAddress(null)
       setSelectedUom(null)
-      setSelectedTypeMaterial(null)
       setQuantity('')
 
       setSelectedAddressCodeVal(selectedAddressCode)
