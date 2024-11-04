@@ -519,8 +519,6 @@ const InputInventory = () => {
     // Menghapus karakter newline dari hasil scan
     const rawValue = result[0].rawValue.replace(/\n/g, '')
 
-    console.log(rawValue)
-
     if (!selectedPlantVal) {
       MySwal.fire({
         title: 'Error!',
