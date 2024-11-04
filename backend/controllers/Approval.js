@@ -248,7 +248,7 @@ export const approveOrder = async (req, res) => {
     const orderId = req.params.orderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
-    const orderDetails = req.body.orderDetails; // Ambil detail order dari req.body
+    const updateQuantity = req.body.updateQuantity;
 
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
@@ -260,32 +260,36 @@ export const approveOrder = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    let typeLog = "approve";
     let quantityBefore;
     let quantityAfter;
-    let status;
+    const status = `approved ${role}`;
 
-    // Update quantity jika ada perubahan
-    for (let order of orders) {
-      const updatedOrder = orderDetails.find((detail) => detail.id === order.id);
+    // Lakukan update quantity berdasarkan detailOrderId
+    if (updateQuantity && updateQuantity.length > 0) {
+      for (const item of updateQuantity) {
+        const order = orders.find((o) => o.id === item.detailOrderId);
+        if (order) {
+          quantityBefore = order.quantity;
+          quantityAfter = item.quantity;
 
-      if (updatedOrder && updatedOrder.quantity !== order.quantity) {
-        await DetailOrder.update({ quantity: updatedOrder.quantity }, { where: { id: order.id }, transaction });
-        typeLog = "adjust";
-        quantityBefore = order.quantity;
-        quantityAfter = updatedOrder.quantity;
+          // Update quantity di DetailOrder
+          await DetailOrder.update({ quantity: quantityAfter }, { where: { id: item.detailOrderId }, transaction });
+
+          // Log perubahan ke tabel LogApproval
+          await LogApproval.create(
+            {
+              typeLog: "adjust",
+              userId: userId,
+              detailOrderId: item.detailOrderId,
+              quantityBefore: quantityBefore,
+              quantityAfter: quantityAfter,
+            },
+            { transaction }
+          );
+        }
       }
     }
 
-    if (role) {
-      if (role === "line head") {
-        status = "approved line head";
-      } else if (role === "section head") {
-        status = "approved section head";
-      } else if (role === "department head") {
-        status = "approved department head";
-      }
-    }
 
     // Create history approval di tabel Approval
     await Approval.create(
@@ -403,17 +407,7 @@ export const rejectOrder = async (req, res) => {
       { transaction }
     );
 
-    let status;
-
-    if (role) {
-      if (role === "line head") {
-        status = "rejected line head";
-      } else if (role === "section head") {
-        status = "rejected section head";
-      } else if (role === "department head") {
-        status = "rejected department head";
-      }
-    }
+    const status = `rejected ${role}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, { transaction });
