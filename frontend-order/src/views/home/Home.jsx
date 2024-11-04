@@ -475,8 +475,13 @@ const Home = () => {
                     orientation="top"
                     src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                     alt={product.Inventory.Material.description}
-                    className="img-fluid custom-card-image"
+                    style={{
+                      width: '100%', // Ensure it takes the full width
+                      height: '150px', // Fixed height for uniformity
+                      objectFit: 'contain', // Keep the aspect ratio
+                    }}
                   />
+
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <div>
                       <CCardTitle style={{ fontSize: '14px' }}>
@@ -716,7 +721,11 @@ const Home = () => {
                 orientation="top"
                 src={`${config.BACKEND_URL}${product.Material.img}`}
                 alt={product.Material.description}
-                style={{ height: '150px', objectFit: 'cover' }}
+                style={{
+                  width: '100%', // Ensure it takes the full width
+                  height: '150px', // Fixed height for uniformity
+                  objectFit: 'contain', // Keep the aspect ratio
+                }}
               />
               <CCardBody className="d-flex flex-column justify-content-between">
                 <div>
@@ -808,14 +817,14 @@ const Home = () => {
           <CModalBody>
             <CRow>
               <CCol md="4">
-              {selectedProduct.Material.img && (
-                <CImage
-                  src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
-                  alt={selectedProduct.Material.description}
-                  fluid
-                  className="rounded"
-                />
-              )}
+                {selectedProduct.Material.img && (
+                  <CImage
+                    src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
+                    alt={selectedProduct.Material.description}
+                    fluid
+                    className="rounded"
+                  />
+                )}
               </CCol>
               <CCol md="8">
                 <strong>

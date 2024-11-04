@@ -359,7 +359,7 @@ const Confirm = () => {
                     <CCol xs="6">
                       <div>
                         <label>
-                          {product.Material.description} ({product.Material?.uom || 'UOM'}){' '}
+                          {product.Material.description} 
                         </label>
                         <br></br>
                         <label className="fw-bold fs-6">
