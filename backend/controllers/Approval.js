@@ -32,7 +32,7 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
     include: [
       {
         model: User,
-        // required: true,
+        required: true,
         attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
         include: [
           { model: Organization, where: { [organizationField]: organizationId } },
@@ -40,7 +40,7 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
             model: Warehouse,
             as: "alternateWarehouse", // Menggunakan alias di sini
             required: true,
-            // where: { id: warehouseId },
+            where: { id: warehouseId },
           },
         ],
       },

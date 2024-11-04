@@ -349,6 +349,7 @@ export const createUserAndOrg = async (req, res) => {
         warehouseId: role.roleName === "warehouse staff" ? warehouseId : null,
         organizationId: organizationId,
         isProduction: isProduction,
+        anotherWarehouseId: warehouseId,
       },
       { transaction }
     ); // Pass the transaction object

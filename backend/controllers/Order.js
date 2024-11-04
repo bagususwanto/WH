@@ -139,8 +139,8 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
     return true;
   }
 
-  // Jika user production dan role itu group leader atau team leader dan payment methods bukan GIC
-  if (isProduction == 1 && (role == "group leader" || role == "team leader") && paymentMethod != "GIC") {
+  // Jika user production dan role itu group head atau line head dan payment methods bukan GIC
+  if (isProduction == 1 && (role == "group head" || role == "line head") && paymentMethod != "GIC") {
     return true;
   }
 };
