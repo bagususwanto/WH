@@ -1,13 +1,13 @@
 /* styles.css */
 .sticky-footer {
     position: fixed; /* Use fixed positioning */
-    bottom: 50px; /* Adjust if needed to place it above AppFooter */
+    bottom: 0px; /* Adjust if needed to place it above AppFooter */
     width: 100%; /* Full width */
-    max-width: 1300px; /* Matches width of card container */
+    max-width: 1265px; /* Matches width of card container */
     left: 50%; /* Center it horizontally */
     transform: translateX(-50%); /* Adjust to center properly */
     z-index: 1000; /* Ensure it stays on top */
-    padding: 1rem; /* Add some padding for aesthetics */
+    padding: 0.5rem; /* Add some padding for aesthetics */
     background-color: #f8f9fa; /* Background color */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
     display: flex; /* Use flexbox for layout */
