@@ -73,7 +73,7 @@ export const checkStock = async (inventoryId, quantity) => {
 
 // Handle schedule delivery
 const isLateDelivery = (orderTimeStr) => {
-  const [orderHour, orderMinute] = orderTimeStr.split(":").map(Number);
+  const [orderHour, orderMinute] = orderTimeStr ? orderTimeStr.split(":").map(Number) : null;
   const currentTime = new Date();
   const orderTime = new Date(currentTime);
   orderTime.setHours(orderHour, orderMinute, 0);
