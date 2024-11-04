@@ -25,6 +25,8 @@ import {
   cilTruck,
   cilEqualizer,
   cilHandPointUp,
+  cilDescription,
+  cilCopy,
   cilUserX,
   cilUserFollow,
 } from '@coreui/icons'
@@ -126,8 +128,8 @@ const useNavigation = () => {
               to: '/dummy-route', // Internal route, just a placeholder
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
-                e.preventDefault(); // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/home`, '_blank'); // Opens URL in a new tab
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/home`, '_blank') // Opens URL in a new tab
               },
             },
 
@@ -209,8 +211,8 @@ const useNavigation = () => {
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
-            e.preventDefault(); // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/home`, '_blank'); // Opens URL in a new tab
+            e.preventDefault() // Prevent the default behavior of `to`
+            window.open(`${config.ORDER_URL}/home`, '_blank') // Opens URL in a new tab
           },
         },
       )
@@ -228,10 +230,10 @@ const useNavigation = () => {
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
-            e.preventDefault(); // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank'); // Opens URL in a new tab
+            e.preventDefault() // Prevent the default behavior of `to`
+            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
           },
-        }
+        },
       )
     }
     if (roleName === 'section head') {
@@ -246,8 +248,8 @@ const useNavigation = () => {
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
-            e.preventDefault(); // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank'); // Opens URL in a new tab
+            e.preventDefault() // Prevent the default behavior of `to`
+            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
           },
         },
       )
@@ -264,13 +266,12 @@ const useNavigation = () => {
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
-            e.preventDefault(); // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank'); // Opens URL in a new tab
+            e.preventDefault() // Prevent the default behavior of `to`
+            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
           },
         },
       )
     }
-
 
     if (roleName === 'warehouse staff') {
       baseNav.push(
@@ -318,13 +319,13 @@ const useNavigation = () => {
         component: CNavGroup,
         name: 'Data Good Issue',
         to: '/order',
-        icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
         items: [
           {
             component: CNavItem,
             name: 'Good Issue Data',
             to: '/category',
-            icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
+            icon: <CIcon icon={cilCopy} customClassName="nav-icon" />,
           },
         ],
       },

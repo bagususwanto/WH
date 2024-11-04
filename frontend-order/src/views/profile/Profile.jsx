@@ -31,10 +31,11 @@ import {
   CTabContent,
   CContainer,
   CFormCheck,
+  CCardHeader,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
-import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
+import { cilEnvelopeOpen } from '@coreui/icons'
 import useMasterDataService from '../../services/MasterDataService'
 
 const Profile = () => {
@@ -52,7 +53,7 @@ const Profile = () => {
     const response = await getMasterData(apiUser)
 
     // Filter user data to get only the user with id 2
-    const filteredUserData = response.data.filter((user) => user.id === 2)
+    const filteredUserData = response.data.filter((user) => user.id === 3)
 
     // Update state with the filtered data
     setUserData(filteredUserData)
@@ -397,11 +398,40 @@ const Profile = () => {
                   </CCard>
                 </CRow>
               </CCol>
-              <CCol xs={7}>
+              <CCol>
                 <CRow>
                   <CCard>
-                    <CCardBody>
+                    <CCardHeader>
                       <label className="fw-bold fs-5"> Your Information</label>
+                    </CCardHeader>
+                    <CCardBody>
+                      <CRow>
+                        <CCol xs={1}>
+                          <CIcon icon={cilEnvelopeOpen} size="xl" />
+                        </CCol>
+                        <CCol xs={11}>
+                          <div>
+                            <div>Order Has Received</div>
+                            <div className="fw-light">
+                              Order sudah diterima, jangan lupa order kembali ya!
+                            </div>
+                          </div>
+                        </CCol>
+                      </CRow>
+                      <hr />
+                      <CRow>
+                        <CCol xs={1}>
+                          <CIcon icon={cilEnvelopeOpen} size="xl" />
+                        </CCol>
+                        <CCol xs={11}>
+                          <div>
+                            <div>Order Has Received</div>
+                            <div className="fw-light">
+                              Order sudah diterima, jangan lupa order kembali ya!
+                            </div>
+                          </div>
+                        </CCol>
+                      </CRow>
                     </CCardBody>
                   </CCard>
                 </CRow>
