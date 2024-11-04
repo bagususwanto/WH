@@ -131,19 +131,19 @@ const History = () => {
   }
 
   // Filtered order data based on search input
-  const filteredOrders = myOrderData.filter(
-    (order) =>
-      order.transactionNumber.toLowerCase().includes(globalFilterValue.toLowerCase()) ||
-      order.Detail_Orders.some((detail) =>
-        detail.Inventory.Material.description
-          .toLowerCase()
-          .includes(globalFilterValue.toLowerCase()),
-      ),
-  )
-  const handleViewHistoryOrder = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
-  }
+  // const filteredOrders = myOrderData.filter(
+  //   (order) =>
+  //     order.transactionNumber.toLowerCase().includes(globalFilterValue.toLowerCase()) ||
+  //     order.Detail_Orders.some((detail) =>
+  //       detail.Inventory.Material.description
+  //         .toLowerCase()
+  //         .includes(globalFilterValue.toLowerCase()),
+  //     ),
+  // )
+  // const handleViewHistoryOrder = (product) => {
+  //   setSelectedProduct(product)
+  //   setVisible(true)
+  // }
 
   const tabs = [
     { key: 'all', label: 'All' },
@@ -271,7 +271,7 @@ const History = () => {
                               Total: {order.Detail_Orders.length} Item
                             </label>
                           </CCol>
-                          <CCol xs="3" className="text-start">
+                          <CCol xs="3" className="text-end">
                             <label>{order.paymentMethod}</label>
                             <br />
                             <span className="fw-bold">{order.paymentNumber}</span>

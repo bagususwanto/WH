@@ -181,7 +181,7 @@ const Confirm = () => {
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
-            {roleName === 'super admin' && (
+              {roleName === 'super admin' && (
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                   <img
                     src="path-to-user-photo.jpg"
@@ -348,51 +348,52 @@ const Confirm = () => {
                     </CCol>
                     <CCol xs="6">
                       <div>
-                        <label>
-                          {product.Material.description} ({product.Material?.uom || 'UOM'}){' '}
-                        </label>
+                        <label>{product.Material.description}</label>
                         <br />
-                        <label className="fw-bold fs-6">
-                          Rp {product.Material.price.toLocaleString('id-ID')}
-                        </label>
+                        <label className="fw-bold">{product.Address_Rack.addressRackName}</label>
                       </div>
                     </CCol>
-                    <CCol xs="2">
-                      <CButtonGroup role="group" aria-label="Basic outlined example">
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDecreaseQuantity(product.id)}
-                        >
-                          -
-                        </CButton>
-                        <CFormInput
-                          type="text"
-                          value={quantities[product.id] || 1}
-                          aria-label="Number input"
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        />
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleIncreaseQuantity(product.id)}
-                        >
-                          +
-                        </CButton>
-                      </CButtonGroup>
+                    <CCol xs="3">
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                      >
+                        <CButtonGroup role="group" aria-label="Basic outlined example">
+                          <CButton
+                            color="secondary"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDecreaseQuantity(product.id)}
+                          >
+                            -
+                          </CButton>
+                          <CFormInput
+                            type="text"
+                            value={quantities[product.id] || 1}
+                            aria-label="Number input"
+                            onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                          />
+                          <CButton
+                            color="secondary"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleIncreaseQuantity(product.id)}
+                          >
+                            +
+                          </CButton>
+                        </CButtonGroup>
+                        <span className="px-2 fw-light">({product.Material?.uom || 'UOM'})</span>
+                      </div>
                     </CCol>
                     <CCol xs="2" className="d-flex justify-content-end align-items-center">
                       {product.rejected ? (
                         <CBadge color="danger">Rejected</CBadge> // Show rejection badge
                       ) : (
-                        <CIcon
-                          icon={cilTrash}
-                          className="text-danger"
-                          style={{ cursor: 'pointer' }}
+                        <CButton
+                           color="danger" variant="outline"  size="sm"
                           onClick={() => handleModalCart(product)}
-                        />
+                        >
+                          Reject
+                        </CButton>
                       )}
                     </CCol>
                   </CRow>
@@ -412,7 +413,7 @@ const Confirm = () => {
                               className="rounded"
                             />
                           </CCol>
-                          <CCol md="8">
+                          <CCol md="12">
                             <strong>{selectedProduct.Material.description}</strong>
                             <p> {selectedProduct.Material.materialNo}</p>
                             <div className="d-flex align-items-center"></div>
@@ -425,7 +426,6 @@ const Confirm = () => {
                           />
                         </CModalBody>
                         <CModalFooter>
-                         
                           <CButton color="danger" onClick={handleConfirmRejection}>
                             Reject
                           </CButton>

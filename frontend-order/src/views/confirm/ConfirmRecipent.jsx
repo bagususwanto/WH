@@ -31,14 +31,6 @@ import {
   cilFax,
   cilFolder,
   cilHome,
-  cilInbox,
-  cilKeyboard,
-  cilUser,
-  cilCart,
-  cilHeart,
-  cilArrowRight,
-  cilArrowLeft,
-  cilTrash,
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
@@ -53,37 +45,20 @@ import withReactContent from 'sweetalert2-react-content'
 
 const Confirm = () => {
   const { createOrder } = useOrderService()
-
   const { warehouse } = useContext(GlobalContext)
-
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
-
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
   const [currentProducts, setCurrentProducts] = useState([])
-
   const navigate = useNavigate()
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
   console.log(verifiedCartItems)
-  // const apiCategory = 'category'
 
-  // const getCarts = async () => {
-  //   console.log(warehouse.id, 'TESTT')
-  //   const response = await getCart(warehouse.id)
-  //   setCartsData(response.data)
-  // }
-
-  // useEffect(() => {
-  //   if (warehouse && warehouse.id) {
-  //     getCarts()
-  //   }
-  // }, [warehouse])
-  // Calculate total pages
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
     if (!acc.includes(product.inventoryId)) {
       acc.push(product.inventoryId)
@@ -102,6 +77,14 @@ const Confirm = () => {
     setCurrentPage(pageNumber)
   }
   const handleCheckout = () => {
+    console.log('Checkout initiated:', {
+      isPickup,
+      deadline,
+      iswbs,
+      verifiedCartItems,
+      totalQuantity,
+    })
+
     MySwal.fire({
       title: 'Confirm Checkout',
       text: `Are you sure you want to proceed to checkout products?\n\n Total items: ${totalQuantity}`,
@@ -111,11 +94,10 @@ const Confirm = () => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, proceed',
       cancelButtonText: 'No, cancel',
-      reverseButtons: true, // This option will reverse the positions of the buttons
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        // If confirmed, proceed with checkout function
-        order() // Directly proceed with the order function
+        order() // Call the order function directly
       }
     })
   }
@@ -125,7 +107,6 @@ const Confirm = () => {
       const cartIds = verifiedCartItems.map((item) => item.id)
       console.log('Cart IDs:', cartIds)
 
-      // Check if no items in the cart
       if (cartIds.length === 0) {
         return MySwal.fire({
           icon: 'error',
@@ -134,34 +115,36 @@ const Confirm = () => {
         })
       }
 
-      let orderTime
-      if (!isPickup) {
-        // Only enforce shift selection for "Otodoke"
-        const selectedServiceHour =
-          verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.find(
-            (serviceHour) => `shift${serviceHour.shiftId}` === deadline,
-          )
+      const orderTime = deadline
 
-        // Enforce orderTime selection for "Otodoke", prevent "No specific time"
-        if (!selectedServiceHour) {
+      // Validate if "Otodoke" is selected
+      if (!isPickup) {
+        if (orderTime == null) {
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
-            text: 'Please select a valid schedule for Otodoke. Order time is required.',
+            text: 'Please Select Cycle.',
           })
         }
-        orderTime = selectedServiceHour.time
       }
 
       const paymentNumber = iswbs
         ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber // WBS number
         : verifiedCartItems[0].User.Organization.Section.GIC.gicNumber // GIC number
 
-      const paymentMethod = iswbs ? 'WBS' : 'GIC' // Payment method based on user choice
-      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Dynamic delivery method
+      const paymentMethod = iswbs ? 'WBS' : 'GIC' // Determine payment method
+      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Delivery method
 
-      // Validate if all required fields are provided
+      // Validate order details
+      console.log('Validating order details...')
       if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
+        console.log('Validation failed:', {
+          isPickup,
+          orderTime,
+          paymentNumber,
+          paymentMethod,
+          deliveryMethod,
+        })
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
@@ -169,15 +152,15 @@ const Confirm = () => {
         })
       }
 
-      console.log('Order Details:', orderTime, paymentNumber, paymentMethod, deliveryMethod)
+      console.log('Order Details:', { orderTime, paymentNumber, paymentMethod, deliveryMethod })
 
       const response = await createOrder(
         {
-          cartIds: cartIds, // Cart item IDs
+          cartIds,
           orderTime: orderTime || null, // Provide orderTime only if it's Otodoke
-          paymentNumber: paymentNumber,
-          paymentMethod: paymentMethod,
-          deliveryMethod: deliveryMethod,
+          paymentNumber,
+          paymentMethod,
+          deliveryMethod,
         },
         warehouse.id,
       )
@@ -189,40 +172,13 @@ const Confirm = () => {
     }
   }
 
-  // // Total harga produk
-  // useEffect(() => {
-  //   const newTotal = currentProducts.reduce((acc, product) => {
-  //     if (checkedItems[product.id]) {
-  //       const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-  //       return acc + product.Material.price * quantity
-  //     }
-  //     return acc
-  //   }, 0)
-  //   setTotalAmount(newTotal)
-  // }, [checkedItems, quantities, currentProducts])
-
-  // const handleIncreaseQuantity = (productId) => {
-  //   setQuantities((prevQuantities) => ({
-  //     ...prevQuantities,
-  //     [productId]: (prevQuantities[productId] || 1) + 1,
-  //   }))
-  // }
-
-  // const handleDecreaseQuantity = (productId) => {
-  //   setQuantities((prevQuantities) => ({
-  //     ...prevQuantities,
-  //     [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
-  //   }))
-  // }
-  // const handleQuantityChange = (productId, value) => {
-  //   // Validasi jika nilai yang dimasukkan adalah angka
-  //   if (!isNaN(value) && value >= 0) {
-  //     setQuantities({
-  //       ...quantities,
-  //       [productId]: parseInt(value, 10),
-  //     })
-  //   }
-  // }
+  useEffect(() => {
+    // Reset deadline if verifiedCartItems change
+    if (verifiedCartItems.length > 0) {
+      setDeadline('') // Reset the deadline when cart items are updated
+    }
+  }, [verifiedCartItems])
+  console.log(verifiedCartItems)
 
   const totalItems = currentProducts.length
 
@@ -233,7 +189,6 @@ const Confirm = () => {
           <CCard cstyle={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               <label className="fw-bold mb-2">Select Delivery Type</label>
-
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <CFormCheck
                   className="me-3"
@@ -275,7 +230,7 @@ const Confirm = () => {
                   </>
                 )}
               </div>
-
+              {/* // Render the dropdown for schedule selection */}
               {!isPickup && (
                 <>
                   <hr />
@@ -287,7 +242,7 @@ const Confirm = () => {
                     {verifiedCartItems.length > 0 &&
                       verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
                         (serviceHour) => (
-                          <option key={serviceHour.id} value={`shift${serviceHour.shiftId}`}>
+                          <option key={serviceHour.id} value={`${serviceHour.time}`}>
                             {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
                           </option>
                         ),
@@ -316,7 +271,6 @@ const Confirm = () => {
                   />
                 </>
               )}
-
               <hr />
               <CFormTextarea
                 className="mt-3"

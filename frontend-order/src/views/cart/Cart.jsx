@@ -91,14 +91,33 @@ const Cart = () => {
   }
 
   const handleDeleteCart = async (productId) => {
-    try {
-      console.log(productId)
-      await deleteCart(productId, warehouse.id)
-      setCartData(cartData.filter((product) => product.id !== productId))
-    } catch (error) {
-      console.error('Error deleting cart:', error)
+    const MySwal = withReactContent(Swal);
+    // Show confirmation dialog
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true, // This option will reverse the positions of the buttons
+    });
+    // Proceed with deletion if confirmed
+    if (result.isConfirmed) {
+      try {
+        console.log(productId);
+        await deleteCart(productId, warehouse.id);
+        setCartData(cartData.filter((product) => product.id !== productId));
+        MySwal.fire('Deleted!', 'Your item has been deleted.', 'success');
+      } catch (error) {
+        console.error('Error deleting cart:', error);
+        MySwal.fire('Error!', 'There was an error deleting your item.', 'error');
+      }
     }
-  }
+  };
+  
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
@@ -137,10 +156,53 @@ const Cart = () => {
     }
   }, [debouncedQuantities, updateCart])
 
-  const handleDeleteAll = () => {
-    setCurrentProducts([])
-  }
-  // Total harga produk
+  const handleDeleteAll = async () => {
+    const MySwal = withReactContent(Swal); // Make sure to initialize MySwal
+    
+    // Show confirmation dialog
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true, // This option will reverse the positions of the buttons
+    });
+  
+    // Proceed only if confirmed
+    if (result.isConfirmed) {
+      try {
+        // Call the API to delete all cart items
+        await Promise.all(cartData.map(product => deleteCart(product.id, warehouse.id)));
+        
+        // Clear the cart data in state
+        setCartData([]);
+  
+        // Show success message
+        MySwal.fire({
+          title: 'Success!',
+          text: 'All items have been successfully deleted from your cart.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+      } catch (error) {
+        console.error('Error deleting all cart items:', error);
+        
+        // Show error message
+        MySwal.fire({
+          title: 'Error!',
+          text: 'There was an issue deleting all items. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
+    }
+  };
+  
+
   // Total harga produk
   useEffect(() => {
     const newTotal = cartData.reduce((acc, product) => {
@@ -307,6 +369,7 @@ const Cart = () => {
                       <CIcon
                         icon={cilTrash}
                         className="text-danger"
+                        size='lg'
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleDeleteCart(product.id)}
                       />
