@@ -88,6 +88,7 @@ const AppHeader = () => {
   const [visible, setVisible] = useState(false)
   const [warehouseId, setWarehouseId] = useState(0)
   const [category, setCategory] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
@@ -319,17 +320,20 @@ const AppHeader = () => {
     // Mengarahkan pengguna ke URL yang berisi query parameters
     navigate(`/order/${warehouseId}?${params.toString()}`)
   }
-
-  
   const handleCategoryHeadClick = (categoryId) => {
-    // Membuat query string berdasarkan input pencarian dan params default
+    // Find the selected category based on the clicked categoryId
+    const selectedCat = category.find(cat => cat.id === categoryId);
+    // Create a query string based on the selected categoryId
     const params = new URLSearchParams({
       id: categoryId,
-    })
+    }); 
+    // Navigate to the URL with the query parameters
+    navigate(`/order/category?${params.toString()}`);
+    // Set the selected category to the clicked category
+    setSelectedCategory(selectedCat);
+  };
+  
 
-    // Mengarahkan pengguna ke URL yang berisi query parameters
-    navigate(`/order/category?${params.toString()}`)
-  }
 
   const handleFocus = () => {
     setShowRecentSearches(searchHistory.length > 0)
@@ -689,9 +693,28 @@ const AppHeader = () => {
           <CCollapse visible={showCategories}>
             <div className="p-3">
               <CRow>
-                {category.map((cat) => (
+              {category.map((cat, index) => (
                   <CCol xs="auto" key={cat.id}>
-                    <CButton className="text-start" onClick={() => handleCategoryHeadClick(cat.id)}>
+                    <CButton
+                      className="text-start"
+                      onClick={() => handleCategoryHeadClick(cat.id)}
+                      style={{
+                        backgroundColor:
+                          selectedCategory && selectedCategory.id === cat.id
+                            ? 'navy' // Navy color if category is selected
+                            : index === 0 &&
+                                (!selectedCategory || selectedCategory.id === category[0].id)
+                              ? 'navy' // Navy for the first category if none selected or the first is selected
+                              : 'white', // Default white color
+                        color:
+                          selectedCategory && selectedCategory.id === cat.id
+                            ? 'white' // White text color for selected category
+                            : index === 0 &&
+                                (!selectedCategory || selectedCategory.id === category[0].id)
+                              ? 'white' // White text for the first category if selected
+                              : 'black', // Default black text color
+                      }}
+                    >
                       <CIcon icon={iconMap[cat.categoryName] || cilFolder} className="me-2" />
                       {cat.categoryName}
                     </CButton>

@@ -814,7 +814,7 @@ const Home = () => {
       {/* Modal for adding product to cart */}
       {selectedProduct && selectedProduct.Material && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
-          <CModalHeader>Add to Cart</CModalHeader>
+          <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
@@ -849,7 +849,7 @@ const Home = () => {
                   <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
                     +
                   </CButton>
-                  <span className="mx-3">
+                  <span className="mx-3 fw-light">
                     (
                     {selectedProduct.Inventory
                       ? selectedProduct.Inventory.Material.uom

@@ -358,20 +358,7 @@ const ProductList = () => {
                     </div>
 
                     <CCol sm="auto" className="ms-2">
-                      {/* <CButton
-                        onClick={() => handleToggleWishlist(product.Material.id)}
-                        style={{
-                          backgroundColor: isInWishlist(product.Material.id) ? 'red' : 'white',
-
-                          color: isInWishlist(product.Material.id) ? 'white' : 'black',
-                        }}
-                      >
-                        <CIcon
-                          icon={cilHeart}
-                          className={isInWishlist(product.Material.id)}
-                          size="lg"
-                        />
-                      </CButton> */}
+                     
                       <CButton
                         onClick={() => handleToggleWishlist(product)}
                         style={{
@@ -410,7 +397,7 @@ const ProductList = () => {
       {/* modal add to cart */}
       {selectedProduct && selectedProduct.Material && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
-          <CModalHeader>Add to Cart</CModalHeader>
+          <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
@@ -438,7 +425,7 @@ const ProductList = () => {
                     +
                   </CButton>
 
-                  <span className="px-2"> ({selectedProduct.Material.uom})</span>
+                  <span className="px-2 fw-light"> ({selectedProduct.Material.uom})</span>
                 </div>
               </CCol>
             </CRow>
