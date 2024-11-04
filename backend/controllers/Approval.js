@@ -290,7 +290,6 @@ export const approveOrder = async (req, res) => {
       }
     }
 
-
     // Create history approval di tabel Approval
     await Approval.create(
       {
@@ -418,6 +417,63 @@ export const rejectOrder = async (req, res) => {
       message: "Reject success",
       status: "Rejected",
       "request number": order.Order.requestNumber,
+    });
+  } catch (error) {
+    // Rollback transaksi jika terjadi error
+    await transaction.rollback();
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteOrderItem = async (req, res) => {
+  const transaction = await db.transaction(); // Mulai transaksi
+  try {
+    const detailOrderId = req.params.detailOrderId;
+    const userId = req.user.userId;
+    const role = req.user.roleName;
+
+    const order = await DetailOrder.findOne({
+      where: { id: detailOrderId },
+      include: [
+        {
+          model: Order,
+        },
+      ],
+    });
+
+    // Cek apakah order ditemukan
+    if (!order) {
+      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const orderId = order.orderId;
+
+    // Cek apakah user berwenang untuk reject
+    if (!(await isAuthorizedApproval(orderId, userId))) {
+      await transaction.rollback(); // Batalkan transaksi jika tidak berwenang
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // destroy di tabel DetailOrder
+    await DetailOrder.destroy({ where: { id: detailOrderId }, transaction });
+
+    // Create history delete di tabel LogApproval
+    await LogApproval.create(
+      {
+        typeLog: "delete",
+        userId: userId,
+        detailOrderId: detailOrderId,
+      },
+      { transaction }
+    );
+
+    await transaction.commit(); // Commit transaksi setelah operasi berhasil
+
+    res.status(200).json({
+      message: "Delete success",
+      status: "Deleted",
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error
