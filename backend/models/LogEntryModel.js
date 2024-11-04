@@ -65,7 +65,7 @@ LogEntry.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 Incoming.hasMany(LogEntry, { foreignKey: "incomingId", onDelete: "NO ACTION" });
 LogEntry.belongsTo(Incoming, { foreignKey: "incomingId", onDelete: "NO ACTION" });
 
-DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
-LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
+DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
+LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
 
 export default LogEntry;

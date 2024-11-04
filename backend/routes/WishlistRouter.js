@@ -5,7 +5,12 @@ import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
 
 const router = express.Router();
 
-router.get("/wishlist/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), getWishlistByUser);
+router.get(
+  "/wishlist/:warehouseId",
+  checkRole(["super admin", "group head", "line head", "section head", "department head"]),
+  checkUserWarehouse,
+  getWishlistByUser
+);
 router.post(
   "/wishlist/:warehouseId",
   checkRole(["super admin", "group head", "line head", "section head", "department head"]),

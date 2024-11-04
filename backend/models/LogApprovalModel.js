@@ -30,7 +30,7 @@ const LogApproval = db.define(
     },
     quantityBefore: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     quantityAfter: {
       type: DataTypes.INTEGER,
@@ -45,7 +45,7 @@ const LogApproval = db.define(
 User.hasMany(LogApproval, { foreignKey: "userId", onDelete: "NO ACTION" });
 LogApproval.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
-DetailOrder.hasMany(LogApproval, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
-LogApproval.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
+DetailOrder.hasMany(LogApproval, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
+LogApproval.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
 
 export default LogApproval;

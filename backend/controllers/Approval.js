@@ -57,6 +57,9 @@ export const getOrderApproval = async (req, res) => {
 
   try {
     const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId);
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No orders found" });
+    }
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -64,53 +67,53 @@ export const getOrderApproval = async (req, res) => {
   }
 };
 
-const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, warehouseId) => {
+const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, orderId, warehouseId) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
-  return await Order.findAll({
-    where: { isApproval: 0, currentRoleApprovalId: role.id },
-    include: [
-      {
-        model: DetailOrder,
-        where: { isReject: 0 },
-        include: [
-          {
-            model: Inventory,
-            include: [
-              {
-                model: Material,
-                where: { flag: 1 },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        required: true,
-        attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
-        include: [
-          { model: Organization, where: { [organizationField]: organizationId } },
-          {
-            model: Warehouse,
-            as: "alternateWarehouse", // Menggunakan alias di sini
-            required: true,
-            // where: { id: warehouseId },
-          },
-        ],
-      },
-    ],
-  });
+  return;
 };
 
 export const getDetailOrderApproval = async (req, res) => {
-  const role = req.query.role;
-  const condition = getOrganizationCondition(req.user, role);
   const warehouseId = req.params.warehouseId;
-
-  if (!condition) return res.status(400).json({ message: "Invalid role" });
+  const orderId = req.params.orderId;
 
   try {
-    const orders = await findRoleAndDetailOrders(role, condition.organizationField, condition.organizationId, warehouseId);
+    const orders = await Order.findAll({
+      where: { id: orderId },
+      include: [
+        {
+          model: DetailOrder,
+          where: { isReject: 0, isDelete: 0 },
+          include: [
+            {
+              model: Inventory,
+              include: [
+                {
+                  model: Material,
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: User,
+          required: true,
+          attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+          include: [
+            {
+              model: Warehouse,
+              as: "alternateWarehouse", // Menggunakan alias di sini
+              required: true,
+              where: { id: warehouseId },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No approval order found" });
+    }
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -245,7 +248,7 @@ export const approveOrder = async (req, res) => {
     const orderId = req.params.orderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
-    const orderDetails = req.body.orderDetails; // Ambil detail order dari req.body
+    const updateQuantity = req.body.updateQuantity;
 
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
@@ -257,30 +260,33 @@ export const approveOrder = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    let typeLog = "approve";
     let quantityBefore;
     let quantityAfter;
-    let status;
+    const status = `approved ${role}`;
 
-    // Update quantity jika ada perubahan
-    for (let order of orders) {
-      const updatedOrder = orderDetails.find((detail) => detail.id === order.id);
+    // Lakukan update quantity berdasarkan detailOrderId
+    if (updateQuantity && updateQuantity.length > 0) {
+      for (const item of updateQuantity) {
+        const order = orders.find((o) => o.id === item.detailOrderId);
+        if (order) {
+          quantityBefore = order.quantity;
+          quantityAfter = item.quantity;
 
-      if (updatedOrder && updatedOrder.quantity !== order.quantity) {
-        await DetailOrder.update({ quantity: updatedOrder.quantity }, { where: { id: order.id }, transaction });
-        typeLog = "adjust";
-        quantityBefore = order.quantity;
-        quantityAfter = updatedOrder.quantity;
-      }
-    }
+          // Update quantity di DetailOrder
+          await DetailOrder.update({ quantity: quantityAfter }, { where: { id: item.detailOrderId }, transaction });
 
-    if (role) {
-      if (role === "line head") {
-        status = "approved line head";
-      } else if (role === "section head") {
-        status = "approved section head";
-      } else if (role === "department head") {
-        status = "approved department head";
+          // Log perubahan ke tabel LogApproval
+          await LogApproval.create(
+            {
+              typeLog: "adjust",
+              userId: userId,
+              detailOrderId: item.detailOrderId,
+              quantityBefore: quantityBefore,
+              quantityAfter: quantityAfter,
+            },
+            { transaction }
+          );
+        }
       }
     }
 
@@ -313,7 +319,10 @@ export const approveOrder = async (req, res) => {
 
     // Jika isLastApproval = 1, update isApproval = 1
     if (isLast == 1) {
-      const order = await Order.update({ isApproval: 1, transactionNumber: await generateOrderNumber(1) }, { where: { id: orderId }, transaction });
+      const order = await Order.update(
+        { isApproval: 1, transactionNumber: await generateOrderNumber(1), status: "on process" },
+        { where: { id: orderId }, transaction }
+      );
 
       // Commit transaksi setelah operasi berhasil
       await transaction.commit();
@@ -397,17 +406,7 @@ export const rejectOrder = async (req, res) => {
       { transaction }
     );
 
-    let status;
-
-    if (role) {
-      if (role === "line head") {
-        status = "rejected line head";
-      } else if (role === "section head") {
-        status = "rejected section head";
-      } else if (role === "department head") {
-        status = "rejected department head";
-      }
-    }
+    const status = `rejected ${role}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, { transaction });
@@ -418,6 +417,69 @@ export const rejectOrder = async (req, res) => {
       message: "Reject success",
       status: "Rejected",
       "request number": order.Order.requestNumber,
+    });
+  } catch (error) {
+    // Rollback transaksi jika terjadi error
+    await transaction.rollback();
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteOrderItem = async (req, res) => {
+  const transaction = await db.transaction(); // Mulai transaksi
+  try {
+    const detailOrderId = req.params.detailOrderId;
+    const userId = req.user.userId;
+
+    const order = await DetailOrder.findOne({
+      where: { id: detailOrderId },
+      include: [
+        {
+          model: Order,
+        },
+      ],
+    });
+
+    // Cek isApproval
+    if (order.Order.isApproval == 1) {
+      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
+      return res.status(404).json({ message: "Order already approved" });
+    }
+
+    // Cek apakah order ditemukan
+    if (!order) {
+      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const orderId = order.orderId;
+
+    // Cek apakah user berwenang untuk reject
+    if (!(await isAuthorizedApproval(orderId, userId))) {
+      await transaction.rollback(); // Batalkan transaksi jika tidak berwenang
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Update isDelete di tabel DetailOrder
+    await DetailOrder.update({ isDelete: 1 }, { where: { id: detailOrderId }, transaction });
+
+    // Create history delete di tabel LogApproval
+    await LogApproval.create(
+      {
+        typeLog: "delete",
+        userId: userId,
+        detailOrderId: detailOrderId,
+      },
+      { transaction }
+    );
+
+
+    await transaction.commit(); // Commit transaksi setelah operasi berhasil
+
+    res.status(200).json({
+      message: "Delete success",
+      status: "Deleted",
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error
