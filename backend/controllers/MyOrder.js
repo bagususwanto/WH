@@ -5,6 +5,7 @@ import Material from "../models/MaterialModel.js";
 import Storage from "../models/StorageModel.js";
 import Inventory from "../models/InventoryModel.js";
 import DetailOrder from "../models/DetailOrderModel.js";
+import OrderHistory from "../models/OrderHistoryModel.js";
 
 // Get data product by warehouse
 // Get data product by warehouse
@@ -58,6 +59,12 @@ export const getMyOrder = async (req, res) => {
               ],
             },
           ],
+        },
+        {
+          model: OrderHistory,
+          required: false,
+          separate: true, // Query terpisah untuk memastikan pengurutan
+          order: [["createdAt", "DESC"]],
         },
       ],
       limit: parseInt(limit),

@@ -21,6 +21,10 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    packingUnit: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     price: {
       type: DataTypes.DECIMAL,
       allowNull: false,
@@ -92,7 +96,5 @@ Material.belongsTo(Supplier, { foreignKey: "supplierId" });
 
 LogImport.hasMany(Material, { foreignKey: "logImportId", onDelete: "NO ACTION" });
 Material.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
-
-
 
 export default Material;
