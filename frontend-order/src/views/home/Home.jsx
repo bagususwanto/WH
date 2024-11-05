@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
+import 'react-loading-skeleton/dist/skeleton.css'
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import { AiFillHeart } from 'react-icons/ai'
@@ -88,6 +90,8 @@ const Home = () => {
   const [products, setProducts] = useState([])
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  
 
   const { warehouse, wishlist, setWishlist, cart, setCart, cartCount, setCartCount } =
     useContext(GlobalContext)
@@ -111,15 +115,17 @@ const Home = () => {
       console.error('Error fetching products:', error)
     }
   }
-
   const getCategories = async () => {
     try {
-      const response = await getMasterData(apiCategory)
-      setCategoriesData(response.data)
+      const response = await getMasterData(apiCategory);
+      setCategoriesData(response.data);
+      setIsLoading(false); // Data finished loading
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching categories:', error);
+      setIsLoading(false); // In case of error, set loading to false
     }
-  }
+  };
+
 
   const getFavorite = async () => {
     try {
@@ -399,32 +405,84 @@ const Home = () => {
     setModalOrder(false)
     setQuantity(1)
   }
-
+    // Banner Skeleton
+    const renderBannerSkeleton = () => (
+      <Skeleton height={250} width="100%" />
+    );
+  
+    // Favorite Item Card Skeleton
+    const renderFavoriteCardSkeleton = () => (
+      <CCol sm="4" md="3">
+        <CCard>
+          <CCardImage><Skeleton height={200} width="100%" /></CCardImage>
+          <CCardBody>
+            <Skeleton width="60%" height={20} />
+            <Skeleton width="40%" height={20} />
+          </CCardBody>
+        </CCard>
+      </CCol>
+    );
+  
+    // Order History Card Skeleton
+    const renderOrderHistoryCardSkeleton = () => (
+      <CCol sm="4" md="3">
+        <CCard>
+          <CCardBody>
+            <Skeleton width="80%" height={20} />
+            <Skeleton width="60%" height={20} />
+            <Skeleton width="50%" height={20} />
+          </CCardBody>
+        </CCard>
+      </CCol>
+    );
+  
+    // Item Card Skeleton
+    const renderItemCardSkeleton = () => (
+      <CCol sm="4" md="3">
+        <CCard>
+          <CCardImage><Skeleton height={200} width="100%" /></CCardImage>
+          <CCardBody>
+            <Skeleton width="60%" height={20} />
+            <Skeleton width="40%" height={20} />
+          </CCardBody>
+        </CCard>
+      </CCol>
+    );
+  
   return (
     <>
-      <CRow>
+     <CRow>
         <div className="carousel-flex">
           <CCarousel controls indicators>
             <CCarouselItem>
-              <video className="d-block w-100" controls autoPlay loop muted>
-                <source src="/src/assets/home/INVENTORY.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              {isLoading ? (
+                <Skeleton height={250} width="100%" />
+              ) : (
+                <video className="d-block w-100" controls autoPlay loop muted>
+                  <source src="/src/assets/home/INVENTORY.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </CCarouselItem>
             {['1.jpg', '2.jpg', '3.jpg'].map((img, index) => (
               <CCarouselItem key={index}>
-                <CImage
-                  className="d-block w-100"
-                  src={`/src/assets/home/${img}`}
-                  alt={`slide ${index + 1}`}
-                  fluid
-                  rounded
-                />
+                {isLoading ? (
+                  <Skeleton height={250} width="100%" />
+                ) : (
+                  <CImage
+                    className="d-block w-100"
+                    src={`/src/assets/home/${img}`}
+                    alt={`slide ${index + 1}`}
+                    fluid
+                    rounded
+                  />
+                )}
               </CCarouselItem>
             ))}
           </CCarousel>
         </div>
       </CRow>
+      
 
       {/* Your Favorite Item */}
       <CRow className="mt-4">

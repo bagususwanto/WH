@@ -85,9 +85,9 @@ const Dashboard = () => {
   const [isTableVisible, setIsTableVisible] = useState(false) // Toggle for table visibility
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(8) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(8) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(8) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(20) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(20) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(20) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('ASC')
   const [selectedChart, setSelectedChart] = useState('critical')
@@ -234,19 +234,7 @@ const Dashboard = () => {
     }
   }
 
-  //Critical Grafik
-  const prepareBarChartData1 = (data) => {
-    // Ambil item sesuai dengan nilai itemNb
-    const limitedData = data.slice(0, itemNb)
-
-    // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
-
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      name: item.name, // Terapkan formatName pada name
-      stock: item.stock,
-    }))
-  }
+ 
 
   const prepareChartData = (data, chartTitle, shiftLevel) => ({
     labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
