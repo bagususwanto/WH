@@ -48,8 +48,8 @@ const InputInventory = () => {
   const [selectedMaterialNo, setSelectedMaterialNo] = useState(null)
   const [selectedDescription, setSelectedDescription] = useState(null)
   const [selectedAddress, setSelectedAddress] = useState(null)
-  const [selectedUom, setSelectedUom] = useState(null)
   const [quantity, setQuantity] = useState('') // State untuk quantity
+  const [quantityConversion, setQuantityConversion] = useState('') // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
   const [filteredInventory, setFilteredInventory] = useState([])
@@ -60,6 +60,9 @@ const InputInventory = () => {
   const [selectedTypeMaterial, setSelectedTypeMaterial] = useState(null)
   const [typeMaterialOptions, setTypeMaterialOptions] = useState([])
   const quantityInputRef = useRef(null) // Reference for quantity input field
+  const [conversionUom, setConversionUom] = useState('')
+  const [baseUom, setBaseUom] = useState('')
+  const [conversionRate, setConversionRate] = useState(0)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -159,11 +162,14 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setInventory([])
       setFilteredInventory([])
       return
@@ -188,11 +194,14 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
     } else {
       setStorageOptions([])
     }
@@ -207,16 +216,23 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
     if (selectedStorage) {
       setInventory([])
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setSelectedStorageVal(selectedStorage)
       setIsLoading(true) // Aktifkan loading
 
@@ -237,9 +253,12 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setSelectedAddressCodeVal(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       setInventory([])
@@ -255,10 +274,13 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
@@ -267,6 +289,10 @@ const InputInventory = () => {
       setFilteredInventory([])
       setSelectedAddressCodeVal(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setSelectedTypeMaterial(selectedType)
       setIsLoading(true) // Aktifkan loading
       try {
@@ -278,8 +304,11 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       setInventory([])
@@ -291,7 +320,7 @@ const InputInventory = () => {
       selectedMaterialNo &&
       selectedDescription &&
       selectedAddress &&
-      selectedUom &&
+      baseUom &&
       quantity !== ''
     ) {
       const newInventoryItem = {
@@ -299,7 +328,7 @@ const InputInventory = () => {
         materialNo: selectedMaterialNo.label,
         description: selectedDescription.label,
         address: selectedAddress.label,
-        uom: selectedUom.label,
+        uom: baseUom,
         quantity: quantity,
       }
 
@@ -321,8 +350,11 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       MySwal.fire({
@@ -369,7 +401,9 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        setConversionUom(selectedItem.Material.packaging)
+        setConversionRate(selectedItem.Material.unitPackaging)
+        setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
     } else {
@@ -377,7 +411,6 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
     }
   }
 
@@ -394,7 +427,9 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        setConversionUom(selectedItem.Material.packaging)
+        setConversionRate(selectedItem.Material.unitPackaging)
+        setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
     } else {
@@ -402,7 +437,6 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
     }
   }
 
@@ -457,9 +491,12 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
@@ -468,8 +505,11 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
 
       setSelectedAddressCodeVal(selectedAddressCode)
       // Filter data inventory berdasarkan address code yang dipilih
@@ -590,6 +630,14 @@ const InputInventory = () => {
     console.error('Error saat scan QR: ', error)
   }
 
+  const handleConversionChange = (e) => {
+    const value = parseFloat(e.target.value)
+
+    // Konversi
+    setQuantityConversion(Number(value))
+    setQuantity(Number(value * conversionRate))
+  }
+
   return (
     <CRow>
       <CCol>
@@ -662,7 +710,7 @@ const InputInventory = () => {
                 </CCol>
               </CRow>
               <CRow>
-                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
                   <CFormLabel htmlFor="description">Description</CFormLabel>
                   <Select
                     className="basic-single"
@@ -680,7 +728,7 @@ const InputInventory = () => {
                     value={selectedDescription}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
                   <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
                     <Select
@@ -709,7 +757,7 @@ const InputInventory = () => {
                     </CInputGroupText>
                   </CInputGroup>
                 </CCol>
-                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={3} xl={4} className="mt-3">
                   <CFormLabel htmlFor="address">Address</CFormLabel>
                   <Select
                     className="basic-single"
@@ -729,30 +777,24 @@ const InputInventory = () => {
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
-                  <CFormLabel htmlFor="uom">UoM</CFormLabel>
-                  <Select
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isLoading={isLoading}
-                    isClearable={isClearable}
-                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
-                      (i) => ({
-                        value: i.id,
-                        label: i.Material.uom,
-                      }),
-                    )}
-                    id="uom"
-                    onChange={setSelectedUom}
-                    value={selectedUom}
-                    isDisabled={true}
+                  <CFormInput
+                    ref={quantityInputRef}
+                    type="number"
+                    id="quantityConversion"
+                    label={`Quantity (${conversionUom})`}
+                    placeholder="Input.."
+                    text="Must be number."
+                    aria-describedby="quantity"
+                    required
+                    onChange={handleConversionChange}
+                    value={quantityConversion}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
-                    ref={quantityInputRef}
                     type="number"
-                    id="quantity"
-                    label="Quantity"
+                    id="quantityBase"
+                    label={`Quantity (${baseUom})`}
                     placeholder="Input.."
                     text="Must be number."
                     aria-describedby="quantity"
