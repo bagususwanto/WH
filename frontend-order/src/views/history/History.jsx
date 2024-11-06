@@ -24,7 +24,15 @@ import {
   CBadge,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCart, cilCalendar, cilSearch } from '@coreui/icons'
+import {
+  cilCart,
+  cilCalendar,
+  cilSearch,
+  cilLocationPin,
+  cilHome,
+  cilUser,
+  cilCarAlt,
+} from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
@@ -140,10 +148,10 @@ const History = () => {
   //         .includes(globalFilterValue.toLowerCase()),
   //     ),
   // )
-  // const handleViewHistoryOrder = (product) => {
-  //   setSelectedProduct(product)
-  //   setVisible(true)
-  // }
+  const handleViewHistoryOrder = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+  }
 
   const tabs = [
     { key: 'all', label: 'All' },
@@ -296,7 +304,6 @@ const History = () => {
                   <p>No orders available.</p>
                 )}
               </CRow>
-
               {selectedProduct && (
                 <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                   <CModalHeader>
@@ -334,6 +341,72 @@ const History = () => {
                               </CCol>
                             </CRow>
                           ))}
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                            }}
+                          >
+                            {[
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilLocationPin,
+                                label: 'YOUR ITEM RECEIVED',
+                              },
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilCarAlt,
+                                label: 'DELIVERY OTODOKE',
+                              },
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilHome,
+                                label: 'ACCEPTED WAREHOUSE STAFF',
+                              },
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilUser,
+                                label: 'APPROVAL SECTION HEAD',
+                              },
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilUser,
+                                label: 'APPROVAL LINE HEAD',
+                              },
+                              {
+                                date: '20 JANUARI 2024 20:34 WIB',
+                                icon: cilUser,
+                                label: 'ORDER CREATED',
+                              },
+                            ].map((item, index) => (
+                              <div
+                                key={index}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  marginBottom: '16px',
+                                }}
+                              >
+                                <label style={{ marginRight: '8px' }}>{item.date}</label>
+                                <div
+                                  style={{
+                                    border: '2px solid #000',
+                                    borderRadius: '50%',
+                                    width: '40px',
+                                    height: '40px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <CIcon icon={item.icon} size="lg" />
+                                </div>
+                                <label style={{ marginLeft: '8px' }}>{item.label}</label>
+                              </div>
+                            ))}
+                          </div>
                         </CCardBody>
                       </CCard>
                     </CRow>

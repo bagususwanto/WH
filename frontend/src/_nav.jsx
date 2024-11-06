@@ -155,6 +155,16 @@ const useNavigation = () => {
             },
             {
               component: CNavItem,
+              name: 'Approval By Section Head',
+              to: '/dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
+              },
+            },
+            {
+              component: CNavItem,
               name: 'Approval By Dph Head',
               to: '/dummy-route', // Internal route, just a placeholder
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
