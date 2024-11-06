@@ -124,9 +124,9 @@ const Dashboard = () => {
     } else if (selectedChart === 'lowest,') {
       setOrder('ASC') // Lowest should be sorted lowest
     }
-    fetchInventoryCriticalStock(itemNb, order,selectedPlant.value)
-    fetchInventoryLowestStock(lowestItemNb, order,selectedPlant.value)
-    fetchInventoryOverflowStock(overflowItemNb, order,selectedPlant.value)
+    fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+    fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
+    fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
   }, [selectedChart, itemNb, lowestItemNb, overflowItemNb, order, selectedPlant])
 
   // useEffect(() => {
@@ -241,7 +241,7 @@ const Dashboard = () => {
             // Check incoming value
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
               // If incoming is filled (>= 1)
-              return 'red' // Change to red for incoming >= 1
+              return 'forestgreen' // Change to red for incoming >= 1
             }
 
             // Apply color based on chart type
@@ -285,7 +285,7 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 12,       // Ukuran font
+            size: 11, // Ukuran font
             weight: 'bold', // Menjadikan font bold
           },
           callback: function (value, index, ticks) {
@@ -294,7 +294,7 @@ const Dashboard = () => {
             const description = item.Material.description
 
             // Ambil hanya 10 karakter pertama dari description
-            return `${description.substring(0, 17)}...`
+            return `${description.substring(0, 16)}..`
           },
           maxRotation: 0, // Mencegah rotasi diagonal
           autoSkip: false, // Pastikan label ditampilkan tanpa di-skip
@@ -418,7 +418,7 @@ const Dashboard = () => {
         <CCard className="mb-2">
           <CCardHeader>Filter Dashboard</CCardHeader>
           <CCardBody>
-            <div className="mb-1" style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="mb-1" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <CButtonGroup>
                 <CFormCheck
                   button={{ color: 'primary', variant: 'outline' }}
@@ -443,6 +443,7 @@ const Dashboard = () => {
                   onChange={handleOrderChange}
                 />
               </CButtonGroup>
+
               <Select
                 className="basic-single"
                 classNamePrefix="select"
@@ -452,6 +453,7 @@ const Dashboard = () => {
                 id="plant"
                 onChange={handlePlantChange} // Event handler saat memilih plant
               />
+
               <CDropdown className="ms-2">
                 <CDropdownToggle color="primary">Status</CDropdownToggle>
                 <CDropdownMenu>
@@ -465,8 +467,6 @@ const Dashboard = () => {
                 </CDropdownMenu>
               </CDropdown>
 
-            
-
               <CButton
                 className="ms-2"
                 color="secondary"
@@ -474,6 +474,10 @@ const Dashboard = () => {
               >
                 {isTableVisible ? 'Hide Table' : 'Show Table'}
               </CButton>
+
+              {/* Adding the green and red boxes with labels */}
+             
+
               <div style={{ marginLeft: 'auto' }}>
                 <Link to="/dashboardall" style={{ textDecoration: 'none' }}>
                   <CButton color="black" variant="outline">
@@ -484,11 +488,13 @@ const Dashboard = () => {
             </div>
           </CCardBody>
         </CCard>
+
         {/* Single Card for Conditional Rendering */}
         <CCard className="mb-4">
           <CCardHeader>
             <div className="d-flex justify-content-between align-items-center">
               <div className="fw-bold fs-5">Plant 1</div>
+            
               <h5>
                 <CBadge color="primary">
                   {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
@@ -497,6 +503,38 @@ const Dashboard = () => {
             </div>
           </CCardHeader>
           <CCardBody>
+          <CRow className="ms-2" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+                <CCol xs="auto">
+                  <div
+                    style={{
+                      backgroundColor: 'green',
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px' }}>Incoming</div>
+                  </div>
+                </CCol>
+                <CCol xs="auto">
+                  <div
+                    style={{
+                      backgroundColor: 'red',
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
+                  </div>
+                </CCol>
+              </CRow>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
               <Bar
                 data={
@@ -527,115 +565,10 @@ const Dashboard = () => {
               <CModalBody>
                 {selectedData && (
                   <>
-                    <p>
-                      <strong>Material Number:</strong> {selectedData.Material.materialNo}
+                      <p>
+                      <strong>Plant:</strong> 
+                     
                     </p>
-                    <p>
-                      <strong>Description:</strong> {selectedData.Material.description}
-                    </p>
-                    <p>
-                      <strong>Supplier:</strong> {selectedData.Material.Supplier.supplierName}
-                    </p>
-                    <p>
-                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
-                      {selectedData.Material.uom}
-                    </p>
-                    <strong>Planning Incoming:</strong>
-                    {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
-                    {' '}
-                  </>
-                )}
-              </CModalBody>
-              <CModalFooter>
-                <CButton color="secondary" onClick={handleCloseModal}>
-                  Close
-                </CButton>
-              </CModalFooter>
-            </CModal>
-            {isTableVisible && (
-              <DataTable
-                value={
-                  selectedChart === 'critical'
-                    ? inventoriescritical
-                    : selectedChart === 'lowest'
-                      ? inventorieslowest
-                      : inventoriesoverflow
-                }
-                tableStyle={{ minWidth: '30rem' }}
-                className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-                emptyMessage="Tidak ada data inventaris."
-                size="small"
-                scrollable
-              >
-                <Column field="Material.materialNo" header="Material No" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-
-                {/* Conditional rendering of minStock/maxStock based on selected chart */}
-                {selectedChart === 'critical' || selectedChart === 'lowest' ? (
-                  <Column field="Material.minStock" header="Min" sortable />
-                ) : selectedChart === 'overflow' ? (
-                  <Column field="Material.maxStock" header="Max" sortable />
-                ) : null}
-
-                <Column field="quantityActualCheck" header="Actual" sortable />
-                <Column field="stock" header="Remain Stock" sortable />
-                <Column
-                  field="evaluation"
-                  header="Evaluation"
-                  body={statusBodyTemplate}
-                  bodyStyle={{ textAlign: 'center' }}
-                  sortable
-                />
-              </DataTable>
-            )}
-          </CCardBody>
-        </CCard>
-        <CCard className="mb-4">
-          <CCardHeader>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold fs-5">Plant 2</div>
-              <h5>
-                <CBadge color="primary">
-                  {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
-                </CBadge>
-              </h5>
-            </div>
-          </CCardHeader>
-          <CCardBody>
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
-              <Bar
-                data={
-                  selectedChart === 'critical'
-                    ? prepareChartData(inventoriescritical, 'Critical Stock', 2)
-                    : selectedChart === 'lowest'
-                      ? prepareChartData(inventorieslowest, 'Low Stock', 1)
-                      : prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)
-                }
-                options={
-                  selectedChart === 'critical'
-                    ? chartOptions(inventoriescritical, 0, 2.2, 2)
-                    : selectedChart === 'lowest'
-                      ? chartOptions(inventorieslowest, 0, 1.1, 1)
-                      : chartOptions(inventoriesoverflow, 0, 7, 5)
-                }
-                height={410}
-              />
-            </Box>
-
-            {/* Modal for displaying selected data */}
-            <CModal
-              visible={modalOpen}
-              onClose={handleCloseModal}
-              alignment="center" // This aligns the modal in the center of the screen
-            >
-              <CModalHeader>
-                <CModalTitle>Detail Information</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                {selectedData && (
-                  <>
                     <p>
                       <strong>Material Number:</strong> {selectedData.Material.materialNo}
                     </p>
@@ -652,6 +585,7 @@ const Dashboard = () => {
                     <strong>Planning Incoming:</strong>
                     {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
                     {' '} {selectedData.Material.uom}
+                 
                   </>
                 )}
               </CModalBody>
