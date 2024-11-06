@@ -53,9 +53,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState('ASC')
   const [modalOpen, setModalOpen] = useState(false)
-  const [itemNb, setItemNb] = React.useState(8) //item untuk critical
-  const [lowestItemNb, setLowestItemNb] = React.useState(8) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(8) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(10) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(10) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(10) //Item untuk slider over flow
   const [inventories, setInventories] = useState([]) // Inventory data
   const [selectedData, setSelectedData] = useState(null)
   const [showTable, setShowTable] = useState(false) // State to control table visibility
@@ -258,7 +258,7 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 15,
+            size: 12,
             weight: 'bold', // Set weight to bold
           },
           callback: function (value, index, ticks) {
@@ -266,7 +266,7 @@ const Dashboard = () => {
             const materialNo = item.Material.materialNo
             const description = item.Material.description
 
-            return `${materialNo}`
+               return `${description.substring(0, 17)}...`
           },
           maxRotation: 0, // Prevents diagonal rotation
           autoSkip: false, // Ensures labels are displayed without skipping
@@ -388,7 +388,7 @@ const Dashboard = () => {
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
               <Bar
-                data={prepareChartData(inventoriesCritical, 'powderblue', 2)}
+                data={prepareChartData(inventoriesCritical, 'salmon', 2)}
                 options={{
                   ...chartOptions(inventoriesCritical, 0, 2.2, 2, false),
                   onClick: (evt, activeElements) => {
@@ -545,7 +545,7 @@ const Dashboard = () => {
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
               <Bar
-                data={prepareChartData(inventoriesoverflow, 'steelblue', 5)}
+                data={prepareChartData(inventoriesoverflow, 'lightcoral', 5)}
                 options={{
                   ...chartOptions(inventoriesoverflow, 0, 6, 5, true), // isMaxStock = true
                   onClick: (evt, activeElements) => {

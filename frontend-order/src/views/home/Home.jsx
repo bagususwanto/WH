@@ -519,7 +519,21 @@ const Home = () => {
           </CButton>
 
           <CRow className="g-2">
-            {currentWishlist.map((product) => (
+          {isLoading ? (
+              Array(4).fill(null).map((_, index) => (
+                <CCol xs="6" sm="6" md="3" lg="3" key={index} className="mb-3">
+                  <CCard>
+                    <Skeleton height={200} width="100%" />
+                    <CCardBody>
+                      <Skeleton width="50%" height={20} />
+                      <Skeleton width="30%" height={20} />
+                    </CCardBody>
+                  </CCard>
+                </CCol>
+              ))
+            ) : (
+
+            currentWishlist.map((product) => (
               <CCol
                 xs="6"
                 sm="6"
@@ -615,7 +629,9 @@ const Home = () => {
                   </CCardBody>
                 </CCard>
               </CCol>
-            ))}
+              ))
+            )}
+  
           </CRow>
 
           <CButton
@@ -655,7 +671,11 @@ const Home = () => {
 
         {/* Kartu produk */}
         <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-          {myOrderData.map((order) => (
+        {isLoading ? (
+            <Skeleton count={3} height={150} />
+          ) : (
+
+          myOrderData.map((order) => (
             <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
               <CRow className="align-items-center">
                 <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -711,7 +731,9 @@ const Home = () => {
                 </CRow>
               </CRow>
             </CCard>
-          ))}
+           ))
+          )}
+
         </div>
       </CRow>
       <hr />

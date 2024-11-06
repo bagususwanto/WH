@@ -18,11 +18,8 @@ import {
   CModalFooter,
   CButton,
   CButtonGroup,
-  CBadge,
-  CFormLabel,
-  CFormSelect,
 } from '@coreui/react'
-import Select from 'react-select'
+
 import 'primeicons/primeicons.css'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
@@ -32,7 +29,6 @@ import { DataTable } from 'primereact/datatable'
 import { Modal, Button } from '@mui/material' // Importing Material-UI components
 import useManageStockService from '../../services/ManageStockService'
 import useDashboardService from '../../services/DashboardService'
-import useMasterDataService from '../../services/MasterDataService'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -89,20 +85,15 @@ const Dashboard = () => {
   const [isTableVisible, setIsTableVisible] = useState(false) // Toggle for table visibility
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(10) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(10) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(10) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(20) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(20) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(20) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('ASC')
   const [selectedChart, setSelectedChart] = useState('critical')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedData, setSelectedData] = useState(null)
-  const [selectedPlant, setSelectedPlant] = useState({ value: 'all', label: 'All' })
 
-  const [plant, setPlant] = useState([])
-  const { getMasterData, getMasterDataById } = useMasterDataService()
-
-  const apiPlant = 'plant-public'
 
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
@@ -118,24 +109,35 @@ const Dashboard = () => {
   }, [])
 
   useEffect(() => {
-    // Set default order based on selected chart
-    if (selectedChart === 'overflow') {
-      setOrder('DESC') // Overflow should be sorted highest
-    } else if (selectedChart === 'lowest,') {
-      setOrder('ASC') // Lowest should be sorted lowest
+    fetchInventory()
+    fetchInventoryCriticalStock(itemNb, order)
+    fetchInventoryLowestStock(lowestItemNb, order)
+    fetchInventoryOverflowStock(overflowItemNb, order)
+    setLoading(false)
+  }, [itemNb, lowestItemNb, overflowItemNb, order])
+
+  //Handle untuk Critical
+  const handleItemNbChange = (event, newValue) => {
+    if (typeof newValue === 'number') {
+      setItemNb(newValue)
     }
-    fetchInventoryCriticalStock(itemNb, order,selectedPlant.value)
-    fetchInventoryLowestStock(lowestItemNb, order,selectedPlant.value)
-    fetchInventoryOverflowStock(overflowItemNb, order,selectedPlant.value)
-  }, [selectedChart, itemNb, lowestItemNb, overflowItemNb, order, selectedPlant])
+  }
+  //Handle untuk lowest
+  const handlelowestItemNbChange = (event, newValue) => {
+    if (typeof newValue === 'number') {
+      setLowestItemNb(newValue)
+    }
+  }
+  //handle untuk overflow
+  const handleoverflowItemNbChange = (event, newValue) => {
+    if (typeof newValue === 'number') {
+      setOverflowItemNb(newValue)
+    }
+  }
 
-  // useEffect(() => {
-  //   getWarehouse() // Fetch products on mount
-  // }, []) // Empty dependency array ensures it only runs once
-
-  const fetchInventoryCriticalStock = async (itemNb, order, id) => {
+  const fetchInventoryCriticalStock = async (itemNb, order) => {
     try {
-      const response = await getInventoryCriticalStock(itemNb, order, id)
+      const response = await getInventoryCriticalStock(itemNb, order)
       // console.log(response.data)
       setInventoriesCritical(response.data)
     } catch (error) {
@@ -143,18 +145,18 @@ const Dashboard = () => {
     }
   }
 
-  const fetchInventoryLowestStock = async (lowestItemNb, order, id) => {
+  const fetchInventoryLowestStock = async (lowestItemNb, order) => {
     try {
-      const response = await getInventoryLowestStock(lowestItemNb, order, id)
+      const response = await getInventoryLowestStock(lowestItemNb, order)
       setInventoriesLowest(response.data)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
   }
 
-  const fetchInventoryOverflowStock = async (overflowItemNb, order, id) => {
+  const fetchInventoryOverflowStock = async (overflowItemNb, order) => {
     try {
-      const response = await getInventoryOverflowStock(overflowItemNb, order, id)
+      const response = await getInventoryOverflowStock(overflowItemNb, order)
       // console.log(response.data)
       setInventoriesOverflow(response.data)
     } catch (error) {
@@ -186,81 +188,65 @@ const Dashboard = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
-  //Critical Grafik
-  const prepareBarChartData1 = (data) => {
-    // Ambil item sesuai dengan nilai itemNb
-    const limitedData = data.slice(0, itemNb)
-
-    // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
-
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      name: item.name, // Terapkan formatName pada name
-      stock: item.stock,
-    }))
-  }
-  const getPlant = async () => {
+  const fetchInventory = async () => {
     try {
-      const response = await getMasterData(apiPlant) // Ambil data dari API
-      setPlant(response.data)
+      const response = await getAllInventory()
+      const dataWithFormattedFields = response.data
+        .map((item) => {
+          const evaluation =
+            item.quantityActual < item.Material.minStock
+              ? 'critical'
+              : item.quantityActual > item.Material.maxStock
+                ? 'over'
+                : 'ok'
+
+          const stockDifferencelowes = item.quantityActual / item.Material.minStock // Selisih antara quantityActual dan maxStock
+          const stockDifference = item.quantityActual / item.Material.maxStock // Selisih antara quantityActual dan maxStock
+          const useByShift = (item.quantityActual / item.Material.minStock) * 2 || 0 // Use default value if undefined
+
+          return {
+            ...item,
+            evaluation,
+            stockDifferencelowes,
+            stockDifference,
+            useByShift, // Ensure useByShift is always defined
+          }
+        })
+
+        .filter((item) => {
+          // Pastikan semua nilai yang digunakan valid dan tidak kosong
+          return (
+            item.quantityActual != null &&
+            item.Material.maxStock != null &&
+            item.quantityActual !== '' &&
+            item.Material.maxStock !== ''
+          )
+        })
+
+      // Set data berdasarkan penilaian
+      setInventories({
+        critical: dataWithFormattedFields.filter((item) => item.evaluation === 'critical'),
+        lowest: dataWithFormattedFields.filter((item) => item.evaluation === 'critical'),
+        overflow: dataWithFormattedFields.filter((item) => item.evaluation === 'over'),
+      })
     } catch (error) {
-      console.error('Error fetching plant data:', error)
-      MySwal.fire('Error', 'Failed to load plant data.', 'error')
+      console.error('Error fetching inventory:', error)
     }
   }
 
-  useEffect(() => {
-    getPlant()
-  }, [])
+ 
 
-  const handlePlantChange = (selectedPlant) => {
-    if (selectedPlant) {
-      setSelectedPlant(selectedPlant)
-    } else {
-      // Handle case if the selection is cleared (optional)
-      setSelectedPlant({ value: 'all', label: 'All' })
-    }
-  }
-
-  const plantOptions = [
-    { value: 'all', label: 'All' }, // Menambahkan opsi "All" di awal
-    ...plant.map((plant) => ({
-      value: plant.id,
-      label: plant.plantName,
-    })),
-  ]
-
-  const prepareChartData = (data, chartTitle, shiftLevel) => {
-    return {
-      labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
-      datasets: [
-        {
-          label: chartTitle,
-          data: data.map((item) => item.stock),
-          backgroundColor: data.map((item) => {
-            // Check incoming value
-            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
-              // If incoming is filled (>= 1)
-              return 'red' // Change to red for incoming >= 1
-            }
-
-            // Apply color based on chart type
-            switch (chartTitle) {
-              case 'Critical Stock':
-                return 'salmon' // Critical -> skyblue
-              case 'Low Stock':
-                return 'lightcoral' // Lowest -> blue
-              case 'Overflow Stock':
-                return 'indianred' // Overflow -> darkblue
-              default:
-                return 'gray' // Default color
-            }
-          }),
-        },
-      ],
-      shiftLevel, // Used to draw red line
-    }
-  }
+  const prepareChartData = (data, chartTitle, shiftLevel) => ({
+    labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
+    datasets: [
+      {
+        label: chartTitle,
+        data: data.map((item) => item.stock),
+        backgroundColor: 'skyblue',
+      },
+    ],
+    shiftLevel, // Used to draw red line
+  })
 
   const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
     responsive: true,
@@ -278,32 +264,30 @@ const Dashboard = () => {
           display: true,
           text: 'Stock Levels',
           font: {
-            size: 12,
+            size: 16,
           },
         },
       },
       x: {
         ticks: {
           font: {
-            size: 12,       // Ukuran font
-            weight: 'bold', // Menjadikan font bold
+            size: 12,
           },
           callback: function (value, index, ticks) {
             const item = data[index]
             const materialNo = item.Material.materialNo
             const description = item.Material.description
 
-            // Ambil hanya 10 karakter pertama dari description
-            return `${description.substring(0, 17)}...`
+            return `${description}`
           },
-          maxRotation: 0, // Mencegah rotasi diagonal
-          autoSkip: false, // Pastikan label ditampilkan tanpa di-skip
+          maxRotation: 0, // Prevents diagonal rotation
+          autoSkip: false, // Ensures labels are displayed without skipping
         },
         title: {
           display: true,
           text: 'Inventory Items',
           font: {
-            size: 11,
+            size: 16,
           },
         },
       },
@@ -443,17 +427,8 @@ const Dashboard = () => {
                   onChange={handleOrderChange}
                 />
               </CButtonGroup>
-              <Select
-                className="basic-single"
-                classNamePrefix="select"
-                isClearable
-                options={plantOptions} // plantOptions termasuk "All"
-                value={selectedPlant} // Menetapkan state sebagai value yang dipilih
-                id="plant"
-                onChange={handlePlantChange} // Event handler saat memilih plant
-              />
               <CDropdown className="ms-2">
-                <CDropdownToggle color="primary">Status</CDropdownToggle>
+                <CDropdownToggle color="secondary">Status</CDropdownToggle>
                 <CDropdownMenu>
                   <CDropdownItem onClick={() => setSelectedChart('critical')}>
                     Critical
@@ -464,9 +439,6 @@ const Dashboard = () => {
                   </CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
-
-            
-
               <CButton
                 className="ms-2"
                 color="secondary"
@@ -476,8 +448,8 @@ const Dashboard = () => {
               </CButton>
               <div style={{ marginLeft: 'auto' }}>
                 <Link to="/dashboardall" style={{ textDecoration: 'none' }}>
-                  <CButton color="black" variant="outline">
-                    ALWAYS DISPLAY
+                  <CButton color="primary" variant="outline">
+                   ALWAYS DISPLAY 
                   </CButton>
                 </Link>
               </div>
@@ -487,14 +459,7 @@ const Dashboard = () => {
         {/* Single Card for Conditional Rendering */}
         <CCard className="mb-4">
           <CCardHeader>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold fs-5">Plant 1</div>
-              <h5>
-                <CBadge color="primary">
-                  {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
-                </CBadge>
-              </h5>
-            </div>
+            {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
           </CCardHeader>
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
@@ -513,117 +478,9 @@ const Dashboard = () => {
                       ? chartOptions(inventorieslowest, 0, 1.1, 1)
                       : chartOptions(inventoriesoverflow, 0, 7, 5)
                 }
-                height={410}
+                height={510}
               />
             </Box>
-            <CModal
-              visible={modalOpen}
-              onClose={handleCloseModal}
-              alignment="center" // This aligns the modal in the center of the screen
-            >
-              <CModalHeader>
-                <CModalTitle>Detail Information</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                {selectedData && (
-                  <>
-                    <p>
-                      <strong>Material Number:</strong> {selectedData.Material.materialNo}
-                    </p>
-                    <p>
-                      <strong>Description:</strong> {selectedData.Material.description}
-                    </p>
-                    <p>
-                      <strong>Supplier:</strong> {selectedData.Material.Supplier.supplierName}
-                    </p>
-                    <p>
-                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
-                      {selectedData.Material.uom}
-                    </p>
-                    <strong>Planning Incoming:</strong>
-                    {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
-                    {' '}
-                  </>
-                )}
-              </CModalBody>
-              <CModalFooter>
-                <CButton color="secondary" onClick={handleCloseModal}>
-                  Close
-                </CButton>
-              </CModalFooter>
-            </CModal>
-            {isTableVisible && (
-              <DataTable
-                value={
-                  selectedChart === 'critical'
-                    ? inventoriescritical
-                    : selectedChart === 'lowest'
-                      ? inventorieslowest
-                      : inventoriesoverflow
-                }
-                tableStyle={{ minWidth: '30rem' }}
-                className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-                emptyMessage="Tidak ada data inventaris."
-                size="small"
-                scrollable
-              >
-                <Column field="Material.materialNo" header="Material No" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-
-                {/* Conditional rendering of minStock/maxStock based on selected chart */}
-                {selectedChart === 'critical' || selectedChart === 'lowest' ? (
-                  <Column field="Material.minStock" header="Min" sortable />
-                ) : selectedChart === 'overflow' ? (
-                  <Column field="Material.maxStock" header="Max" sortable />
-                ) : null}
-
-                <Column field="quantityActualCheck" header="Actual" sortable />
-                <Column field="stock" header="Remain Stock" sortable />
-                <Column
-                  field="evaluation"
-                  header="Evaluation"
-                  body={statusBodyTemplate}
-                  bodyStyle={{ textAlign: 'center' }}
-                  sortable
-                />
-              </DataTable>
-            )}
-          </CCardBody>
-        </CCard>
-        <CCard className="mb-4">
-          <CCardHeader>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold fs-5">Plant 2</div>
-              <h5>
-                <CBadge color="primary">
-                  {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
-                </CBadge>
-              </h5>
-            </div>
-          </CCardHeader>
-          <CCardBody>
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
-              <Bar
-                data={
-                  selectedChart === 'critical'
-                    ? prepareChartData(inventoriescritical, 'Critical Stock', 2)
-                    : selectedChart === 'lowest'
-                      ? prepareChartData(inventorieslowest, 'Low Stock', 1)
-                      : prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)
-                }
-                options={
-                  selectedChart === 'critical'
-                    ? chartOptions(inventoriescritical, 0, 2.2, 2)
-                    : selectedChart === 'lowest'
-                      ? chartOptions(inventorieslowest, 0, 1.1, 1)
-                      : chartOptions(inventoriesoverflow, 0, 7, 5)
-                }
-                height={410}
-              />
-            </Box>
-
             {/* Modal for displaying selected data */}
             <CModal
               visible={modalOpen}
@@ -636,7 +493,7 @@ const Dashboard = () => {
               <CModalBody>
                 {selectedData && (
                   <>
-                    <p>
+                   <p>
                       <strong>Material Number:</strong> {selectedData.Material.materialNo}
                     </p>
                     <p>
@@ -649,9 +506,8 @@ const Dashboard = () => {
                       <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
                       {selectedData.Material.uom}
                     </p>
-                    <strong>Planning Incoming:</strong>
-                    {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
-                    {' '} {selectedData.Material.uom}
+                    {/* <strong>Planning Incoming:</strong> {selectedData.Incomings[0].planning}{' '} */}
+                    {selectedData.Material.uom}
                   </>
                 )}
               </CModalBody>
@@ -672,22 +528,16 @@ const Dashboard = () => {
                 }
                 tableStyle={{ minWidth: '30rem' }}
                 className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                loading={loading}
                 emptyMessage="Tidak ada data inventaris."
                 size="small"
                 scrollable
               >
-                <Column field="Material.materialNo" header="Material No" sortable />
+                  <Column field="Material.materialNo" header="Material No" sortable />
                 <Column field="Material.description" header="Description" sortable />
                 <Column field="Material.uom" header="UoM" sortable />
                 <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-
-                {/* Conditional rendering of minStock/maxStock based on selected chart */}
-                {selectedChart === 'critical' || selectedChart === 'lowest' ? (
-                  <Column field="Material.minStock" header="Min" sortable />
-                ) : selectedChart === 'overflow' ? (
-                  <Column field="Material.maxStock" header="Max" sortable />
-                ) : null}
-
+                <Column field="Material.maxStock" header="Max" sortable />
                 <Column field="quantityActualCheck" header="Actual" sortable />
                 <Column field="stock" header="Remain Stock" sortable />
                 <Column

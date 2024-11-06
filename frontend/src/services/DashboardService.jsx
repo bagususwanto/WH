@@ -13,10 +13,10 @@ const useDashboardService = () => {
     throw new Error(message + error.message)
   }
 
-  const getInventoryCriticalStock = async (limit, order) => {
+  const getInventoryCriticalStock = async (limit, order,id) => {
     try {
       const response = await axiosJWT.get(
-        `/inventory-dashboard?limit=${limit}&order=${order}&status=critical`,
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=critical&plant=${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,10 +29,10 @@ const useDashboardService = () => {
     }
   }
 
-  const getInventoryLowestStock = async (limit, order) => {
+  const getInventoryLowestStock = async (limit, order,id) => {
     try {
       const response = await axiosJWT.get(
-        `/inventory-dashboard?limit=${limit}&order=${order}&status=lowest`,
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=lowest&plant=${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,10 +45,10 @@ const useDashboardService = () => {
     }
   }
 
-  const getInventoryOverflowStock = async (limit, order) => {
+  const getInventoryOverflowStock = async (limit, order,id) => {
     try {
       const response = await axiosJWT.get(
-        `/inventory-dashboard?limit=${limit}&order=${order}&status=overflow`,
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=overflow&plant=${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
