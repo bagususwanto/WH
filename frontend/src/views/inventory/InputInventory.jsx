@@ -631,11 +631,38 @@ const InputInventory = () => {
   }
 
   const handleConversionChange = (e) => {
-    const value = parseFloat(e.target.value)
+    const value = e.target.value.replace(/,/g, '')
 
-    // Konversi
-    setQuantityConversion(Number(value))
-    setQuantity(Number(value * conversionRate))
+    // Cek apakah nilai yang dimasukkan valid
+    if (!isNaN(value)) {
+      // Konversi
+      setQuantityConversion(value)
+      setQuantity(value * conversionRate)
+    }
+  }
+
+  const handleQuantityChange = (e) => {
+    const value = e.target.value.replace(/,/g, '')
+
+    // Cek apakah nilai yang dimasukkan valid
+    if (!isNaN(value)) {
+      setQuantity(value)
+    }
+  }
+
+  const handleQtyInputChange = (e) => {
+    // Menghapus koma dari nilai input
+    const value = e.target.value.replace(/,/g, '')
+
+    // Pastikan nilai input valid (berupa angka)
+    if (!isNaN(value)) {
+      setNewQuantity(value)
+    }
+  }
+
+  // Fungsi untuk memformat angka dengan koma
+  const formatWithCommas = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   }
 
   return (
@@ -646,7 +673,7 @@ const InputInventory = () => {
           <CForm>
             <CCardBody>
               <CRow>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
                     className="basic-single"
@@ -659,7 +686,7 @@ const InputInventory = () => {
                     value={selectedPlantVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="storage">Storage</CFormLabel>
                   <Select
                     className="basic-single"
@@ -673,7 +700,7 @@ const InputInventory = () => {
                     value={selectedStorageVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="type">Type</CFormLabel>
                   <Select
                     className="basic-single"
@@ -687,7 +714,7 @@ const InputInventory = () => {
                     value={selectedTypeMaterial}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="address">Address Code</CFormLabel>
                   <Select
                     className="basic-single"
@@ -779,7 +806,7 @@ const InputInventory = () => {
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
                     ref={quantityInputRef}
-                    type="number"
+                    type="text"
                     id="quantityConversion"
                     label={`Quantity (${conversionUom})`}
                     placeholder="Input.."
@@ -787,20 +814,22 @@ const InputInventory = () => {
                     aria-describedby="quantity"
                     required
                     onChange={handleConversionChange}
-                    value={quantityConversion}
+                    value={quantityConversion ? formatWithCommas(quantityConversion) : ''}
+                    inputMode="numeric"
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
-                    type="number"
+                    type="text"
                     id="quantityBase"
                     label={`Quantity (${baseUom})`}
                     placeholder="Input.."
                     text="Must be number."
                     aria-describedby="quantity"
                     required
-                    onChange={(e) => setQuantity(e.target.value)}
-                    value={quantity}
+                    onChange={handleQuantityChange}
+                    value={quantity ? formatWithCommas(quantity) : ''}
+                    inputMode="numeric"
                   />
                 </CCol>
                 <CCol
@@ -855,19 +884,25 @@ const InputInventory = () => {
                         <CTableDataCell>
                           {editId === item.id ? (
                             <input
-                              type="number"
-                              value={newQuantity}
-                              onChange={(e) => setNewQuantity(e.target.value)}
+                              type="text"
+                              value={newQuantity ? formatWithCommas(newQuantity) : ''}
+                              onChange={handleQtyInputChange}
                               onBlur={() => handleSaveQuantity(item.id)} // Simpan saat kehilangan fokus
                               autoFocus
-                              style={{ width: '80px', padding: '4px', fontSize: '14px' }}
+                              // Sesuaikan lebar input dengan panjang teks
+                              style={{
+                                width: `${newQuantity.length + 5}ch`,
+                                padding: '4px',
+                                fontSize: '14px',
+                              }}
+                              inputMode="numeric"
                             />
                           ) : (
                             <span
                               onClick={() => handleEditClick(item)}
                               style={{ cursor: 'pointer' }}
                             >
-                              {item.quantity}
+                              {item.quantity ? parseInt(item.quantity).toLocaleString() : ''}
                             </span>
                           )}
                         </CTableDataCell>
