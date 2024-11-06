@@ -799,7 +799,7 @@ const InputInventory = () => {
                     text="Must be number."
                     aria-describedby="quantity"
                     required
-                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    onChange={(e) => setQuantity(e.target.value)}
                     value={quantity}
                   />
                 </CCol>

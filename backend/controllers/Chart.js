@@ -25,7 +25,7 @@ export const getInventoryDashboard = async (req, res) => {
     let rumus;
     let whereCondition;
     let operator;
-    let whereConditionPlant = { plantId: plant, flag: 1 };
+    let whereConditionPlant;
 
     if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
       return res.status(400).send({
@@ -49,6 +49,11 @@ export const getInventoryDashboard = async (req, res) => {
 
     if (plant == "all") {
       whereConditionPlant = {
+        flag: 1,
+      };
+    } else if (!isNaN(plant)) {
+      whereConditionPlant = {
+        plantId: parseInt(plant),
         flag: 1,
       };
     } else {
@@ -166,7 +171,7 @@ export const getInventoryDashboard = async (req, res) => {
       limit, // Limit number of results
     });
 
-    if (!inventoryData) {
+    if (inventoryData.length === 0) {
       return res.status(404).json({ message: "Inventory not found" });
     }
 
