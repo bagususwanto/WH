@@ -5,6 +5,7 @@ import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
+import Plant from "../models/PlantModel.js";
 
 const { Op } = Sequelize;
 const startOfToday = new Date();
@@ -53,7 +54,7 @@ export const getInventoryDashboard = async (req, res) => {
       };
     } else if (!isNaN(plant)) {
       whereConditionPlant = {
-        plantId: parseInt(plant),
+        id: parseInt(plant),
         flag: 1,
       };
     } else {
@@ -141,7 +142,13 @@ export const getInventoryDashboard = async (req, res) => {
             {
               model: Storage,
               attributes: ["id"],
-              where: whereConditionPlant,
+              include: [
+                {
+                  model: Plant,
+                  attributes: ["id", "plantName"],
+                  where: whereConditionPlant,
+                },
+              ],
             },
           ],
         },
@@ -167,6 +174,8 @@ export const getInventoryDashboard = async (req, res) => {
         "Material->Supplier.supplierName",
         "Address_Rack.id", // Group by Address Rack ID
         "Address_Rack->Storage.id", // Group by Storage ID
+        "Address_Rack->Storage->Plant.id",
+        "Address_Rack->Storage->Plant.plantName",
       ],
       limit, // Limit number of results
     });
