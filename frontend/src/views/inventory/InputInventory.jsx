@@ -637,7 +637,11 @@ const InputInventory = () => {
     if (!isNaN(value)) {
       // Konversi
       setQuantityConversion(value)
-      setQuantity(value * conversionRate)
+      if (conversionRate) {
+        setQuantity(value * conversionRate)
+      } else {
+        setQuantity(value)
+      }
     }
   }
 
@@ -668,7 +672,7 @@ const InputInventory = () => {
   return (
     <CRow>
       <CCol>
-        <CCard className="mb-3">
+        <CCard>
           <CCardHeader>Form Input</CCardHeader>
           <CForm>
             <CCardBody>
@@ -808,7 +812,7 @@ const InputInventory = () => {
                     ref={quantityInputRef}
                     type="text"
                     id="quantityConversion"
-                    label={`Quantity (${conversionUom})`}
+                    label={`Quantity (${conversionUom ? conversionUom : baseUom})`}
                     placeholder="Input.."
                     text="Must be number."
                     aria-describedby="quantity"
