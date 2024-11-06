@@ -6,25 +6,48 @@ import Storage from "../models/StorageModel.js";
 import Inventory from "../models/InventoryModel.js";
 import DetailOrder from "../models/DetailOrderModel.js";
 import OrderHistory from "../models/OrderHistoryModel.js";
+import { Op } from "sequelize";
 
-// Get data product by warehouse
 // Get data product by warehouse
 export const getMyOrder = async (req, res) => {
   try {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10, status } = req.query; // Ambil limit, page, dan status dari query params
+    const { page = 1, limit = 10, status, startDate, endDate, q } = req.query;
     const offset = (page - 1) * limit;
 
     // Buat kondisi where yang dinamis
     let whereCondition = { userId: userId };
+
     // Jika status tidak 'all', tambahkan status ke kondisi where
     if (status && status !== "all") {
       whereCondition.status = status;
     }
 
-    // Cari data my order dengan paginasi (limit dan offset)
+    // Jika ada rentang tanggal, tambahkan kondisi untuk filter berdasarkan createdAt
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Jika startDate dan endDate sama, tambahkan waktu agar rentang mencakup seluruh hari
+      end.setHours(23, 59, 59, 999); // Set end date ke akhir hari (23:59:59)
+
+      whereCondition.createdAt = {
+        [Op.between]: [start, end],
+      };
+    }
+
+    // Jika ada query 'q', tambahkan kondisi untuk pencarian
+    if (q) {
+      whereCondition[Op.or] = [
+        { transactionNumber: { [Op.like]: `%${q}%` } },
+        { requestNumber: { [Op.like]: `%${q}%` } },
+        { "$Detail_Orders.Inventory.Material.description$": { [Op.like]: `%${q}%` } }, // Query terkait ke Material description
+      ];
+    }
+
+    // Cari data my order berdasarkan filter dengan paginasi (limit dan offset)
     const myOrder = await Order.findAll({
       where: whereCondition,
       include: [

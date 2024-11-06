@@ -21,10 +21,6 @@ const Material = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    packingUnit: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
     price: {
       type: DataTypes.DECIMAL,
       allowNull: false,
@@ -53,6 +49,14 @@ const Material = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    packaging: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    unitPackaging: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -63,7 +67,7 @@ const Material = db.define(
     },
     supplierId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: Supplier,
         key: "id",

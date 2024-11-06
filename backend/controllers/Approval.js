@@ -11,6 +11,7 @@ import Material from "../models/MaterialModel.js";
 import { generateOrderNumber } from "./Order.js";
 import { postOrderHistory } from "./OrderHistory.js";
 import Warehouse from "../models/WarehouseModel.js";
+import { Op } from "sequelize";
 
 const getOrganizationCondition = (user, role) => {
   switch (role) {
@@ -25,10 +26,32 @@ const getOrganizationCondition = (user, role) => {
   }
 };
 
-const findRoleAndOrders = async (roleName, organizationField, organizationId, warehouseId) => {
+const findRoleAndOrders = async (roleName, organizationField, organizationId, warehouseId, options) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
+
+  const { q, startDate, endDate, limit, offset } = options;
+
+  // Buat kondisi where yang dinamis untuk Order
+  let whereCondition = { isApproval: 0, currentRoleApprovalId: role.id };
+
+  // Jika ada rentang tanggal, tambahkan kondisi filter berdasarkan createdAt
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // Set end date ke akhir hari
+
+    whereCondition.createdAt = {
+      [Op.between]: [start, end],
+    };
+  }
+
+  // Jika ada query 'q', tambahkan kondisi pencarian berdasarkan beberapa kolom
+  if (q) {
+    whereCondition[Op.or] = [{ transactionNumber: { [Op.like]: `%${q}%` } }, { requestNumber: { [Op.like]: `%${q}%` } }];
+  }
+
   return await Order.findAll({
-    where: { isApproval: 0, currentRoleApprovalId: role.id },
+    where: whereCondition,
     include: [
       {
         model: User,
@@ -45,6 +68,9 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
         ],
       },
     ],
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+    order: [["createdAt", "DESC"]],
   });
 };
 
@@ -53,13 +79,24 @@ export const getOrderApproval = async (req, res) => {
   const condition = getOrganizationCondition(req.user, role);
   const warehouseId = req.params.warehouseId;
 
+  const { page = 1, limit = 10, q, startDate, endDate } = req.query;
+  const offset = (page - 1) * limit;
+
   if (!condition) return res.status(400).json({ message: "Invalid role" });
 
   try {
-    const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId);
+    const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId, {
+      q,
+      startDate,
+      endDate,
+      limit,
+      offset,
+    });
+
     if (orders.length === 0) {
       return res.status(404).json({ message: "No orders found" });
     }
+
     res.status(200).json(orders);
   } catch (error) {
     console.log(error);
@@ -67,10 +104,10 @@ export const getOrderApproval = async (req, res) => {
   }
 };
 
-const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, orderId, warehouseId) => {
-  const role = await Role.findOne({ where: { roleName, flag: 1 } });
-  return;
-};
+// const findRoleAndDetailOrders = async (roleName, organizationField, organizationId, orderId, warehouseId) => {
+//   const role = await Role.findOne({ where: { roleName, flag: 1 } });
+//   return;
+// };
 
 export const getDetailOrderApproval = async (req, res) => {
   const warehouseId = req.params.warehouseId;
@@ -473,7 +510,6 @@ export const deleteOrderItem = async (req, res) => {
       },
       { transaction }
     );
-
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 

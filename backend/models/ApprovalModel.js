@@ -34,8 +34,8 @@ const Approval = db.define(
   }
 );
 
-Order.hasMany(Approval, { foreignKey: "storageId" });
-Approval.belongsTo(Order, { foreignKey: "storageId" });
+Order.hasMany(Approval, { foreignKey: "orderId", onDelete: "NO ACTION" });
+Approval.belongsTo(Order, { foreignKey: "orderId", onDelete: "NO ACTION" });
 
 User.hasMany(Approval, { foreignKey: "userId" });
 Approval.belongsTo(User, { foreignKey: "userId" });

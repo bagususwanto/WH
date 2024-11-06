@@ -3,6 +3,8 @@ import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
+import AddressRack from "../models/AddressRackModel.js";
+import Storage from "../models/StorageModel.js";
 
 const { Op } = Sequelize;
 const startOfToday = new Date();
@@ -18,10 +20,12 @@ export const getInventoryDashboard = async (req, res) => {
     const oprt = req.query.oprt || "gt"; // Operator: default gt (greater than), lt (less than), eq (equal to)
     const value = parseFloat(req.query.value) || 0; // Value, default 0
     const status = req.query.status || "critical";
+    const plant = req.query.plant || null;
 
     let rumus;
     let whereCondition;
     let operator;
+    let whereConditionPlant = { plantId: plant, flag: 1 };
 
     if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
       return res.status(400).send({
@@ -41,6 +45,14 @@ export const getInventoryDashboard = async (req, res) => {
         status: "error",
         message: "Invalid operator or value",
       });
+    }
+
+    if (plant == "all") {
+      whereConditionPlant = {
+        flag: 1,
+      };
+    } else {
+      return res.status(400).json({ message: "Invalid plant" });
     }
 
     if (status === "critical") {
@@ -115,6 +127,19 @@ export const getInventoryDashboard = async (req, res) => {
             },
           },
         },
+        {
+          model: AddressRack,
+          where: { flag: 1 },
+          required: true,
+          attributes: ["id"],
+          include: [
+            {
+              model: Storage,
+              attributes: ["id"],
+              where: whereConditionPlant,
+            },
+          ],
+        },
       ],
       where: whereCondition,
       attributes: [
@@ -135,9 +160,15 @@ export const getInventoryDashboard = async (req, res) => {
         "Material.supplierId", // Group by supplierId
         "Material->Supplier.id",
         "Material->Supplier.supplierName",
+        "Address_Rack.id", // Group by Address Rack ID
+        "Address_Rack->Storage.id", // Group by Storage ID
       ],
       limit, // Limit number of results
     });
+
+    if (!inventoryData) {
+      return res.status(404).json({ message: "Inventory not found" });
+    }
 
     res.json(inventoryData);
   } catch (error) {
