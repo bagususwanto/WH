@@ -405,6 +405,8 @@ const Material = () => {
           maxStock: '',
           img: '',
           minOrder: '',
+          packaging: '',
+          unitPackaging: '',
           category: '',
           supplier: '',
         },

@@ -578,6 +578,8 @@ const validateHeaderMaterial = (header) => {
     "maxStock",
     "img",
     "minOrder",
+    "packaging",
+    "unitPackaging",
     "category",
     "supplier",
   ];
@@ -588,27 +590,38 @@ const validateHeaderMaterial = (header) => {
 const checkSupplierName = async (supplierName, logImportId, transaction) => {
   const formattedSupplierName = supplierName.trim().toUpperCase();
 
-  const existingSupplier = await Supplier.findOne({
-    where: { supplierName: formattedSupplierName, flag: 1 },
-    transaction, // gunakan transaksi yang sedang berlangsung
-  });
+  try {
+    let supplierId;
 
-  let supplierId;
-  if (existingSupplier) {
-    supplierId = existingSupplier.id;
-  } else {
-    // Jika tidak ada, buat supplier baru
-    const newSupplier = await Supplier.create(
-      {
-        supplierName: formattedSupplierName,
-        logImportId,
-      },
-      { transaction } // gunakan transaksi yang sedang berlangsung
-    );
-    supplierId = newSupplier.id;
+    // Periksa jika supplierName kosong atau bernilai 0
+    if (!formattedSupplierName || formattedSupplierName === "" || formattedSupplierName === 0) {
+      console.warn(`Supplier ${formattedSupplierName} not found`);
+      return null; // Return null untuk menghentikan eksekusi jika supplierName tidak valid
+    }
+
+    const existingSupplier = await Supplier.findOne({
+      where: { supplierName: formattedSupplierName, flag: 1 },
+    });
+
+    if (existingSupplier) {
+      supplierId = existingSupplier.id;
+    } else {
+      // Jika tidak ditemukan, buat supplier baru
+      const newSupplier = await Supplier.create(
+        {
+          supplierName: formattedSupplierName,
+          logImportId,
+        },
+        { transaction }
+      );
+      supplierId = newSupplier.id;
+    }
+
+    return supplierId;
+  } catch (error) {
+    console.error(error.message);
+    throw new Error("Failed to check or create supplier");
   }
-
-  return supplierId;
 };
 
 export const uploadMasterMaterial = async (req, res) => {
@@ -659,7 +672,13 @@ export const uploadMasterMaterial = async (req, res) => {
     const newMaterials = [];
 
     // 1. Kumpulkan semua nama supplier dari rows
-    const supplierNames = new Set(rows.map((row) => row[11]?.trim().toUpperCase()));
+    const supplierNames = new Set(
+      rows.map((row) => {
+        const supplier = row[13];
+        if (!supplier || supplier == "" || supplier == 0) throw new Error(`Supplier ${supplier} not found`);
+        return supplier.trim().toUpperCase();
+      })
+    );
 
     // 2. Periksa dan simpan ID supplier dalam Map
     const supplierMap = new Map();
@@ -670,58 +689,83 @@ export const uploadMasterMaterial = async (req, res) => {
 
     const processBatch = async (batch) => {
       const updatePromises = batch.map(async (row) => {
-        const materialNo = row[0];
-        const existingMaterial = materialMap.get(materialNo);
-        const categoryId = await getCategoryIdByCategoryName(row[10]);
+        try {
+          const materialNo = row[0];
+          const description = row[1];
+          const uom = row[2];
+          const price = row[3];
+          const typeMat = row[4];
+          const mrpType = row[5];
+          const minStock = row[6];
+          const maxStock = row[7];
+          const img = row[8];
+          const minOrder = row[9];
+          const packaging = row[10];
+          const unitPackaging = row[11];
+          const category = row[12];
+          const supplier = row[13];
 
-        if (!categoryId) throw new Error(`Category: ${row[10]} does not exist`);
+          const existingMaterial = materialMap.get(materialNo);
+          const categoryId = await getCategoryIdByCategoryName(category);
 
-        if (!row[0] || !row[1] || !row[2] || !row[4] || !row[5] || !row[8]) {
-          throw new Error(`Invalid data in row ${materialNo}, ${row[1]}`);
-        }
+          if (!categoryId) throw new Error(`Category: ${category} does not exist`);
 
-        if (typeof row[3] !== "number" || typeof row[6] !== "number" || typeof row[7] !== "number" || typeof row[9] !== "number") {
-          throw new Error(`Data must be number in row ${materialNo}, ${row[1]}`);
-        }
+          if (!materialNo || !description || !uom || !typeMat || !mrpType || !img || !category) {
+            throw new Error(`Invalid data in row ${materialNo}, ${description}`);
+          }
 
-        // 3. Dapatkan supplierId dari supplierMap
-        const supplierName = row[11]?.trim().toUpperCase();
-        const supplierId = supplierMap.get(supplierName);
+          if (typeof price !== "number" || typeof minStock !== "number" || typeof maxStock !== "number" || typeof minOrder !== "number") {
+            throw new Error(`Data must be number in row ${materialNo}, ${description}`);
+          }
 
-        if (existingMaterial) {
-          return existingMaterial.update(
-            {
-              description: row[1],
-              uom: row[2],
-              price: row[3],
-              type: row[4],
-              mrpType: row[5],
-              minStock: row[6],
-              maxStock: row[7],
-              img: row[8],
-              minOrder: row[9],
+          if (!supplier || supplier == 0) throw new Error(`Supplier ${supplier} not found`);
+
+          // 3. Dapatkan supplierId dari supplierMap
+          const supplierName = supplier.trim().toUpperCase();
+          const supplierId = supplierMap.get(supplierName);
+
+          if (existingMaterial) {
+            return existingMaterial.update(
+              {
+                description: description,
+                uom: uom,
+                price: price,
+                type: typeMat,
+                mrpType: mrpType,
+                minStock: minStock,
+                maxStock: maxStock,
+                img: img,
+                minOrder: minOrder,
+                packaging: packaging,
+                unitPackaging: unitPackaging,
+                categoryId,
+                supplierId,
+                logImportId,
+              },
+              { transaction }
+            );
+          } else {
+            newMaterials.push({
+              materialNo: materialNo,
+              description: description,
+              uom: uom,
+              price: price,
+              type: typeMat,
+              mrpType: mrpType,
+              minStock: minStock,
+              maxStock: maxStock,
+              img: img,
+              minOrder: minOrder,
+              packaging: packaging,
+              unitPackaging: unitPackaging,
               categoryId,
               supplierId,
               logImportId,
-            },
-            { transaction }
-          );
-        } else {
-          newMaterials.push({
-            materialNo,
-            description: row[1],
-            uom: row[2],
-            price: row[3],
-            type: row[4],
-            mrpType: row[5],
-            minStock: row[6],
-            maxStock: row[7],
-            img: row[8],
-            minOrder: row[9],
-            categoryId,
-            supplierId,
-            logImportId,
-          });
+            });
+          }
+        } catch (error) {
+          console.error(`Error processing row with materialNo ${row[0]}: ${error.message}`);
+          throw error;
         }
       });
 

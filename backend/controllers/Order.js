@@ -73,6 +73,7 @@ export const checkStock = async (inventoryId, quantity) => {
 
 // Handle schedule delivery
 const isLateDelivery = (orderTimeStr) => {
+  if (orderTimeStr === null) return false;
   const [orderHour, orderMinute] = orderTimeStr.split(":").map(Number);
   const currentTime = new Date();
   const orderTime = new Date(currentTime);
@@ -463,7 +464,7 @@ export const checkout = async (req, res) => {
     const cartIds = req.body.cartIds;
 
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res.status(400).json({ message: "cartIds harus berupa array dan tidak boleh kosong" });
+      return res.status(400).json({ message: "carids must be a non-empty array" });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -482,7 +483,7 @@ export const checkout = async (req, res) => {
     }
 
     if (carts.length === 0) {
-      return res.status(400).json({ message: "Tidak ada item yang dipilih" });
+      return res.status(400).json({ message: "Item not found" });
     }
 
     // Jika semua validasi sukses
@@ -553,17 +554,17 @@ export const createOrder = async (req, res) => {
     });
 
     if (carts.length !== cartIds.length) {
-      return res.status(400).json({ message: "Beberapa ID cart tidak valid" });
+      return res.status(400).json({ message: "Some item not found" });
     }
 
     // Jika quantity order < min order
     if (!(await isMinimumOrderQuantity(cartIds))) {
-      return res.status(400).json({ message: "Quantity order tidak boleh kurang dari min order" });
+      return res.status(400).json({ message: "Quantity order not valid" });
     }
 
     // Jika waktu pengiriman tidak valid
     if (isLateDelivery(orderTimeStr)) {
-      return res.status(400).json({ message: "Waktu pengiriman tidak valid diluar jam antar" });
+      return res.status(400).json({ message: "Delivery time not valid" });
     }
 
     // Pemanggilan fungsi isStockAvailable
@@ -582,7 +583,7 @@ export const createOrder = async (req, res) => {
     // check payment method
     if (isPaymentValid(isProduction, role, paymentMethod)) {
       // Jika metode pembayaran tidak valid
-      return res.status(400).json({ message: "Metode pembayaran tidak valid" });
+      return res.status(400).json({ message: "Payment methode not valid" });
     }
 
     // Simpan data validasi price
@@ -598,12 +599,12 @@ export const createOrder = async (req, res) => {
 
     if (approval === false) {
       // Jika approval tidak valid
-      return res.status(400).json({ message: "Approval tidak valid" });
+      return res.status(400).json({ message: "Approval not valid" });
     }
 
     if (approval.length === 0) {
       // Jika approval tidak ditemukan
-      return res.status(400).json({ message: "Approval tidak ditemukan" });
+      return res.status(400).json({ message: "Approval not found" });
     }
 
     const fullTransactionNo = await generateOrderNumber(approval[0].isApproval);
@@ -683,11 +684,11 @@ export const createOrder = async (req, res) => {
       // Rollback transaksi kedua jika terjadi error
       await t2.rollback();
       console.log(error);
-      return res.status(500).json({ message: "Internal server error saat mencatat sejarah pesanan" });
+      return res.status(500).json({ message: "Internal server error on create order history" });
     }
 
     // Jika semua validasi sukses
-    res.status(200).json({ message: "Order berhasil" });
+    res.status(200).json({ message: "Order created" });
   } catch (error) {
     // Rollback transaksi pertama jika terjadi error
     await t.rollback();

@@ -32,7 +32,7 @@ export const getInventory = async (req, res) => {
         include: [
           {
             model: Material,
-            attributes: ["id", "materialNo", "description", "uom", "type"],
+            attributes: ["id", "materialNo", "description", "uom", "type", "packaging", "unitPackaging"],
             where: { flag: 1, type: type },
           },
           {

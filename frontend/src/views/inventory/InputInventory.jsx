@@ -48,8 +48,8 @@ const InputInventory = () => {
   const [selectedMaterialNo, setSelectedMaterialNo] = useState(null)
   const [selectedDescription, setSelectedDescription] = useState(null)
   const [selectedAddress, setSelectedAddress] = useState(null)
-  const [selectedUom, setSelectedUom] = useState(null)
   const [quantity, setQuantity] = useState('') // State untuk quantity
+  const [quantityConversion, setQuantityConversion] = useState('') // State untuk quantity
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
   const [filteredInventory, setFilteredInventory] = useState([])
@@ -60,6 +60,9 @@ const InputInventory = () => {
   const [selectedTypeMaterial, setSelectedTypeMaterial] = useState(null)
   const [typeMaterialOptions, setTypeMaterialOptions] = useState([])
   const quantityInputRef = useRef(null) // Reference for quantity input field
+  const [conversionUom, setConversionUom] = useState('')
+  const [baseUom, setBaseUom] = useState('')
+  const [conversionRate, setConversionRate] = useState(0)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -159,11 +162,14 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setInventory([])
       setFilteredInventory([])
       return
@@ -188,11 +194,14 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
     } else {
       setStorageOptions([])
     }
@@ -207,16 +216,23 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
     if (selectedStorage) {
       setInventory([])
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setSelectedStorageVal(selectedStorage)
       setIsLoading(true) // Aktifkan loading
 
@@ -237,9 +253,12 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setSelectedAddressCodeVal(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       setInventory([])
@@ -255,10 +274,13 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
@@ -267,6 +289,10 @@ const InputInventory = () => {
       setFilteredInventory([])
       setSelectedAddressCodeVal(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       setSelectedTypeMaterial(selectedType)
       setIsLoading(true) // Aktifkan loading
       try {
@@ -278,8 +304,11 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       setInventory([])
@@ -291,7 +320,7 @@ const InputInventory = () => {
       selectedMaterialNo &&
       selectedDescription &&
       selectedAddress &&
-      selectedUom &&
+      baseUom &&
       quantity !== ''
     ) {
       const newInventoryItem = {
@@ -299,7 +328,7 @@ const InputInventory = () => {
         materialNo: selectedMaterialNo.label,
         description: selectedDescription.label,
         address: selectedAddress.label,
-        uom: selectedUom.label,
+        uom: baseUom,
         quantity: quantity,
       }
 
@@ -321,8 +350,11 @@ const InputInventory = () => {
         setSelectedMaterialNo(null)
         setSelectedDescription(null)
         setSelectedAddress(null)
-        setSelectedUom(null)
         setQuantity('')
+        setConversionUom('')
+        setBaseUom('')
+        setConversionRate(0)
+        setQuantityConversion('')
       }
     } else {
       MySwal.fire({
@@ -369,7 +401,9 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        setConversionUom(selectedItem.Material.packaging)
+        setConversionRate(selectedItem.Material.unitPackaging)
+        setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
     } else {
@@ -377,7 +411,6 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
     }
   }
 
@@ -394,7 +427,9 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setSelectedUom({ value: selectedItem.id, label: selectedItem.Material.uom })
+        setConversionUom(selectedItem.Material.packaging)
+        setConversionRate(selectedItem.Material.unitPackaging)
+        setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
     } else {
@@ -402,7 +437,6 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
     }
   }
 
@@ -457,9 +491,12 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
       return
     }
 
@@ -468,8 +505,11 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedUom(null)
       setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
 
       setSelectedAddressCodeVal(selectedAddressCode)
       // Filter data inventory berdasarkan address code yang dipilih
@@ -590,6 +630,41 @@ const InputInventory = () => {
     console.error('Error saat scan QR: ', error)
   }
 
+  const handleConversionChange = (e) => {
+    const value = e.target.value.replace(/,/g, '')
+
+    // Cek apakah nilai yang dimasukkan valid
+    if (!isNaN(value)) {
+      // Konversi
+      setQuantityConversion(value)
+      setQuantity(value * conversionRate)
+    }
+  }
+
+  const handleQuantityChange = (e) => {
+    const value = e.target.value.replace(/,/g, '')
+
+    // Cek apakah nilai yang dimasukkan valid
+    if (!isNaN(value)) {
+      setQuantity(value)
+    }
+  }
+
+  const handleQtyInputChange = (e) => {
+    // Menghapus koma dari nilai input
+    const value = e.target.value.replace(/,/g, '')
+
+    // Pastikan nilai input valid (berupa angka)
+    if (!isNaN(value)) {
+      setNewQuantity(value)
+    }
+  }
+
+  // Fungsi untuk memformat angka dengan koma
+  const formatWithCommas = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  }
+
   return (
     <CRow>
       <CCol>
@@ -598,7 +673,7 @@ const InputInventory = () => {
           <CForm>
             <CCardBody>
               <CRow>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
                     className="basic-single"
@@ -611,7 +686,7 @@ const InputInventory = () => {
                     value={selectedPlantVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="storage">Storage</CFormLabel>
                   <Select
                     className="basic-single"
@@ -625,7 +700,7 @@ const InputInventory = () => {
                     value={selectedStorageVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="type">Type</CFormLabel>
                   <Select
                     className="basic-single"
@@ -639,7 +714,7 @@ const InputInventory = () => {
                     value={selectedTypeMaterial}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3}>
+                <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="address">Address Code</CFormLabel>
                   <Select
                     className="basic-single"
@@ -662,7 +737,7 @@ const InputInventory = () => {
                 </CCol>
               </CRow>
               <CRow>
-                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
                   <CFormLabel htmlFor="description">Description</CFormLabel>
                   <Select
                     className="basic-single"
@@ -680,7 +755,7 @@ const InputInventory = () => {
                     value={selectedDescription}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={6} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
                   <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
                     <Select
@@ -709,7 +784,7 @@ const InputInventory = () => {
                     </CInputGroupText>
                   </CInputGroup>
                 </CCol>
-                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
+                <CCol xs={12} sm={6} md={3} xl={4} className="mt-3">
                   <CFormLabel htmlFor="address">Address</CFormLabel>
                   <Select
                     className="basic-single"
@@ -729,36 +804,32 @@ const InputInventory = () => {
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
-                  <CFormLabel htmlFor="uom">UoM</CFormLabel>
-                  <Select
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isLoading={isLoading}
-                    isClearable={isClearable}
-                    options={(filteredInventory.length > 0 ? filteredInventory : inventory).map(
-                      (i) => ({
-                        value: i.id,
-                        label: i.Material.uom,
-                      }),
-                    )}
-                    id="uom"
-                    onChange={setSelectedUom}
-                    value={selectedUom}
-                    isDisabled={true}
-                  />
-                </CCol>
-                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
                     ref={quantityInputRef}
-                    type="number"
-                    id="quantity"
-                    label="Quantity"
+                    type="text"
+                    id="quantityConversion"
+                    label={`Quantity (${conversionUom})`}
                     placeholder="Input.."
                     text="Must be number."
                     aria-describedby="quantity"
                     required
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    value={quantity}
+                    onChange={handleConversionChange}
+                    value={quantityConversion ? formatWithCommas(quantityConversion) : ''}
+                    inputMode="numeric"
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
+                  <CFormInput
+                    type="text"
+                    id="quantityBase"
+                    label={`Quantity (${baseUom})`}
+                    placeholder="Input.."
+                    text="Must be number."
+                    aria-describedby="quantity"
+                    required
+                    onChange={handleQuantityChange}
+                    value={quantity ? formatWithCommas(quantity) : ''}
+                    inputMode="numeric"
                   />
                 </CCol>
                 <CCol
@@ -813,19 +884,25 @@ const InputInventory = () => {
                         <CTableDataCell>
                           {editId === item.id ? (
                             <input
-                              type="number"
-                              value={newQuantity}
-                              onChange={(e) => setNewQuantity(e.target.value)}
+                              type="text"
+                              value={newQuantity ? formatWithCommas(newQuantity) : ''}
+                              onChange={handleQtyInputChange}
                               onBlur={() => handleSaveQuantity(item.id)} // Simpan saat kehilangan fokus
                               autoFocus
-                              style={{ width: '80px', padding: '4px', fontSize: '14px' }}
+                              // Sesuaikan lebar input dengan panjang teks
+                              style={{
+                                width: `${newQuantity.length + 5}ch`,
+                                padding: '4px',
+                                fontSize: '14px',
+                              }}
+                              inputMode="numeric"
                             />
                           ) : (
                             <span
                               onClick={() => handleEditClick(item)}
                               style={{ cursor: 'pointer' }}
                             >
-                              {item.quantity}
+                              {item.quantity ? parseInt(item.quantity).toLocaleString() : ''}
                             </span>
                           )}
                         </CTableDataCell>
