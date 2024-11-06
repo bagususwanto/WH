@@ -508,7 +508,7 @@ const Dashboard = () => {
                 }
                 options={
                   selectedChart === 'critical'
-                    ? chartOptions(inventoriescritical, 0, 2.2, 2)
+                    ? chartOptions(inventoriescritical, 0, 2.7, 2.5)
                     : selectedChart === 'lowest'
                       ? chartOptions(inventorieslowest, 0, 1.1, 1)
                       : chartOptions(inventoriesoverflow, 0, 7, 5)
