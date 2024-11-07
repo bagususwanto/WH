@@ -89,12 +89,12 @@ const Dashboard = () => {
   const { getInventoryOverflowStock } = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
-  const [isTableVisible, setIsTableVisible] = useState(false) // Toggle for table visibility
+  const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(10) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(10) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(10) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(12) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(12) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(12) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('ASC')
   const [selectedChart, setSelectedChart] = useState('critical')
@@ -139,32 +139,45 @@ const Dashboard = () => {
   const fetchInventoryCriticalStock = async (itemNb, order, id) => {
     try {
       const response = await getInventoryCriticalStock(itemNb, order, id)
-      // console.log(response.data)
-      setInventoriesCritical(response.data)
+      if (response.data && response.data.length > 0) {
+        setInventoriesCritical(response.data)
+      } else {
+        setInventoriesCritical([]) // Set empty data if no results
+      }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching critical stock data:', error)
+      setInventoriesCritical([]) // Set empty data on error
     }
   }
-
+  // Function to fetch lowest stock data and handle empty data
   const fetchInventoryLowestStock = async (lowestItemNb, order, id) => {
     try {
       const response = await getInventoryLowestStock(lowestItemNb, order, id)
-      setInventoriesLowest(response.data)
+      if (response.data && response.data.length > 0) {
+        setInventoriesLowest(response.data)
+      } else {
+        setInventoriesLowest([]) // Set empty data if no results
+      }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching lowest stock data:', error)
+      setInventoriesLowest([]) // Set empty data on error
     }
   }
 
+  // Function to fetch overflow stock data and handle empty data
   const fetchInventoryOverflowStock = async (overflowItemNb, order, id) => {
     try {
       const response = await getInventoryOverflowStock(overflowItemNb, order, id)
-      // console.log(response.data)
-      setInventoriesOverflow(response.data)
+      if (response.data && response.data.length > 0) {
+        setInventoriesOverflow(response.data)
+      } else {
+        setInventoriesOverflow([]) // Set empty data if no results
+      }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching overflow stock data:', error)
+      setInventoriesOverflow([]) // Set empty data on error
     }
   }
-
   const getSeverity = (status) => {
     switch (status) {
       case 'critical':
@@ -189,19 +202,6 @@ const Dashboard = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
-  //Critical Grafik
-  const prepareBarChartData1 = (data) => {
-    // Ambil item sesuai dengan nilai itemNb
-    const limitedData = data.slice(0, itemNb)
-
-    // Fungsi untuk memotong name jika melebihi MAX_NAME_LENGTH
-
-    // Siapkan data dengan field yang diperbarui berdasarkan jenis kategori
-    return limitedData.map((item) => ({
-      name: item.name, // Terapkan formatName pada name
-      stock: item.stock,
-    }))
-  }
   const getPlant = async () => {
     try {
       const response = await getMasterData(apiPlant) // Ambil data dari API
@@ -217,11 +217,18 @@ const Dashboard = () => {
   }, [])
 
   const handlePlantChange = (selectedPlant) => {
-    if (selectedPlant) {
+    if (selectedPlant && selectedPlant.value !== 'all' && selectedPlant.value !== '') {
       setSelectedPlant(selectedPlant)
+      // Fetch data based on selected plant
+      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+      fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
+      fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
     } else {
-      // Handle case if the selection is cleared (optional)
       setSelectedPlant({ value: 'all', label: 'All' })
+      // Fetch default data for 'All'
+      fetchInventoryCriticalStock(itemNb, order, 'all')
+      fetchInventoryLowestStock(lowestItemNb, order, 'all')
+      fetchInventoryOverflowStock(overflowItemNb, order, 'all')
     }
   }
 
@@ -235,7 +242,10 @@ const Dashboard = () => {
 
   const prepareChartData = (data, chartTitle, shiftLevel) => {
     return {
-      labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
+      labels: data.map(
+        (item) =>
+          `${item.Material.materialNo}\n${item.Material.description}\n${item.Address_Rack.Storage.Plant.plantName}`,
+      ),
       datasets: [
         {
           label: chartTitle,
@@ -291,16 +301,18 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 11, // Ukuran font
+            size: 9, // Ukuran font
             weight: 'bold', // Menjadikan font bold
           },
           callback: function (value, index, ticks) {
             const item = data[index]
+
             const materialNo = item.Material.materialNo
+            const plantName = item.Address_Rack.Storage.Plant.plantName
             const description = item.Material.description
 
             // Ambil hanya 10 karakter pertama dari description
-            return `${description.substring(0, 16)}..`
+            return `${description.substring(0, 19)}..`
           },
           maxRotation: 0, // Mencegah rotasi diagonal
           autoSkip: false, // Pastikan label ditampilkan tanpa di-skip
@@ -520,59 +532,85 @@ const Dashboard = () => {
                 gap: '0.2rem',
               }}
             >
-              {/* Incoming Item (Green) */}
-              <CCol xs="auto">
-                <div
-                  style={{
-                    backgroundColor: 'green',
-                    color: 'white',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                  }}
-                >
-                  <div style={{ fontSize: '12px' }}>Incoming</div>
-                </div>
-              </CCol>
+              {/* Show the Incoming and Not Yet Incoming badges only if relevant data is available */}
+              {(inventoriescritical.length > 0 ||
+                inventorieslowest.length > 0 ||
+                inventoriesoverflow.length > 0) && (
+                <>
+                  {/* Incoming Item (Green) */}
+                  <CCol xs="auto">
+                    <div
+                      style={{
+                        backgroundColor: 'green',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px' }}>Incoming</div>
+                    </div>
+                  </CCol>
 
-              {/* Not Yet Incoming (Red) */}
-              <CCol xs="auto">
-                <div
-                  style={{
-                    backgroundColor: 'red',
-                    color: 'white',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1px',
-                  }}
-                >
-                  <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
-                </div>
-              </CCol>
+                  {/* Not Yet Incoming (Red) */}
+                  <CCol xs="auto">
+                    <div
+                      style={{
+                        backgroundColor: 'red',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
+                    </div>
+                  </CCol>
+                </>
+              )}
             </CRow>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
-              <Bar
-                data={
-                  selectedChart === 'critical'
-                    ? prepareChartData(inventoriescritical, 'Critical Stock', 2)
-                    : selectedChart === 'lowest'
-                      ? prepareChartData(inventorieslowest, 'Low Stock', 1)
-                      : prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)
-                }
-                options={
-                  selectedChart === 'critical'
-                    ? chartOptions(inventoriescritical, 0, 2.7, 2.5)
-                    : selectedChart === 'lowest'
-                      ? chartOptions(inventorieslowest, 0, 1.1, 1)
-                      : chartOptions(inventoriesoverflow, 0, 7, 5)
-                }
-                height={410}
-              />
+              {/* Display message when no data is available */}
+              {selectedChart === 'critical' && inventoriescritical.length === 0 && (
+                <div>No data available for the selected plant in Critical Stock.</div>
+              )}
+              {selectedChart === 'lowest' && inventorieslowest.length === 0 && (
+                <div>No data available for the selected plant in Low Stock.</div>
+              )}
+              {selectedChart === 'overflow' && inventoriesoverflow.length === 0 && (
+                <div>No data available for the selected plant in Overflow Stock.</div>
+              )}
+
+              {/* Render Bar chart only if data exists */}
+              {selectedChart === 'critical' && inventoriescritical.length > 0 && (
+                <Bar
+                  data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
+                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5)}
+                  height={410}
+                />
+              )}
+
+              {selectedChart === 'lowest' && inventorieslowest.length > 0 && (
+                <Bar
+                  data={prepareChartData(inventorieslowest, 'Low Stock', 1)}
+                  options={chartOptions(inventorieslowest, 0, 1.1, 1)}
+                  height={410}
+                />
+              )}
+
+              {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
+                <Bar
+                  data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 7, 5)}
+                  height={410}
+                />
+              )}
             </Box>
+
             <CModal
               visible={modalOpen}
               onClose={handleCloseModal}
@@ -601,9 +639,9 @@ const Dashboard = () => {
                       {selectedData.Material.uom}
                     </p>
                     <p>
-                    <strong>Planning Incoming:</strong> {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
-                    
-                    {' '} {selectedData.Material.uom}
+                      <strong>Planning Incoming:</strong>{' '}
+                      {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
+                      {' '} {selectedData.Material.uom}
                     </p>
                   </>
                 )}
@@ -629,26 +667,30 @@ const Dashboard = () => {
                 size="small"
                 scrollable
               >
-                <Column field="Material.materialNo" header="Material No" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
+                <Column field="Material.materialNo" header="Material No"sortable  />
+                <Column field="Material.description" header="Description"  />
+                <Column field="Material.uom" header="UoM"  />
+                <Column field="Material.Supplier.supplierName" header="Supplier"  />
+           
 
                 {/* Conditional rendering of minStock/maxStock based on selected chart */}
                 {selectedChart === 'critical' || selectedChart === 'lowest' ? (
-                  <Column field="Material.minStock" header="Min" sortable />
+                  <Column field="Material.minStock" header="Min"  />
                 ) : selectedChart === 'overflow' ? (
-                  <Column field="Material.maxStock" header="Max" sortable />
+                  <Column field="Material.maxStock" header="Max"  />
                 ) : null}
 
-                <Column field="quantityActualCheck" header="Actual" sortable />
+                <Column field="quantityActualCheck" header="Actual"  />
                 <Column field="stock" header="Remain Stock" sortable />
+                <Column field="" header="Incom Date"  />
+                <Column field="" header="Qty Incom"  />
+                <Column field="" header="Estimation"  />
                 <Column
                   field="evaluation"
                   header="Evaluation"
                   body={statusBodyTemplate}
                   bodyStyle={{ textAlign: 'center' }}
-                  sortable
+                  
                 />
               </DataTable>
             )}

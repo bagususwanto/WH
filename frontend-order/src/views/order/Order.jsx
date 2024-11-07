@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import 'react-loading-skeleton/dist/skeleton.css'
+import Skeleton from 'react-loading-skeleton';
 import { AiFillHeart } from 'react-icons/ai'
 import {
   CCard,
