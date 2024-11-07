@@ -185,7 +185,7 @@ const AppHeader = () => {
 
   const getNotifDesc = async () => {
     try {
-      const response = await getNotification()      
+      const response = await getNotification()
       setNotifDesc(response)
     } catch (error) {
       console.error('Error fetching notif:', error)
@@ -211,7 +211,6 @@ const AppHeader = () => {
       return () => clearInterval(interval) // Clear interval on component unmount
     }
   }, [warehouse, cartCount])
-  
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem('searchHistory')) || []
@@ -701,9 +700,13 @@ const AppHeader = () => {
               <CDropdownHeader className="bg-body-secondary fw-semibold">
                 Anda memiliki ({notifCount}) notifikasi
               </CDropdownHeader>
-              {notifDesc.map((notif, index) => (
-                <CDropdownItem key={index}>{notif.description}</CDropdownItem>
-              ))}
+              {notifDesc?.length > 0 ? (
+                notifDesc.map((notif, index) => (
+                  <CDropdownItem key={index}>{notif.description}</CDropdownItem>
+                ))
+              ) : (
+                <CDropdownItem>No notification</CDropdownItem>
+              )}
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
