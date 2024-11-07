@@ -10,6 +10,7 @@ const MySwal = withReactContent(swal)
 const useVerify = () => {
   const [name, setName] = useState('')
   const [roleName, setRoleName] = useState('')
+  const [warehouseId, setWarehouseId] = useState(0)
   const [token, setToken] = useState('')
   const [expire, setExpire] = useState(0)
   const navigate = useNavigate()
@@ -25,6 +26,7 @@ const useVerify = () => {
       const decoded = jwtDecode(response.data.accessToken)
       setName(decoded.name)
       setRoleName(decoded.roleName)
+      setWarehouseId(decoded.anotherWarehouseId)
       setExpire(decoded.exp)
     } catch (error) {
       console.error('Error refreshing token:', error)
@@ -50,6 +52,7 @@ const useVerify = () => {
           const decoded = jwtDecode(response.data.accessToken)
           setName(decoded.name)
           setRoleName(decoded.roleName)
+          setWarehouseId(decoded.anotherWarehouseId)
           setExpire(decoded.exp)
         } catch (error) {
           console.error('Error refreshing token in interceptor:', error)
@@ -70,7 +73,7 @@ const useVerify = () => {
     },
   )
 
-  return { name, roleName, token, axiosJWT }
+  return { name, roleName, warehouseId, token, axiosJWT }
 }
 
 export default useVerify

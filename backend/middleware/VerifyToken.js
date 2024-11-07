@@ -34,7 +34,7 @@ export const verifyToken = async (req, res, next) => {
       organizationId: user.organizationId,
       warehouseId: user.warehouseId,
       isProduction: decoded.isProduction,
-      anotherWarehouseId: user.anotherWarehouseId,
+      anotherWarehouseId: decoded.anotherWarehouseId,
     };
 
     next();
