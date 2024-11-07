@@ -476,7 +476,6 @@ const Dashboard = () => {
               </CButton>
 
               {/* Adding the green and red boxes with labels */}
-             
 
               <div style={{ marginLeft: 'auto' }}>
                 <Link to="/dashboardall" style={{ textDecoration: 'none' }}>
@@ -492,9 +491,14 @@ const Dashboard = () => {
         {/* Single Card for Conditional Rendering */}
         <CCard className="mb-4">
           <CCardHeader>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold fs-5">Plant 1</div>
-            
+            <div className="d-flex justify-content-between align-items-center w-100">
+              {/* Left Side: Displaying selected plant */}
+              <div className="d-flex align-items-center">
+                <div className="fw-bold fs-6 me-1">Plant:</div>
+                <div className="fw-bold fs-6 me-3">{selectedPlant ? selectedPlant.label : 'All'}</div>{' '}
+                {/* Display selected plant label */}
+              </div>
+
               <h5>
                 <CBadge color="primary">
                   {selectedChart.charAt(0).toUpperCase() + selectedChart.slice(1)}
@@ -503,38 +507,49 @@ const Dashboard = () => {
             </div>
           </CCardHeader>
           <CCardBody>
-          <CRow className="ms-2" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
-                <CCol xs="auto">
-                  <div
-                    style={{
-                      backgroundColor: 'green',
-                      color: 'white',
-                      padding: '5px 10px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                    }}
-                  >
-                    <div style={{ fontSize: '12px' }}>Incoming</div>
-                  </div>
-                </CCol>
-                <CCol xs="auto">
-                  <div
-                    style={{
-                      backgroundColor: 'red',
-                      color: 'white',
-                      padding: '5px 10px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                    }}
-                  >
-                    <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
-                  </div>
-                </CCol>
-              </CRow>
+            <CRow
+              className="ms-5"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '1rem',
+              }}
+            >
+              {/* Incoming Item (Green) */}
+              <CCol xs="auto">
+                <div
+                  style={{
+                    backgroundColor: 'green',
+                    color: 'white',
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px' }}>Incoming</div>
+                </div>
+              </CCol>
+
+              {/* Not Yet Incoming (Red) */}
+              <CCol xs="auto">
+                <div
+                  style={{
+                    backgroundColor: 'red',
+                    color: 'white',
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
+                </div>
+              </CCol>
+            </CRow>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 3 }}>
               <Bar
                 data={
@@ -565,9 +580,8 @@ const Dashboard = () => {
               <CModalBody>
                 {selectedData && (
                   <>
-                      <p>
-                      <strong>Plant:</strong> 
-                     
+                    <p>
+                      <strong>Plant:</strong>
                     </p>
                     <p>
                       <strong>Material Number:</strong> {selectedData.Material.materialNo}
@@ -585,7 +599,6 @@ const Dashboard = () => {
                     <strong>Planning Incoming:</strong>
                     {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
                     {' '} {selectedData.Material.uom}
-                 
                   </>
                 )}
               </CModalBody>
