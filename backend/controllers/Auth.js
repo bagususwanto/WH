@@ -4,11 +4,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // Function to generate access and refresh tokens
-const generateTokens = (userId, username, name, isProduction, roleName) => {
-  const accessToken = jwt.sign({ userId, username, name, isProduction, roleName }, process.env.ACCESS_TOKEN_SECRET, {
+const generateTokens = (userId, username, name, isProduction, roleName, anotherWarehouseId) => {
+  const accessToken = jwt.sign({ userId, username, name, isProduction, roleName, anotherWarehouseId }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
-  const refreshToken = jwt.sign({ userId, username, name, isProduction, roleName }, process.env.REFRESH_TOKEN_SECRET, {
+  const refreshToken = jwt.sign({ userId, username, name, isProduction, roleName, anotherWarehouseId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "1d",
   });
   return { accessToken, refreshToken };
@@ -46,10 +46,10 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Username atau password tidak sesuai" });
     }
 
-    const { id: userId, name, isProduction } = user;
+    const { id: userId, name, isProduction, anotherWarehouseId } = user;
     const roleName = user.Role.roleName;
 
-    const { accessToken, refreshToken } = generateTokens(userId, username, name, isProduction, roleName);
+    const { accessToken, refreshToken } = generateTokens(userId, username, name, isProduction, roleName, anotherWarehouseId);
 
     await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
 
@@ -106,9 +106,9 @@ export const refreshToken = async (req, res) => {
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) return res.status(403).json({ message: "Invalid or expired token. Access forbidden!" });
 
-      const { id: userId, username, name, isProduction } = user;
+      const { id: userId, username, name, isProduction, anotherWarehouseId } = user;
       const roleName = user.Role.roleName;
-      const { accessToken } = generateTokens(userId, username, name, isProduction, roleName);
+      const { accessToken } = generateTokens(userId, username, name, isProduction, roleName, anotherWarehouseId);
 
       res.json({ accessToken });
     });

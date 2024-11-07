@@ -40,6 +40,7 @@ import orderRouter from "./routes/OrderRouter.js";
 import userWarehouseRouter from "./routes/UserWarehouseRouter.js";
 import approvalRouter from "./routes/ApprovalRouter.js";
 import harcodedRouter from "./routes/HarcodedRouter.js";
+import notificationRouter from "./routes/NotificationRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -120,6 +121,9 @@ app.use("/api", uploadRouter);
 
 // Chart router
 app.use("/api", chartRouter);
+
+// Notifications router
+app.use("/api", notificationRouter);
 
 // Membuat server HTTPS
 https.createServer(credentials, app).listen(port, () => {

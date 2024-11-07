@@ -142,10 +142,12 @@ export const getInventoryDashboard = async (req, res) => {
             {
               model: Storage,
               attributes: ["id"],
+              required: true,
               include: [
                 {
                   model: Plant,
                   attributes: ["id", "plantName"],
+                  required: true,
                   where: whereConditionPlant,
                 },
               ],
@@ -181,7 +183,7 @@ export const getInventoryDashboard = async (req, res) => {
     });
 
     if (inventoryData.length === 0) {
-      return res.status(404).json({ message: "Inventory not found" });
+      return res.status(404).json({ message: "Data not found" });
     }
 
     res.json(inventoryData);
