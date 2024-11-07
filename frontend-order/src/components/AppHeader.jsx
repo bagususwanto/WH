@@ -176,7 +176,7 @@ const AppHeader = () => {
 
   const getNotifCount = async () => {
     try {
-      const response = await getNotificationCount(warehouse.id)
+      const response = await getNotificationCount()
       setNotifCount(response.unreadCount)
     } catch (error) {
       console.error('Error fetching notif:', error)
@@ -185,7 +185,7 @@ const AppHeader = () => {
 
   const getNotifDesc = async () => {
     try {
-      const response = await getNotification(warehouse.id)      
+      const response = await getNotification()      
       setNotifDesc(response)
     } catch (error) {
       console.error('Error fetching notif:', error)
