@@ -22,7 +22,8 @@ const useNotificationService = () => {
       })
       return response.data // Returning the data instead of the whole response
     } catch (error) {
-      handleError(error, `Error get data`)
+      // handleError(error, `Error get data`)
+      console.log(error)
     }
   }
 
@@ -35,7 +36,8 @@ const useNotificationService = () => {
       })
       return response.data // Returning the data instead of the whole response
     } catch (error) {
-      handleError(error, `Error get data`)
+      // handleError(error, `Error get data`)
+      console.log(error)
     }
   }
 
