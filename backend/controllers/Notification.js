@@ -1,34 +1,7 @@
 import Notification from "../models/NotificationModel.js  ";
-import Section from "../models/SectionModel";
-import UserPlant from "../models/UserPlantModel";
 
-export const createNotification = async (userReq, order, notification) => {
-  const { userId, role, sectionId, lineId } = userReq;
+export const createNotification = async (userIds, notification) => {
   const { title, description, category } = notification;
-  const { price } = order;
-
-  const plantId = await UserPlant.findAll({
-    attributes: ["plantId"],
-    where: { userId, flag: 1 },
-  });
-
-  let userIds;
-
-  // Kondisi jika LH yang membuat order
-  if (role === "line head") {
-    if (price > 20000000) {
-      userIds = await Section.findAll({ attributes: ["id"], where: { id: sectionId, flag: 1 } });
-    }
-  } // Kondisi jika GH yang membuat order
-  else if (role === "group head") {
-    userIds = await Line.findAll({ attributes: ["id"], where: { id: lineId, flag: 1 } });
-  } else {
-    // Bypass ke Warehouse
-    userIds = await UserPlant.findAll({
-      attributes: ["userId"],
-      where: { plantId, flag: 1 },
-    });
-  }
 
   const notifications = userIds.map((user) => ({
     userId: user,
@@ -43,7 +16,7 @@ export const createNotification = async (userReq, order, notification) => {
 };
 
 export const getNotificationsByUserId = async (req, res) => {
-  const { userId } = req.user.userId;
+  const userId  = req.user.userId;
 
   try {
     // Mencari notifikasi berdasarkan userId
@@ -64,7 +37,7 @@ export const getNotificationsByUserId = async (req, res) => {
 };
 
 export const getUnreadNotificationCount = async (req, res) => {
-  const { userId } = req.user.userId;
+  const userId  = req.user.userId;
 
   try {
     // Mencari jumlah notifikasi yang belum dibaca

@@ -23,6 +23,7 @@ import Department from "../models/DepartmentModel.js";
 import CostCenter from "../models/CostCenterModel.js";
 import Role from "../models/RoleModel.js";
 import { postOrderHistory } from "./OrderHistory.js";
+import { createNotification } from "./Notification.js";
 
 // cek stock
 export const checkStock = async (inventoryId, quantity) => {
@@ -179,6 +180,15 @@ export const setApproval = async (userId, carts) => {
       return user ? user.roleId : null;
     };
 
+    // Helper function untuk mengambil userIdApproval
+    const getUserIdApproval = async (condition) => {
+      const users = await User.findAll({ where: { ...condition, flag: 1 } });
+
+      // Extract only the 'id' of each user in the array
+      const userIds = users.map((user) => user.id);
+      return userIds.length > 0 ? userIds : null;
+    };
+
     // Logika untuk "group head"
     if (user.Role.roleName == "group head") {
       // jika ada material dengan harga < 20jt
@@ -192,6 +202,17 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 1,
               isApproval: 0,
             });
+
+            // create notification
+            const userIds = await getUserIdApproval({ lineId: user.Organization.lineId });
+
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Group Leader",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         } // Jika lineId tidak ada atau tidak relevan, cek sectionId
@@ -203,6 +224,15 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 1,
               isApproval: 0,
             });
+            // create notification
+            const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Section Head",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         } // Jika sectionId tidak ada, cek departmentId
@@ -214,6 +244,15 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 1,
               isApproval: 0,
             });
+            // create notification
+            const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Department Head",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         }
@@ -228,6 +267,15 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 0,
               isApproval: 0,
             });
+            // create notification
+            const userIds = await getUserIdApproval({ lineId: user.Organization.lineId });
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Group Leader",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         } // Jika lineId tidak ada atau tidak relevan, cek sectionId
@@ -239,6 +287,15 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 1,
               isApproval: 0,
             });
+            // create notification
+            const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Section Head",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         } // Jika sectionId tidak ada, cek departmentId
@@ -250,6 +307,15 @@ export const setApproval = async (userId, carts) => {
               isLastApproval: 1,
               isApproval: 0,
             });
+            // create notification
+            const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+            const notification = {
+              title: "Request Approval",
+              description: "Request Approval from Team Leader to Department Head",
+              category: "approval",
+            };
+            await createNotification(userIds, notification);
+
             return approval;
           }
         }
@@ -267,6 +333,15 @@ export const setApproval = async (userId, carts) => {
             isLastApproval: 1,
             isApproval: 0,
           });
+          // create notification
+          const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+          const notification = {
+            title: "Request Approval",
+            description: "Request Approval from Group Leader to Section Head",
+            category: "approval",
+          };
+          await createNotification(userIds, notification);
+
           return approval;
         }
       } // Jika sectionId tidak ada, cek departmentId
@@ -278,6 +353,15 @@ export const setApproval = async (userId, carts) => {
             isLastApproval: 1,
             isApproval: 0,
           });
+          // create notification
+          const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+          const notification = {
+            title: "Request Approval",
+            description: "Request Approval from Group Leader to Department Head",
+            category: "approval",
+          };
+          await createNotification(userIds, notification);
+
           return approval;
         }
       }
@@ -289,6 +373,21 @@ export const setApproval = async (userId, carts) => {
       isLastApproval: 1,
       isApproval: 1,
     });
+
+    // Helper function untuk userIdWarehouse
+    const getUserIdWarehouse = async (condition) => {
+      const user = await User.findAll({ where: { ...condition, flag: 1 } });
+      return user ? user.id : null;
+    };
+
+    // create notification
+    const userIds = await getUserIdWarehouse({ warehouseId: req.user.anotherWarehouseId });
+    const notification = {
+      title: "Request Order",
+      description: "Request Order to Warehouse",
+      category: "approval",
+    };
+    await createNotification(userIds, notification);
 
     return approval;
   } catch (error) {
