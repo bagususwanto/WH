@@ -62,6 +62,7 @@ import { AppHeaderDropdown } from './header/index'
 import useMasterDataService from '../services/MasterDataService'
 import useProductService from '../services/ProductService'
 import useCartService from '../services/CartService'
+import useNotificationService from '../services/NotificationService'
 import '../scss/appheader.scss'
 import { GlobalContext } from '../context/GlobalProvider'
 
@@ -73,6 +74,7 @@ const AppHeader = () => {
   const { getMasterData } = useMasterDataService()
   const { getProduct, getAllProduct } = useProductService()
   const { getCartCount, getCart } = useCartService()
+  const { getNotification, getNotificationCount } = useNotificationService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [searchHistory, setSearchHistory] = useState([])
@@ -81,7 +83,7 @@ const AppHeader = () => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const navigate = useNavigate()
-  const notificationCount = 0
+  const [notifCount, setNotifCount] = useState(0)
   const [showCategories, setShowCategories] = useState(false)
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false)
   const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
@@ -89,6 +91,7 @@ const AppHeader = () => {
   const [warehouseId, setWarehouseId] = useState(0)
   const [category, setCategory] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [notifDesc, setNotifDesc] = useState([])
 
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
@@ -171,6 +174,24 @@ const AppHeader = () => {
     }
   }
 
+  const getNotifCount = async () => {
+    try {
+      const response = await getNotificationCount(warehouse.id)
+      setNotifCount(response.unreadCount)
+    } catch (error) {
+      console.error('Error fetching notif:', error)
+    }
+  }
+
+  const getNotifDesc = async () => {
+    try {
+      const response = await getNotification(warehouse.id)      
+      setNotifDesc(response)
+    } catch (error) {
+      console.error('Error fetching notif:', error)
+    }
+  }
+
   useEffect(() => {
     getDefaultWarehouse()
     getWarehouse() // Fetch products on mount
@@ -182,8 +203,15 @@ const AppHeader = () => {
       getProducts()
       getCarts()
       getAllProducts()
+      getNotifDesc()
+      const interval = setInterval(() => {
+        getNotifCount() // Poll every 5 seconds
+      }, 5000)
+
+      return () => clearInterval(interval) // Clear interval on component unmount
     }
   }, [warehouse, cartCount])
+  
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem('searchHistory')) || []
@@ -322,18 +350,16 @@ const AppHeader = () => {
   }
   const handleCategoryHeadClick = (categoryId) => {
     // Find the selected category based on the clicked categoryId
-    const selectedCat = category.find(cat => cat.id === categoryId);
+    const selectedCat = category.find((cat) => cat.id === categoryId)
     // Create a query string based on the selected categoryId
     const params = new URLSearchParams({
       id: categoryId,
-    }); 
+    })
     // Navigate to the URL with the query parameters
-    navigate(`/order/category?${params.toString()}`);
+    navigate(`/order/category?${params.toString()}`)
     // Set the selected category to the clicked category
-    setSelectedCategory(selectedCat);
-  };
-  
-
+    setSelectedCategory(selectedCat)
+  }
 
   const handleFocus = () => {
     setShowRecentSearches(searchHistory.length > 0)
@@ -660,24 +686,24 @@ const AppHeader = () => {
               caret={false}
             >
               <CIcon icon={cilBell} size="lg" className="ms-3" />
-              {notificationCount > 0 && (
+              {notifCount > 0 && (
                 <CBadge
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
                   style={{ top: '-5px', right: '-10px' }}
                 >
-                  {notificationCount}
+                  {notifCount}
                 </CBadge>
               )}
             </CDropdownToggle>
             <CDropdownMenu className="pt-0" placement="bottom-end">
               <CDropdownHeader className="bg-body-secondary fw-semibold">
-                Anda memiliki ({notificationCount}) notifikasi
+                Anda memiliki ({notifCount}) notifikasi
               </CDropdownHeader>
-              {/* <CDropdownItem href="#">Notifikasi 1</CDropdownItem>
-              <CDropdownItem href="#">Notifikasi 2</CDropdownItem>
-              <CDropdownItem href="#">Notifikasi 3</CDropdownItem> */}
+              {notifDesc.map((notif, index) => (
+                <CDropdownItem key={index}>{notif.description}</CDropdownItem>
+              ))}
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
@@ -693,7 +719,7 @@ const AppHeader = () => {
           <CCollapse visible={showCategories}>
             <div className="p-3">
               <CRow>
-              {category.map((cat, index) => (
+                {category.map((cat, index) => (
                   <CCol xs="auto" key={cat.id}>
                     <CButton
                       className="text-start"

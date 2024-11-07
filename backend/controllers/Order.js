@@ -147,7 +147,7 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
   }
 };
 
-export const setApproval = async (userId, carts) => {
+export const setApproval = async (userId, carts, transaction) => {
   try {
     // Ambil user beserta organisasi dan role
     const user = await User.findOne({
@@ -211,7 +211,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Group Leader",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -231,7 +231,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Section Head",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -251,7 +251,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -274,7 +274,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Group Leader",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -294,7 +294,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Section Head",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -314,7 +314,7 @@ export const setApproval = async (userId, carts) => {
               description: "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
-            await createNotification(userIds, notification);
+            await createNotification(userIds, notification, transaction);
 
             return approval;
           }
@@ -340,7 +340,7 @@ export const setApproval = async (userId, carts) => {
             description: "Request Approval from Group Leader to Section Head",
             category: "approval",
           };
-          await createNotification(userIds, notification);
+          await createNotification(userIds, notification, transaction);
 
           return approval;
         }
@@ -360,7 +360,7 @@ export const setApproval = async (userId, carts) => {
             description: "Request Approval from Group Leader to Department Head",
             category: "approval",
           };
-          await createNotification(userIds, notification);
+          await createNotification(userIds, notification, transaction);
 
           return approval;
         }
@@ -387,7 +387,7 @@ export const setApproval = async (userId, carts) => {
       description: "Request Order to Warehouse",
       category: "approval",
     };
-    await createNotification(userIds, notification);
+    await createNotification(userIds, notification, transaction);
 
     return approval;
   } catch (error) {
@@ -694,7 +694,7 @@ export const createOrder = async (req, res) => {
       isMoreThanCertainPrice = 1;
     }
 
-    const approval = await setApproval(userId, carts);
+    const approval = await setApproval(userId, carts, t);
 
     if (approval === false) {
       // Jika approval tidak valid
