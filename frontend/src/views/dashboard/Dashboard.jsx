@@ -75,8 +75,11 @@ export function tambahLabel(series) {
     valueFormatter: (v) => (v ? ` ${v.toLocaleString()}` : '-'),
   }))
 }
-
-const MAX_NAME_LENGTH = 10 // Maksimal karakter untuk label sumbu X
+const chartvalue = [
+  { value: 'critical', label: 'Critical' },
+  { value: 'lowest', label: 'Low' },
+  { value: 'overflow', label: 'Overflow' },
+]
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
@@ -260,6 +263,9 @@ const Dashboard = () => {
       ],
       shiftLevel, // Used to draw red line
     }
+  }
+  const handleChartChange = (selectedOption) => {
+    setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
   }
 
   const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
@@ -454,19 +460,15 @@ const Dashboard = () => {
                 onChange={handlePlantChange} // Event handler saat memilih plant
               />
 
-              <CDropdown className="ms-2">
-                <CDropdownToggle color="primary">Status</CDropdownToggle>
-                <CDropdownMenu>
-                  <CDropdownItem onClick={() => setSelectedChart('critical')}>
-                    Critical
-                  </CDropdownItem>
-                  <CDropdownItem onClick={() => setSelectedChart('lowest')}>Low</CDropdownItem>
-                  <CDropdownItem onClick={() => setSelectedChart('overflow')}>
-                    Overflow
-                  </CDropdownItem>
-                </CDropdownMenu>
-              </CDropdown>
-
+              <Select
+                className="basic-single"
+                classNamePrefix="select"
+                options={chartvalue} // Pass the chart options
+                value={chartvalue.find((option) => option.value === selectedChart)} // Set selected value based on selectedChart
+                onChange={handleChartChange} // Handle chart type change
+                isClearable={false} // Make it non-clearable
+                placeholder="Select Status" // Placeholder text
+              />
               <CButton
                 className="ms-2"
                 color="secondary"
@@ -495,7 +497,9 @@ const Dashboard = () => {
               {/* Left Side: Displaying selected plant */}
               <div className="d-flex align-items-center">
                 <div className="fw-bold fs-6 me-1">Plant:</div>
-                <div className="fw-bold fs-6 me-3">{selectedPlant ? selectedPlant.label : 'All'}</div>{' '}
+                <div className="fw-bold fs-6 me-3">
+                  {selectedPlant ? selectedPlant.label : 'All'}
+                </div>{' '}
                 {/* Display selected plant label */}
               </div>
 
@@ -513,7 +517,7 @@ const Dashboard = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: '1rem',
+                gap: '0.2rem',
               }}
             >
               {/* Incoming Item (Green) */}
@@ -543,7 +547,7 @@ const Dashboard = () => {
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '1px',
                   }}
                 >
                   <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
@@ -581,7 +585,7 @@ const Dashboard = () => {
                 {selectedData && (
                   <>
                     <p>
-                      <strong>Plant:</strong>
+                      <strong>Plant:</strong> {selectedData.Address_Rack.Storage.Plant.plantName}
                     </p>
                     <p>
                       <strong>Material Number:</strong> {selectedData.Material.materialNo}
@@ -596,9 +600,11 @@ const Dashboard = () => {
                       <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
                       {selectedData.Material.uom}
                     </p>
-                    <strong>Planning Incoming:</strong>
-                    {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
+                    <p>
+                    <strong>Planning Incoming:</strong> {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
+                    
                     {' '} {selectedData.Material.uom}
+                    </p>
                   </>
                 )}
               </CModalBody>
