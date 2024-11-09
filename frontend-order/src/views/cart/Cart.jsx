@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
+import 'react-loading-skeleton/dist/skeleton.css'
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from 'react-router-dom'
-import AppFooter from '../../components/AppFooter'; // Import your AppFooter
+import AppFooter from '../../components/AppFooter' // Import your AppFooter
 import '../../scss/home.scss'
-import '../../scss/stickyfooter.scss';
+import '../../scss/stickyfooter.scss'
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -58,6 +61,8 @@ const Cart = () => {
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
 
+  const [isLoading, setIsLoading] = useState(true); // Track loading state
+
   const [modalVisible, setModalVisible] = useState(false)
   const MySwal = withReactContent(Swal)
 
@@ -72,9 +77,10 @@ const Cart = () => {
     try {
       const response = await getCart(warehouse.id)
       setCartData(response.data)
-      console.log(cartData)
+      setIsLoading(false); // Data finished loading
     } catch (error) {
       console.error('Error fetching cart:', error)
+      setIsLoading(false) // In case of error, set loading to false
     }
   }
 
@@ -91,7 +97,7 @@ const Cart = () => {
   }
 
   const handleDeleteCart = async (productId) => {
-    const MySwal = withReactContent(Swal);
+    const MySwal = withReactContent(Swal)
     // Show confirmation dialog
     const result = await MySwal.fire({
       title: 'Are you sure?',
@@ -103,21 +109,20 @@ const Cart = () => {
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel!',
       reverseButtons: true, // This option will reverse the positions of the buttons
-    });
+    })
     // Proceed with deletion if confirmed
     if (result.isConfirmed) {
       try {
-        console.log(productId);
-        await deleteCart(productId, warehouse.id);
-        setCartData(cartData.filter((product) => product.id !== productId));
-        MySwal.fire('Deleted!', 'Your item has been deleted.', 'success');
+        console.log(productId)
+        await deleteCart(productId, warehouse.id)
+        setCartData(cartData.filter((product) => product.id !== productId))
+        MySwal.fire('Deleted!', 'Your item has been deleted.', 'success')
       } catch (error) {
-        console.error('Error deleting cart:', error);
-        MySwal.fire('Error!', 'There was an error deleting your item.', 'error');
+        console.error('Error deleting cart:', error)
+        MySwal.fire('Error!', 'There was an error deleting your item.', 'error')
       }
     }
-  };
-  
+  }
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
@@ -157,8 +162,8 @@ const Cart = () => {
   }, [debouncedQuantities, updateCart])
 
   const handleDeleteAll = async () => {
-    const MySwal = withReactContent(Swal); // Make sure to initialize MySwal
-    
+    const MySwal = withReactContent(Swal) // Make sure to initialize MySwal
+
     // Show confirmation dialog
     const result = await MySwal.fire({
       title: 'Are you sure?',
@@ -170,38 +175,37 @@ const Cart = () => {
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel!',
       reverseButtons: true, // This option will reverse the positions of the buttons
-    });
-  
+    })
+
     // Proceed only if confirmed
     if (result.isConfirmed) {
       try {
         // Call the API to delete all cart items
-        await Promise.all(cartData.map(product => deleteCart(product.id, warehouse.id)));
-        
+        await Promise.all(cartData.map((product) => deleteCart(product.id, warehouse.id)))
+
         // Clear the cart data in state
-        setCartData([]);
-  
+        setCartData([])
+
         // Show success message
         MySwal.fire({
           title: 'Success!',
           text: 'All items have been successfully deleted from your cart.',
           icon: 'success',
           confirmButtonText: 'OK',
-        });
+        })
       } catch (error) {
-        console.error('Error deleting all cart items:', error);
-        
+        console.error('Error deleting all cart items:', error)
+
         // Show error message
         MySwal.fire({
           title: 'Error!',
           text: 'There was an issue deleting all items. Please try again.',
           icon: 'error',
           confirmButtonText: 'OK',
-        });
+        })
       }
     }
-  };
-  
+  }
 
   // Total harga produk
   useEffect(() => {
@@ -309,88 +313,136 @@ const Cart = () => {
           </div>
 
           <CRow className="g-2">
-            {cartData.map((product, index) => (
-              <CCard className="h-80" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    {/* <CCol xs="1">
-                      <CFormCheck
-                        id={`product-checkbox-${product.id}`}
-                        checked={checkedItems[product.id] || false}
-                        onChange={() =>
-                          handleCheckboxChange(product.id, product.Iventory.Material.price)
-                        }
-                      />
-                    </CCol> */}
-                    <CCol xs="2">
-                      <CCardImage
-                        src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
-                        alt={product.Inventory.Material.description}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                      />
-                    </CCol>
-                    <CCol xs="6">
-                      <div>
-                        <label className="fw-bold fs-6">
-                          {product.Inventory.Material.description}
-                        </label>
-                        <br></br>
-                        <label>{product.Inventory.Material.materialNo}</label>
-                      </div>
-                    </CCol>
-                    <CCol xs="2">
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                      >
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDecreaseQuantity(product.inventoryId)}
-                        >
-                          -
-                        </CButton>
-                        <span className="mx-3">
-                          {quantities[product.inventoryId] || product.quantity}
-                        </span>
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleIncreaseQuantity(product.inventoryId)}
-                        >
-                          +
-                        </CButton>
-                        <span className="px-2">({product.Inventory.Material?.uom || 'UOM'})</span>
-                      </div>
-                    </CCol>
+      {isLoading ? (
+        // Render skeleton loaders when loading is true
+        [...Array(5)].map((_, index) => (
+          <CCard className="h-70" key={index}>
+            <CCardBody className="d-flex flex-column justify-content-between">
+              <CRow className="align-items-center" style={{ height: '100%' }}>
+                {/* Image Column */}
+                <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                  <Skeleton height={82} width="43%" />
+                </CCol>
 
-                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                      <CIcon
-                        icon={cilTrash}
-                        className="text-danger"
-                        size='lg'
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleDeleteCart(product.id)}
-                      />
-                    </CCol>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-          </CRow>
+                {/* Description Column */}
+                <CCol xs="6" className="d-flex flex-column justify-content-start">
+                  <div>
+                    <Skeleton width="80%" height={20} />
+                    <Skeleton width="60%" height={20} />
+                  </div>
+                </CCol>
+
+                {/* Quantity Column */}
+                <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CButton color="secondary" variant="outline" size="sm" disabled>
+                      <Skeleton width={12} />
+                    </CButton>
+                    <span className="mx-3">
+                      <Skeleton width={30} />
+                    </span>
+                    <CButton color="secondary" variant="outline" size="sm" disabled>
+                      <Skeleton width={12} />
+                    </CButton>
+                    <span className="px-2">
+                      <Skeleton width={40} />
+                    </span>
+                  </div>
+                </CCol>
+
+                {/* Delete Column */}
+                <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                  <Skeleton circle width={30} height={30} />
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CCard>
+        ))
+      ) : (
+        // Render actual cart data when loading is false
+        cartData.map((product, index) => (
+          <CCard className="h-70" key={index}>
+            {/* Fixed card height */}
+            <CCardBody className="d-flex flex-column justify-content-between">
+              <CRow className="align-items-center" style={{ height: '100%' }}>
+                {/* Image Column */}
+                <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                  <CCardImage
+                    src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                    alt={product.Inventory.Material.description}
+                    style={{
+                      height: '82px', // Fixed height for image
+                      width: '43%', // Make image take the full width of the column
+                      objectFit: 'cover', // Ensure the image scales to fill the space without distorting (may crop)
+                    }}
+                  />
+                </CCol>
+
+                {/* Description Column */}
+                <CCol xs="6" className="d-flex flex-column justify-content-start">
+                  <div>
+                    <label className="fw-bold fs-6">
+                      {product.Inventory.Material.description}
+                    </label>
+                    <br />
+                    <label>{product.Inventory.Material.materialNo}</label>
+                  </div>
+                </CCol>
+
+                {/* Quantity Column */}
+                <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                  <div
+                    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                  >
+                    <CButton
+                      color="secondary"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDecreaseQuantity(product.inventoryId)}
+                    >
+                      -
+                    </CButton>
+                    <span className="mx-3">
+                      {quantities[product.inventoryId] || product.quantity}
+                    </span>
+                    <CButton
+                      color="secondary"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleIncreaseQuantity(product.inventoryId)}
+                    >
+                      +
+                    </CButton>
+                    <span className="px-2">({product.Inventory.Material?.uom || 'UOM'})</span>
+                  </div>
+                </CCol>
+
+                {/* Delete Column */}
+                <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                  <CIcon
+                    icon={cilTrash}
+                    className="text-danger"
+                    size="lg"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleDeleteCart(product.id)}
+                  />
+                </CCol>
+              </CRow>
+            </CCardBody>
+          </CCard>
+        ))
+      )}
+    </CRow>
         </CCard>
       </CRow>
 
-        {/* Sticky Footer */}
-        <div className="sticky-footer">
+      {/* Sticky Footer */}
+      <div className="sticky-footer">
         <h5>Total Item: {totalQuantity}</h5>
         <CButton color="primary" onClick={handleCheckout}>
           Checkout
         </CButton>
       </div>
-
-      
     </>
   )
 }

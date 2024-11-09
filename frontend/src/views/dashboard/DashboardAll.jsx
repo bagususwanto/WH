@@ -13,9 +13,11 @@ import {
   CModalFooter,
   CButton,
   CButtonGroup,
+  CBadge,
 } from '@coreui/react'
 import useDashboardService from '../../services/DashboardService'
 import useManageStockService from '../../services/ManageStockService'
+import Select from 'react-select'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Bar } from 'react-chartjs-2'
@@ -35,6 +37,7 @@ import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 import annotationPlugin from 'chartjs-plugin-annotation'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+import useMasterDataService from '../../services/MasterDataService'
 
 ChartJS.register(
   CategoryScale,
@@ -48,14 +51,19 @@ ChartJS.register(
 )
 
 const MySwal = withReactContent(Swal)
+const chartvalue = [
+  { value: 'critical', label: 'Critical' },
+  { value: 'lowest', label: 'Low' },
+  { value: 'overflow', label: 'Overflow' },
+]
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState('ASC')
   const [modalOpen, setModalOpen] = useState(false)
-  const [itemNb, setItemNb] = React.useState(10) //item untuk critical
-  const [lowestItemNb, setLowestItemNb] = React.useState(10) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(10) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(15) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(15) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(15) //Item untuk slider over flow
   const [inventories, setInventories] = useState([]) // Inventory data
   const [selectedData, setSelectedData] = useState(null)
   const [showTable, setShowTable] = useState(false) // State to control table visibility
@@ -64,69 +72,73 @@ const Dashboard = () => {
   const { getInventoryOverflowStock } = useDashboardService() // Service
   const [inventoriesCritical, setInventoriesCritical] = useState([])
   const [selectedChart, setSelectedChart] = useState('critical')
+  const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const { getAllInventory } = useManageStockService() // Service
+  const [plant, setPlant] = useState([])
+  const { getMasterData, getMasterDataById } = useMasterDataService()
+  const [selectedPlant, setSelectedPlant] = useState({ value: 'all', label: 'All' })
+
+  const apiPlant = 'plant-public'
   // Handle for ordering: ascending or descending
   const handleOrderChange = (event) => {
     setOrder(event.target.value)
   }
 
   useEffect(() => {
-    fetchData()
-    const interval = setInterval(() => {
-      fetchData()
-      updateURL() // Call to update the URL
-    }, 40000) // Fetch data every 25 seconds
-    return () => clearInterval(interval) // Cleanup on unmount
-  }, [order, itemNb, lowestItemNb, overflowItemNb]) // Dependencies
+    // Set order based on the chart type
+    const criticalOrder = 'ASC' // Always ASC for critical
+    const overflowOrder = 'DESC' // Always DESC for overflow
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Determine sorting order based on the current order state
-      const criticalOrder = order === 'ASC' ? 'ASC' : 'DESC';
-      const overflowOrder = order === 'ASC' ? 'DESC' : 'ASC';
-  
-      await Promise.all([
-        fetchInventoryCriticalStock(itemNb, criticalOrder),
-        fetchInventoryLowestStock(lowestItemNb, order),
-        fetchInventoryOverflowStock(overflowItemNb, overflowOrder),
-        fetchInventory(),
-      ]);
-    } catch (error) {
-      console.error('Error fetching inventory data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Fetch all stock data at once with the appropriate order for each chart
+    fetchInventoryCriticalStock(itemNb, criticalOrder, selectedPlant.value)
+    fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value) // Use the current order for lowest stock
+    fetchInventoryOverflowStock(overflowItemNb, overflowOrder, selectedPlant.value)
+  }, [itemNb, lowestItemNb, overflowItemNb, order, selectedPlant])
 
-  const fetchInventoryCriticalStock = async (itemNb, order) => {
+  const fetchInventoryCriticalStock = async (itemNb, order, id) => {
     try {
-      const response = await getInventoryCriticalStock(itemNb, order)
-      setInventoriesCritical(response.data)
+      const response = await getInventoryCriticalStock(itemNb, order, id)
+      if (response.data && response.data.length > 0) {
+        setInventoriesCritical(response.data)
+      } else {
+        setInventoriesCritical([]) // Set empty data if no results
+      }
     } catch (error) {
-      console.error('Error fetching critical inventory:', error)
+      console.error('Error fetching critical stock data:', error)
+      setInventoriesCritical([]) // Set empty data on error
     }
   }
-  const fetchInventoryLowestStock = async (lowestItemNb, order) => {
+  // Function to fetch lowest stock data and handle empty data
+  const fetchInventoryLowestStock = async (lowestItemNb, order, id) => {
     try {
-      const response = await getInventoryLowestStock(lowestItemNb, order)
-      setInventoriesLowest(response.data)
+      const response = await getInventoryLowestStock(lowestItemNb, order, id)
+      if (response.data && response.data.length > 0) {
+        setInventoriesLowest(response.data)
+      } else {
+        setInventoriesLowest([]) // Set empty data if no results
+      }
     } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-  const fetchInventoryOverflowStock = async (overflowItemNb, order) => {
-    try {
-      const response = await getInventoryOverflowStock(overflowItemNb, order)
-      // console.log(response.data)
-      setInventoriesOverflow(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching lowest stock data:', error)
+      setInventoriesLowest([]) // Set empty data on error
     }
   }
 
+  // Function to fetch overflow stock data and handle empty data
+  const fetchInventoryOverflowStock = async (overflowItemNb, order, id) => {
+    try {
+      const response = await getInventoryOverflowStock(overflowItemNb, order, id)
+      if (response.data && response.data.length > 0) {
+        setInventoriesOverflow(response.data)
+      } else {
+        setInventoriesOverflow([]) // Set empty data if no results
+      }
+    } catch (error) {
+      console.error('Error fetching overflow stock data:', error)
+      setInventoriesOverflow([]) // Set empty data on error
+    }
+  }
   const getSeverity = (status) => {
     switch (status) {
       case 'critical':
@@ -171,24 +183,58 @@ const Dashboard = () => {
 
     // Hanya mengembalikan Tag jika status diatur
     if (status) {
-      // Ambil severity dan background color berdasarkan status
-      const { severity, backgroundColor } = getSeverity(status)
-
-      // Kembalikan Tag dengan gaya yang sesuai
+      // Kembalikan Tag dengan latar belakang merah
       return (
         <Tag
           value={status.charAt(0).toUpperCase() + status.slice(1)} // Capitalize the first letter
-          severity={severity}
-          style={{ backgroundColor: backgroundColor }} // Set background color
+          severity="danger" // Gunakan "danger" untuk merah (atau Anda bisa langsung gunakan backgroundColor)
+          style={{ backgroundColor: 'red', color: 'white' }} // Set background merah dan teks putih
         />
       )
     }
 
     return null // Kembalikan null jika tidak ada status
   }
+  const getPlant = async () => {
+    try {
+      const response = await getMasterData(apiPlant) // Ambil data dari API
+      setPlant(response.data)
+    } catch (error) {
+      console.error('Error fetching plant data:', error)
+      MySwal.fire('Error', 'Failed to load plant data.', 'error')
+    }
+  }
 
+  useEffect(() => {
+    getPlant()
+  }, [])
+  const handlePlantChange = (selectedPlant) => {
+    if (selectedPlant && selectedPlant.value !== 'all' && selectedPlant.value !== '') {
+      setSelectedPlant(selectedPlant)
+      // Fetch data based on selected plant
+      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+      fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
+      fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
+    } else {
+      setSelectedPlant({ value: 'all', label: 'All' })
+      // Fetch default data for 'All'
+      fetchInventoryCriticalStock(itemNb, order, 'all')
+      fetchInventoryLowestStock(lowestItemNb, order, 'all')
+      fetchInventoryOverflowStock(overflowItemNb, order, 'all')
+    }
+  }
+  const plantOptions = [
+    { value: 'all', label: 'All' }, // Menambahkan opsi "All" di awal
+    ...plant.map((plant) => ({
+      value: plant.id,
+      label: plant.plantName,
+    })),
+  ]
   const prepareChartData = (data, color) => ({
-    labels: data.map((item) => `${item.Material.materialNo}\n${item.Material.description}`),
+    labels: data.map(
+      (item) =>
+        `${item.Material.materialNo}\n${item.Material.description}\n${item.Address_Rack.Storage.Plant.plantName}`,
+    ),
     datasets: [
       {
         label: 'Stock Levels',
@@ -258,15 +304,14 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 12,
-            weight: 'bold', // Set weight to bold
+            size: 9,
           },
           callback: function (value, index, ticks) {
             const item = data[index]
             const materialNo = item.Material.materialNo
             const description = item.Material.description
 
-               return `${description.substring(0, 17)}...`
+            return `${description.substring(0, 16)}..`
           },
           maxRotation: 0, // Prevents diagonal rotation
           autoSkip: false, // Ensures labels are displayed without skipping
@@ -296,11 +341,47 @@ const Dashboard = () => {
       },
       datalabels: {
         display: true,
-        color: 'black',
-        anchor: 'end',
-        align: 'top',
-        font: { size: 16, weight: 'bold' },
-        formatter: (value) => value.toLocaleString(),
+        // For the top label
+        color: 'black', // Color of the label text for top label
+        anchor: 'end', // Anchor position of the label
+        align: 'top', // Align the label on top of the bar
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        formatter: (value, context) => {
+          // Display "Remain Stock" for the top label
+          return context.dataset.label === 'Remain Stock' ? value.toLocaleString() : ''
+        },
+        // Second label configuration
+        backgroundColor: 'white', // Background color for better visibility
+        borderRadius: 4, // Optional: rounded corners
+        padding: 4, // Optional: padding around the label
+        // Using this configuration to create another label for "Actual Stock"
+        label: {
+          display: true,
+          color: 'black', // Color of the label text for bottom label
+          anchor: 'end', // Anchor position for the bottom label
+          align: 'bottom', // Align the label at the bottom of the bar
+          font: {
+            size: 15,
+            weight: 'bold',
+          },
+          formatter: (value, context) => {
+            // Display "Actual Stock" for the bottom label
+            return context.dataset.label === 'Actual Stock' ? value.toLocaleString() : ''
+          },
+        },
+
+        formatter: (value) => value.toLocaleString(), // Format the label value
+        background: {
+          color: 'yellow', // Background color of the label
+          padding: 6, // Padding around the label
+          borderRadius: 4, // Rounded corners for the background
+          // Optionally you can add a shadow or other styles
+        },
+        // Optional: Add an offset if needed to move the label up or down
+        offset: 10, // Adjust this to move the label away from the bar
       },
       annotation: {
         annotations: {
@@ -348,49 +429,131 @@ const Dashboard = () => {
   return (
     <CRow>
       <CCol>
-        <CCard className="mb-1 ">
-          <CCardHeader>Order Options</CCardHeader>
+        <CCard className="mb-2">
+          <CCardHeader>Filter Dashboard</CCardHeader>
           <CCardBody>
-            <div className="mb-1" style={{ display: 'flex', gap: '1 rem' }}>
-              <CButtonGroup>
-                <CFormCheck
-                  button={{ color: 'primary', variant: 'outline' }}
-                  type="radio"
-                  name="options-outlined"
-                  id="primary-outlined"
-                  autoComplete="off"
-                  label="Lowest"
-                  value="ASC"
-                  checked={order === 'ASC'}
-                  onChange={handleOrderChange}
+            <div
+              className="mb-1"
+              style={{
+                display: 'flex',
+                gap: '0.5rem',
+                alignItems: 'center',
+                justifyContent: 'space-between', // Make sure items are spaced out
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {/* Radio Buttons */}
+                <CButtonGroup>
+                  <CFormCheck
+                    button={{ color: 'primary', variant: 'outline' }}
+                    type="radio"
+                    name="options-outlined"
+                    id="primary-outlined"
+                    autoComplete="off"
+                    label="Lowest"
+                    value="ASC"
+                    checked={order === 'ASC'}
+                    onChange={handleOrderChange}
+                  />
+                  <CFormCheck
+                    button={{ color: 'primary', variant: 'outline' }}
+                    type="radio"
+                    name="options-outlined"
+                    id="second-outlined"
+                    autoComplete="off"
+                    label="Highest"
+                    value="DESC"
+                    checked={order === 'DESC'}
+                    onChange={handleOrderChange}
+                  />
+                </CButtonGroup>
+
+                {/* Plant Selection */}
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  isClearable
+                  options={plantOptions} // plantOptions termasuk "All"
+                  value={selectedPlant} // Menetapkan state sebagai value yang dipilih
+                  id="plant"
+                  onChange={handlePlantChange} // Event handler saat memilih plant
                 />
-                <CFormCheck
-                  button={{ color: 'primary', variant: 'outline' }}
-                  type="radio"
-                  name="options-outlined"
-                  id="second-outlined"
-                  autoComplete="off"
-                  label="Highest"
-                  value="DESC"
-                  checked={order === 'DESC'}
-                  onChange={handleOrderChange}
-                />
-              </CButtonGroup>
-              <CButton className="ms-3" color="secondary" onClick={toggleTableVisibility}>
-                {showTable ? 'Hide Table' : 'Show Table'}
-              </CButton>
+
+                {/* Toggle Table Visibility Button */}
+                <CButton
+                  className="ms-2"
+                  color="secondary"
+                  onClick={() => setIsTableVisible(!isTableVisible)}
+                >
+                  {isTableVisible ? 'Hide Table' : 'Show Table'}
+                </CButton>
+              </div>
+
+              {/* Badge Section - Positioned at the right */}
+              {(inventorieslowest.length > 0 || inventoriesoverflow.length > 0) && (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {/* Incoming Item (Green Badge) */}
+                  <CCol xs="auto">
+                    <div
+                      style={{
+                        backgroundColor: 'green',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px' }}>Incoming</div>
+                    </div>
+                  </CCol>
+
+                  {/* Not Yet Incoming (Red Badge) */}
+                  <CCol xs="auto">
+                    <div
+                      style={{
+                        backgroundColor: 'red',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
+                    </div>
+                  </CCol>
+                </div>
+              )}
             </div>
           </CCardBody>
         </CCard>
 
         <CCard className="mb-1">
-          <CCardHeader>Critical Stock</CCardHeader>
+          <CCardHeader>
+            <div className="d-flex justify-content-between align-items-center w-100">
+              {/* Left Side: Displaying selected plant */}
+              <div className="d-flex align-items-center">
+                <div className="fw-bold fs-6 me-1">Plant:</div>
+                <div className="fw-bold fs-6 me-3">
+                  {selectedPlant ? selectedPlant.label : 'All'}
+                </div>{' '}
+                {/* Display selected plant label */}
+              </div>
+
+              <h5>
+                <CBadge color="primary">Critical Stock</CBadge>
+              </h5>
+            </div>
+          </CCardHeader>
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
               <Bar
                 data={prepareChartData(inventoriesCritical, 'salmon', 2)}
                 options={{
-                  ...chartOptions(inventoriesCritical, 0, 2.2, 2, false),
+                  ...chartOptions(inventoriesCritical, 0, 2.8, 2.5, false),
                   onClick: (evt, activeElements) => {
                     if (activeElements.length > 0) {
                       const index = activeElements[0].index
@@ -441,29 +604,49 @@ const Dashboard = () => {
               </CModalFooter>
             </CModal>
 
-            {showTable && (
+            {isTableVisible && (
               <DataTable
                 value={inventoriesCritical}
                 tableStyle={{ minWidth: '40rem' }}
                 className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-                loading={loading}
                 emptyMessage="No inventory data available."
                 size="small"
                 scrollable
               >
                 {/* Kolom DataTable */}
-                <Column field="Material.materialNo" header="Material No" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-                <Column field="Material.minStock" header="Min" sortable />
-                <Column field="quantityActualCheck" header="Actual" sortable />
-                <Column field="stock" header="Remain Stock" sortable />
+                <Column
+                  field="Material.materialNo"
+                  header="Material No"
+                  sortable
+                  style={{ padding: '5px' }}
+                />
+                <Column
+                  field="Material.description"
+                  header="Description"
+                  style={{ padding: '5px' }}
+                />
+                <Column field="Material.uom" header="UoM" style={{ padding: '5px' }} />
+                <Column
+                  field="Material.Supplier.supplierName"
+                  header="Supplier"
+                  style={{ padding: '5px' }}
+                />
+                <Column field="Material.minStock" header="Min" style={{ padding: '5px' }} />
+                <Column
+                  field="quantityActualCheck"
+                  header="Actual"
+                  sortable
+                  style={{ padding: '5px' }}
+                />
+                <Column field="stock" header="Remain Stock" style={{ padding: '5px' }} />
+                <Column field="" header="Incom Date" style={{ padding: '5px' }} />
+                <Column field="" header="Qty Incom" style={{ padding: '5px' }} />
+                <Column field="" header="Estimation" style={{ padding: '5px' }} />
                 <Column
                   field="evaluation"
                   header="Evaluation"
                   body={statusBodyTemplate}
-                  bodyStyle={{ textAlign: 'center' }}
+                  bodyStyle={{ textAlign: 'center', padding: '1px' }}
                   sortable
                 />
               </DataTable>
@@ -471,77 +654,23 @@ const Dashboard = () => {
           </CCardBody>
         </CCard>
 
-        {/* <CCard className="mb-2">
-          <CCardHeader>Lowest Stock</CCardHeader>
-          <CCardBody>
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
-              <Bar
-                data={prepareChartData(inventorieslowest, 'skyblue', 1)}
-                options={chartOptions(inventorieslowest, 0, 1.1, 1)}
-                height={300}
-              />
-            </Box>
-
-            Modal for displaying selected data
-            <CModal visible={modalOpen} onClose={handleCloseModal} alignment="center">
-              <CModalHeader>
-                <CModalTitle>Detail Information</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                {selectedData && (
-                  <>
-                    <p>
-                      <strong>Material Number:</strong> {selectedData.Material.materialNo}
-                    </p>
-                    <p>
-                      <strong>Description:</strong> {selectedData.Material.description}
-                    </p>
-                    <p>
-                      <strong>Supplier:</strong> {selectedData.Material.supplier}
-                    </p>
-                    <p>
-                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}
-                    </p>
-                  </>
-                )}
-              </CModalBody>
-              <CModalFooter>
-                <CButton color="secondary" onClick={handleCloseModal}>
-                  Close
-                </CButton>
-              </CModalFooter>
-            </CModal>
-
-            {showTable && (
-              <DataTable
-                value={inventorieslowest}
-                tableStyle={{ minWidth: '50rem' }}
-                className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-                loading={loading}
-                emptyMessage="No inventory data available."
-                size="small"
-                scrollable
-              >
-                Kolom DataTable
-                <Column field="Material.materialNo" header="Material" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.minStock" header="Min" sortable />
-                <Column field="quantityActualCheck" header="Actual" sortable />
-                <Column field="stock" header="Remain Stock" sortable />
-                <Column
-                  field="evaluation"
-                  header="Evaluation"
-                  body={statusBodyTemplate}
-                  bodyStyle={{ textAlign: 'center' }}
-                  sortable
-                />
-              </DataTable>
-            )}
-          </CCardBody>
-        </CCard> */}
         <CCard className="mb-1">
-          <CCardHeader>Overflow Stock</CCardHeader>
+        <CCardHeader>
+            <div className="d-flex justify-content-between align-items-center w-100">
+              {/* Left Side: Displaying selected plant */}
+              <div className="d-flex align-items-center">
+                <div className="fw-bold fs-6 me-1">Plant:</div>
+                <div className="fw-bold fs-6 me-3">
+                  {selectedPlant ? selectedPlant.label : 'All'}
+                </div>{' '}
+                {/* Display selected plant label */}
+              </div>
+
+              <h5>
+                <CBadge color="primary">Overflow Stock</CBadge>
+              </h5>
+            </div>
+          </CCardHeader>
           <CCardBody>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 1 }}>
               <Bar
@@ -557,7 +686,7 @@ const Dashboard = () => {
                     }
                   },
                 }}
-                height={260}
+                height={280}
               />
             </Box>
 
@@ -582,7 +711,11 @@ const Dashboard = () => {
                       <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
                       {selectedData.Material.uom}
                     </p>
-                    <strong>Incoming:</strong> {selectedData.Incomings}
+                    <p>
+                      <strong>Planning Incoming:</strong>{' '}
+                      {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
+                      {' '} {selectedData.Material.uom}
+                    </p>
                   </>
                 )}
               </CModalBody>
@@ -593,30 +726,45 @@ const Dashboard = () => {
               </CModalFooter>
             </CModal>
 
-            {showTable && (
+            {isTableVisible && (
               <DataTable
                 value={inventoriesoverflow}
                 tableStyle={{ minWidth: '30rem' }}
                 className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-                loading={loading}
                 emptyMessage="No inventory data available."
                 size="small"
                 scrollable
               >
                 {/* Kolom DataTable */}
-                <Column field="Material.materialNo" header="Material No" sortable />
-                <Column field="Material.description" header="Description" sortable />
-                <Column field="Material.uom" header="UoM" sortable />
-                <Column field="Material.Supplier.supplierName" header="Supplier" sortable />
-                <Column field="Material.maxStock" header="Max" sortable />
-                <Column field="quantityActualCheck" header="Actual" sortable />
-                <Column field="stock" header="Remain Stock" sortable />
+                <Column
+                  field="Material.materialNo"
+                  header="Material No"
+                  sortable
+                  style={{ padding: '5px' }}
+                />
+                <Column
+                  field="Material.description"
+                  header="Description"
+                  style={{ padding: '5px' }}
+                />
+                <Column field="Material.uom" header="UoM" style={{ padding: '5px' }} />
+                <Column
+                  field="Material.Supplier.supplierName"
+                  header="Supplier"
+                  style={{ padding: '5px' }}
+                />
+                <Column field="Material.maxStock" header="Max" style={{ padding: '5px' }} />
+                <Column field="quantityActualCheck" header="Actual" style={{ padding: '5px' }} />
+                <Column field="stock" header="Remain Stock" style={{ padding: '5px' }} />
+                <Column field="" header="Incom Date" style={{ padding: '5px' }} />
+                <Column field="" header="Qty Incom" style={{ padding: '5px' }} />
+                <Column field="" header="Estimation" style={{ padding: '5px' }} />
                 <Column
                   field="evaluation"
                   header="Evaluation"
                   body={statusBodyTemplate}
                   bodyStyle={{ textAlign: 'center' }}
-                  sortable
+                  style={{ padding: '5px' }}
                 />
               </DataTable>
             )}

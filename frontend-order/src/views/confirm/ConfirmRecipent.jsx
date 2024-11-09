@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -185,135 +186,174 @@ const Confirm = () => {
   return (
     <CContainer>
       <CRow>
-        <CCol xs={4}>
-          <CCard cstyle={{ position: 'sticky', top: '0', zIndex: '10' }}>
-            <CCardBody>
-              <label className="fw-bold mb-2">Select Delivery Type</label>
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <CFormCheck
-                  className="me-3"
-                  type="radio"
-                  id="pickup"
-                  label="Pickup"
-                  checked={isPickup}
-                  onChange={() => setIsPickup(true)}
-                />
-                <CFormCheck
-                  type="radio"
-                  id="otodoke"
-                  label="Otodoke"
-                  checked={!isPickup}
-                  onChange={() => setIsPickup(false)}
-                />
+      <CCol xs={4}>
+      {/* Render Skeleton loader if isLoading is true */}
+      {isLoading ? (
+        <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCardBody>
+            <Skeleton height={20} width="80%" /> {/* Title: "Select Delivery Type" */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Skeleton width={30} height={30} circle /> {/* Skeleton for radio button */}
+              <Skeleton width={30} height={30} circle /> {/* Skeleton for radio button */}
+            </div>
+            <hr />
+            <Skeleton height={20} width="80%" /> {/* Title: "Address Detail Confirmation" */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Skeleton height={20} width="80%" />
+              <Skeleton height={20} width="80%" />
+            </div>
+            <hr />
+            <Skeleton height={20} width="80%" /> {/* Title: "Schedule Otodoke" */}
+            <Skeleton height={30} width="60%" /> {/* Dropdown Skeleton */}
+            <hr />
+            <Skeleton height={20} width="80%" /> {/* Title: "Payment" */}
+            <Skeleton height={20} width="80%" />
+            <hr />
+            <Skeleton height={80} width="100%" /> {/* Textarea skeleton */}
+            <Skeleton height={40} width="60%" /> {/* Button skeleton */}
+          </CCardBody>
+        </CCard>
+      ) : (
+        <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCardBody>
+            <label className="fw-bold mb-2">Select Delivery Type</label>
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <CFormCheck
+                className="me-3"
+                type="radio"
+                id="pickup"
+                label="Pickup"
+                checked={isPickup}
+                onChange={() => setIsPickup(true)}
+              />
+              <CFormCheck
+                type="radio"
+                id="otodoke"
+                label="Otodoke"
+                checked={!isPickup}
+                onChange={() => setIsPickup(false)}
+              />
+            </div>
+            <hr />
+            <label className="fw-bold mb-2">Address Detail Confirmation</label>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <CIcon icon={cilHome} size="lg" />
+                <label style={{ marginLeft: '8px' }}>
+                  {verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.warehouseName}
+                </label>
               </div>
-              <hr />
-              <label className="fw-bold mb-2">Address Detail Confirmation</label>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <CIcon icon={cilHome} size="lg" />
-                  <label style={{ marginLeft: '8px' }}>
-                    {
-                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse
-                        .warehouseName
-                    }
-                  </label>
-                </div>
-                {!isPickup && (
-                  <>
-                    <CIcon icon={cilArrowBottom} size="lg" />
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                      <CIcon icon={cilLocationPin} size="lg" />
-                      <label style={{ marginLeft: '8px' }}>
-                        {verifiedCartItems[0].User.Organization.Line.lineName}
-                      </label>
-                    </div>
-                  </>
-                )}
-              </div>
-              {/* // Render the dropdown for schedule selection */}
               {!isPickup && (
                 <>
-                  <hr />
-                  <label className="fw-bold mb-2">Schedule Otodoke</label>
-                  <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option className="fw-light" value="">
-                      Select Cycle
-                    </option>
-                    {verifiedCartItems.length > 0 &&
-                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
-                        (serviceHour) => (
-                          <option key={serviceHour.id} value={`${serviceHour.time}`}>
-                            {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
-                          </option>
-                        ),
-                      )}
-                  </CFormSelect>
+                  <CIcon icon={cilArrowBottom} size="lg" />
+                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                    <CIcon icon={cilLocationPin} size="lg" />
+                    <label style={{ marginLeft: '8px' }}>
+                      {verifiedCartItems[0].User.Organization.Line.lineName}
+                    </label>
+                  </div>
                 </>
               )}
+            </div>
+            {/* Render the dropdown for schedule selection */}
+            {!isPickup && (
+              <>
+                <hr />
+                <label className="fw-bold mb-2">Schedule Otodoke</label>
+                <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
+                  <option className="fw-light" value="">
+                    Select Cycle
+                  </option>
+                  {verifiedCartItems.length > 0 &&
+                    verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
+                      (serviceHour) => (
+                        <option key={serviceHour.id} value={`${serviceHour.time}`}>
+                          {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
+                        </option>
+                      ),
+                    )}
+                </CFormSelect>
+              </>
+            )}
 
-              <hr />
-              <label className="fw-bold mb-2">Payment</label>
-              {verifiedCartItems.length > 0 && (
-                <>
-                  <CFormCheck
-                    type="radio"
-                    id="payment1"
-                    label={`WBS: ${verifiedCartItems[0].User.Organization.Section.WB.wbsNumber}`}
-                    checked={iswbs}
-                    onChange={() => setIswbs(true)}
-                  />
-                  <CFormCheck
-                    type="radio"
-                    id="payment2"
-                    label={`GIC: ${verifiedCartItems[0].User.Organization.Section.GIC.gicNumber}`}
-                    checked={!iswbs}
-                    onChange={() => setIswbs(false)}
-                  />
-                </>
-              )}
-              <hr />
-              <CFormTextarea
-                className="mt-3"
-                placeholder="Leave a message"
-                rows={3}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                className="mt-4"
-              >
-                <label className="fw-bold">Total Items: {totalQuantity} Items</label>
-                <CButton color="primary" onClick={handleCheckout}>
-                  Order Now
-                </CButton>
-              </div>
-            </CCardBody>
-          </CCard>
-        </CCol>
+            <hr />
+            <label className="fw-bold mb-2">Payment</label>
+            {verifiedCartItems.length > 0 && (
+              <>
+                <CFormCheck
+                  type="radio"
+                  id="payment1"
+                  label={`WBS: ${verifiedCartItems[0].User.Organization.Section.WB.wbsNumber}`}
+                  checked={iswbs}
+                  onChange={() => setIswbs(true)}
+                />
+                <CFormCheck
+                  type="radio"
+                  id="payment2"
+                  label={`GIC: ${verifiedCartItems[0].User.Organization.Section.GIC.gicNumber}`}
+                  checked={!iswbs}
+                  onChange={() => setIswbs(false)}
+                />
+              </>
+            )}
+            <hr />
+            <CFormTextarea
+              className="mt-3"
+              placeholder="Leave a message"
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              className="mt-4"
+            >
+              <label className="fw-bold">Total Items: {totalQuantity} Items</label>
+              <CButton color="primary" onClick={handleCheckout}>
+                Order Now
+              </CButton>
+            </div>
+          </CCardBody>
+        </CCard>
+      )}
+    </CCol>
 
         <CCol xs={8}>
           <CRow className="g-2">
             {currentItems.map((data) => (
-              <CCard className="h-80" key={data.id}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    <CCol xs="1">
+              <CCard className="h-100" key={data.id} >
+                {' '}
+                {/* Fixed height for the card */}
+                <CCardBody
+                  className="d-flex flex-column justify-content-between"
+                  style={{ height: '100%' }}
+                >
+                  <CRow className="align-items-start" style={{ height: '100%' }}>
+                    {/* Image Column */}
+                    <CCol xs="2" className="d-flex justify-content-center align-items-center">
                       <CCardImage
-                        src={data.Inventory.Material.img || 'https://via.placeholder.com/150'}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                        src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
+                        alt={data.Inventory.Material.description}
+                        style={{
+                          height: '75px', // Fixed height for image
+                          objectFit: 'cover', // Ensure image doesn't distort and scales to fit the space
+                          width: '60%', // Make image take the full width of the column
+                        }}
                       />
                     </CCol>
-                    <CCol xs="10">
+
+                    <CCol xs="9" className="d-flex flex-column justify-content-start">
                       <div>
                         <label className="fw-bold">{data.Inventory.Material.description}</label>
-                        <br></br>
+                        <br />
                         <label className="fw-light fs-6">
                           {data.Inventory.Material.materialNo}
                         </label>
                       </div>
                     </CCol>
-                    <CCol xs="1">
+
+                    {/* Quantity Column */}
+                    <CCol xs="1" className="d-flex justify-content-start align-items-center">
                       <label>{`${data.quantity} ${data.Inventory.Material.uom}`}</label>
                     </CCol>
                   </CRow>
@@ -321,6 +361,7 @@ const Confirm = () => {
               </CCard>
             ))}
           </CRow>
+
           {/* Pagination */}
           <CRow className="mt-4">
             <CCol className="d-flex justify-content-center sticky-pagination">
