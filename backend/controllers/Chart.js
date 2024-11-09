@@ -24,6 +24,8 @@ export const getInventoryDashboard = async (req, res) => {
     const plant = req.query.plant || null;
 
     let rumus;
+    let rumus2;
+    let incoming_plan;
     let whereCondition;
     let operator;
     let whereConditionPlant;
@@ -61,12 +63,22 @@ export const getInventoryDashboard = async (req, res) => {
       return res.status(400).json({ message: "Invalid plant" });
     }
 
+    incoming_plan = `(
+      SELECT TOP 1 "planning"
+      FROM "Incoming" AS "Incoming"
+      WHERE "Incoming"."inventoryId" = "Inventory"."id"
+      ORDER BY "Incoming"."createdAt" DESC
+      
+    )`;
     if (status === "critical") {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2.5), 2)`;
+      rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2.5), 2)`;
     } else if (status === "lowest") {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0)), 2)`;
+      rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0)), 2)`;
     } else if (status === "overflow") {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."maxStock" AS FLOAT), 0)), 2)`;
+      rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."maxStock" AS FLOAT), 0)), 2)`;
     }
 
     // Determining dynamic length for truncation based on your conditions
@@ -160,6 +172,7 @@ export const getInventoryDashboard = async (req, res) => {
         [Sequelize.literal(`LEFT("Material"."materialNO", ${dynamicLength})`), "name"], // Use dynamicLength here
         [Sequelize.literal(rumus), "stock"], // Calculate stock using dynamic formula
         "quantityActualCheck",
+        [Sequelize.literal(`(${rumus}) + (${rumus2})`), "estimatedStock"], // Add rumus and rumus2 to get the totalStock
       ],
       order: [[Sequelize.literal("stock"), order]], // Sort by calculated stock
       group: [

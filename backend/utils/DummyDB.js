@@ -5645,6 +5645,10 @@ export const GICData = [
     gicNumber: 6000000077,
     costCenterId: 108,
   },
+  {
+    gicNumber: 4000000814,
+    costCenterId: 74,
+  },
 ];
 
 export const sectionData = [
@@ -6331,6 +6335,12 @@ export const sectionData = [
     sectionName: "Warehouse KRW Plant & Steel Opr Sec",
     gicId: 338,
     wbsId: 6,
+  },
+  {
+    sectionCode: 111131500,
+    sectionName: "Warehouse Ordering & Engineering Sec",
+    gicId: 430,
+    wbsId: 2,
   },
 ];
 
