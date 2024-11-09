@@ -451,25 +451,64 @@ const Inventory = () => {
 
         return {
           'Material No': Material.materialNo,
-          Description: Material.description,
-          Address: item.Address_Rack.addressRackName,
+          // Description: Material.description,
+          // Address: item.Address_Rack.addressRackName,
           UoM: Material.uom,
-          'Min Stock': Material.minStock,
-          'Max Stock': Material.maxStock,
-          'Stock System': item.quantitySistem,
-          'Stock Inventory': item.quantityActual,
-          Discrepancy: item.discrepancy,
+          // 'Min Stock': Material.minStock,
+          // 'Max Stock': Material.maxStock,
+          // 'Stock System': item.quantitySistem,
+          // 'Stock Inventory': item.quantityActual,
+          // Discrepancy: item.discrepancy,
           'Stock On Hand': quantityActualCheck,
-          Evaluation: evaluation,
-          Remarks: item.remarks,
-          Plant: item.Address_Rack.Storage.Plant.plantName,
-          Storage: item.Address_Rack.Storage.storageName,
-          'Update By': item.Log_Entries[0]?.User?.username || '',
-          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+          // Evaluation: evaluation,
+          // Remarks: item.remarks,
+          // Plant: item.Address_Rack.Storage.Plant.plantName,
+          // Storage: item.Address_Rack.Storage.storageName,
+          // 'Update By': item.Log_Entries[0]?.User?.username || '',
+          // 'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
 
-      const worksheet = xlsx.utils.json_to_sheet(mappedData)
+      // Timestamp download untuk baris atas
+      const downloadTimestamp = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+      const downloadAtRow = [
+        {
+          'Material No': `downloadAt: ${downloadTimestamp}`,
+          UoM: '',
+          Stock: '',
+        },
+      ]
+
+      // Header data utama
+      const headerRow = [
+        {
+          'Material No': 'Material No',
+          UoM: 'UoM',
+          Stock: 'Stock',
+        },
+      ]
+
+      // Gabungkan baris downloadAt, header utama, dan data
+      const finalData = [...downloadAtRow, ...headerRow, ...mappedData]
+
+      // Mengkonversi data ke worksheet tanpa menambahkan header otomatis
+      const worksheet = xlsx.utils.json_to_sheet(finalData, { skipHeader: true })
+
+      // Auto-width untuk kolom
+      const colWidth = finalData.reduce((acc, row) => {
+        Object.keys(row).forEach((key) => {
+          const cellValue = row[key] ? row[key].toString() : ''
+          const currentWidth = acc[key] || 0
+          acc[key] = Math.max(currentWidth, cellValue.length)
+        })
+        return acc
+      }, {})
+
+      // Menetapkan lebar kolom ke worksheet
+      worksheet['!cols'] = Object.keys(colWidth).map((key) => ({
+        wch: colWidth[key] + 2, // Menambahkan padding ekstra untuk kolom
+      }))
+
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
@@ -486,11 +525,17 @@ const Inventory = () => {
         let EXCEL_TYPE =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
         let EXCEL_EXTENSION = '.xlsx'
+
+        // Format tanggal menjadi yyyyMMddHHmmss
+        const formattedDate = format(new Date(), 'yyyyMMddHHmmss')
+
+        // Membuat blob data untuk file
         const data = new Blob([buffer], {
           type: EXCEL_TYPE,
         })
 
-        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION)
+        // Menyimpan file dengan nama yang mengandung tanggal terformat
+        module.default.saveAs(data, `${fileName}_export_${formattedDate}${EXCEL_EXTENSION}`)
       }
     })
   }
