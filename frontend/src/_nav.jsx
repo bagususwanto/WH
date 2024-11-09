@@ -124,7 +124,7 @@ const useNavigation = () => {
           items: [
             {
               component: CNavItem,
-              name: 'Order By Recipient',
+              name: 'Good Issue Order',
               to: '/dummy-route', // Internal route, just a placeholder
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
@@ -135,7 +135,7 @@ const useNavigation = () => {
 
             {
               component: CNavItem,
-              name: 'Approval By Line Head',
+              name: 'Good Issue Approval',
               to: '/dummy-route', // Internal route, just a placeholder
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
@@ -143,36 +143,7 @@ const useNavigation = () => {
                 window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
               },
             },
-            {
-              component: CNavItem,
-              name: 'Approval By Group Head',
-              to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-              onClick: (e) => {
-                e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
-              },
-            },
-            {
-              component: CNavItem,
-              name: 'Approval By Section Head',
-              to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-              onClick: (e) => {
-                e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
-              },
-            },
-            {
-              component: CNavItem,
-              name: 'Approval By Dph Head',
-              to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-              onClick: (e) => {
-                e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
-              },
-            },
+          
           ],
         },
         {
@@ -187,7 +158,7 @@ const useNavigation = () => {
           items: [
             {
               component: CNavItem,
-              name: 'Confirmation Order',
+              name: 'Good Issue Confirm',
               to: '/dummy-route', // Internal route, just a placeholder
               icon: <CIcon icon={cilEnvelopeLetter} customClassName="nav-icon" />,
               onClick: (e) => {
@@ -209,7 +180,9 @@ const useNavigation = () => {
         },
       )
     }
-    if (roleName === 'group head') {
+    if (roleName === 'group head' || roleName === 'line head' || roleName === 'section head' || roleName === 'department head') {
+      // Lakukan sesuatu jika roleName adalah salah satu dari nilai tersebut
+  
       baseNav.push(
         {
           component: CNavTitle,
@@ -228,7 +201,7 @@ const useNavigation = () => {
       )
     }
 
-    if (roleName === 'line head') {
+    if (roleName === 'line head'|| roleName === 'section head'|| roleName === 'department head') {
       baseNav.push(
         {
           component: CNavTitle,
@@ -236,7 +209,7 @@ const useNavigation = () => {
         },
         {
           component: CNavItem,
-          name: 'Approval Order By Line Head',
+          name: 'Good Issue Approval',
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
@@ -246,48 +219,13 @@ const useNavigation = () => {
         },
       )
     }
-    if (roleName === 'section head') {
-      baseNav.push(
-        {
-          component: CNavTitle,
-          name: 'Approval Order',
-        },
-        {
-          component: CNavItem,
-          name: 'Approval Order By Section Head',
-          to: '/dummy-route', // Internal route, just a placeholder
-          icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-          onClick: (e) => {
-            e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
-          },
-        },
-      )
-    }
-    if (roleName === 'department head') {
-      baseNav.push(
-        {
-          component: CNavTitle,
-          name: 'Approval Order',
-        },
-        {
-          component: CNavItem,
-          name: 'Approval Order By Department Head',
-          to: '/dummy-route', // Internal route, just a placeholder
-          icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-          onClick: (e) => {
-            e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
-          },
-        },
-      )
-    }
+   
 
     if (roleName === 'warehouse staff') {
       baseNav.push(
         {
           component: CNavTitle,
-          name: 'Confirmation Order',
+          name: 'Good Issue Confirm',
         },
         {
           component: CNavItem,

@@ -371,7 +371,9 @@ const Confirm = () => {
                             value={quantities[product.id] || 1}
                             aria-label="Number input"
                             onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                            className="text-center" // Utility class for centering text
                           />
+
                           <CButton
                             color="secondary"
                             variant="outline"
@@ -389,7 +391,9 @@ const Confirm = () => {
                         <CBadge color="danger">Rejected</CBadge> // Show rejection badge
                       ) : (
                         <CButton
-                           color="danger" variant="outline"  size="sm"
+                          color="danger"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleModalCart(product)}
                         >
                           Reject
