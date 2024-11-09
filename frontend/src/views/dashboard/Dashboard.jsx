@@ -208,7 +208,6 @@ const Dashboard = () => {
       setPlant(response.data)
     } catch (error) {
       console.error('Error fetching plant data:', error)
-      MySwal.fire('Error', 'Failed to load plant data.', 'error')
     }
   }
 
