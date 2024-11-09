@@ -397,6 +397,12 @@ const Inventory = () => {
       )
     }
 
+    if (filters['Material.type'].value) {
+      filteredData = filteredData.filter(
+        (item) => item.Material.type === filters['Material.type'].value,
+      )
+    }
+
     // if (filters['Address_Rack.Storage.shopName'].value) {
     //   filteredData = filteredData.filter(
     //     (item) =>
