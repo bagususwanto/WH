@@ -587,41 +587,40 @@ const validateHeaderMaterial = (header) => {
 };
 
 // Fungsi checkSupplierName yang diperbarui untuk menggunakan cache
-const checkSupplierName = async (supplierName, logImportId, transaction) => {
-  const formattedSupplierName = supplierName.trim().toUpperCase();
+const upsertSuppliers = async (supplierNames, logImportId, transaction) => {
+  // Find all suppliers that already exist in the database
+  const existingSuppliers = await Supplier.findAll({
+    where: { supplierName: Array.from(supplierNames), flag: 1 },
+    transaction,
+  });
 
-  try {
-    let supplierId;
+  const existingSupplierMap = new Map(existingSuppliers.map((supplier) => [supplier.supplierName, supplier.id]));
 
-    // Periksa jika supplierName kosong atau bernilai 0
-    if (!formattedSupplierName || formattedSupplierName === "" || formattedSupplierName === 0) {
-      console.warn(`Supplier ${formattedSupplierName} not found`);
-      return null; // Return null untuk menghentikan eksekusi jika supplierName tidak valid
+  const newSuppliers = [];
+  const supplierIds = new Map();
+
+  // Separate new suppliers from those that already exist
+  Array.from(supplierNames).forEach((name) => {
+    if (existingSupplierMap.has(name)) {
+      supplierIds.set(name, existingSupplierMap.get(name)); // Use existing supplier ID
+    } else {
+      newSuppliers.push({ supplierName: name, flag: 1, logImportId });
     }
+  });
 
-    const existingSupplier = await Supplier.findOne({
-      where: { supplierName: formattedSupplierName, flag: 1 },
+  // Insert new suppliers in bulk
+  if (newSuppliers.length > 0) {
+    const createdSuppliers = await Supplier.bulkCreate(newSuppliers, {
+      transaction,
     });
 
-    if (existingSupplier) {
-      supplierId = existingSupplier.id;
-    } else {
-      // Jika tidak ditemukan, buat supplier baru
-      const newSupplier = await Supplier.create(
-        {
-          supplierName: formattedSupplierName,
-          logImportId,
-        },
-        { transaction }
-      );
-      supplierId = newSupplier.id;
-    }
-
-    return supplierId;
-  } catch (error) {
-    console.error(error.message);
-    throw new Error("Failed to check or create supplier");
+    // Map new suppliers to their IDs
+    createdSuppliers.forEach((supplier) => {
+      supplierIds.set(supplier.supplierName, supplier.id);
+    });
   }
+
+  return supplierIds; // Return a map of supplier names to their IDs
 };
 
 export const uploadMasterMaterial = async (req, res) => {
@@ -639,7 +638,7 @@ export const uploadMasterMaterial = async (req, res) => {
     const header = rows.shift();
 
     if (rows.length > 5000) {
-      return res.status(400).send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
+      return res.status(400).send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
 
     if (!validateHeaderMaterial(header)) {
@@ -648,7 +647,7 @@ export const uploadMasterMaterial = async (req, res) => {
 
     transaction = await db.transaction();
 
-    // Buat log untuk seluruh batch impor ini, tanpa materialId
+    // Create a log for this batch import
     const logImport = await LogImport.create(
       {
         typeLog: "master material",
@@ -671,21 +670,17 @@ export const uploadMasterMaterial = async (req, res) => {
 
     const newMaterials = [];
 
-    // 1. Kumpulkan semua nama supplier dari rows
+    // Gather unique supplier names from rows
     const supplierNames = new Set(
       rows.map((row) => {
         const supplier = row[13];
-        if (!supplier || supplier == "" || supplier == 0) throw new Error(`Supplier ${supplier} not found`);
+        if (!supplier || supplier === "" || supplier === 0) throw new Error(`Supplier ${supplier} not found`);
         return supplier.trim().toUpperCase();
       })
     );
 
-    // 2. Periksa dan simpan ID supplier dalam Map
-    const supplierMap = new Map();
-    for (const supplierName of supplierNames) {
-      const supplierId = await checkSupplierName(supplierName, logImportId, transaction);
-      supplierMap.set(supplierName, supplierId);
-    }
+    // Upsert all suppliers at once and get a map of supplier IDs
+    const supplierMap = await upsertSuppliers(supplierNames, logImportId, transaction);
 
     const processBatch = async (batch) => {
       const updatePromises = batch.map(async (row) => {
@@ -720,7 +715,6 @@ export const uploadMasterMaterial = async (req, res) => {
 
           if (!supplier || supplier == 0) throw new Error(`Supplier ${supplier} not found`);
 
-          // 3. Dapatkan supplierId dari supplierMap
           const supplierName = supplier.trim().toUpperCase();
           const supplierId = supplierMap.get(supplierName);
 

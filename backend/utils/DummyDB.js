@@ -6339,7 +6339,7 @@ export const sectionData = [
   {
     sectionCode: 111131500,
     sectionName: "Warehouse Ordering & Engineering Sec",
-    gicId: 431,
+    gicId: 430,
     wbsId: 2,
   },
 ];
