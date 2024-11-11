@@ -14,6 +14,8 @@ import Warehouse from "../models/WarehouseModel.js";
 import { Op } from "sequelize";
 import { createNotification } from "./Notification.js";
 import AddressRack from "../models/AddressRackModel.js";
+import Line from "../models/LineModel.js";
+import Section from "../models/SectionModel.js";
 
 // Helper function untuk mengambil userIdApproval
 export const getUserIdApproval = async (condition) => {
@@ -104,7 +106,22 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
       required: true,
       attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
       include: [
-        { model: Organization, where: { [organizationField]: organizationId } },
+        {
+          model: Organization,
+          where: { [organizationField]: organizationId },
+          include: [
+            {
+              model: Line,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Section,
+              required: false,
+              where: { flag: 1 },
+            },
+          ],
+        },
         {
           model: Warehouse,
           as: "alternateWarehouse",
