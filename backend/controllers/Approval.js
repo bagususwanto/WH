@@ -76,15 +76,17 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
         include: [
           {
             model: Inventory,
-            attributes: ["id"],
+            attributes: ["id", "addressId", "materialId"],
             include: [
               {
                 model: AddressRack,
+                required: false,
                 attributes: ["id", "addressRackName"],
                 where: { flag: 1 },
               },
               {
                 model: Material,
+                required: false,
                 attributes: ["id", "materialNo", "description", "uom"],
                 where: { flag: 1 },
               },
