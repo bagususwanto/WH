@@ -13,6 +13,7 @@ import { postOrderHistory } from "./OrderHistory.js";
 import Warehouse from "../models/WarehouseModel.js";
 import { Op } from "sequelize";
 import { createNotification } from "./Notification.js";
+import AddressRack from "../models/AddressRackModel.js";
 
 // Helper function untuk mengambil userIdApproval
 export const getUserIdApproval = async (condition) => {
@@ -69,6 +70,28 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
   return await Order.findAll({
     where: whereCondition,
     include: [
+      {
+        model: DetailOrder,
+        where: { isReject: 0, isDelete: 0 },
+        include: [
+          {
+            model: Inventory,
+            attributes: ["id"],
+            include: [
+              {
+                model: AddressRack,
+                attributes: ["id", "addressRackName"],
+                where: { flag: 1 },
+              },
+              {
+                model: Material,
+                attributes: ["id", "materialNo", "description", "uom"],
+                where: { flag: 1 },
+              },
+            ],
+          },
+        ],
+      },
       {
         model: User,
         required: true,
