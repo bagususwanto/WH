@@ -129,7 +129,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/home`, '_blank') // Opens URL in a new tab
+                window.open(`${config.ORDER_URL}#/home`, '_blank') // Opens URL in a new tab
               },
             },
 
@@ -140,10 +140,9 @@ const useNavigation = () => {
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/approveall`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}#/approveall`, '_blank') // Use base URL from config
               },
             },
-          
           ],
         },
         {
@@ -163,7 +162,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilEnvelopeLetter} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/confirmall`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}#/confirmall`, '_blank') // Use base URL from config
               },
             },
             {
@@ -173,16 +172,21 @@ const useNavigation = () => {
               icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}/shopping`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}#/shopping`, '_blank') // Use base URL from config
               },
             },
           ],
         },
       )
     }
-    if (roleName === 'group head' || roleName === 'line head' || roleName === 'section head' || roleName === 'department head') {
+    if (
+      roleName === 'group head' ||
+      roleName === 'line head' ||
+      roleName === 'section head' ||
+      roleName === 'department head'
+    ) {
       // Lakukan sesuatu jika roleName adalah salah satu dari nilai tersebut
-  
+
       baseNav.push(
         {
           component: CNavTitle,
@@ -195,13 +199,13 @@ const useNavigation = () => {
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/home`, '_blank') // Opens URL in a new tab
+            window.open(`${config.ORDER_URL}#/home`, '_blank') // Opens URL in a new tab
           },
         },
       )
     }
 
-    if (roleName === 'line head'|| roleName === 'section head'|| roleName === 'department head') {
+    if (roleName === 'line head' || roleName === 'section head' || roleName === 'department head') {
       baseNav.push(
         {
           component: CNavTitle,
@@ -214,12 +218,11 @@ const useNavigation = () => {
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/approveall`, '_blank') // Opens URL in a new tab
+            window.open(`${config.ORDER_URL}#/approveall`, '_blank') // Opens URL in a new tab
           },
         },
       )
     }
-   
 
     if (roleName === 'warehouse staff') {
       baseNav.push(
@@ -234,7 +237,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/confirmall`, '_blank') // Use base URL from config
+            window.open(`${config.ORDER_URL}#/confirmall`, '_blank') // Use base URL from config
           },
         },
       )
@@ -253,7 +256,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/shopping`, '_blank') // Use base URL from config
+            window.open(`${config.ORDER_URL}#/shopping`, '_blank') // Use base URL from config
           },
         },
       )
