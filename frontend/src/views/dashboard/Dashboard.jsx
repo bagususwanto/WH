@@ -280,7 +280,7 @@ const Dashboard = () => {
   const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
     responsive: true,
     maintainAspectRatio: false,
-        scales: {
+    scales: {
       y: {
         min: minValue,
         max: maxValue,
@@ -325,7 +325,7 @@ const Dashboard = () => {
         },
       },
     },
-      plugins: {
+    plugins: {
       legend: {
         display: false,
         labels: {
@@ -614,6 +614,7 @@ const Dashboard = () => {
               visible={modalOpen}
               onClose={handleCloseModal}
               alignment="center" // This aligns the modal in the center of the screen
+              size="lg" // You can change it to 'sm', 'lg', or 'xl'
             >
               <CModalHeader>
                 <CModalTitle>Detail Information</CModalTitle>
@@ -621,27 +622,65 @@ const Dashboard = () => {
               <CModalBody>
                 {selectedData && (
                   <>
-                    <p>
-                      <strong>Plant:</strong> {selectedData.Address_Rack.Storage.Plant.plantName}
-                    </p>
-                    <p>
-                      <strong>Material Number:</strong> {selectedData.Material.materialNo}
-                    </p>
-                    <p>
-                      <strong>Description:</strong> {selectedData.Material.description}
-                    </p>
-                    <p>
-                      <strong>Supplier:</strong> {selectedData.Material.Supplier.supplierName}
-                    </p>
-                    <p>
-                      <strong>Stock Actual:</strong> {selectedData.quantityActualCheck}{' '}
-                      {selectedData.Material.uom}
-                    </p>
-                    <p>
-                      <strong>Planning Incoming:</strong>{' '}
-                      {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}
-                      {' '} {selectedData.Material.uom}
-                    </p>
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Material Number:</strong>
+                      </CCol>
+                      <CCol xs={9}>
+                        {selectedData.Material.materialNo}{' '}
+                        <span className="fw-light">
+                        ({selectedData.Address_Rack.Storage.Plant.plantName} )
+                        </span>
+                       
+                      </CCol>
+                    </CRow>
+
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Description:</strong>
+                      </CCol>
+                      <CCol xs={9}>{selectedData.Material.description}{' '}
+                      <span className="fw-light">
+                      ({selectedData.Material.type} )
+                      </span>
+                      </CCol>
+                    </CRow>
+
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Supplier:</strong>
+                      </CCol>
+                      <CCol xs={9}>{selectedData.Material.Supplier.supplierName}</CCol>
+                    </CRow>
+
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Stock Actual:</strong>
+                      </CCol>
+                      <CCol xs={9}>
+                        {selectedData.quantityActualCheck} {selectedData.Material.uom}{' '} 
+                        <span className="fw-light">(
+                        {selectedData.estimatedStock} Shift)
+                        </span>
+                      </CCol>
+                    </CRow>
+
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Planning Incoming:</strong>
+                      </CCol>
+                      <CCol xs={9}>
+                        {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}{' '}
+                        {selectedData.Material.uom}
+                      </CCol>
+                    </CRow>
+
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Estimation Incoming:</strong>
+                      </CCol>
+                      <CCol xs={9}>{selectedData.estimatedStock} Shift</CCol>
+                    </CRow>
                   </>
                 )}
               </CModalBody>
@@ -666,30 +705,28 @@ const Dashboard = () => {
                 size="small"
                 scrollable
               >
-                <Column field="Material.materialNo" header="Material No"  />
-                <Column field="Material.description" header="Description"  sortable/>
-                <Column field="Material.uom" header="UoM"  />
-                <Column field="Material.Supplier.supplierName" header="Supplier"  />
-           
+                <Column field="Material.materialNo" header="Material No" />
+                <Column field="Material.description" header="Description" sortable />
+                <Column field="Material.uom" header="UoM" />
+                <Column field="Material.Supplier.supplierName" header="Supplier" />
 
                 {/* Conditional rendering of minStock/maxStock based on selected chart */}
                 {selectedChart === 'critical' || selectedChart === 'lowest' ? (
-                  <Column field="Material.minStock" header="Min"  />
+                  <Column field="Material.minStock" header="Min" />
                 ) : selectedChart === 'overflow' ? (
-                  <Column field="Material.maxStock" header="Max"  />
+                  <Column field="Material.maxStock" header="Max" />
                 ) : null}
 
-                <Column field="quantityActualCheck" header="Actual"  />
-                <Column field="stock" header="Remain Stock"  />
-                <Column field="" header="Incom Date"  />
-                <Column field="" header="Qty Incom"  />
-                <Column field="" header="Estimation"  />
+                <Column field="quantityActualCheck" header="Actual" />
+                <Column field="stock" header="Remain Stock" />
+                <Column field="Incomings" header="Incom Date" />
+                <Column field="Incomings" header="Qty Incom" />
+                <Column field="estimatedStock" header="Estim.Stock" />
                 <Column
                   field="evaluation"
                   header="Evaluation"
                   body={statusBodyTemplate}
                   bodyStyle={{ textAlign: 'center' }}
-                  
                 />
               </DataTable>
             )}
