@@ -26,8 +26,8 @@ export const getUserIdApproval = async (condition) => {
 
 // Helper function untuk userIdWarehouse
 export const getUserIdWarehouse = async (condition) => {
-  const user = await User.findAll({ where: { ...condition, flag: 1 } });
-  return user ? user.id : null;
+  const users = await User.findAll({ where: { ...condition, flag: 1 } });
+  return users.map((user) => user.id); // Extracts `id` from each user object in the array
 };
 
 const getOrganizationCondition = (user, role) => {
@@ -46,10 +46,16 @@ const getOrganizationCondition = (user, role) => {
 const findRoleAndOrders = async (roleName, organizationField, organizationId, warehouseId, options) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
 
-  const { q, startDate, endDate, limit, offset } = options;
+  const { q, startDate, endDate, limit, offset, approved } = options;
 
   // Buat kondisi where yang dinamis untuk Order
   let whereCondition = { isApproval: 0, currentRoleApprovalId: role.id };
+  let whereCondition2;
+
+  if (approved) {
+    whereCondition2 = { status: `approved ${approved}` };
+    whereCondition = {};
+  }
 
   // Jika ada rentang tanggal, tambahkan kondisi filter berdasarkan createdAt
   if (startDate && endDate) {
@@ -67,48 +73,61 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
     whereCondition[Op.or] = [{ transactionNumber: { [Op.like]: `%${q}%` } }, { requestNumber: { [Op.like]: `%${q}%` } }];
   }
 
+  // Tentukan array `include` secara dinamis
+  const includes = [
+    {
+      model: DetailOrder,
+      where: { isReject: 0, isDelete: 0 },
+      include: [
+        {
+          model: Inventory,
+          attributes: ["id", "addressId", "materialId"],
+          include: [
+            {
+              model: AddressRack,
+              required: false,
+              attributes: ["id", "addressRackName"],
+              where: { flag: 1 },
+            },
+            {
+              model: Material,
+              required: false,
+              attributes: ["id", "materialNo", "description", "uom", "price"],
+              where: { flag: 1 },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      model: User,
+      required: true,
+      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+      include: [
+        { model: Organization, where: { [organizationField]: organizationId } },
+        {
+          model: Warehouse,
+          as: "alternateWarehouse",
+          required: true,
+          where: { id: warehouseId },
+        },
+      ],
+    },
+  ];
+
+  // Tambahkan `Approval` ke array `include` jika `approved` ada nilainya
+  if (approved) {
+    includes.push({
+      model: Approval,
+      required: true,
+      attributes: ["id", "status"],
+      where: whereCondition2,
+    });
+  }
+
   return await Order.findAll({
     where: whereCondition,
-    include: [
-      {
-        model: DetailOrder,
-        where: { isReject: 0, isDelete: 0 },
-        include: [
-          {
-            model: Inventory,
-            attributes: ["id", "addressId", "materialId"],
-            include: [
-              {
-                model: AddressRack,
-                required: false,
-                attributes: ["id", "addressRackName"],
-                where: { flag: 1 },
-              },
-              {
-                model: Material,
-                required: false,
-                attributes: ["id", "materialNo", "description", "uom"],
-                where: { flag: 1 },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        required: true,
-        attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
-        include: [
-          { model: Organization, where: { [organizationField]: organizationId } },
-          {
-            model: Warehouse,
-            as: "alternateWarehouse", // Menggunakan alias di sini
-            required: true,
-            where: { id: warehouseId },
-          },
-        ],
-      },
-    ],
+    include: includes,
     limit: parseInt(limit),
     offset: parseInt(offset),
     order: [["createdAt", "DESC"]],
@@ -132,6 +151,7 @@ export const getOrderApproval = async (req, res) => {
       endDate,
       limit,
       offset,
+      approved: req.query.approved,
     });
 
     if (orders.length === 0) {
@@ -395,7 +415,7 @@ export const approveOrder = async (req, res) => {
 
     await LogApproval.bulkCreate(
       orders.map((detailOrder) => ({
-        typeLog: typeLog,
+        typeLog: "approve",
         userId: userId,
         detailOrderId: detailOrder.id,
         quantityBefore: quantityBefore ? quantityBefore : null,
