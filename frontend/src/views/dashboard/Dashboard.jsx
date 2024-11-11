@@ -280,7 +280,7 @@ const Dashboard = () => {
   const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
     responsive: true,
     maintainAspectRatio: false,
-    scales: {
+        scales: {
       y: {
         min: minValue,
         max: maxValue,
@@ -325,7 +325,7 @@ const Dashboard = () => {
         },
       },
     },
-    plugins: {
+      plugins: {
       legend: {
         display: false,
         labels: {
@@ -666,8 +666,8 @@ const Dashboard = () => {
                 size="small"
                 scrollable
               >
-                <Column field="Material.materialNo" header="Material No"sortable  />
-                <Column field="Material.description" header="Description"  />
+                <Column field="Material.materialNo" header="Material No"  />
+                <Column field="Material.description" header="Description"  sortable/>
                 <Column field="Material.uom" header="UoM"  />
                 <Column field="Material.Supplier.supplierName" header="Supplier"  />
            
@@ -680,7 +680,7 @@ const Dashboard = () => {
                 ) : null}
 
                 <Column field="quantityActualCheck" header="Actual"  />
-                <Column field="stock" header="Remain Stock" sortable />
+                <Column field="stock" header="Remain Stock"  />
                 <Column field="" header="Incom Date"  />
                 <Column field="" header="Qty Incom"  />
                 <Column field="" header="Estimation"  />

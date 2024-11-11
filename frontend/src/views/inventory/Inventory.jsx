@@ -98,9 +98,19 @@ const Inventory = () => {
     },
     { field: 'Material.type', header: 'Type', sortable: true },
   ]
+
   const getNoteStatus = (rowData) => {
-    const status = rowData.quantityActual ? 'ALREADY FILLED' : 'NOT FILLED YET'
-    const severity = rowData.quantityActual ? getSeverity('ok') : getSeverity('over')
+    // Memeriksa apakah quantityActualCheck null, undefined, atau kosong
+    const isFilled =
+      rowData.quantityActualCheck !== null &&
+      rowData.quantityActualCheck !== undefined &&
+      rowData.quantityActualCheck !== ''
+
+    // Jika quantityActualCheck ada nilainya selain null, undefined, atau kosong, dianggap "ALREADY FILLED", jika tidak "NOT FILLED YET"
+    const status = isFilled ? 'ALREADY FILLED' : 'NOT FILLED YET'
+
+    // Tentukan severity berdasarkan status
+    const severity = isFilled ? getSeverity('ok') : getSeverity('over')
 
     return { status, severity }
   }
@@ -565,14 +575,14 @@ const Inventory = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
-  const discrepancyBodyTemplate = (rowData) => {
-    const { quantityActual, quantitySistem } = rowData
+  // const discrepancyBodyTemplate = (rowData) => {
+  //   const { quantityActual, quantitySistem } = rowData
 
-    const discrepancy = quantityActual - quantitySistem
+  //   const discrepancy = quantityActual - quantitySistem
 
-    if (discrepancy < 0) return <Tag value={discrepancy} severity={getSeverity('minim')} />
-    if (discrepancy > 0) return <Tag value={discrepancy} severity={getSeverity('over')} />
-  }
+  //   if (discrepancy < 0) return <Tag value={discrepancy} severity={getSeverity('minim')} />
+  //   if (discrepancy > 0) return <Tag value={discrepancy} severity={getSeverity('over')} />
+  // }
 
   const onColumnToggle = (event) => {
     let selectedColumns = event.value

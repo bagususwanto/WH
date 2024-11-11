@@ -79,7 +79,25 @@ const ApproveAll = () => {
 
   const apiCategory = 'category'
   const apiUser = 'user'
+  const getusers = async () => {
+    const response = await getMasterData(apiUser)
 
+    // Filter user data to get only the user with id 2
+    const filteredUserData = response.data.filter((user) => user.id === 3)
+
+    // Update state with the filtered data
+    setUserData(filteredUserData)
+
+    // Check if image data exists in the filtered response and update states
+    if (filteredUserData.length > 0 && filteredUserData[0].img) {
+      setApiImage(filteredUserData[0].img) // Store the image from API in state
+      setSelectedImage(filteredUserData[0].img) // Set the selected image to the API image initially
+    }
+  }
+
+  useEffect(() => {
+    getusers()
+  }, [])
   const handleStatusFilterClick = (status) => {
     setSelectedStatusFilter(status)
   }
@@ -199,9 +217,9 @@ const ApproveAll = () => {
                 <label>{user.name}</label>
                 <br />
                 <label className="fw-bold">GRUP:</label>{' '}
-                <label>{user.Organization.Line.lineName}</label>
+                <label>{}</label>
                 <br />
-                <label className="fw-bold">Request at 11:19</label>
+                <label className="fw-bold">Request at 11:20</label>
               </CCol>
             ))}
           

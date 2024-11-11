@@ -296,7 +296,42 @@ const ProductList = () => {
 
   return (
     <>
-      {productsData.length === 0 && <div>Product not found...</div>}
+         {productsData.length === 0 ? (
+      <CRow>
+          {[...Array(12)].map((_, index) => (
+            <CCol
+              key={index}
+              xs="6"
+              sm="6"
+              md="3"
+              lg="4"
+              xl="2"
+              className="mb-3"
+            >
+              <CCard className="h-100">
+                <Skeleton height={150} />
+                <CCardBody className="d-flex flex-column justify-content-between">
+                  <div>
+                    <Skeleton count={2} height={20} width="80%" style={{ marginBottom: '10px' }} />
+                  </div>
+                  <CRow className="mt-auto align-items-center">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <CCol sm="auto">
+                          <Skeleton width={80} height={30} />
+                        </CCol>
+                      </div>
+                      <CCol sm="auto" className="ms-2">
+                        <Skeleton circle width={30} height={30} />
+                      </CCol>
+                    </div>
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          ))}
+        </CRow>
+      ) : (
       <CRow>
         {productsData.map((product, index) => (
           <CCol
@@ -387,6 +422,7 @@ const ProductList = () => {
           </CCol>
         ))}
       </CRow>
+    )}
 
       {/* {visibleCount < products.length && ( */}
       {hasMore && (

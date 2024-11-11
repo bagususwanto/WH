@@ -48,9 +48,7 @@ import {
 } from '@coreui/icons'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-
 import { format, parseISO } from 'date-fns'
-
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
@@ -121,8 +119,8 @@ const Home = () => {
       setCategoriesData(response.data);
       setIsLoading(false); // Data finished loading
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      setIsLoading(false); // In case of error, set loading to false
+      console.error('Error fetching categories:', error)
+      setIsLoading(false) // In case of error, set loading to false
     }
   };
 
@@ -739,6 +737,29 @@ const Home = () => {
       <hr />
       {/* Order By Category */}
       <CRow className="mt-4">
+      {isLoading ? (
+        // Show Skeleton Loader while loading
+        <CRow>
+          {[...Array(6)].map((_, index) => (
+            <CCol
+              key={index}
+              xs="12"
+              sm="6"
+              md="4"
+              lg="2"
+              style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
+            >
+              <CCard style={{ cursor: 'pointer', width: '100%', padding: '1px', margin: '10px' }}>
+                <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
+                  <Skeleton circle width={30} height={30} style={{ marginRight: '8px' }} />
+                  <Skeleton width={60} height={20} />
+                </CCardBody>
+              </CCard>
+            </CCol>
+          ))}
+        </CRow>
+      ) : (
+
         <CRow>
           {categoriesData.map((category, index) => (
             <CCol
@@ -783,11 +804,58 @@ const Home = () => {
             </CCol>
           ))}
         </CRow>
+         )}
       </CRow>
 
       {/* Daftar Produk */}
       <CRow className="mt-3">
-        {products.map((product, index) => (
+      {isLoading ? (
+        // Render Skeleton Loader
+        [...Array(6)].map((_, index) => (
+          <CCol
+            key={index}
+            xs="6"
+            sm="6"
+            md="3"
+            lg="3"
+            xl="2"
+            className="mb-4"
+          >
+            <CCard className="h-100">
+              <Skeleton
+                height={150}
+                style={{ width: '100%', objectFit: 'contain' }} // Same as the image styles
+              />
+              <CCardBody className="d-flex flex-column justify-content-between">
+                <div>
+                  <Skeleton height={20} width="60%" style={{ marginBottom: '8px' }} />
+                  <Skeleton height={15} width="40%" />
+                </div>
+                <CRow className="mt-auto align-items-center">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                    >
+                      <Skeleton width={90} height={30} />
+                    </div>
+
+                    <CCol sm="auto" className="ms-2">
+                      <Skeleton circle height={30} width={30} />
+                    </CCol>
+                  </div>
+                </CRow>
+              </CCardBody>
+            </CCard>
+          </CCol>
+        ))
+      ) : (
+        products.map((product, index) => (
           <CCol
             xs="6"
             sm="6"
@@ -828,17 +896,7 @@ const Home = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                     >
-                      {/* {calculateStockStatus(product) === 'Out of Stock' && (
-                        <CCol sm="auto" className="mb-1">
-                          <CBadge color="secondary">Out of Stock</CBadge>
-                        </CCol>
-                      )}
-                      {calculateStockStatus(product) === 'Low Stock' && (
-                        <CCol sm="auto" className="mb-1">
-                          <CBadge color="warning">Low Stock</CBadge>
-                        </CCol>
-                      )}
-                      {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                   
                       <CCol sm="auto">
                         <CButton
                           className="box btn-sm"
@@ -877,7 +935,8 @@ const Home = () => {
               </CCardBody>
             </CCard>
           </CCol>
-        ))}
+           ))
+          )}
       </CRow>
 
       {/* Tombol Load More */}

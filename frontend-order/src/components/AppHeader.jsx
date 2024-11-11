@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
+import config from '../utils/Config'
 import {
   CContainer,
   CCol,
@@ -428,7 +429,7 @@ const AppHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-
+  console.log('aa', cart)
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -648,8 +649,14 @@ const AppHeader = () => {
                   <CRow className="w-100">
                     <CCol xs="2">
                       <CImage
-                        src={'https://via.placeholder.com/150'}
-                        // alt={product.Inventory && product.Inventory.Material ? product.Inventory.Material.description : 'No description'}
+                        src={
+                          product?.Inventory?.Material?.img
+                            ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
+                            : 'path/to/placeholder-image.jpg'
+                        }
+                        alt={
+                          product?.Inventory?.Material?.description || 'No description available'
+                        }
                         style={{ width: '40px', height: '40px' }}
                       />
                     </CCol>
