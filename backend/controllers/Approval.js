@@ -91,7 +91,7 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
 };
 
 export const getOrderApproval = async (req, res) => {
-  const role = req.query.role;
+  const role = req.user.roleName;
   const condition = getOrganizationCondition(req.user, role);
   const warehouseId = req.params.warehouseId;
 
