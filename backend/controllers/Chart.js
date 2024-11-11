@@ -120,7 +120,7 @@ export const getInventoryDashboard = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: ["materialNo", "uom", "description", "minStock", "maxStock", "supplierId"],
+          attributes: ["materialNo", "uom", "description", "minStock", "maxStock", "supplierId", "type"],
           include: [
             {
               model: Supplier,
@@ -185,6 +185,7 @@ export const getInventoryDashboard = async (req, res) => {
         "Material.maxStock", // Group by maxStock
         "Material.materialNo", // Group by materialNo
         "Material.supplierId", // Group by supplierId
+        "Material.type",
         "Material->Supplier.id",
         "Material->Supplier.supplierName",
         "Address_Rack.id", // Group by Address Rack ID

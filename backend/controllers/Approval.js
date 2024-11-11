@@ -12,6 +12,22 @@ import { generateOrderNumber } from "./Order.js";
 import { postOrderHistory } from "./OrderHistory.js";
 import Warehouse from "../models/WarehouseModel.js";
 import { Op } from "sequelize";
+import { createNotification } from "./Notification.js";
+
+// Helper function untuk mengambil userIdApproval
+export const getUserIdApproval = async (condition) => {
+  const users = await User.findAll({ where: { ...condition, flag: 1 } });
+
+  // Extract only the 'id' of each user in the array
+  const userIds = users.map((user) => user.id);
+  return userIds.length > 0 ? userIds : null;
+};
+
+// Helper function untuk userIdWarehouse
+export const getUserIdWarehouse = async (condition) => {
+  const user = await User.findAll({ where: { ...condition, flag: 1 } });
+  return user ? user.id : null;
+};
 
 const getOrganizationCondition = (user, role) => {
   switch (role) {
@@ -230,7 +246,7 @@ export const isLastApproval = async (orderId) => {
   }
 };
 
-export const setCurrentRoleApprovalId = async (userId) => {
+export const setCurrentRoleApprovalId = async (userId, transaction) => {
   try {
     // Ambil userApproval beserta organisasi dan role
     const userApproval = await User.findOne({
@@ -260,12 +276,26 @@ export const setCurrentRoleApprovalId = async (userId) => {
     // Logika untuk "line head"
     if (userApproval.Role.roleName === "line head") {
       const roleIdApproval = await getRoleApprovalId({ sectionId: userApproval.Organization.sectionId });
+      const userIds = await getUserIdApproval({ sectionId: userApproval.Organization.sectionId });
+      const notification = {
+        title: "Request Approval",
+        description: "Request Approval from Group Leader to Section Head",
+        category: "approval",
+      };
+      await createNotification(userIds, notification, transaction);
       return roleIdApproval;
     }
 
     // Logika untuk "section head"
     if (userApproval.Role.roleName === "section head") {
       const roleIdApproval = await getRoleApprovalId({ departmentId: userApproval.Organization.departmentId });
+      const userIds = await getUserIdApproval({ departmentId: userApproval.Organization.departmentId });
+      const notification = {
+        title: "Request Approval",
+        description: "Request Approval from Section Head to Department Head",
+        category: "approval",
+      };
+      await createNotification(userIds, notification, transaction);
       return roleIdApproval;
     }
   } catch (error) {
@@ -282,6 +312,7 @@ const isCertainPrice = async (orderId) => {
 export const approveOrder = async (req, res) => {
   const transaction = await db.transaction(); // Mulai transaksi
   try {
+    const warehouseId = req.params.warehouseId;
     const orderId = req.params.orderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
@@ -361,6 +392,14 @@ export const approveOrder = async (req, res) => {
         { where: { id: orderId }, transaction }
       );
 
+      const userIds = await getUserIdWarehouse({ warehouseId: warehouseId });
+      const notification = {
+        title: "Request Order",
+        description: "Request Order to Warehouse",
+        category: "approval",
+      };
+      await createNotification(userIds, notification, transaction);
+
       // Commit transaksi setelah operasi berhasil
       await transaction.commit();
 
@@ -377,7 +416,7 @@ export const approveOrder = async (req, res) => {
       // Jika isCertainPrice = 1, update currentRoleApprovalId dan isLastApproval
       if ((await isCertainPrice(orderId)) == 1) {
         const order = await Order.update(
-          { currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId), isLastApproval: 1 },
+          { currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId, transaction), isLastApproval: 1 },
           { where: { id: orderId }, transaction }
         );
 

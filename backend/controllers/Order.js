@@ -24,6 +24,7 @@ import CostCenter from "../models/CostCenterModel.js";
 import Role from "../models/RoleModel.js";
 import { postOrderHistory } from "./OrderHistory.js";
 import { createNotification } from "./Notification.js";
+import { getUserIdApproval, getUserIdWarehouse } from "./Approval.js";
 
 // cek stock
 export const checkStock = async (inventoryId, quantity) => {
@@ -147,7 +148,7 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
   }
 };
 
-export const setApproval = async (userId, carts, transaction) => {
+export const setApproval = async (userId, carts, warehouseId, transaction) => {
   try {
     // Ambil user beserta organisasi dan role
     const user = await User.findOne({
@@ -178,15 +179,6 @@ export const setApproval = async (userId, carts, transaction) => {
     const getRoleApprovalId = async (condition) => {
       const user = await User.findOne({ where: { ...condition, flag: 1 } });
       return user ? user.roleId : null;
-    };
-
-    // Helper function untuk mengambil userIdApproval
-    const getUserIdApproval = async (condition) => {
-      const users = await User.findAll({ where: { ...condition, flag: 1 } });
-
-      // Extract only the 'id' of each user in the array
-      const userIds = users.map((user) => user.id);
-      return userIds.length > 0 ? userIds : null;
     };
 
     // Logika untuk "group head"
@@ -374,14 +366,8 @@ export const setApproval = async (userId, carts, transaction) => {
       isApproval: 1,
     });
 
-    // Helper function untuk userIdWarehouse
-    const getUserIdWarehouse = async (condition) => {
-      const user = await User.findAll({ where: { ...condition, flag: 1 } });
-      return user ? user.id : null;
-    };
-
     // create notification
-    const userIds = await getUserIdWarehouse({ warehouseId: req.user.anotherWarehouseId });
+    const userIds = await getUserIdWarehouse({ warehouseId: warehouseId });
     const notification = {
       title: "Request Order",
       description: "Request Order to Warehouse",
@@ -563,7 +549,7 @@ export const checkout = async (req, res) => {
     const cartIds = req.body.cartIds;
 
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res.status(400).json({ message: "carids must be a non-empty array" });
+      return res.status(400).json({ message: "cartIds must be a non-empty array" });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -625,6 +611,7 @@ export const createOrder = async (req, res) => {
   const t = await db.transaction(); // Memulai transaksi
 
   try {
+    const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
     const cartIds = req.body.cartIds; // ex: [1, 2, 3]
     const remarks = req.body.remarks;
@@ -694,7 +681,7 @@ export const createOrder = async (req, res) => {
       isMoreThanCertainPrice = 1;
     }
 
-    const approval = await setApproval(userId, carts, t);
+    const approval = await setApproval(userId, carts, warehouseId, t);
 
     if (approval === false) {
       // Jika approval tidak valid
