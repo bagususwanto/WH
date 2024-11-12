@@ -92,9 +92,9 @@ const Dashboard = () => {
   const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
   const [inventoriesoverflow, setInventoriesOverflow] = useState([]) // Inventory data
   const [inventories, setInventories] = useState([]) // Inventory data
-  const [lowestItemNb, setLowestItemNb] = React.useState(12) //Item untuk slider lowest
-  const [overflowItemNb, setOverflowItemNb] = React.useState(12) //Item untuk slider over flow
-  const [itemNb, setItemNb] = React.useState(12) //item untuk critical
+  const [lowestItemNb, setLowestItemNb] = React.useState(14) //Item untuk slider lowest
+  const [overflowItemNb, setOverflowItemNb] = React.useState(14) //Item untuk slider over flow
+  const [itemNb, setItemNb] = React.useState(14) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('ASC')
   const [selectedChart, setSelectedChart] = useState('critical')
@@ -250,31 +250,36 @@ const Dashboard = () => {
           label: chartTitle,
           data: data.map((item) => item.stock),
           backgroundColor: data.map((item) => {
-            // Check if stock value is below 1.5, then color it red
-            if (item.stock < 1.5) {
-              return '#C7253E' // If stock is below 1.5, color red
+            // Jika chart title adalah "Critical Stock" dan stok < 1.5, warnai merah
+            if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
+              return '#F95454' // Merah untuk stok di bawah 1.5 (Critical)
             }
 
-            // Check if incoming value is filled (>= 1)
+            // Jika chart title adalah "Overflow Stock" dan stok lebih dari 6, warnai hitam
+            if (chartTitle === 'Overflow Stock' && item.stock > 6) {
+              return '#F95454' // Hitam untuk stok lebih dari 6 (Overflow)
+            }
+
+            // Check if incoming value is filled (>= 1) and apply forestgreen
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
-              return 'forestgreen' // If incoming is filled (>= 1), color forestgreen
+              return 'forestgreen' // Jika incoming >= 1, warna forestgreen
             }
 
-            // Apply color based on chart type
+            // Apply color based on chart title for "Low Stock" and other conditions
             switch (chartTitle) {
               case 'Critical Stock':
-                return 'goldenrod' // Critical -> goldenrod
+                return '#FFAF00' // Goldenrod untuk Critical Stock
               case 'Low Stock':
-                return 'lightcoral' // Lowest -> lightcoral
+                return '#FF8225' // Light Coral untuk Low Stock
               case 'Overflow Stock':
-                return 'indianred' // Overflow -> indianred
+                return '#FFAF00' // Goldenrod untuk Overflow Stock
               default:
-                return 'gray' // Default color
+                return 'gray' // Default color untuk chart lainnya
             }
           }),
         },
       ],
-      shiftLevel, // Used to draw red line
+      shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
     }
   }
 
@@ -291,14 +296,16 @@ const Dashboard = () => {
         max: maxValue,
         ticks: {
           font: {
-            size: 14,
+            size: 11,
           },
+          color: 'black', // Menetapkan warna font untuk ticks pada sumbu Y menjadi hitam
         },
+
         title: {
           display: true,
           text: 'Stock Levels',
           font: {
-            size: 12,
+            size: 11,
           },
         },
       },
@@ -306,6 +313,7 @@ const Dashboard = () => {
         ticks: {
           font: {
             size: 9, // Ukuran font
+            color: 'black', // Menetapkan warna font menjadi hitam
             weight: 'bold', // Menjadikan font bold
           },
           callback: function (value, index, ticks) {
@@ -316,7 +324,7 @@ const Dashboard = () => {
             const description = item.Material.description
 
             // Ambil hanya 10 karakter pertama dari description
-            return `${description.substring(0, 19)}..`
+            return `${description.substring(0, 17)}..`
           },
           maxRotation: 0, // Mencegah rotasi diagonal
           autoSkip: false, // Pastikan label ditampilkan tanpa di-skip
@@ -325,7 +333,7 @@ const Dashboard = () => {
           display: true,
           text: 'Inventory Items',
           font: {
-            size: 11,
+            size: 10,
           },
         },
       },
@@ -393,8 +401,9 @@ const Dashboard = () => {
         offset: 10, // Adjust this to move the label away from the bar
       },
       annotation: {
-        annotations: {
-          line: {
+        annotations: [
+          // Garis untuk 5 (Max Stock/Min Stock)
+          {
             type: 'line',
             yMin: referenceLineValue,
             yMax: referenceLineValue,
@@ -402,33 +411,57 @@ const Dashboard = () => {
             borderWidth: 2,
             label: {
               display: true,
-              content:
-                selectedChart === 'overflow'
-                  ? `Max Stock: ${referenceLineValue} Shift`
-                  : `Min Stock: ${referenceLineValue} Shift`,
+              content: selectedChart === 'overflow'
+                ? `Max Stock: ${referenceLineValue} Shift`
+                : `Min Stock: ${referenceLineValue} Shift`,
               position: 'end',
-              yAdjust: -7,
+              yAdjust: -16,
               color: 'white',
             },
           },
-          // Menambahkan anotasi garis putus-putus merah
-          dashedLine: {
+          
+          // Garis untuk 6 (Max Stock Line)
+          {
             type: 'line',
-            yMin: 1.5, // Menentukan posisi y pada 1.5
-            yMax: 1.5, // Menentukan posisi y pada 1.5
-            borderColor: 'red',
+            yMin: 8, // Garis pada nilai 6
+            yMax: 8, // Garis pada nilai 6
+            borderColor: 'orange', // Warna orange
+            borderWidth: 1,
+            borderDash: [5, 5], // Garis putus-putus
+            label: {
+              display: true,
+              content: `Overflow Stock: 8 Shift`, // Label untuk garis 6
+              position: 'end',
+              font: {
+                size: 9,
+              },
+              yAdjust: -1,
+              color: 'white',
+            },
+          },
+      
+          // Garis untuk 1.5 hanya muncul jika selectedChart === 'critical'
+          ...(selectedChart === 'critical' ? [{
+            type: 'line',
+            yMin: 1.5, // Garis pada nilai 1.5
+            yMax: 1.5, // Garis pada nilai 1.5
+            borderColor: 'red', // Warna merah
             borderWidth: 0.5,
             borderDash: [5, 5], // Garis putus-putus
             label: {
               display: true, // Menampilkan label
               content: 'Critical Stock 1.5 Shift', // Isi label
               position: 'end', // Menentukan posisi label di akhir garis
-              yAdjust: -7, // Menyesuaikan posisi label di sumbu Y
+              font: {
+                size: 9,
+              },
+              yAdjust: -6, // Menyesuaikan posisi label di sumbu Y
               color: 'white', // Warna label
             },
-          },
-        },
-      },
+          }] : []), // Jika bukan Critical Stock, tidak akan menambahkan garis ini
+        ],
+      }
+      
     },
     onClick: (event, elements) => {
       if (elements.length > 0) {
@@ -561,13 +594,15 @@ const Dashboard = () => {
                   <CCol xs="auto">
                     <div
                       style={{
-                        backgroundColor: 'goldenrod',
-                        color: 'white',
+                        backgroundColor: '#FFAF00',
+                        color: 'black',
+
                         padding: '5px 10px',
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '5px',
+                        fontWeight: 'bold', // Menambahkan teks menjadi bold
                       }}
                     >
                       <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
@@ -578,13 +613,14 @@ const Dashboard = () => {
                   <CCol xs="auto">
                     <div
                       style={{
-                        backgroundColor: 'red',
+                        backgroundColor: '#F95454',
                         color: 'white',
                         padding: '5px 10px',
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '1px',
+                        fontWeight: 'bold', // Menambahkan teks menjadi bold
                       }}
                     >
                       <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
@@ -609,7 +645,7 @@ const Dashboard = () => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5, 1.5)}
+                  options={chartOptions(inventoriescritical, 0, 2.8, 2.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
                   height={410}
                 />
               )}
@@ -625,7 +661,7 @@ const Dashboard = () => {
               {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
-                  options={chartOptions(inventoriesoverflow, 0, 7, 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 10, 5)}
                   height={410}
                 />
               )}

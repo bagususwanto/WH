@@ -20,11 +20,13 @@ import {
   CModalBody,
   CModalFooter,
   CButtonGroup,
+  CFormLabel,
   CImage,
+  CCardHeader,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilHome, cilCart, cilTrash, cilLocationPin, cilArrowBottom } from '@coreui/icons'
-
+import Select from 'react-select'
 import useVerify from '../../hooks/UseVerify'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -52,7 +54,10 @@ const Confirm = () => {
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
   const [currentProducts, setCurrentProducts] = useState([])
-
+  const [isClearable, setIsClearable] = useState(true)
+  const [addressData, setAddressData] = useState([]) // List of addresses
+  const [selectedAddressCode, setSelectedAddressCode] = useState(null) // Selected address code
+  const [selectedDescription, setSelectedDescription] = useState(null) // Selected product description
   const navigate = useNavigate()
 
   const apiCategory = 'category'
@@ -174,10 +179,49 @@ const Confirm = () => {
       setCheckedItems(initialCheckedItems)
     }
   }, [productsData])
+  // Fetch product and address data
+  const getProductsAndAddresses = async () => {
+    try {
+      const responseProducts = await getProduct(1)
+      setProductsData(responseProducts.data)
+
+      const responseMasterData = await getMasterData('address') // Assuming 'address' is the correct master data type
+      setAddressData(responseMasterData.data)
+    } catch (error) {
+      console.error('Error fetching products or address data:', error)
+    }
+  }
+
+  useEffect(() => {
+    getProductsAndAddresses()
+  }, [])
+
+  const handleAddressCodeChange = (selectedOption) => {
+    setSelectedAddressCode(selectedOption)
+  }
+
+  const handleDescriptionChange = (selectedOption) => {
+    setSelectedDescription(selectedOption)
+  }
+
+  // Filter the products based on the description search
+  const filteredProducts = productsData.filter((product) =>
+    product.Material.description
+      .toLowerCase()
+      .includes(selectedDescription ? selectedDescription.label.toLowerCase() : ''),
+  )
+
+  // Filter address data to show the selected address first
+  const sortedAddressData = addressData
+    .map((address) => ({
+      value: address.id,
+      label: address.Address_Rack.addressRackName,
+    }))
+    .sort((a, b) => (a.label === selectedAddressCode?.label ? -1 : 1)) // Sort selected address to the top
 
   return (
     <CContainer>
-      <CRow>
+      <CRow className="mt-4">
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
@@ -335,48 +379,67 @@ const Confirm = () => {
         </CCol>
 
         <CCol xs={8}>
-          <CRow className="g-2">
-            {productsData.map((product, index) => (
-              <CCard className="h-80" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    <CCol xs="1">
-                      <CCardImage
-                        src={'https://via.placeholder.com/150'}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                      />
-                    </CCol>
-                    <CCol xs="6">
-                      <div>
-                        <label>{product.Material.description}</label>
-                        <br />
-                        <label className="fw-bold">{product.Address_Rack.addressRackName}</label>
-                      </div>
-                    </CCol>
-                    <CCol xs="3">
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                      >
-                      
-                        <span className="px-2 fw-light"> 2 ({product.Material?.uom || 'UOM'})</span>
-                      </div>
-                    </CCol>
-                  
-                  </CRow>
-                  <CRow>
-                 
-                  </CRow>
-                  {/* Show the rejection reason under the product if rejected */}
-                  {product.rejected && (
-                    <div style={{ marginTop: '10px' }}>
-                      <label className="fw-bold">Rejection Reason:</label>
-                      <p>{product.rejectionReason}</p>
-                    </div>
-                  )}
-                </CCardBody>
-              </CCard>
-            ))}
+          {/* Address Code Form */}
+          <CRow className="g-2 mb-3">
+            <CFormLabel htmlFor="address">Address Code</CFormLabel>
+            <Select
+              id="address"
+              isClearable
+              options={sortedAddressData}
+              value={selectedAddressCode}
+              onChange={handleAddressCodeChange}
+            />
           </CRow>
+
+          {/* Scrollable Products Section */}
+          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+            <CRow className="g-2">
+              {productsData.map((product, index) => (
+                <CCard className="h-80" key={index}>
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <CRow className="align-items-center">
+                      <CCol xs="1">
+                        <CCardImage
+                          src={'https://via.placeholder.com/150'}
+                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                        />
+                      </CCol>
+                      <CCol xs="6">
+                        <div>
+                          <label>{product.Material.description}</label>
+                          <br />
+                          <label className="fw-bold">{product.Address_Rack.addressRackName}</label>
+                        </div>
+                      </CCol>
+                      <CCol xs="3">
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span className="px-2 fw-light">
+                            {' '}
+                            2 ({product.Material?.uom || 'UOM'})
+                          </span>
+                        </div>
+                      </CCol>
+                    </CRow>
+                    <CRow></CRow>
+
+                    {/* Show the rejection reason under the product if rejected */}
+                    {product.rejected && (
+                      <div style={{ marginTop: '10px' }}>
+                        <label className="fw-bold">Rejection Reason:</label>
+                        <p>{product.rejectionReason}</p>
+                      </div>
+                    )}
+                  </CCardBody>
+                </CCard>
+              ))}
+            </CRow>
+          </div>
         </CCol>
       </CRow>
     </CContainer>

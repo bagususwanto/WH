@@ -477,7 +477,7 @@ const AppHeader = () => {
 
       <CContainer className="border-bottom px-2" fluid>
         <CCol xs={2}>
-          <a href="/" className="d-flex align-items-center">
+          <a href="/#/home" className="d-flex align-items-center">
             <img
               src="/src/assets/brand/TWIIS-NEW.png"
               alt="Logo"
