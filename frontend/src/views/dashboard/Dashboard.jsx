@@ -252,24 +252,24 @@ const Dashboard = () => {
           backgroundColor: data.map((item) => {
             // Check if stock value is below 1.5, then color it red
             if (item.stock < 1.5) {
-              return '#F95454'; // If stock is below 1.5, color red
+              return '#C7253E' // If stock is below 1.5, color red
             }
-  
+
             // Check if incoming value is filled (>= 1)
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
-              return 'forestgreen'; // If incoming is filled (>= 1), color forestgreen
+              return 'forestgreen' // If incoming is filled (>= 1), color forestgreen
             }
-  
+
             // Apply color based on chart type
             switch (chartTitle) {
               case 'Critical Stock':
-                return 'goldenrod'; // Critical -> goldenrod
+                return 'goldenrod' // Critical -> goldenrod
               case 'Low Stock':
-                return 'lightcoral'; // Lowest -> lightcoral
+                return 'lightcoral' // Lowest -> lightcoral
               case 'Overflow Stock':
-                return 'indianred'; // Overflow -> indianred
+                return 'indianred' // Overflow -> indianred
               default:
-                return 'gray'; // Default color
+                return 'gray' // Default color
             }
           }),
         },
@@ -277,7 +277,7 @@ const Dashboard = () => {
       shiftLevel, // Used to draw red line
     }
   }
-  
+
   const handleChartChange = (selectedOption) => {
     setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
   }
@@ -414,16 +414,20 @@ const Dashboard = () => {
           // Menambahkan anotasi garis putus-putus merah
           dashedLine: {
             type: 'line',
-            yMin: 1.5,  // Menentukan posisi y pada 1
-            yMax: 1.5,  // Menentukan posisi y pada 1
+            yMin: 1.5, // Menentukan posisi y pada 1.5
+            yMax: 1.5, // Menentukan posisi y pada 1.5
             borderColor: 'red',
             borderWidth: 0.5,
             borderDash: [5, 5], // Garis putus-putus
             label: {
-              display: false, // Tidak perlu label untuk garis ini
+              display: true, // Menampilkan label
+              content: 'Critical Stock 1.5 Shift', // Isi label
+              position: 'end', // Menentukan posisi label di akhir garis
+              yAdjust: -7, // Menyesuaikan posisi label di sumbu Y
+              color: 'white', // Warna label
             },
           },
-        },         
+        },
       },
     },
     onClick: (event, elements) => {
@@ -605,7 +609,7 @@ const Dashboard = () => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5,1.5)}
+                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5, 1.5)}
                   height={410}
                 />
               )}
@@ -646,9 +650,8 @@ const Dashboard = () => {
                       <CCol xs={9}>
                         {selectedData.Material.materialNo}{' '}
                         <span className="fw-light">
-                        ({selectedData.Address_Rack.Storage.Plant.plantName} )
+                          ({selectedData.Address_Rack.Storage.Plant.plantName} )
                         </span>
-                       
                       </CCol>
                     </CRow>
 
@@ -656,10 +659,9 @@ const Dashboard = () => {
                       <CCol xs={3}>
                         <strong>Description:</strong>
                       </CCol>
-                      <CCol xs={9}>{selectedData.Material.description}{' '}
-                      <span className="fw-light">
-                      ({selectedData.Material.type} )
-                      </span>
+                      <CCol xs={9}>
+                        {selectedData.Material.description}{' '}
+                        <span className="fw-light">({selectedData.Material.type} )</span>
                       </CCol>
                     </CRow>
 
@@ -675,10 +677,8 @@ const Dashboard = () => {
                         <strong>Stock Actual:</strong>
                       </CCol>
                       <CCol xs={9}>
-                        {selectedData.quantityActualCheck} {selectedData.Material.uom}{' '} 
-                        <span className="fw-light">(
-                        {selectedData.estimatedStock} Shift)
-                        </span>
+                        {selectedData.quantityActualCheck} {selectedData.Material.uom}{' '}
+                        <span className="fw-light">({selectedData.estimatedStock} Shift)</span>
                       </CCol>
                     </CRow>
 
@@ -737,7 +737,7 @@ const Dashboard = () => {
                 <Column field="quantityActualCheck" header="Actual" />
                 <Column field="stock" header="Remain Stock" />
                 <Column field="Incomings[0].createdAt" header="Incom Date" />
-                <Column field="Incomings[0].planning" header="Qty Incom"/>
+                <Column field="Incomings[0].planning" header="Qty Incom" />
                 <Column field="estimatedStock" header="Estim.Stock" />
                 <Column
                   field="evaluation"
