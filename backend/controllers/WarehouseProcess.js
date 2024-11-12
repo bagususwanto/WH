@@ -3,12 +3,13 @@ import Order from "../models/OrderModel";
 import Organization from "../models/OrganizationModel";
 import User from "../models/UserModel";
 import Warehouse from "../models/WarehouseModel";
-import Group from "../models/GroupModel";
 import Inventory from "../models/InventoryModel";
 import Material from "../models/MaterialModel";
 import AddressRack from "../models/AddressRackModel";
 import { Op } from "sequelize";
 import { postOrderHistory } from "./OrderHistory";
+import Line from "../models/LineModel";
+import Section from "../models/SectionModel";
 
 export const getOrderWarehouse = async (req, res) => {
   try {
@@ -40,7 +41,8 @@ export const getOrderWarehouse = async (req, res) => {
     if (q) {
       whereCondition[Op.or] = [
         { transactionNumber: { [Op.like]: `%${q}%` } },
-        { "$User.Organization.Group.groupName$": { [Op.like]: `%${q}%` } }, // Query terkait ke Material description
+        { "$User.Organization.Line.lineName$": { [Op.like]: `%${q}%` } },
+        { "$User.Organization.Section.sectionName$": { [Op.like]: `%${q}%` } },
       ];
     }
 
@@ -80,7 +82,11 @@ export const getOrderWarehouse = async (req, res) => {
               where: { flag: 1 },
               include: [
                 {
-                  model: Group,
+                  model: Line,
+                  where: { flag: 1 },
+                },
+                {
+                  model: Section,
                   where: { flag: 1 },
                 },
               ],
