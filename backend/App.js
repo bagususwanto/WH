@@ -41,6 +41,7 @@ import userWarehouseRouter from "./routes/UserWarehouseRouter.js";
 import approvalRouter from "./routes/ApprovalRouter.js";
 import harcodedRouter from "./routes/HarcodedRouter.js";
 import notificationRouter from "./routes/NotificationRouter.js";
+import warehouseProcessRouter from "./routes/WarehouseProcessRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -113,6 +114,9 @@ app.use("/api", orderRouter);
 
 // Approval router
 app.use("/api", approvalRouter);
+
+// Warehouse process router
+app.use("/api", warehouseProcessRouter);
 
 // Incoming router
 app.use("/api", incomingRouter);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
 import {
   cilAccountLogout,
@@ -33,12 +34,40 @@ import {
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
 import config from './utils/Config'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import useAuthService from './services/AuthService'
 
 const useNavigation = () => {
   const [navigation, setNavigation] = useState([])
   const { roleName } = useVerify()
-  //NAV HOME
+
+  const MySwal = withReactContent(Swal)
+  const navigate = useNavigate()
+  const { logout } = useAuthService()
+
+  const handleLogout = async () => {
+    try {
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: 'Do you really want to log out?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, log out',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+      })
+      if (result.isConfirmed) {
+        await logout()
+        navigate('/login')
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   useEffect(() => {
+    // NAV HOME
     const baseNav = [
       {
         component: CNavItem,
@@ -71,7 +100,7 @@ const useNavigation = () => {
       baseNav.push(
         {
           component: CNavTitle,
-          name: 'INVENTORY',
+          name: 'TWIIS',
         },
         {
           component: CNavGroup,
@@ -113,10 +142,6 @@ const useNavigation = () => {
     if (roleName === 'super admin') {
       baseNav.push(
         {
-          component: CNavTitle,
-          name: 'Order',
-        },
-        {
           component: CNavGroup,
           name: 'TWISS-Order',
           to: '/order',
@@ -129,7 +154,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}#/home`, '_blank') // Opens URL in a new tab
+                window.open(`${config.ORDER_URL}/#/home`, '_blank') // Opens URL in a new tab
               },
             },
 
@@ -140,14 +165,10 @@ const useNavigation = () => {
               icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}#/approveall`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}/#/approveall`, '_blank') // Use base URL from config
               },
             },
           ],
-        },
-        {
-          component: CNavTitle,
-          name: 'Confirmation Order',
         },
         {
           component: CNavGroup,
@@ -162,7 +183,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilEnvelopeLetter} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}#/confirmall`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}/#/confirmall`, '_blank') // Use base URL from config
               },
             },
             {
@@ -172,7 +193,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.ORDER_URL}#/shopping`, '_blank') // Use base URL from config
+                window.open(`${config.ORDER_URL}/#/shopping`, '_blank') // Use base URL from config
               },
             },
           ],
@@ -199,7 +220,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}#/home`, '_blank') // Opens URL in a new tab
+            window.open(`${config.ORDER_URL}/#/home`, '_blank') // Opens URL in a new tab
           },
         },
       )
@@ -218,7 +239,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}#/approveall`, '_blank') // Opens URL in a new tab
+            window.open(`${config.ORDER_URL}/#/approveall`, '_blank') // Opens URL in a new tab
           },
         },
       )
@@ -237,7 +258,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}#/confirmall`, '_blank') // Use base URL from config
+            window.open(`${config.ORDER_URL}/#/confirmall`, '_blank') // Use base URL from config
           },
         },
       )
@@ -256,7 +277,7 @@ const useNavigation = () => {
           icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
           onClick: (e) => {
             e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}#/shopping`, '_blank') // Use base URL from config
+            window.open(`${config.ORDER_URL}/#/shopping`, '_blank') // Use base URL from config
           },
         },
       )
@@ -380,8 +401,12 @@ const useNavigation = () => {
       {
         component: CNavItem,
         name: 'Logout',
-        to: '/logout',
         icon: <CIcon icon={cilAccountLogout} customClassName="nav-icon" />,
+        to: '/logout',
+        onClick: (e) => {
+          e.preventDefault()
+          handleLogout()
+        },
       },
     )
 

@@ -346,7 +346,7 @@ export const createUserAndOrg = async (req, res) => {
         sectionId: role.roleName === "section head" ? sectionId : null,
         departmentId: role.roleName === "department head" ? departmentId : null,
         divisionId: role.roleName === "division head" ? divisionId : null,
-        warehouseId: role.roleName === "warehouse staff" ? warehouseId : null,
+        warehouseId: role.roleName === "warehouse staff" || role.roleName === "warehouse member" ? warehouseId : null,
         organizationId: organizationId,
         isProduction: isProduction,
         anotherWarehouseId: warehouseId,
