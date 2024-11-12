@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import {
   CCard,
@@ -88,34 +88,22 @@ const Confirm = () => {
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
-
+  const location = useLocation()
+  const { Confirmapproval } = location.state
+console.log (Confirmapproval)
   const navigate = useNavigate()
 
   const apiCategory = 'category'
 
-  const getProducts = async () => {
-    try {
-      const response = await getProduct(1)
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-
-  const getCategories = async () => {
-    try {
-      const response = await getMasterData(apiCategory)
-      setCategoriesData(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.Material.id === productId)
-  }
+ 
   useEffect(() => {
-    getProducts()
-  }, [])
+    if(Confirmapproval.deliveryMethod=='Pickup'){
+      setIsPickup(true)
+      
+    }else {
+      setIsPickup(false)
+    }
+  }, [Confirmapproval])
 
   // This is where currentProducts is initialized
   const indexOfLastItem = currentPage * itemsPerPage
@@ -202,6 +190,8 @@ const Confirm = () => {
     setClicked(true)
     navigate('/order')
   }
+ 
+
 
   return (
     <CContainer>
@@ -209,7 +199,7 @@ const Confirm = () => {
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
-              {roleName === 'super admin' && (
+              {/* {roleName === 'super admin' && ( */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                   <img
                     src="path-to-user-photo.jpg"
@@ -223,7 +213,7 @@ const Confirm = () => {
                   />
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <div>
-                      <strong>FORM:</strong> ANDI (TEAM LEADER)
+                      <strong>FORM:</strong> {Confirmapproval.User.name}
                     </div>
                     <div>
                       <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
@@ -233,7 +223,7 @@ const Confirm = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <CFormCheck
@@ -346,24 +336,24 @@ const Confirm = () => {
 
         <CCol xs={8}>
           <CRow className="g-2">
-          {currentProducts.map((product, index) => ( // Change from productsData to currentProducts
+          {Confirmapproval.Detail_Orders.map((product, index) => ( // Change from productsData to currentProducts
               <CCard className="h-80" key={product.id}>
                 <CCardBody className="d-flex flex-column justify-content-between">
                   <CRow className="align-items-center">
                     <CCol xs="1">
                       <CCardImage
-                        src={product.Material.img || 'https://via.placeholder.com/150'}
+                        src={'https://via.placeholder.com/150'}
                         style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       />
                     </CCol>
                     <CCol xs="6">
                       <div>
                         <label>
-                          {product.Material.description} 
+                          {product.Inventory.Material.description} 
                         </label>
                         <br></br>
                         <label className="fw-bold fs-6">
-                          Rp {product.Material.price.toLocaleString('id-ID')}
+                          Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
                         </label>
                       </div>
                     </CCol>

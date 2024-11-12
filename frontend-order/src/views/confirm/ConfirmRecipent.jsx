@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import config from '../../utils/Config'
+import 'react-loading-skeleton/dist/skeleton.css'
+import Skeleton from 'react-loading-skeleton';
 import {
   CCard,
   CCardBody,
@@ -58,6 +60,8 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
+  
+  const [isLoading, setIsLoading] = useState(verifiedCartItems); // Track loading state
   console.log(verifiedCartItems)
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {

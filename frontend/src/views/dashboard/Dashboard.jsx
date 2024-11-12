@@ -250,22 +250,26 @@ const Dashboard = () => {
           label: chartTitle,
           data: data.map((item) => item.stock),
           backgroundColor: data.map((item) => {
-            // Check incoming value
-            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
-              // If incoming is filled (>= 1)
-              return 'forestgreen' // Change to red for incoming >= 1
+            // Check if stock value is below 1.5, then color it red
+            if (item.stock < 1.5) {
+              return '#F95454'; // If stock is below 1.5, color red
             }
-
+  
+            // Check if incoming value is filled (>= 1)
+            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
+              return 'forestgreen'; // If incoming is filled (>= 1), color forestgreen
+            }
+  
             // Apply color based on chart type
             switch (chartTitle) {
               case 'Critical Stock':
-                return 'salmon' // Critical -> skyblue
+                return 'goldenrod'; // Critical -> goldenrod
               case 'Low Stock':
-                return 'lightcoral' // Lowest -> blue
+                return 'lightcoral'; // Lowest -> lightcoral
               case 'Overflow Stock':
-                return 'indianred' // Overflow -> darkblue
+                return 'indianred'; // Overflow -> indianred
               default:
-                return 'gray' // Default color
+                return 'gray'; // Default color
             }
           }),
         },
@@ -273,6 +277,7 @@ const Dashboard = () => {
       shiftLevel, // Used to draw red line
     }
   }
+  
   const handleChartChange = (selectedOption) => {
     setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
   }
@@ -406,7 +411,19 @@ const Dashboard = () => {
               color: 'white',
             },
           },
-        },
+          // Menambahkan anotasi garis putus-putus merah
+          dashedLine: {
+            type: 'line',
+            yMin: 1.5,  // Menentukan posisi y pada 1
+            yMax: 1.5,  // Menentukan posisi y pada 1
+            borderColor: 'red',
+            borderWidth: 0.5,
+            borderDash: [5, 5], // Garis putus-putus
+            label: {
+              display: false, // Tidak perlu label untuk garis ini
+            },
+          },
+        },         
       },
     },
     onClick: (event, elements) => {
@@ -540,7 +557,7 @@ const Dashboard = () => {
                   <CCol xs="auto">
                     <div
                       style={{
-                        backgroundColor: 'green',
+                        backgroundColor: 'goldenrod',
                         color: 'white',
                         padding: '5px 10px',
                         borderRadius: '4px',
@@ -549,7 +566,7 @@ const Dashboard = () => {
                         gap: '5px',
                       }}
                     >
-                      <div style={{ fontSize: '12px' }}>Incoming</div>
+                      <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
                     </div>
                   </CCol>
 
@@ -566,7 +583,7 @@ const Dashboard = () => {
                         gap: '1px',
                       }}
                     >
-                      <div style={{ fontSize: '12px' }}>Not Yet Incoming</div>
+                      <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
                     </div>
                   </CCol>
                 </>
@@ -588,7 +605,7 @@ const Dashboard = () => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5)}
+                  options={chartOptions(inventoriescritical, 0, 2.7, 2.5,1.5)}
                   height={410}
                 />
               )}
@@ -719,8 +736,8 @@ const Dashboard = () => {
 
                 <Column field="quantityActualCheck" header="Actual" />
                 <Column field="stock" header="Remain Stock" />
-                <Column field="Incomings" header="Incom Date" />
-                <Column field="Incomings" header="Qty Incom" />
+                <Column field="Incomings[0].createdAt" header="Incom Date" />
+                <Column field="Incomings[0].planning" header="Qty Incom"/>
                 <Column field="estimatedStock" header="Estim.Stock" />
                 <Column
                   field="evaluation"

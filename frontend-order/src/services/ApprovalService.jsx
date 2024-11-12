@@ -13,16 +13,18 @@ const useApprovalService = () => {
     throw new Error(message + error.message)
   }
 
-  const getApproval = async () => {
+  
+
+  const getApproval = async (warehouseid, role) => {
     try {
-      const response = await axiosJWT.get(`/`, {
+      const response = await axiosJWT.get(`/approval/${warehouseid}?page=1&limit=10&role=${role}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       return response
     } catch (error) {
-      handleError(error, 'Error fetching Approval:')
+      handleError(error, 'Error fetching inventory:')
     }
   }
 
@@ -39,11 +41,8 @@ const useApprovalService = () => {
     }
   }
 
- 
   return {
     getApproval,
-  
-  
   }
 }
 
