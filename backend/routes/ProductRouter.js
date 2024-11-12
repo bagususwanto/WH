@@ -1,5 +1,4 @@
 import express from "express";
-import { checkRole } from "../middleware/RoleMiddleware.js";
 import { getProduct, getProductByCategory, getProductByQuery, getAllProduct } from "../controllers/Product.js";
 
 const router = express.Router();
