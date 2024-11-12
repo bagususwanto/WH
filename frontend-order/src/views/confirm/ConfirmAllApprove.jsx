@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.css'
 import { InputText } from 'primereact/inputtext'
+import { format, parseISO } from 'date-fns'
 import {
   CCard,
   CCardBody,
@@ -49,6 +50,8 @@ import {
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import useApprovalService from '../../services/ApprovalService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 import 'react-datepicker/dist/react-datepicker.css' // Import datepicker style
 
@@ -88,13 +91,28 @@ const ApproveAll = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [currentProducts, setCurrentProducts] = useState([])
   const navigate = useNavigate()
+  const [myApprovalData, setMyApprovalData] = useState([])
+  const { getApproval } = useApprovalService()
+  const { warehouse } = useContext(GlobalContext)
+  const [activeTab, setActiveTab] = useState('line head')
 
   const apiCategory = 'category'
   const apiUser = 'user'
 
-  const getProducts = async () => {
-    const response = await getProduct(1)
-    setProductsData(response.data)
+  const getApprove = async () => {
+    try {
+      if (warehouse && warehouse.id) {
+        const response = await getApproval(warehouse.id, 'line head')
+        setMyApprovalData(response.data)
+        console.log('warehuse id :', warehouse.id)
+        console.log('tess', response.data)
+      } else {
+        console.log('warehouse id not found')
+      }
+      console.log(activeTab)
+    } catch (error) {
+      console.error('Error fetching Approval:', error)
+    }
   }
 
   const getUsers = async () => {
@@ -103,9 +121,12 @@ const ApproveAll = () => {
   }
 
   useEffect(() => {
-    getProducts()
-    getUsers()
-  }, [])
+    getApprove()
+    getUsers
+  }, [warehouse])
+  console.log('aba', myApprovalData)
+  console.log('aca', warehouse.id)
+  console.log('ada', activeTab)
 
   const filteredProducts = selectedDate
     ? productsData.filter((product) => {
@@ -152,10 +173,10 @@ const ApproveAll = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleViewHistoryOrder = (product) => {
-    setSelectedProduct(product)
+  const handleViewHistoryOrder = (Confirmapproval) => {
+    setSelectedProduct(Confirmapproval)
     setVisible(true)
-    navigate('/confirmapp', { state: { product } })
+    navigate('/confirmapp', { state: { Confirmapproval } })
   }
   const handleSearchInputChange = (e) => {
     const query = e.target.value
@@ -251,7 +272,7 @@ const ApproveAll = () => {
       <CRow>
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+            <h3 className="fw-bold fs-4">GOOD ISSUE APPROVAL</h3>
 
             <CRow>
               {/* Left side: Search field */}
@@ -309,18 +330,12 @@ const ApproveAll = () => {
           </CCardBody>
         </CCard>
       </CRow>
-      <CTabs activeItemKey={2}>
+      <CTabs activeItemKey={1}>
         <CTabList variant="pills">
           <CTab aria-controls="Confirmation-tab-pane" itemKey={1}>
-            Waiting Approve LH
+            Waiting Approve
           </CTab>
-          <CTab aria-controls="Shopping-tab-pane" itemKey={2}>
-            Waiting Approve SH
-          </CTab>
-          <CTab aria-controls="Ready Delivery-tab-pane" itemKey={3}>
-            Waiting Approve DPH
-          </CTab>
-          <CTab aria-controls="Ready Pickup-tab-pane" itemKey={4}>
+          <CTab aria-controls="Ready Pickup-tab-pane" itemKey={2}>
             Approved
           </CTab>
         </CTabList>
@@ -334,80 +349,89 @@ const ApproveAll = () => {
                 {/* Scrollable product cards */}
                 <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
                   <CRow className="g-1 mt-1">
-                    {productsData.map((product, index) => (
-                      <CCard className="h-78 mb-2" key={index}>
-                        <CCardBody className="d-flex flex-column justify-content-between">
-                          <CRow className="align-items-center">
-                            {/* Order information */}
-                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <CCol>
-                                <CIcon className="me-2" icon={cilUser} />
-                                <label className="me-2 fs-6">3 Oktober 2024</label>
-                                <CBadge
-                                  className="me-2"
-                                  size="sm"
-                                  color={getSeverity('On Process')}
-                                >
-                                  Waiting Approval
-                                </CBadge>
-                                <label className="me-2 fw-light">X21000000000/20/20</label>
-                              </CCol>
-                            </div>
+                    {myApprovalData.length > 0 ? (
+                      myApprovalData.map((approval) => (
+                        <CCard className="h-78 mb-2">
+                          <CCardBody className="d-flex flex-column justify-content-between">
+                            <CRow className="align-items-center">
+                              {/* Order information */}
+                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                                <CCol>
+                                  <CIcon className="me-2" icon={cilUser} />
+                                  <label className="me-2 fs-6">
+                                    {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
+                                  </label>
+                                  <CBadge
+                                    className="me-2"
+                                    size="sm"
+                                    color={getSeverity('On Process')}
+                                  >
+                                    Waiting Approval
+                                  </CBadge>
+                                  <label className="me-2 fw-light">{approval.requestNumber}</label>
+                                </CCol>
+                              </div>
 
-                            {/* Product and user information */}
-                            <CRow xs="1">
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>Form:</strong> ANDI (TEAM LEADER)
+                              {/* Product and user information */}
+                              <CRow xs="1">
+                                <CCol xs="1">
+                                  {userData.map((user) => (
+                                    <CCardImage
+                                      key={user.id}
+                                      src={user.img}
+                                      style={{ height: '100%', width: '100%' }}
+                                    />
+                                  ))}
+                                </CCol>
+                                <CCol xs="4">
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div>
+                                      <strong>Form:</strong> {approval.User.name}
+                                    </div>
+                                    <div>
+                                      <strong>Role:</strong> {approval.User.position}
+                                    </div>
+                                    <div>
+                                      <strong>Line:</strong> {approval.User.Organization.Line.lineName}
+                                    </div>
                                   </div>
-                                  <div>
-                                    <strong>Grup:</strong> ASSY PRE TRIM 2 OPR RED
-                                  </div>
-                                  <div>
-                                    <small>Request at 11:19</small>
-                                  </div>
-                                </div>
-                              </CCol>
-                              <CCol xs="4">
-                                <label>{product.Material.description}</label>
-                                <br />
-                                <label className="fw-bold fs-6">Total: 4 Item</label>
-                              </CCol>
-                              <CCol className="text-end">
-                                <label className="fw-bold fs-6">
-                                  Rp {product.Material.price.toLocaleString('id-ID')}
-                                </label>
-                                <br />
-                                <label className="me-2">WBS : 20000000</label>
-                              </CCol>
-                            </CRow>
+                                </CCol>
+                                <CCol xs="4">
+                                  <label className="fw-bold fs-6">
+                                    Total: {approval.Detail_Orders.length}
+                                  </label>
+                                </CCol>
+                                <CCol className="text-end">
+                                  <label className="fw-bold fs-6">Rp</label>
+                                  <br />
+                                  <label className="me-2">
+                                    {approval.paymentMethod}:{approval.paymentNumber}
+                                  </label>
+                                </CCol>
+                              </CRow>
 
-                            {/* View Detail button */}
-                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleViewHistoryOrder(product)}
-                                  color="primary"
-                                  size="sm"
-                                >
-                                  View Detail Order
-                                </CButton>
-                              </CCol>
+                              {/* View Detail button */}
+                              <CRow
+                                xs="1"
+                                className="d-flex justify-content-end align-items-center"
+                              >
+                                <CCol xs={4} className="d-flex justify-content-end">
+                                  <CButton
+                                    onClick={() => handleViewHistoryOrder(approval)}
+                                    color="primary"
+                                    size="sm"
+                                  >
+                                    View Detail Order
+                                  </CButton>
+                                </CCol>
+                              </CRow>
                             </CRow>
-                          </CRow>
-                        </CCardBody>
-                      </CCard>
-                    ))}
+                          </CCardBody>
+                        </CCard>
+                      ))
+                    ) : (
+                      <p>No Approval available.</p>
+                    )}
                   </CRow>
                 </div>
 
@@ -476,78 +500,158 @@ const ApproveAll = () => {
             </CRow>
           </CTabPanel>
 
-          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={4}>
+          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={2}>
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
                 <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
                   <CRow className="g-1 mt-1">
-                    {productsData.map((product, index) => (
-                      <CCard className="h-78 mb-2" key={index}>
-                        <CCardBody className="d-flex flex-column justify-content-between">
-                          <CRow className="align-items-center">
-                            {/* Order information */}
-                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <CCol>
-                                <CIcon className="me-2" icon={cilUser} />
-                                <label className="me-2 fs-6">3 Oktober 2024</label>
-                                <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                                  Approved
-                                </CBadge>
-                                <label className="me-2 fw-light">X21000000000/20/20</label>
-                              </CCol>
-                            </div>
+                    {myApprovalData.length > 0 ? (
+                      myApprovalData.map((approval) => (
+                        <CCard className="h-78 mb-2">
+                          <CCardBody className="d-flex flex-column justify-content-between">
+                            <CRow className="align-items-center">
+                              {/* Order information */}
+                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                                <CCol>
+                                  <CIcon className="me-2" icon={cilUser} />
+                                  <label className="me-2 fs-6">{approval.createdAt}</label>
+                                  <CBadge
+                                    className="me-2"
+                                    size="sm"
+                                    color={getSeverity('On Process')}
+                                  >
+                                    Waiting Approval
+                                  </CBadge>
+                                  <label className="me-2 fw-light">{approval.requestNumber}</label>
+                                </CCol>
+                              </div>
 
-                            {/* Product and user information */}
-                            <CRow xs="1">
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>Form:</strong> ANDI (TEAM LEADER)
+                              {/* Product and user information */}
+                              <CRow xs="1">
+                                <CCol xs="1">
+                                  {userData.map((user) => (
+                                    <CCardImage
+                                      key={user.id}
+                                      src={user.img}
+                                      style={{ height: '100%', width: '100%' }}
+                                    />
+                                  ))}
+                                </CCol>
+                                <CCol xs="4">
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div>
+                                      <strong>Form:</strong> {approval.User.username}
+                                    </div>
+                                    <div>
+                                      <strong>Role:</strong> {approval.User.Organization.position}
+                                    </div>
+                                    <div>
+                                      <strong>Grup:</strong> {approval.User.Organization.groupId}
+                                    </div>
+                                    <div>
+                                      <small>{approval.createdAt}</small>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <strong>Grup:</strong> ASSY PRE TRIM 2 OPR RED
-                                  </div>
-                                  <div>
-                                    <small>Request at 11:19</small>
-                                  </div>
-                                </div>
-                              </CCol>
-                              <CCol xs="4">
-                                <label>{product.Material.description}</label>
-                                <br />
-                                <label className="fw-bold fs-6">Total: 4 Item</label>
-                              </CCol>
-                              <CCol className="text-end">
-                                <label className="fw-bold fs-6">
-                                  Rp {product.Material.price.toLocaleString('id-ID')}
-                                </label>
-                                <br />
-                                <label className="me-2">WBS : 20000000</label>
-                              </CCol>
-                            </CRow>
+                                </CCol>
+                                <CCol xs="4">
+                                  <label className="fw-bold fs-6">Total: 4 Item</label>
+                                </CCol>
+                                <CCol className="text-end">
+                                  <label className="fw-bold fs-6">Rp</label>
+                                  <br />
+                                  <label className="me-2">
+                                    {approval.paymentMethod}:{approval.paymentNumber}
+                                  </label>
+                                </CCol>
+                              </CRow>
 
-                            {/* View Detail button */}
-                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end"></CCol>
+                              {/* View Detail button */}
+                              <CRow
+                                xs="1"
+                                className="d-flex justify-content-end align-items-center"
+                              >
+                                <CCol xs={4} className="d-flex justify-content-end">
+                                  <CButton
+                                    onClick={() => handleViewHistoryOrder(product)}
+                                    color="primary"
+                                    size="sm"
+                                  >
+                                    View Detail Order
+                                  </CButton>
+                                </CCol>
+                              </CRow>
                             </CRow>
-                          </CRow>
-                        </CCardBody>
-                      </CCard>
-                    ))}
+                          </CCardBody>
+                        </CCard>
+                      ))
+                    ) : (
+                      <p>No Approval available.</p>
+                    )}
                   </CRow>
                 </div>
 
                 {/* Modal for product details */}
+                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+                  <CModalHeader>
+                    <CModalTitle>Product Details</CModalTitle>
+                  </CModalHeader>
+                  <CModalBody>
+                    {selectedProduct && (
+                      <CRow className="g-1 mt-2">
+                        <CCard className="h-80">
+                          <CCardBody className="d-flex flex-column justify-content-between">
+                            <CRow className="align-items-center">
+                              <CCol xs="1">
+                                <CCardImage
+                                  src={
+                                    selectedProduct.Material.img ||
+                                    'https://via.placeholder.com/150'
+                                  }
+                                  alt={selectedProduct.Material.description}
+                                  style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                                />
+                              </CCol>
+                              <CCol xs="6" className="mb-2">
+                                <div>
+                                  <label>{selectedProduct.Material.description}</label>
+                                  <br />
+                                  <label className="fw-bold fs-6">
+                                    Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
+                                  </label>
+                                </div>
+                              </CCol>
+                              <CCol xs="5">
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                  }}
+                                >
+                                  <label className="d-flex flex-column justify-content-between fs-6">
+                                    Status:
+                                  </label>
+                                  <CBadge
+                                    className="me-2"
+                                    size="sm"
+                                    color={getSeverity('Completed')}
+                                  >
+                                    ON PROCESS
+                                  </CBadge>
+                                </div>
+                              </CCol>
+                            </CRow>
+
+                            {/* History Order Timeline */}
+
+                            <CRow></CRow>
+                          </CCardBody>
+                        </CCard>
+                      </CRow>
+                    )}
+                  </CModalBody>
+                </CModal>
               </CCard>
             </CRow>
           </CTabPanel>
