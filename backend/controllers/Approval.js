@@ -380,6 +380,20 @@ export const approveOrder = async (req, res) => {
     const role = req.user.roleName;
     const updateQuantity = req.body.updateQuantity;
 
+    // Example data updateQuantity
+    // {
+    //   "updateQuantity": [
+    //     {
+    //       "detailOrderId": 1,
+    //       "quantity": 50
+    //     },
+    //     {
+    //       "detailOrderId": 2,
+    //       "quantity": 30
+    //     }
+    //   ]
+    // }
+
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
     });
@@ -450,7 +464,7 @@ export const approveOrder = async (req, res) => {
     // Jika isLastApproval = 1, update isApproval = 1
     if (isLast == 1) {
       const order = await Order.update(
-        { isApproval: 1, transactionNumber: await generateOrderNumber(1), status: "on process" },
+        { isApproval: 1, transactionNumber: await generateOrderNumber(1), status: "approved" },
         { where: { id: orderId }, transaction }
       );
 

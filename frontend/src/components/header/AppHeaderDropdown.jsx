@@ -14,16 +14,38 @@ import profile from './../../assets/images/avatars/profile.png'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
+import swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import useAuthService from '../../services/AuthService'
 
 const AppHeaderDropdown = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const { name } = useVerify()
   const navigate = useNavigate()
+  const { logout } = useAuthService()
+  const MySwal = withReactContent(swal)
 
-  const handleLogout = () => {
-    navigate('/logout')
+  const handleLogout = async () => {
+    try {
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: 'Do you really want to log out?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, log out',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+      })
+      if (result.isConfirmed) {
+        await logout()
+        navigate('/login')
+      }
+    } catch (error) {
+      console.error(error)
+    }
   }
+
   const handleProfile = () => {
     navigate('/profile')
   }

@@ -40,7 +40,7 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: ["waiting approval", "on process", "ready to pickup", "ready to deliver"],
+          [Op.in]: ["waiting approval", "approved", "on process", "ready to pickup", "ready to deliver"],
         },
       },
       include: [
@@ -705,7 +705,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: leftTransactionNo == "TR" ? "on process" : "waiting approval",
+        status: leftTransactionNo == "TR" ? "approved" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
