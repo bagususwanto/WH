@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import 'react-loading-skeleton/dist/skeleton.css'
-import Skeleton from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton'
 import { AiFillHeart } from 'react-icons/ai'
 import {
   CCard,
@@ -99,6 +99,7 @@ const ProductList = () => {
         setProductsData([])
         return
       }
+      setProductsData([])
       const newProducts = response.data
       setProductsData((prevProducts) => [...prevProducts, ...newProducts])
       setHasMore(newProducts.length === 25) // Misalkan limit per halaman adalah 24
@@ -296,18 +297,10 @@ const ProductList = () => {
 
   return (
     <>
-         {productsData.length === 0 ? (
-      <CRow>
+      {productsData.length === 0 ? (
+        <CRow>
           {[...Array(12)].map((_, index) => (
-            <CCol
-              key={index}
-              xs="6"
-              sm="6"
-              md="3"
-              lg="4"
-              xl="2"
-              className="mb-3"
-            >
+            <CCol key={index} xs="6" sm="6" md="3" lg="4" xl="2" className="mb-3">
               <CCard className="h-100">
                 <Skeleton height={150} />
                 <CCardBody className="d-flex flex-column justify-content-between">
@@ -315,8 +308,20 @@ const ProductList = () => {
                     <Skeleton count={2} height={20} width="80%" style={{ marginBottom: '10px' }} />
                   </div>
                   <CRow className="mt-auto align-items-center">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                        }}
+                      >
                         <CCol sm="auto">
                           <Skeleton width={80} height={30} />
                         </CCol>
@@ -332,97 +337,100 @@ const ProductList = () => {
           ))}
         </CRow>
       ) : (
-      <CRow>
-        {productsData.map((product, index) => (
-          <CCol
-            xs="6"
-            sm="6"
-            md="3"
-            lg="4"
-            xl="2"
-            key={`${product.Material.id}-${index}`}
-            className="mb-3"
-          >
-            <CCard className="h-100">
-              <CCardImage
-                orientation="top"
-                src={`${config.BACKEND_URL}${product.Material.img}`}
-                alt={product.Material.description}
-                style={{
-                  width: '100%', // Ensure it takes the full width
-                  height: '150px', // Fixed height for uniformity
-                  objectFit: 'contain', // Keep the aspect ratio
-                }}
-              />
-              <CCardBody className="d-flex flex-column justify-content-between">
-                <div>
-                  <CCardTitle style={{ fontSize: '14px' }}>
-                    {product.Material.description}
-                  </CCardTitle>
-                  <CCardTitle style={{ fontSize: '12px' }}>
-                    {product.Material.materialNo}
-                  </CCardTitle>
-                </div>
-                <CRow className="mt-auto align-items-center">
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
+        <CRow>
+          {productsData.map((product, index) => (
+            <CCol
+              xs="6"
+              sm="6"
+              md="3"
+              lg="4"
+              xl="2"
+              key={`${product.Material.id}-${index}`}
+              className="mb-3"
+            >
+              <CCard className="h-100">
+                <CCardImage
+                  orientation="top"
+                  src={`${config.BACKEND_URL}${product.Material.img}`}
+                  alt={product.Material.description}
+                  style={{
+                    width: '100%', // Ensure it takes the full width
+                    height: '150px', // Fixed height for uniformity
+                    objectFit: 'contain', // Keep the aspect ratio
+                  }}
+                />
+                <CCardBody className="d-flex flex-column justify-content-between">
+                  <div>
+                    <CCardTitle style={{ fontSize: '14px' }}>
+                      {product.Material.description}
+                    </CCardTitle>
+                    <CCardTitle style={{ fontSize: '12px' }}>
+                      {product.Material.materialNo}
+                    </CCardTitle>
+                  </div>
+                  <CRow className="mt-auto align-items-center">
                     <div
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
                     >
-                      {/* {calculateStockStatus(product) === 'Out of Stock' && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        {/* {calculateStockStatus(product) === 'Out of Stock' && (
                         <CCol sm="auto" className="mb-1">
                           <CBadge textBgColor="light">Out of Stock</CBadge>
                         </CCol>
                       )} */}
 
-                      {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
-                      <CCol sm="auto">
+                        {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                        <CCol sm="auto">
+                          <CButton
+                            className="box btn-sm"
+                            color="primary"
+                            style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                            onClick={() => handleModalCart(product)}
+                          >
+                            Add to Cart
+                          </CButton>
+                        </CCol>
+                        {/* )} */}
+                      </div>
+
+                      <CCol sm="auto" className="ms-2">
                         <CButton
-                          className="box btn-sm"
-                          color="primary"
-                          style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
-                          onClick={() => handleModalCart(product)}
+                          onClick={() => handleToggleWishlist(product)}
+                          style={{
+                            backgroundColor: 'transparent', // No background for the button
+                            border: 'black', // Menghilangkan border default button
+                            padding: '0', // No padding, membuat button sekecil ikon
+                            outline: 'none', // Menghapus outline pada focus button
+                          }}
                         >
-                          Add to Cart
+                          <AiFillHeart
+                            style={{
+                              color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                              stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                              strokeWidth: '15px', // Tebal garis luar
+                            }}
+                            size={20} // Ukuran ikon
+                          />
                         </CButton>
                       </CCol>
-                      {/* )} */}
                     </div>
-
-                    <CCol sm="auto" className="ms-2">
-                     
-                      <CButton
-                        onClick={() => handleToggleWishlist(product)}
-                        style={{
-                          backgroundColor: 'transparent', // No background for the button
-                          border: 'black', // Menghilangkan border default button
-                          padding: '0', // No padding, membuat button sekecil ikon
-                          outline: 'none', // Menghapus outline pada focus button
-                        }}
-                      >
-                        <AiFillHeart
-                          style={{
-                            color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                            stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                            strokeWidth: '15px', // Tebal garis luar
-                          }}
-                          size={20} // Ukuran ikon
-                        />
-                      </CButton>
-                    </CCol>
-                  </div>
-                </CRow>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        ))}
-      </CRow>
-    )}
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          ))}
+        </CRow>
+      )}
 
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
