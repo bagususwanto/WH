@@ -406,8 +406,9 @@ const ApproveAll = () => {
                               <CCol className="text-end">
                                 <label className="fw-bold fs-6">
                                   Rp
-                                  {Number(
-                                    approval.Detail_Orders.Inventory.Material.price,
+                                  {approval.Detail_Orders.reduce(
+                                    (total, order) => total + (order.Inventory.Material.price || 0),
+                                    0,
                                   ).toLocaleString('id-ID')}
                                 </label>
 
