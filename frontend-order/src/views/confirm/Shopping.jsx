@@ -59,7 +59,7 @@ const Confirm = () => {
   const [selectedAddressCode, setSelectedAddressCode] = useState(null) // Selected address code
   const [selectedDescription, setSelectedDescription] = useState(null) // Selected product description
   const navigate = useNavigate()
-
+  const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
 
   const getProducts = async () => {
@@ -211,17 +211,25 @@ const Confirm = () => {
       .includes(selectedDescription ? selectedDescription.label.toLowerCase() : ''),
   )
 
-  // Filter address data to show the selected address first
   const sortedAddressData = addressData
-    .map((address) => ({
-      value: address.id,
-      label: address.Address_Rack.addressRackName,
-    }))
-    .sort((a, b) => (a.label === selectedAddressCode?.label ? -1 : 1)) // Sort selected address to the top
+  .map((address) => ({
+    value: address.id,
+    label: address.Address_Rack.addressRackName,
+  }))
+  .sort((a, b) => {
+    if (a.label === selectedAddressCode?.label) {
+      return -1;  // Put the selected address at the top
+    }
+    if (b.label === selectedAddressCode?.label) {
+      return 1;   // Put the selected address at the top
+    }
+    return 0;  // Keep the order of other addresses unchanged
+  });
+
 
   return (
     <CContainer>
-      <CRow className="mt-4">
+      <CRow className="mt-1">
         <CCol xs={4}>
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
@@ -380,7 +388,7 @@ const Confirm = () => {
 
         <CCol xs={8}>
           {/* Address Code Form */}
-          <CRow className="g-2 mb-3">
+          <CRow className="g-1   mb-2">
             <CFormLabel htmlFor="address">Address Code</CFormLabel>
             <Select
               id="address"
@@ -395,7 +403,15 @@ const Confirm = () => {
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
             <CRow className="g-2">
               {productsData.map((product, index) => (
-                <CCard className="h-80" key={index}>
+                <CCard
+                  className={`h-80 ${selectedCardIndexes.includes(index) ? 'bg-success text-white' : ''}`} // Apply green background if selected
+                  key={index}
+                  onClick={() => handleCardClick(index)} // Handle card click
+                  style={{
+                    cursor: 'pointer', // Show pointer cursor on hover to indicate it's clickable
+                    transition: 'background-color 0.3s', // Smooth transition for background color change
+                  }}
+                >
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <CRow className="align-items-center">
                       <CCol xs="1">
@@ -404,14 +420,14 @@ const Confirm = () => {
                           style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
                       </CCol>
-                      <CCol xs="6">
+                      <CCol xs="8">
                         <div>
                           <label>{product.Material.description}</label>
                           <br />
                           <label className="fw-bold">{product.Address_Rack.addressRackName}</label>
                         </div>
                       </CCol>
-                      <CCol xs="3">
+                      <CCol xs="2">
                         <div
                           style={{
                             display: 'flex',
@@ -419,14 +435,11 @@ const Confirm = () => {
                             alignItems: 'center',
                           }}
                         >
-                          <span className="px-2 fw-light">
-                            {' '}
-                            2 ({product.Material?.uom || 'UOM'})
-                          </span>
+                          <span>2</span>
+                          <span className="px-2 fw-light">{product.Material?.uom || 'UOM'}</span>
                         </div>
                       </CCol>
                     </CRow>
-                    <CRow></CRow>
 
                     {/* Show the rejection reason under the product if rejected */}
                     {product.rejected && (

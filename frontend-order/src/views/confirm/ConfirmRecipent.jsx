@@ -60,9 +60,7 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
-  
-  const [isLoading, setIsLoading] = useState(verifiedCartItems); // Track loading state
-  console.log(verifiedCartItems)
+
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
     if (!acc.includes(product.inventoryId)) {
@@ -191,33 +189,8 @@ const Confirm = () => {
     <CContainer>
       <CRow>
       <CCol xs={4}>
-      {/* Render Skeleton loader if isLoading is true */}
-      {isLoading ? (
-        <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-          <CCardBody>
-            <Skeleton height={20} width="80%" /> {/* Title: "Select Delivery Type" */}
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <Skeleton width={30} height={30} circle /> {/* Skeleton for radio button */}
-              <Skeleton width={30} height={30} circle /> {/* Skeleton for radio button */}
-            </div>
-            <hr />
-            <Skeleton height={20} width="80%" /> {/* Title: "Address Detail Confirmation" */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <Skeleton height={20} width="80%" />
-              <Skeleton height={20} width="80%" />
-            </div>
-            <hr />
-            <Skeleton height={20} width="80%" /> {/* Title: "Schedule Otodoke" */}
-            <Skeleton height={30} width="60%" /> {/* Dropdown Skeleton */}
-            <hr />
-            <Skeleton height={20} width="80%" /> {/* Title: "Payment" */}
-            <Skeleton height={20} width="80%" />
-            <hr />
-            <Skeleton height={80} width="100%" /> {/* Textarea skeleton */}
-            <Skeleton height={40} width="60%" /> {/* Button skeleton */}
-          </CCardBody>
-        </CCard>
-      ) : (
+      Render Skeleton loader if isLoading is true
+    
         <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
           <CCardBody>
             <label className="fw-bold mb-2">Select Delivery Type</label>
@@ -319,7 +292,7 @@ const Confirm = () => {
             </div>
           </CCardBody>
         </CCard>
-      )}
+    
     </CCol>
 
         <CCol xs={8}>

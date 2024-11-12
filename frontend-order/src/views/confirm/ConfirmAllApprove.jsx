@@ -343,7 +343,7 @@ const ApproveAll = () => {
         {/* Container for product cards with scroll */}
 
         <CTabContent>
-          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={1}>
+          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={1}>
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
@@ -351,7 +351,7 @@ const ApproveAll = () => {
                   <CRow className="g-1 mt-1">
                     {myApprovalData.length > 0 ? (
                       myApprovalData.map((approval) => (
-                        <CCard className="h-78 mb-2">
+                        <CCard className="h-78 mb-1">
                           <CCardBody className="d-flex flex-column justify-content-between">
                             <CRow className="align-items-center">
                               {/* Order information */}
@@ -370,61 +370,65 @@ const ApproveAll = () => {
                                   </CBadge>
                                   <label className="me-2 fw-light">{approval.requestNumber}</label>
                                 </CCol>
+                                <label className="fw-bold fs-6">
+                                  Total: {approval.Detail_Orders.length}
+                                </label>
                               </div>
+                            </CRow>
+                            <hr />
 
-                              {/* Product and user information */}
-                              <CRow xs="1">
-                                <CCol xs="1">
-                                  {userData.map((user) => (
-                                    <CCardImage
-                                      key={user.id}
-                                      src={user.img}
-                                      style={{ height: '100%', width: '100%' }}
-                                    />
-                                  ))}
-                                </CCol>
-                                <CCol xs="4">
-                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div>
-                                      <strong>Form:</strong> {approval.User.name}
-                                    </div>
-                                    <div>
-                                      <strong>Role:</strong> {approval.User.position}
-                                    </div>
-                                    <div>
-                                      <strong>Line:</strong> {approval.User.Organization.Line.lineName}
-                                    </div>
+                            {/* Product and user information */}
+                            <CRow xs="1">
+                              <CCol xs="1">
+                                {userData.map((user) => (
+                                  <CCardImage
+                                    key={user.id}
+                                    src={user.img}
+                                    style={{ height: '100%', width: '100%' }}
+                                  />
+                                ))}
+                              </CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>Form:</strong> {approval.User.name}
                                   </div>
-                                </CCol>
-                                <CCol xs="4">
-                                  <label className="fw-bold fs-6">
-                                    Total: {approval.Detail_Orders.length}
-                                  </label>
-                                </CCol>
-                                <CCol className="text-end">
-                                  <label className="fw-bold fs-6">Rp</label>
-                                  <br />
-                                  <label className="me-2">
-                                    {approval.paymentMethod}:{approval.paymentNumber}
-                                  </label>
-                                </CCol>
-                              </CRow>
+                                  <div>
+                                    <strong>Role:</strong> {approval.User.position}
+                                  </div>
+                                  <div>
+                                    <strong>Line:</strong>{' '}
+                                    {approval.User.Organization.Line.lineName}
+                                  </div>
+                                </div>
+                              </CCol>
 
-                              {/* View Detail button */}
-                              <CRow
-                                xs="1"
-                                className="d-flex justify-content-end align-items-center"
-                              >
-                                <CCol xs={4} className="d-flex justify-content-end">
-                                  <CButton
-                                    onClick={() => handleViewHistoryOrder(approval)}
-                                    color="primary"
-                                    size="sm"
-                                  >
-                                    View Detail Order
-                                  </CButton>
-                                </CCol>
-                              </CRow>
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6">
+                                  Rp
+                                  {Number(
+                                    approval.Detail_Orders.Inventory.Material.price,
+                                  ).toLocaleString('id-ID')}
+                                </label>
+
+                                <br />
+                                <label className="me-2">
+                                  {approval.paymentMethod}:{approval.paymentNumber}
+                                </label>
+                              </CCol>
+                            </CRow>
+
+                            {/* View Detail button */}
+                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewHistoryOrder(approval)}
+                                  color="primary"
+                                  size="sm"
+                                >
+                                  View Detail Order
+                                </CButton>
+                              </CCol>
                             </CRow>
                           </CCardBody>
                         </CCard>
