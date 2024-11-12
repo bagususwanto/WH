@@ -494,26 +494,32 @@ export const getCheckoutData = async (cartIds) => {
                 {
                   model: Group,
                   where: { flag: 1 },
+                  required: false,
                 },
                 {
                   model: Line,
                   where: { flag: 1 },
+                  required: false,
                 },
                 {
                   model: Section,
                   where: { flag: 1 },
+                  required: false,
                   include: [
                     {
                       model: WBS,
                       where: { wbsYear: new Date().getFullYear(), flag: 1 },
+                      required: false,
                     },
                     {
                       model: GIC,
                       where: { flag: 1 },
+                      required: false,
                       include: [
                         {
                           model: CostCenter,
                           where: { flag: 1 },
+                          required: false,
                         },
                       ],
                     },
@@ -522,14 +528,17 @@ export const getCheckoutData = async (cartIds) => {
                 {
                   model: Department,
                   where: { flag: 1 },
+                  required: false,
                 },
                 {
                   model: Division,
                   where: { flag: 1 },
+                  required: false,
                 },
                 {
                   model: Plant,
                   where: { flag: 1 },
+                  required: false,
                 },
               ],
             },
@@ -621,6 +630,11 @@ export const createOrder = async (req, res) => {
     const deliveryMethod = req.body.deliveryMethod; // ex: "Otodoke" or "Pickup"
     const isProduction = req.user.isProduction;
     const role = req.user.roleName;
+
+    // Validasi jika setiap nilai kosong
+    if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
     const carts = await Cart.findAll({
       where: {

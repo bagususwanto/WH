@@ -26,7 +26,7 @@ export const getNotificationsByUserId = async (req, res) => {
     });
 
     if (notifications.length === 0) {
-      return res.status(404).json({ message: "No notifications found for this user." });
+      return res.status(201).json({ message: "No notifications found for this user." });
     }
 
     return res.status(200).json(notifications); // Kirim respon dengan data notifikasi

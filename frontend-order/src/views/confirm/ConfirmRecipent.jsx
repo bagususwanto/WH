@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import config from '../../utils/Config'
 import 'react-loading-skeleton/dist/skeleton.css'
-import Skeleton from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton'
 import {
   CCard,
   CCardBody,
@@ -60,7 +60,6 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
-
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
     if (!acc.includes(product.inventoryId)) {
@@ -132,14 +131,17 @@ const Confirm = () => {
       }
 
       const paymentNumber = iswbs
-        ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber // WBS number
-        : verifiedCartItems[0].User.Organization.Section.GIC.gicNumber // GIC number
+        ? verifiedCartItems[0].User.Organization.Section
+          ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber
+          : '' // WBS number
+        : verifiedCartItems[0].User.Organization.Section
+          ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber
+          : '' // GIC number
 
       const paymentMethod = iswbs ? 'WBS' : 'GIC' // Determine payment method
       const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Delivery method
 
       // Validate order details
-      console.log('Validating order details...')
       if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
         console.log('Validation failed:', {
           isPickup,
@@ -155,9 +157,7 @@ const Confirm = () => {
         })
       }
 
-      console.log('Order Details:', { orderTime, paymentNumber, paymentMethod, deliveryMethod })
-
-      const response = await createOrder(
+      await createOrder(
         {
           cartIds,
           orderTime: orderTime || null, // Provide orderTime only if it's Otodoke
@@ -168,7 +168,6 @@ const Confirm = () => {
         warehouse.id,
       )
 
-      console.log('Order response:', response)
       navigate('/history') // Navigate to history page after successful order
     } catch (error) {
       console.error('Error creating order:', error)
@@ -188,117 +187,117 @@ const Confirm = () => {
   return (
     <CContainer>
       <CRow>
-      <CCol xs={4}>
-      Render Skeleton loader if isLoading is true
-    
-        <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-          <CCardBody>
-            <label className="fw-bold mb-2">Select Delivery Type</label>
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <CFormCheck
-                className="me-3"
-                type="radio"
-                id="pickup"
-                label="Pickup"
-                checked={isPickup}
-                onChange={() => setIsPickup(true)}
-              />
-              <CFormCheck
-                type="radio"
-                id="otodoke"
-                label="Otodoke"
-                checked={!isPickup}
-                onChange={() => setIsPickup(false)}
-              />
-            </div>
-            <hr />
-            <label className="fw-bold mb-2">Address Detail Confirmation</label>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <CIcon icon={cilHome} size="lg" />
-                <label style={{ marginLeft: '8px' }}>
-                  {verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.warehouseName}
-                </label>
+        <CCol xs={4}>
+          <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+            <CCardBody>
+              <label className="fw-bold mb-2">Select Delivery Type</label>
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <CFormCheck
+                  className="me-3"
+                  type="radio"
+                  id="pickup"
+                  label="Pickup"
+                  checked={isPickup}
+                  onChange={() => setIsPickup(true)}
+                />
+                <CFormCheck
+                  type="radio"
+                  id="otodoke"
+                  label="Otodoke"
+                  checked={!isPickup}
+                  onChange={() => setIsPickup(false)}
+                />
               </div>
+              <hr />
+              <label className="fw-bold mb-2">Address Detail Confirmation</label>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <CIcon icon={cilHome} size="lg" />
+                  <label style={{ marginLeft: '8px' }}>
+                    {
+                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse
+                        .warehouseName
+                    }
+                  </label>
+                </div>
+                {!isPickup && (
+                  <>
+                    <CIcon icon={cilArrowBottom} size="lg" />
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                      <CIcon icon={cilLocationPin} size="lg" />
+                      <label style={{ marginLeft: '8px' }}>
+                        {verifiedCartItems[0].User.Organization.Line.lineName}
+                      </label>
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* Render the dropdown for schedule selection */}
               {!isPickup && (
                 <>
-                  <CIcon icon={cilArrowBottom} size="lg" />
-                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                    <CIcon icon={cilLocationPin} size="lg" />
-                    <label style={{ marginLeft: '8px' }}>
-                      {verifiedCartItems[0].User.Organization.Line.lineName}
-                    </label>
-                  </div>
+                  <hr />
+                  <label className="fw-bold mb-2">Schedule Otodoke</label>
+                  <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
+                    <option className="fw-light" value="">
+                      Select Cycle
+                    </option>
+                    {verifiedCartItems.length > 0 &&
+                      verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
+                        (serviceHour) => (
+                          <option key={serviceHour.id} value={`${serviceHour.time}`}>
+                            {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
+                          </option>
+                        ),
+                      )}
+                  </CFormSelect>
                 </>
               )}
-            </div>
-            {/* Render the dropdown for schedule selection */}
-            {!isPickup && (
-              <>
-                <hr />
-                <label className="fw-bold mb-2">Schedule Otodoke</label>
-                <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                  <option className="fw-light" value="">
-                    Select Cycle
-                  </option>
-                  {verifiedCartItems.length > 0 &&
-                    verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
-                      (serviceHour) => (
-                        <option key={serviceHour.id} value={`${serviceHour.time}`}>
-                          {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
-                        </option>
-                      ),
-                    )}
-                </CFormSelect>
-              </>
-            )}
 
-            <hr />
-            <label className="fw-bold mb-2">Payment</label>
-            {verifiedCartItems.length > 0 && (
-              <>
-                <CFormCheck
-                  type="radio"
-                  id="payment1"
-                  label={`WBS: ${verifiedCartItems[0].User.Organization.Section.WB.wbsNumber}`}
-                  checked={iswbs}
-                  onChange={() => setIswbs(true)}
-                />
-                <CFormCheck
-                  type="radio"
-                  id="payment2"
-                  label={`GIC: ${verifiedCartItems[0].User.Organization.Section.GIC.gicNumber}`}
-                  checked={!iswbs}
-                  onChange={() => setIswbs(false)}
-                />
-              </>
-            )}
-            <hr />
-            <CFormTextarea
-              className="mt-3"
-              placeholder="Leave a message"
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <div
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              className="mt-4"
-            >
-              <label className="fw-bold">Total Items: {totalQuantity} Items</label>
-              <CButton color="primary" onClick={handleCheckout}>
-                Order Now
-              </CButton>
-            </div>
-          </CCardBody>
-        </CCard>
-    
-    </CCol>
+              <hr />
+              <label className="fw-bold mb-2">Payment</label>
+              {verifiedCartItems.length > 0 && (
+                <>
+                  <CFormCheck
+                    type="radio"
+                    id="payment1"
+                    label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : ''}`}
+                    checked={iswbs}
+                    onChange={() => setIswbs(true)}
+                  />
+                  <CFormCheck
+                    type="radio"
+                    id="payment2"
+                    label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber : ''}`}
+                    checked={!iswbs}
+                    onChange={() => setIswbs(false)}
+                  />
+                </>
+              )}
+              <hr />
+              <CFormTextarea
+                className="mt-3"
+                placeholder="Leave a message"
+                rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                className="mt-4"
+              >
+                <label className="fw-bold">Total Items: {totalQuantity} Items</label>
+                <CButton color="primary" onClick={handleCheckout}>
+                  Order Now
+                </CButton>
+              </div>
+            </CCardBody>
+          </CCard>
+        </CCol>
 
         <CCol xs={8}>
           <CRow className="g-2">
             {currentItems.map((data) => (
-              <CCard className="h-100" key={data.id} >
+              <CCard className="h-100" key={data.id}>
                 {' '}
                 {/* Fixed height for the card */}
                 <CCardBody
