@@ -9,7 +9,7 @@ const generateTokens = (userId, username, name, isProduction, roleName, anotherW
     expiresIn: "15m",
   });
   const refreshToken = jwt.sign({ userId, username, name, isProduction, roleName, anotherWarehouseId }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "1d",
+    expiresIn: "12h",
   });
   return { accessToken, refreshToken };
 };
@@ -57,7 +57,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: true, // Set to true if using HTTPS
       sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 12 * 60 * 60 * 1000, // 12 jam
     });
 
     res.json({ accessToken });

@@ -30,8 +30,13 @@ import {
   cilSearch,
   cilLocationPin,
   cilHome,
+  cilClipboard,
   cilUser,
   cilCarAlt,
+  cilCheckCircle,
+  cilTruck,
+  cilWalk,
+  cilCircle,
 } from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
@@ -58,10 +63,21 @@ const History = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [searchQuery, setSearchQuery] = useState('') // New state for search query
   const [globalFilterValue, setGlobalFilterValue] = useState('') // State for global search filter
-  const { getMyorder } = useOrderService()
+  const { getMyorder, getOrderHistory } = useOrderService()
   const { warehouse } = useContext(GlobalContext)
   const [activeTab, setActiveTab] = useState('all')
+  const [orderHistory, setOrderHistory] = useState([])
   const navigate = useNavigate()
+
+  const icons = {
+    cilClipboard,
+    cilHome,
+    cilUser,
+    cilCheckCircle,
+    cilTruck,
+    cilWalk,
+    cilCircle,
+  }
 
   const getMyorders = async (activeTab) => {
     try {
@@ -75,6 +91,15 @@ const History = () => {
       console.log(activeTab)
     } catch (error) {
       console.error('Error fetching orders:', error)
+    }
+  }
+
+  const getOrderHistories = async (id) => {
+    try {
+      const response = await getOrderHistory(id)
+      setOrderHistory(response.data)
+    } catch (error) {
+      console.error('Error fetching Order History:', error)
     }
   }
 
@@ -149,6 +174,7 @@ const History = () => {
   //     ),
   // )
   const handleViewHistoryOrder = (product) => {
+    getOrderHistories(product.id)
     setSelectedProduct(product)
     setVisible(true)
   }
@@ -342,45 +368,14 @@ const History = () => {
                             </CRow>
                           ))}
 
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                            }}
-                          >
-                            {[
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilLocationPin,
-                                label: 'YOUR ITEM RECEIVED',
-                              },
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilCarAlt,
-                                label: 'DELIVERY OTODOKE',
-                              },
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilHome,
-                                label: 'ACCEPTED WAREHOUSE STAFF',
-                              },
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilUser,
-                                label: 'APPROVAL SECTION HEAD',
-                              },
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilUser,
-                                label: 'APPROVAL LINE HEAD',
-                              },
-                              {
-                                date: '20 JANUARI 2024 20:34 WIB',
-                                icon: cilUser,
-                                label: 'ORDER CREATED',
-                              },
-                            ].map((item, index) => (
+                          {orderHistory.map((item, index) => (
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                              }}
+                            >
                               <div
                                 key={index}
                                 style={{
@@ -389,7 +384,11 @@ const History = () => {
                                   marginBottom: '16px',
                                 }}
                               >
-                                <label style={{ marginRight: '8px' }}>{item.date}</label>
+                                <label style={{ marginRight: '8px' }}>
+                                  {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                                  {', '}
+                                  {format(parseISO(item.createdAt), 'HH:mm')}
+                                </label>
                                 <div
                                   style={{
                                     border: '2px solid #000',
@@ -401,12 +400,16 @@ const History = () => {
                                     alignItems: 'center',
                                   }}
                                 >
-                                  <CIcon icon={item.icon} size="lg" />
+                                  <CIcon icon={icons[item.icon]} size="lg" />
                                 </div>
-                                <label style={{ marginLeft: '8px' }}>{item.label}</label>
+                                <label style={{ marginLeft: '8px' }}>
+                                  {' '}
+                                  {item.status.charAt(0).toUpperCase() +
+                                    item.status.slice(1).toLowerCase()}
+                                </label>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </CCardBody>
                       </CCard>
                     </CRow>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
 import 'react-loading-skeleton/dist/skeleton.css'
-import Skeleton from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import { AiFillHeart } from 'react-icons/ai'
@@ -23,6 +23,7 @@ import {
   CCallout,
   CBadge,
   CLink,
+  CModalTitle,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -45,6 +46,11 @@ import {
   cilArrowRight,
   cilArrowLeft,
   cilLifeRing,
+  cilClipboard,
+  cilCheckCircle,
+  cilTruck,
+  cilWalk,
+  cilCircle,
 } from '@coreui/icons'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -75,7 +81,8 @@ const Home = () => {
   const { getProductByCategory } = useProductService()
   const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, deleteWishlist, addWishlist, getMyorder } = useOrderService()
+  const { getWishlist, deleteWishlist, addWishlist, getMyorder, getOrderHistory } =
+    useOrderService()
   const { postCart, updateCart } = useCartService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
@@ -88,8 +95,10 @@ const Home = () => {
   const [products, setProducts] = useState([])
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
-  
+  const [isLoading, setIsLoading] = useState(true) // Track loading state
+  const [orderHistory, setOrderHistory] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [visible, setVisible] = useState(false)
 
   const { warehouse, wishlist, setWishlist, cart, setCart, cartCount, setCartCount } =
     useContext(GlobalContext)
@@ -99,6 +108,16 @@ const Home = () => {
   const navigate = useNavigate()
 
   const apiCategory = 'category-public'
+
+  const icons = {
+    cilClipboard,
+    cilHome,
+    cilUser,
+    cilCheckCircle,
+    cilTruck,
+    cilWalk,
+    cilCircle,
+  }
 
   const getProductByCategories = async (categoryId, page) => {
     try {
@@ -115,15 +134,14 @@ const Home = () => {
   }
   const getCategories = async () => {
     try {
-      const response = await getMasterData(apiCategory);
-      setCategoriesData(response.data);
-      setIsLoading(false); // Data finished loading
+      const response = await getMasterData(apiCategory)
+      setCategoriesData(response.data)
+      setIsLoading(false) // Data finished loading
     } catch (error) {
       console.error('Error fetching categories:', error)
       setIsLoading(false) // In case of error, set loading to false
     }
-  };
-
+  }
 
   const getFavorite = async () => {
     try {
@@ -140,6 +158,15 @@ const Home = () => {
       setMyOrderData(response.data)
     } catch (error) {
       console.error('Error fetching wishlist:', error)
+    }
+  }
+
+  const getOrderHistories = async (id) => {
+    try {
+      const response = await getOrderHistory(id)
+      setOrderHistory(response.data)
+    } catch (error) {
+      console.error('Error fetching Order History:', error)
     }
   }
 
@@ -187,7 +214,7 @@ const Home = () => {
 
   const handleQuantityChange = (action) => {
     if (action === 'increment') {
-      setQuantity((prev) => Math.min(prev + 1, selectedProduct.quantityActualCheck))
+      setQuantity((prev) => Math.min(prev + 1, selectedOrder.quantityActualCheck))
     } else if (action === 'decrement' && quantity > 1) {
       setQuantity((prev) => prev - 1)
     }
@@ -403,53 +430,61 @@ const Home = () => {
     setModalOrder(false)
     setQuantity(1)
   }
-    // Banner Skeleton
-    const renderBannerSkeleton = () => (
-      <Skeleton height={250} width="100%" />
-    );
-  
-    // Favorite Item Card Skeleton
-    const renderFavoriteCardSkeleton = () => (
-      <CCol sm="4" md="3">
-        <CCard>
-          <CCardImage><Skeleton height={200} width="100%" /></CCardImage>
-          <CCardBody>
-            <Skeleton width="60%" height={20} />
-            <Skeleton width="40%" height={20} />
-          </CCardBody>
-        </CCard>
-      </CCol>
-    );
-  
-    // Order History Card Skeleton
-    const renderOrderHistoryCardSkeleton = () => (
-      <CCol sm="4" md="3">
-        <CCard>
-          <CCardBody>
-            <Skeleton width="80%" height={20} />
-            <Skeleton width="60%" height={20} />
-            <Skeleton width="50%" height={20} />
-          </CCardBody>
-        </CCard>
-      </CCol>
-    );
-  
-    // Item Card Skeleton
-    const renderItemCardSkeleton = () => (
-      <CCol sm="4" md="3">
-        <CCard>
-          <CCardImage><Skeleton height={200} width="100%" /></CCardImage>
-          <CCardBody>
-            <Skeleton width="60%" height={20} />
-            <Skeleton width="40%" height={20} />
-          </CCardBody>
-        </CCard>
-      </CCol>
-    );
-  
+  // Banner Skeleton
+  const renderBannerSkeleton = () => <Skeleton height={250} width="100%" />
+
+  // Favorite Item Card Skeleton
+  const renderFavoriteCardSkeleton = () => (
+    <CCol sm="4" md="3">
+      <CCard>
+        <CCardImage>
+          <Skeleton height={200} width="100%" />
+        </CCardImage>
+        <CCardBody>
+          <Skeleton width="60%" height={20} />
+          <Skeleton width="40%" height={20} />
+        </CCardBody>
+      </CCard>
+    </CCol>
+  )
+
+  // Order History Card Skeleton
+  const renderOrderHistoryCardSkeleton = () => (
+    <CCol sm="4" md="3">
+      <CCard>
+        <CCardBody>
+          <Skeleton width="80%" height={20} />
+          <Skeleton width="60%" height={20} />
+          <Skeleton width="50%" height={20} />
+        </CCardBody>
+      </CCard>
+    </CCol>
+  )
+
+  // Item Card Skeleton
+  const renderItemCardSkeleton = () => (
+    <CCol sm="4" md="3">
+      <CCard>
+        <CCardImage>
+          <Skeleton height={200} width="100%" />
+        </CCardImage>
+        <CCardBody>
+          <Skeleton width="60%" height={20} />
+          <Skeleton width="40%" height={20} />
+        </CCardBody>
+      </CCard>
+    </CCol>
+  )
+
+  const handleViewHistoryOrder = (product) => {
+    getOrderHistories(product.id)
+    setSelectedOrder(product)
+    setVisible(true)
+  }
+
   return (
     <>
-     <CRow>
+      <CRow>
         <div className="carousel-flex">
           <CCarousel controls indicators>
             <CCarouselItem>
@@ -480,7 +515,6 @@ const Home = () => {
           </CCarousel>
         </div>
       </CRow>
-      
 
       {/* Your Favorite Item */}
       <CRow className="mt-4">
@@ -517,119 +551,117 @@ const Home = () => {
           </CButton>
 
           <CRow className="g-2">
-          {isLoading ? (
-              Array(4).fill(null).map((_, index) => (
-                <CCol xs="6" sm="6" md="3" lg="3" key={index} className="mb-3">
-                  <CCard>
-                    <Skeleton height={200} width="100%" />
-                    <CCardBody>
-                      <Skeleton width="50%" height={20} />
-                      <Skeleton width="30%" height={20} />
-                    </CCardBody>
-                  </CCard>
-                </CCol>
-              ))
-            ) : (
-
-            currentWishlist.map((product) => (
-              <CCol
-                xs="6"
-                sm="6"
-                md="3"
-                lg="3"
-                xl="2"
-                key={product.Inventory.Material.id}
-                className="mb-3"
-              >
-                <CCard className="h-100">
-                  <CCardImage
-                    orientation="top"
-                    src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-                    alt={product.Inventory.Material.description}
-                    style={{
-                      width: '100%', // Ensure it takes the full width
-                      height: '150px', // Fixed height for uniformity
-                      objectFit: 'contain', // Keep the aspect ratio
-                    }}
-                  />
-
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <div>
-                      <CCardTitle style={{ fontSize: '14px' }}>
-                        {product.Inventory.Material.description}
-                      </CCardTitle>
-                      <CCardTitle style={{ fontSize: '12px' }}>
-                        {product.Inventory.Material.materialNo}
-                      </CCardTitle>
-                    </div>
-
-                    <CRow className="mt-auto align-items-center">
-                      <div
+            {isLoading
+              ? Array(4)
+                  .fill(null)
+                  .map((_, index) => (
+                    <CCol xs="6" sm="6" md="3" lg="3" key={index} className="mb-3">
+                      <CCard>
+                        <Skeleton height={200} width="100%" />
+                        <CCardBody>
+                          <Skeleton width="50%" height={20} />
+                          <Skeleton width="30%" height={20} />
+                        </CCardBody>
+                      </CCard>
+                    </CCol>
+                  ))
+              : currentWishlist.map((product) => (
+                  <CCol
+                    xs="6"
+                    sm="6"
+                    md="3"
+                    lg="3"
+                    xl="2"
+                    key={product.Inventory.Material.id}
+                    className="mb-3"
+                  >
+                    <CCard className="h-100">
+                      <CCardImage
+                        orientation="top"
+                        src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                        alt={product.Inventory.Material.description}
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
+                          width: '100%', // Ensure it takes the full width
+                          height: '150px', // Fixed height for uniformity
+                          objectFit: 'contain', // Keep the aspect ratio
                         }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'flex-start',
-                          }}
-                        >
-                          {/* {calculateStockStatus(product) === 'Out of Stock' && (
+                      />
+
+                      <CCardBody className="d-flex flex-column justify-content-between">
+                        <div>
+                          <CCardTitle style={{ fontSize: '14px' }}>
+                            {product.Inventory.Material.description}
+                          </CCardTitle>
+                          <CCardTitle style={{ fontSize: '12px' }}>
+                            {product.Inventory.Material.materialNo}
+                          </CCardTitle>
+                        </div>
+
+                        <CRow className="mt-auto align-items-center">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                              }}
+                            >
+                              {/* {calculateStockStatus(product) === 'Out of Stock' && (
                             <CCol sm="auto" className="mb-1">
                               <CBadge textBgColor="light">Out of Stock</CBadge>
                             </CCol>
                           )} */}
 
-                          {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
-                          <CCol sm="auto">
-                            <CButton
-                              className="box btn-sm"
-                              color="primary"
-                              style={{
-                                padding: '5px 10px',
-                                fontSize: '12px',
-                                marginRight: '10px',
-                              }} // Custom styling for smaller button
-                              onClick={() => handleModalCart(product)}
-                            >
-                              Add to Cart
-                            </CButton>
-                          </CCol>
-                          {/* )} */}
-                        </div>
+                              {/* {calculateStockStatus(product) !== 'Out of Stock' && ( */}
+                              <CCol sm="auto">
+                                <CButton
+                                  className="box btn-sm"
+                                  color="primary"
+                                  style={{
+                                    padding: '5px 10px',
+                                    fontSize: '12px',
+                                    marginRight: '10px',
+                                  }} // Custom styling for smaller button
+                                  onClick={() => handleModalCart(product)}
+                                >
+                                  Add to Cart
+                                </CButton>
+                              </CCol>
+                              {/* )} */}
+                            </div>
 
-                        <CCol sm="auto" className="ms-2">
-                          <CButton
-                            onClick={() => handleToggleWishlist(product)}
-                            style={{
-                              backgroundColor: 'transparent', // No background for the button
-                              border: 'black', // Menghilangkan border default button
-                              padding: '0', // No padding, membuat button sekecil ikon
-                              outline: 'none', // Menghapus outline pada focus button
-                            }}
-                          >
-                            <AiFillHeart
-                              style={{
-                                color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                                stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                                strokeWidth: '15px', // Tebal garis luar
-                              }}
-                              size={20} // Ukuran ikon
-                            />
-                          </CButton>
-                        </CCol>
-                      </div>
-                    </CRow>
-                  </CCardBody>
-                </CCard>
-              </CCol>
-              ))
-            )}
-  
+                            <CCol sm="auto" className="ms-2">
+                              <CButton
+                                onClick={() => handleToggleWishlist(product)}
+                                style={{
+                                  backgroundColor: 'transparent', // No background for the button
+                                  border: 'black', // Menghilangkan border default button
+                                  padding: '0', // No padding, membuat button sekecil ikon
+                                  outline: 'none', // Menghapus outline pada focus button
+                                }}
+                              >
+                                <AiFillHeart
+                                  style={{
+                                    color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                                    stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                                    strokeWidth: '15px', // Tebal garis luar
+                                  }}
+                                  size={20} // Ukuran ikon
+                                />
+                              </CButton>
+                            </CCol>
+                          </div>
+                        </CRow>
+                      </CCardBody>
+                    </CCard>
+                  </CCol>
+                ))}
           </CRow>
 
           <CButton
@@ -669,274 +701,360 @@ const Home = () => {
 
         {/* Kartu produk */}
         <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-        {isLoading ? (
+          {isLoading ? (
             <Skeleton count={3} height={150} />
           ) : (
-
-          myOrderData.map((order) => (
-            <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
-              <CRow className="align-items-center">
-                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                  <CCol>
-                    <CIcon className="me-2" icon={cilCart} />
-                    <label className="me-2 fs-6" size="sm ">
-                      {format(parseISO(order.createdAt), 'dd/MM/yyyy')}
-                    </label>
-                    <CBadge
-                      className=" me-2 "
-                      size="sm"
-                      color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
-                    >
-                      {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
-                    </CBadge>
-                    <label className=" me-2 fw-light ">{order.transactionNumber}</label>
-                  </CCol>
-                </div>
-                <CCol xs="5"></CCol>
-
-                <CRow className="d-flex justify-content-between my-2 ">
-                  <CCol xs="1">
-                    <CCardImage
-                      src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
-                      alt={order.Detail_Orders[0].Inventory.Material.description}
-                      style={{ height: '100%', width: '100%' }}
-                    />
-                  </CCol>
-
-                  <CCol>
-                    {order.Detail_Orders.length === 1 ? (
-                      <label key={order.Detail_Orders[0].id}>
-                        {order.Detail_Orders[0].Inventory.Material.description}
+            myOrderData.map((order) => (
+              <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
+                <CRow className="align-items-center">
+                  <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                    <CCol>
+                      <CIcon className="me-2" icon={cilCart} />
+                      <label className="me-2 fs-6" size="sm ">
+                        {format(parseISO(order.createdAt), 'dd/MM/yyyy')}
                       </label>
-                    ) : (
-                      <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
-                    )}
-                    <br />
-                    <label className="fw-bold fs-6">Total: {order.Detail_Orders.length} Item</label>
-                  </CCol>
-                </CRow>
+                      <CBadge
+                        className=" me-2 "
+                        size="sm"
+                        color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
+                      >
+                        {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
+                      </CBadge>
+                      <label className=" me-2 fw-light ">{order.transactionNumber}</label>
+                    </CCol>
+                  </div>
+                  <CCol xs="5"></CCol>
 
-                <CRow className="d-flex justify-content-end align-items-center">
-                  <CCol xs={4} className="d-flex justify-content-end">
-                    <CButton
-                      onClick={() => handleViewHistoryOrder(order)}
-                      color="primary"
-                      size="sm"
-                    >
-                      View Detail Order
-                    </CButton>
-                  </CCol>
+                  <CRow className="d-flex justify-content-between my-2 ">
+                    <CCol xs="1">
+                      <CCardImage
+                        src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
+                        alt={order.Detail_Orders[0].Inventory.Material.description}
+                        style={{ height: '100%', width: '100%' }}
+                      />
+                    </CCol>
+
+                    <CCol>
+                      {order.Detail_Orders.length === 1 ? (
+                        <label key={order.Detail_Orders[0].id}>
+                          {order.Detail_Orders[0].Inventory.Material.description}
+                        </label>
+                      ) : (
+                        <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
+                      )}
+                      <br />
+                      <label className="fw-bold fs-6">
+                        Total: {order.Detail_Orders.length} Item
+                      </label>
+                    </CCol>
+                  </CRow>
+
+                  <CRow className="d-flex justify-content-end align-items-center">
+                    <CCol xs={4} className="d-flex justify-content-end">
+                      <CButton
+                        onClick={() => handleViewHistoryOrder(order)}
+                        color="primary"
+                        size="sm"
+                      >
+                        View Detail Order
+                      </CButton>
+                    </CCol>
+                  </CRow>
                 </CRow>
-              </CRow>
-            </CCard>
-           ))
+              </CCard>
+            ))
           )}
-
         </div>
+
+        {selectedOrder && (
+          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+            <CModalHeader>
+              <CModalTitle>Order Details</CModalTitle>
+            </CModalHeader>
+            <CModalBody>
+              <CRow className="g-1 mt-2">
+                <CCard className="h-80">
+                  <CCardBody>
+                    <CRow className="align-items-center mb-3">
+                      <CCol>
+                        <CIcon className="me-2" icon={cilCart} />
+                        <label className="me-2 fs-6">
+                          {format(parseISO(selectedOrder.createdAt), 'dd/MM/yyyy')}
+                        </label>
+                        <CBadge className="me-2" color={getSeverity(selectedOrder.status)}>
+                          {selectedOrder.status.toUpperCase()}
+                        </CBadge>
+                        <label className="me-2 fw-light">{selectedOrder.transactionNumber}</label>
+                      </CCol>
+                    </CRow>
+
+                    {selectedOrder.Detail_Orders.map((detail, index) => (
+                      <CRow className="align-items-center mb-3" key={index}>
+                        <CCol xs="1">
+                          <CCardImage
+                            src={'https://via.placeholder.com/150'}
+                            style={{ height: '100%', width: '100%' }}
+                          />
+                        </CCol>
+                        <CCol xs="9">
+                          <label>{detail.Inventory.Material.description}</label>
+                        </CCol>
+                      </CRow>
+                    ))}
+
+                    {orderHistory.map((item, index) => (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        <div
+                          key={index}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginBottom: '16px',
+                          }}
+                        >
+                          <label style={{ marginRight: '8px' }}>
+                            {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                            {', '}
+                            {format(parseISO(item.createdAt), 'HH:mm')}
+                          </label>
+                          <div
+                            style={{
+                              border: '2px solid #000',
+                              borderRadius: '50%',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <CIcon icon={icons[item.icon]} size="lg" />
+                          </div>
+                          <label style={{ marginLeft: '8px' }}>
+                            {' '}
+                            {item.status.charAt(0).toUpperCase() +
+                              item.status.slice(1).toLowerCase()}
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </CCardBody>
+                </CCard>
+              </CRow>
+            </CModalBody>
+            <CModalFooter>
+              <CButton color="secondary" onClick={() => setVisible(false)}>
+                Close
+              </CButton>
+            </CModalFooter>
+          </CModal>
+        )}
       </CRow>
       <hr />
       {/* Order By Category */}
       <CRow className="mt-4">
-      {isLoading ? (
-        // Show Skeleton Loader while loading
-        <CRow>
-          {[...Array(6)].map((_, index) => (
-            <CCol
-              key={index}
-              xs="12"
-              sm="6"
-              md="4"
-              lg="2"
-              style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
-            >
-              <CCard style={{ cursor: 'pointer', width: '100%', padding: '1px', margin: '10px' }}>
-                <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
-                  <Skeleton circle width={30} height={30} style={{ marginRight: '8px' }} />
-                  <Skeleton width={60} height={20} />
-                </CCardBody>
-              </CCard>
-            </CCol>
-          ))}
-        </CRow>
-      ) : (
-
-        <CRow>
-          {categoriesData.map((category, index) => (
-            <CCol
-              key={category.id}
-              xs="12"
-              sm="6"
-              md="4"
-              lg="2"
-              style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
-            >
-              <CCard
-                onClick={() => handleCategoryClick(category)}
-                style={{
-                  cursor: 'pointer',
-                  width: '100%',
-                  padding: '1px',
-                  margin: '10px',
-                  backgroundColor:
-                    selectedCategory && selectedCategory.id === category.id
-                      ? 'navy' // Warna navy jika kategori terpilih
-                      : index === 0 &&
-                          (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                        ? 'navy' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
-                        : 'white', // Warna default putih
-                  color:
-                    selectedCategory && selectedCategory.id === category.id
-                      ? 'white' // Warna teks putih untuk kategori yang dipilih
-                      : index === 0 &&
-                          (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                        ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
-                        : 'black', // Warna teks default
-                }}
+        {isLoading ? (
+          // Show Skeleton Loader while loading
+          <CRow>
+            {[...Array(6)].map((_, index) => (
+              <CCol
+                key={index}
+                xs="12"
+                sm="6"
+                md="4"
+                lg="2"
+                style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
               >
-                <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
-                  <CIcon
-                    icon={iconMap[category.categoryName] || cilFolder}
-                    style={{ marginRight: '8px' }}
-                  />
-                  <h6 style={{ margin: 0 }}>{category.categoryName}</h6>
-                </CCardBody>
-              </CCard>
-            </CCol>
-          ))}
-        </CRow>
-         )}
+                <CCard style={{ cursor: 'pointer', width: '100%', padding: '1px', margin: '10px' }}>
+                  <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
+                    <Skeleton circle width={30} height={30} style={{ marginRight: '8px' }} />
+                    <Skeleton width={60} height={20} />
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            ))}
+          </CRow>
+        ) : (
+          <CRow>
+            {categoriesData.map((category, index) => (
+              <CCol
+                key={category.id}
+                xs="12"
+                sm="6"
+                md="4"
+                lg="2"
+                style={{ display: 'flex', justifyContent: 'center', padding: '0 10px' }}
+              >
+                <CCard
+                  onClick={() => handleCategoryClick(category)}
+                  style={{
+                    cursor: 'pointer',
+                    width: '100%',
+                    padding: '1px',
+                    margin: '10px',
+                    backgroundColor:
+                      selectedCategory && selectedCategory.id === category.id
+                        ? 'navy' // Warna navy jika kategori terpilih
+                        : index === 0 &&
+                            (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                          ? 'navy' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
+                          : 'white', // Warna default putih
+                    color:
+                      selectedCategory && selectedCategory.id === category.id
+                        ? 'white' // Warna teks putih untuk kategori yang dipilih
+                        : index === 0 &&
+                            (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                          ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
+                          : 'black', // Warna teks default
+                  }}
+                >
+                  <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
+                    <CIcon
+                      icon={iconMap[category.categoryName] || cilFolder}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <h6 style={{ margin: 0 }}>{category.categoryName}</h6>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            ))}
+          </CRow>
+        )}
       </CRow>
 
       {/* Daftar Produk */}
       <CRow className="mt-3">
-      {isLoading ? (
-        // Render Skeleton Loader
-        [...Array(6)].map((_, index) => (
-          <CCol
-            key={index}
-            xs="6"
-            sm="6"
-            md="3"
-            lg="3"
-            xl="2"
-            className="mb-4"
-          >
-            <CCard className="h-100">
-              <Skeleton
-                height={150}
-                style={{ width: '100%', objectFit: 'contain' }} // Same as the image styles
-              />
-              <CCardBody className="d-flex flex-column justify-content-between">
-                <div>
-                  <Skeleton height={20} width="60%" style={{ marginBottom: '8px' }} />
-                  <Skeleton height={15} width="40%" />
-                </div>
-                <CRow className="mt-auto align-items-center">
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-                    >
-                      <Skeleton width={90} height={30} />
+        {isLoading
+          ? // Render Skeleton Loader
+            [...Array(6)].map((_, index) => (
+              <CCol key={index} xs="6" sm="6" md="3" lg="3" xl="2" className="mb-4">
+                <CCard className="h-100">
+                  <Skeleton
+                    height={150}
+                    style={{ width: '100%', objectFit: 'contain' }} // Same as the image styles
+                  />
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <div>
+                      <Skeleton height={20} width="60%" style={{ marginBottom: '8px' }} />
+                      <Skeleton height={15} width="40%" />
                     </div>
-
-                    <CCol sm="auto" className="ms-2">
-                      <Skeleton circle height={30} width={30} />
-                    </CCol>
-                  </div>
-                </CRow>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        ))
-      ) : (
-        products.map((product, index) => (
-          <CCol
-            xs="6"
-            sm="6"
-            md="3"
-            lg="3"
-            xl="2"
-            key={`${product.Material.id}-${index}`}
-            className="mb-4"
-          >
-            <CCard className="h-100">
-              <CCardImage
-                orientation="top"
-                src={`${config.BACKEND_URL}${product.Material.img}`}
-                alt={product.Material.description}
-                style={{
-                  width: '100%', // Ensure it takes the full width
-                  height: '150px', // Fixed height for uniformity
-                  objectFit: 'contain', // Keep the aspect ratio
-                }}
-              />
-              <CCardBody className="d-flex flex-column justify-content-between">
-                <div>
-                  <CCardTitle style={{ fontSize: '14px' }}>
-                    {product.Material.description}
-                  </CCardTitle>
-                  <CCardTitle style={{ fontSize: '12px' }}>
-                    {product.Material.materialNo}
-                  </CCardTitle>
-                </div>
-                <CRow className="mt-auto align-items-center">
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-                    >
-                   
-                      <CCol sm="auto">
-                        <CButton
-                          className="box btn-sm"
-                          color="primary"
-                          style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
-                          onClick={() => handleModalCart(product)}
-                        >
-                          Add to Cart
-                        </CButton>
-                      </CCol>
-                      {/* )} */}
-                    </div>
-
-                    <CCol sm="auto" className="ms-2">
-                      <CButton
-                        onClick={() => handleToggleWishlistProduct(product)}
+                    <CRow className="mt-auto align-items-center">
+                      <div
                         style={{
-                          backgroundColor: 'transparent', // No background for the button
-                          border: 'black', // Menghilangkan border default button
-                          padding: '0', // No padding, membuat button sekecil ikon
-                          outline: 'none', // Menghapus outline pada focus button
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
                         }}
                       >
-                        <AiFillHeart
+                        <div
                           style={{
-                            color: isInWishlistProduct(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                            stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                            strokeWidth: '15px', // Tebal garis luar
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
                           }}
-                          size={20} // Ukuran ikon
-                        />
-                      </CButton>
-                    </CCol>
-                  </div>
-                </CRow>
-              </CCardBody>
-            </CCard>
-          </CCol>
-           ))
-          )}
+                        >
+                          <Skeleton width={90} height={30} />
+                        </div>
+
+                        <CCol sm="auto" className="ms-2">
+                          <Skeleton circle height={30} width={30} />
+                        </CCol>
+                      </div>
+                    </CRow>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            ))
+          : products.map((product, index) => (
+              <CCol
+                xs="6"
+                sm="6"
+                md="3"
+                lg="3"
+                xl="2"
+                key={`${product.Material.id}-${index}`}
+                className="mb-4"
+              >
+                <CCard className="h-100">
+                  <CCardImage
+                    orientation="top"
+                    src={`${config.BACKEND_URL}${product.Material.img}`}
+                    alt={product.Material.description}
+                    style={{
+                      width: '100%', // Ensure it takes the full width
+                      height: '150px', // Fixed height for uniformity
+                      objectFit: 'contain', // Keep the aspect ratio
+                    }}
+                  />
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <div>
+                      <CCardTitle style={{ fontSize: '14px' }}>
+                        {product.Material.description}
+                      </CCardTitle>
+                      <CCardTitle style={{ fontSize: '12px' }}>
+                        {product.Material.materialNo}
+                      </CCardTitle>
+                    </div>
+                    <CRow className="mt-auto align-items-center">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                          }}
+                        >
+                          <CCol sm="auto">
+                            <CButton
+                              className="box btn-sm"
+                              color="primary"
+                              style={{ padding: '5px 10px', fontSize: '12px', marginRight: '10px' }} // Custom styling for smaller button
+                              onClick={() => handleModalCart(product)}
+                            >
+                              Add to Cart
+                            </CButton>
+                          </CCol>
+                          {/* )} */}
+                        </div>
+
+                        <CCol sm="auto" className="ms-2">
+                          <CButton
+                            onClick={() => handleToggleWishlistProduct(product)}
+                            style={{
+                              backgroundColor: 'transparent', // No background for the button
+                              border: 'black', // Menghilangkan border default button
+                              padding: '0', // No padding, membuat button sekecil ikon
+                              outline: 'none', // Menghapus outline pada focus button
+                            }}
+                          >
+                            <AiFillHeart
+                              style={{
+                                color: isInWishlistProduct(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
+                                stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                                strokeWidth: '15px', // Tebal garis luar
+                              }}
+                              size={20} // Ukuran ikon
+                            />
+                          </CButton>
+                        </CCol>
+                      </div>
+                    </CRow>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            ))}
       </CRow>
 
       {/* Tombol Load More */}
@@ -951,16 +1069,16 @@ const Home = () => {
       {/* )} */}
 
       {/* Modal for adding product to cart */}
-      {selectedProduct && selectedProduct.Material && (
+      {selectedOrder && selectedOrder.Material && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
-                {selectedProduct.Material.img && (
+                {selectedOrder.Material.img && (
                   <CImage
-                    src={`${config.BACKEND_URL}${selectedProduct.Material.img}`}
-                    alt={selectedProduct.Material.description}
+                    src={`${config.BACKEND_URL}${selectedOrder.Material.img}`}
+                    alt={selectedOrder.Material.description}
                     fluid
                     className="rounded"
                   />
@@ -968,14 +1086,14 @@ const Home = () => {
               </CCol>
               <CCol md="8">
                 <strong>
-                  {selectedProduct.Inventory
-                    ? selectedProduct.Inventory.Material.description
-                    : selectedProduct.Material.description}
+                  {selectedOrder.Inventory
+                    ? selectedOrder.Inventory.Material.description
+                    : selectedOrder.Material.description}
                 </strong>
                 <p>
-                  {selectedProduct.Inventory
-                    ? selectedProduct.Inventory.Material.materialNo
-                    : selectedProduct.Material.materialNo}
+                  {selectedOrder.Inventory
+                    ? selectedOrder.Inventory.Material.materialNo
+                    : selectedOrder.Material.materialNo}
                 </p>
                 <div className="d-flex align-items-center">
                   <CButton
@@ -990,9 +1108,9 @@ const Home = () => {
                   </CButton>
                   <span className="mx-3 fw-light">
                     (
-                    {selectedProduct.Inventory
-                      ? selectedProduct.Inventory.Material.uom
-                      : selectedProduct.Material.uom}
+                    {selectedOrder.Inventory
+                      ? selectedOrder.Inventory.Material.uom
+                      : selectedOrder.Material.uom}
                     )
                   </span>
                 </div>
@@ -1000,7 +1118,7 @@ const Home = () => {
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary" onClick={() => handleAddToCart(selectedProduct, quantity)}>
+            <CButton color="primary" onClick={() => handleAddToCart(selectedOrder, quantity)}>
               Add to Cart
             </CButton>
           </CModalFooter>

@@ -265,10 +265,10 @@ export const processOrder = async (req, res) => {
       }
     }
 
-    let typeLog = "approve warehouse";
+    let typeLog = "accepted warehouse";
     let quantityBefore;
     let quantityAfter;
-    const status = "approved warehouse";
+    const status = "accepted warehouse";
 
     // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
@@ -386,6 +386,9 @@ export const shopingOrder = async (req, res) => {
       { transaction }
     );
 
+    // Create order history
+    await postOrderHistory(status, userId, orderId, { transaction });
+
     // update status order
     const order = await Order.update({ status: status }, { where: { id: orderId }, transaction });
 
@@ -446,6 +449,9 @@ export const completeOrder = async (req, res) => {
       { transaction }
     );
 
+    // Create order history
+    await postOrderHistory("your items received", userId, orderId, { transaction });
+
     // update status order
     const order = await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
 
@@ -476,6 +482,18 @@ export const rejectOrderWarehouse = async (req, res) => {
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
       include: [
+        {
+          model: Inventory,
+          attributes: ["id"],
+          include: [
+            {
+              model: Material,
+              attributes: ["description"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
         {
           model: Order,
         },
@@ -509,7 +527,7 @@ export const rejectOrderWarehouse = async (req, res) => {
       { transaction }
     );
 
-    const status = "rejected warehouse";
+    const status = `rejected warehouse for items: ${order.Material.description}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, { transaction });

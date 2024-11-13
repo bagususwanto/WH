@@ -79,6 +79,19 @@ const useOrderService = () => {
     }
   }
 
+  const getOrderHistory = async (id) => {
+    try {
+      const response = await axiosJWT.get(`/order-history/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching Order History:')
+    }
+  }
+
   const checkout = async (data, warehouseId) => {
     try {
       const response = await axiosJWT.post(`/checkout/${warehouseId}`, data, {
@@ -91,6 +104,7 @@ const useOrderService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+
   const createOrder = async (data, warehouseId) => {
     try {
       const response = await axiosJWT.post(`/order/${warehouseId}`, data, {
@@ -112,6 +126,7 @@ const useOrderService = () => {
     getMyorder,
     checkout,
     createOrder,
+    getOrderHistory,
   }
 }
 

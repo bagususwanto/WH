@@ -79,14 +79,6 @@ const Confirm = () => {
     setCurrentPage(pageNumber)
   }
   const handleCheckout = () => {
-    console.log('Checkout initiated:', {
-      isPickup,
-      deadline,
-      iswbs,
-      verifiedCartItems,
-      totalQuantity,
-    })
-
     MySwal.fire({
       title: 'Confirm Checkout',
       text: `Are you sure you want to proceed to checkout products?\n\n Total items: ${totalQuantity}`,
@@ -107,7 +99,6 @@ const Confirm = () => {
   const order = async () => {
     try {
       const cartIds = verifiedCartItems.map((item) => item.id)
-      console.log('Cart IDs:', cartIds)
 
       if (cartIds.length === 0) {
         return MySwal.fire({
@@ -139,17 +130,10 @@ const Confirm = () => {
           : '' // GIC number
 
       const paymentMethod = iswbs ? 'WBS' : 'GIC' // Determine payment method
-      const deliveryMethod = isPickup ? 'Pickup' : 'Otodoke' // Delivery method
+      const deliveryMethod = isPickup ? 'pickup' : 'otodoke' // Delivery method
 
       // Validate order details
       if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
-        console.log('Validation failed:', {
-          isPickup,
-          orderTime,
-          paymentNumber,
-          paymentMethod,
-          deliveryMethod,
-        })
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
@@ -164,6 +148,7 @@ const Confirm = () => {
           paymentNumber,
           paymentMethod,
           deliveryMethod,
+          remarks: message,
         },
         warehouse.id,
       )

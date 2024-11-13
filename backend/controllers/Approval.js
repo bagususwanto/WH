@@ -54,8 +54,8 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
   let whereCondition = { isApproval: 0, currentRoleApprovalId: role.id };
   let whereCondition2;
 
-  if (approved) {
-    whereCondition2 = { status: `approved ${approved}` };
+  if (approved == 1) {
+    whereCondition2 = { status: `approved ${role.roleName}` };
     whereCondition = {};
   }
 
@@ -133,7 +133,7 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
   ];
 
   // Tambahkan `Approval` ke array `include` jika `approved` ada nilainya
-  if (approved) {
+  if (approved == 1) {
     includes.push({
       model: Approval,
       required: true,

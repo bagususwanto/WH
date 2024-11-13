@@ -29,11 +29,31 @@ const getIconByStatus = (status) => {
     return "cilCheckCircle";
   } else if (status.includes("created")) {
     return "cilClipboard";
-  } else if (status.includes("otodoke")) {
+  } else if (status.includes("deliver")) {
     return "cilTruck";
   } else if (status.includes("pickup")) {
     return "cilWalk";
   } else {
     return "cilCircle";
+  }
+};
+
+export const getOrderHistory = async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+
+    const response = await OrderHistory.findAll({
+      where: { orderId: orderId },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (!response) {
+      return res.status(404).json({ message: "Order history not found" });
+    }
+
+    res.json(response);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
