@@ -7,7 +7,7 @@ import {
   CDropdownToggle,
   CDropdownHeader,
 } from '@coreui/react'
-import { cilUser, cilAccountLogout, cilHistory, cilBadge, cilCart, cilHeart } from '@coreui/icons'
+import { cilUser, cilAccountLogout, cilHistory, cilBadge, cilEnvelopeLetter, cilHeart } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
 
@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
 
 const AppHeaderDropdown = () => {
-  const { name } = useVerify()
+  const { name, roleName } = useVerify()  // Pastikan roleName disertakan di sini
   const navigate = useNavigate()
 
   const handleHistory = () => {
@@ -29,13 +29,26 @@ const AppHeaderDropdown = () => {
   const handleWhislist = () => {
     navigate('/wishlist')
   }
-
+  const handleapproveall = () => {
+    navigate('/approveall')
+  }
   const handleLogout = () => {
     navigate('/logout')
   }
 
   const [firstName, lastName] = name.split(' ')
+  let shouldShowApproval = false;
 
+  // Cek kondisi untuk roleName
+  if (
+    roleName === 'line head' ||
+    roleName === 'super admin' ||
+    roleName === 'section head' ||
+    roleName === 'department head'
+  ) {
+    shouldShowApproval = true;
+  }
+  
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle
@@ -66,6 +79,18 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilHeart} className="me-2" />
           Wishlist
         </CDropdownItem>
+     
+        {/* Conditional Approve All Item */}
+        {shouldShowApproval && (
+        <>
+          <CDropdownDivider />
+          <CDropdownItem onClick={handleapproveall} style={{ cursor: 'pointer' }}>
+            <CIcon icon={cilEnvelopeLetter} className="me-2" />
+            Approval
+          </CDropdownItem>
+        </>
+      )}
+
         <CDropdownDivider />
         <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilAccountLogout} className="me-2" />

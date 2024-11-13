@@ -420,7 +420,7 @@ const ApproveAll = () => {
                               </CCol>
 
                               <CCol className="text-end">
-                                <label className="fw-bold fs-6">
+                                <label className="fw-bold fs-6 me-1">
                                   Rp
                                   {approval.Detail_Orders.reduce(
                                     (total, order) => total + (order.Inventory.Material.price || 0),
@@ -429,7 +429,7 @@ const ApproveAll = () => {
                                 </label>
 
                                 <br />
-                                <label className="me-2">
+                                <label className="me-1">
                                   {approval.paymentMethod}:{approval.paymentNumber}
                                 </label>
                               </CCol>
@@ -521,7 +521,7 @@ const ApproveAll = () => {
             </CRow>
           </CTabPanel>
 
-          <CTabPanel className="p-3" aria-labelledby="Confirmation-tab-pane" itemKey={2}>
+          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={2}>
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
@@ -573,10 +573,10 @@ const ApproveAll = () => {
                                     <strong>Form:</strong> {approval.User.name}
                                   </div>
                                   <div>
-                                    <strong>Role:</strong> {approval.User.Organization.position}
+                                    <strong>Role:</strong> {approval.User.position}
                                   </div>
                                   <div>
-                                    <strong>Section:</strong> {approval.User.Organization.SectionId}
+                                    <strong>Section:</strong> {approval.User.Organization.Section.sectionName}
                                   </div>
                                 </div>
                               </CCol>

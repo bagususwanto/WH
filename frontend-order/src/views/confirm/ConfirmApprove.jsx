@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+import { format, parseISO } from 'date-fns'
 import {
   CCard,
   CCardBody,
@@ -212,10 +213,10 @@ const Confirm = () => {
                     <strong>FORM:</strong> {Confirmapproval.User.name}
                   </div>
                   <div>
-                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                    <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}
                   </div>
                   <div>
-                    <small>Request at 11:19</small>
+                    <small>Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}</small>
                   </div>
                 </div>
               </div>
@@ -377,7 +378,6 @@ const Confirm = () => {
                             aria-label="Number input"
                             onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                           />
-
                           <CButton
                             color="secondary"
                             variant="outline"
@@ -385,16 +385,11 @@ const Confirm = () => {
                             onClick={() => handleIncreaseQuantity(product.id)}
                           >
                             +
-                          </CButton>
-                          {' '}
-                        {/* Apply margin-left (ms-2) to create space */}
-                        <span className="fw-light">({product.Material?.uom || 'UOM'})</span>
+                          </CButton>{' '}
+                          {/* Apply margin-left (ms-2) to create space */}
+                          <span className="fw-light">({product.Material?.uom || 'UOM'})</span>
                         </div>
-       
-                    
                       </CCol>
-                
-                    
 
                       <CCol xs="1" className="d-flex justify-content-end align-items-center">
                         <CIcon
