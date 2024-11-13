@@ -455,68 +455,6 @@ const ApproveAll = () => {
                     )}
                   </CRow>
                 </div>
-
-                {/* Modal for product details */}
-                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-                  <CModalHeader>
-                    <CModalTitle>Product Details</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    {selectedProduct && (
-                      <CRow className="g-1 mt-2">
-                        <CCard className="h-80">
-                          <CCardBody className="d-flex flex-column justify-content-between">
-                            <CRow className="align-items-center">
-                              <CCol xs="1">
-                                <CCardImage
-                                  src={
-                                    selectedProduct.Material.img ||
-                                    'https://via.placeholder.com/150'
-                                  }
-                                  alt={selectedProduct.Material.description}
-                                  style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                                />
-                              </CCol>
-                              <CCol xs="6" className="mb-2">
-                                <div>
-                                  <label>{selectedProduct.Material.description}</label>
-                                  <br />
-                                  <label className="fw-bold fs-6">
-                                    Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
-                                  </label>
-                                </div>
-                              </CCol>
-                              <CCol xs="5">
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                  }}
-                                >
-                                  <label className="d-flex flex-column justify-content-between fs-6">
-                                    Status:
-                                  </label>
-                                  <CBadge
-                                    className="me-2"
-                                    size="sm"
-                                    color={getSeverity('Completed')}
-                                  >
-                                    ON PROCESS
-                                  </CBadge>
-                                </div>
-                              </CCol>
-                            </CRow>
-
-                            {/* History Order Timeline */}
-
-                            <CRow></CRow>
-                          </CCardBody>
-                        </CCard>
-                      </CRow>
-                    )}
-                  </CModalBody>
-                </CModal>
               </CCard>
             </CRow>
           </CTabPanel>
@@ -576,7 +514,8 @@ const ApproveAll = () => {
                                     <strong>Role:</strong> {approval.User.position}
                                   </div>
                                   <div>
-                                    <strong>Section:</strong> {approval.User.Organization.Section.sectionName}
+                                    <strong>Section:</strong>{' '}
+                                    {approval.User.Organization.Section.sectionName}
                                   </div>
                                 </div>
                               </CCol>
@@ -601,7 +540,7 @@ const ApproveAll = () => {
                             <CRow xs="1" className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
-                                  onClick={() => handleViewHistoryOrder(product)}
+                                  onClick={() => (product)}
                                   color="primary"
                                   size="sm"
                                 >
