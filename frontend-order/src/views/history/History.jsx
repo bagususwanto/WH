@@ -280,7 +280,11 @@ const History = () => {
                             >
                               {order.isReject === 1 ? 'REJECTED' : order.status.toUpperCase()}
                             </CBadge>
-                            <label className="me-2 fw-light">{order.transactionNumber}</label>
+                            <label className="me-2 fw-light">
+                              {order.transactionNumber
+                                ? `${order.transactionNumber}`
+                                : `${order.requestNumber}`}
+                            </label>
                           </CCol>
                         </div>
 
