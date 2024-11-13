@@ -178,10 +178,10 @@ const ApproveAll = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleViewHistoryOrder = (Confirmapproval) => {
-    setSelectedProduct(Confirmapproval)
+  const handleViewHistoryOrder = (initialConfirmApproval) => {
+    setSelectedProduct(initialConfirmApproval)
     setVisible(true)
-    navigate('/confirmapp', { state: { Confirmapproval } })
+    navigate('/confirmapp', { state: { initialConfirmApproval } })
   }
   const handleSearchInputChange = (e) => {
     const query = e.target.value
