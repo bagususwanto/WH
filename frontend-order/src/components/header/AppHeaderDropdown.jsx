@@ -7,17 +7,29 @@ import {
   CDropdownToggle,
   CDropdownHeader,
 } from '@coreui/react'
-import { cilUser, cilAccountLogout, cilHistory, cilBadge, cilEnvelopeLetter, cilHeart } from '@coreui/icons'
+import {
+  cilUser,
+  cilAccountLogout,
+  cilHistory,
+  cilBadge,
+  cilEnvelopeLetter,
+  cilHeart,
+} from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
+import swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import useAuthService from '../../services/AuthService'
 
 const AppHeaderDropdown = () => {
-  const { name, roleName } = useVerify()  // Pastikan roleName disertakan di sini
+  const { name, roleName } = useVerify() // Pastikan roleName disertakan di sini
   const navigate = useNavigate()
+  const { logout } = useAuthService()
+  const MySwal = withReactContent(swal)
 
   const handleHistory = () => {
     navigate('/history')
@@ -32,12 +44,29 @@ const AppHeaderDropdown = () => {
   const handleapproveall = () => {
     navigate('/approveall')
   }
-  const handleLogout = () => {
-    navigate('/logout')
+
+  const handleLogout = async () => {
+    try {
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: 'Do you really want to log out?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, log out',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+      })
+      if (result.isConfirmed) {
+        await logout()
+        navigate('/login')
+      }
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const [firstName, lastName] = name.split(' ')
-  let shouldShowApproval = false;
+  let shouldShowApproval = false
 
   // Cek kondisi untuk roleName
   if (
@@ -46,9 +75,9 @@ const AppHeaderDropdown = () => {
     roleName === 'section head' ||
     roleName === 'department head'
   ) {
-    shouldShowApproval = true;
+    shouldShowApproval = true
   }
-  
+
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle
@@ -79,17 +108,17 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilHeart} className="me-2" />
           Wishlist
         </CDropdownItem>
-     
+
         {/* Conditional Approve All Item */}
         {shouldShowApproval && (
-        <>
-          <CDropdownDivider />
-          <CDropdownItem onClick={handleapproveall} style={{ cursor: 'pointer' }}>
-            <CIcon icon={cilEnvelopeLetter} className="me-2" />
-            Approval
-          </CDropdownItem>
-        </>
-      )}
+          <>
+            <CDropdownDivider />
+            <CDropdownItem onClick={handleapproveall} style={{ cursor: 'pointer' }}>
+              <CIcon icon={cilEnvelopeLetter} className="me-2" />
+              Approval
+            </CDropdownItem>
+          </>
+        )}
 
         <CDropdownDivider />
         <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>
