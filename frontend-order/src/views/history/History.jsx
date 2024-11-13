@@ -402,7 +402,11 @@ const History = () => {
                                 >
                                   <CIcon icon={icons[item.icon]} size="lg" />
                                 </div>
-                                <label style={{ marginLeft: '8px' }}>{item.status}</label>
+                                <label style={{ marginLeft: '8px' }}>
+                                  {' '}
+                                  {item.status.charAt(0).toUpperCase() +
+                                    item.status.slice(1).toLowerCase()}
+                                </label>
                               </div>
                             </div>
                           ))}

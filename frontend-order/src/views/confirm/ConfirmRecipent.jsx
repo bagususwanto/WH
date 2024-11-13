@@ -79,7 +79,6 @@ const Confirm = () => {
     setCurrentPage(pageNumber)
   }
   const handleCheckout = () => {
-
     MySwal.fire({
       title: 'Confirm Checkout',
       text: `Are you sure you want to proceed to checkout products?\n\n Total items: ${totalQuantity}`,
@@ -135,13 +134,6 @@ const Confirm = () => {
 
       // Validate order details
       if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
-        console.log('Validation failed:', {
-          isPickup,
-          orderTime,
-          paymentNumber,
-          paymentMethod,
-          deliveryMethod,
-        })
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
@@ -156,6 +148,7 @@ const Confirm = () => {
           paymentNumber,
           paymentMethod,
           deliveryMethod,
+          remarks: message,
         },
         warehouse.id,
       )
