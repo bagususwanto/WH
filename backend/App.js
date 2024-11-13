@@ -42,6 +42,7 @@ import approvalRouter from "./routes/ApprovalRouter.js";
 import harcodedRouter from "./routes/HarcodedRouter.js";
 import notificationRouter from "./routes/NotificationRouter.js";
 import warehouseProcessRouter from "./routes/WarehouseProcessRouter.js";
+import orderHistoryRouter from "./routes/OrderHistoryRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -111,6 +112,9 @@ app.use("/api", cartRouter);
 app.use("/api", wishlistRouter);
 app.use("/api", myOrderRouter);
 app.use("/api", orderRouter);
+
+// Order history router
+app.use("/api", orderHistoryRouter);
 
 // Approval router
 app.use("/api", approvalRouter);

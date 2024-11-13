@@ -133,7 +133,31 @@ const InputInventory = () => {
     label: plant.plantName,
   }))
 
+  const handlePlantOpen = () => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedPlantVal(selectedPlantVal)
+      return // Hentikan aksi jika offline
+    }
+  }
+
   const handlePlantChange = (selectedPlant) => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedPlantVal(selectedPlantVal)
+      return // Hentikan aksi jika offline
+    }
+
     if (items && items.length > 0) {
       MySwal.fire({
         title: 'Warning',
@@ -209,6 +233,17 @@ const InputInventory = () => {
   }
 
   const handleStorageChange = async (selectedStorage) => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedStorageVal(selectedStorageVal)
+      return // Hentikan aksi jika offline
+    }
+
     if (!selectedStorage) {
       // Jika dropdown di-clear
       setSelectedStorageVal(null)
@@ -265,7 +300,43 @@ const InputInventory = () => {
     }
   }
 
+  const handleStorageOpen = async () => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedStorageVal(selectedStorageVal)
+      return // Hentikan aksi jika offline
+    }
+  }
+
+  const handleTypeOpen = async () => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedTypeMaterial(selectedTypeMaterial)
+      return // Hentikan aksi jika offline
+    }
+  }
+
   const handleTypeChange = async (selectedType) => {
+    if (!navigator.onLine) {
+      // Jika jaringan offline, tampilkan notifikasi
+      MySwal.fire({
+        title: 'Offline!',
+        text: 'You are currently offline. Please check your internet connection.',
+        icon: 'warning',
+      })
+      setSelectedTypeMaterial(selectedTypeMaterial)
+      return // Hentikan aksi jika offline
+    }
     if (!selectedType) {
       // Jika dropdown di-clear
       setSelectedStorageVal(null)
@@ -685,6 +756,7 @@ const InputInventory = () => {
                     isClearable={isClearable}
                     options={plantOptions}
                     id="plant"
+                    onMenuOpen={handlePlantOpen}
                     onChange={handlePlantChange}
                     styles={customStyles}
                     value={selectedPlantVal}
@@ -699,6 +771,7 @@ const InputInventory = () => {
                     isClearable={isClearable}
                     options={storageOptions}
                     id="storage"
+                    onMenuOpen={handleStorageOpen}
                     onChange={handleStorageChange}
                     styles={customStyles}
                     value={selectedStorageVal}
@@ -713,6 +786,7 @@ const InputInventory = () => {
                     isClearable={isClearable}
                     options={typeMaterialOptions}
                     id="type"
+                    onMenuOpen={handleTypeOpen}
                     onChange={handleTypeChange}
                     styles={customStyles}
                     value={selectedTypeMaterial}
