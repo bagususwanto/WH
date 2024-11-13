@@ -515,7 +515,6 @@ const Home = () => {
           </CCarousel>
         </div>
       </CRow>
-
       {/* Your Favorite Item */}
       <CRow className="mt-4">
         <div className="d-flex flex-wrap align-items-center">
@@ -720,7 +719,7 @@ const Home = () => {
                       >
                         {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
                       </CBadge>
-                      <label className=" me-2 fw-light ">{order.transactionNumber}</label>
+                      <label className=" me-2 fw-light ">{order.transactionNumber ? order.transactionNumber : order.requestNumber}</label>
                     </CCol>
                   </div>
                   <CCol xs="5"></CCol>
@@ -927,7 +926,6 @@ const Home = () => {
           </CRow>
         )}
       </CRow>
-
       {/* Daftar Produk */}
       <CRow className="mt-3">
         {isLoading
@@ -1056,7 +1054,6 @@ const Home = () => {
               </CCol>
             ))}
       </CRow>
-
       {/* Tombol Load More */}
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
@@ -1068,17 +1065,20 @@ const Home = () => {
       )}
       {/* )} */}
 
-      {/* Modal for adding product to cart */}
-      {selectedOrder && selectedOrder.Material && (
+      {selectedProduct  && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>
             <CRow>
               <CCol md="4">
-                {selectedOrder.Material.img && (
+                {selectedProduct && (
                   <CImage
-                    src={`${config.BACKEND_URL}${selectedOrder.Material.img}`}
-                    alt={selectedOrder.Material.description}
+                    src={`${config.BACKEND_URL}${selectedProduct.Inventory ? selectedProduct.Inventory.Material.img : selectedProduct.Material.img}`}
+                    alt={
+                      selectedProduct.Inventory
+                        ? selectedProduct.Inventory.Material.description
+                        : selectedProduct.Material.description
+                    }
                     fluid
                     className="rounded"
                   />
@@ -1086,14 +1086,14 @@ const Home = () => {
               </CCol>
               <CCol md="8">
                 <strong>
-                  {selectedOrder.Inventory
-                    ? selectedOrder.Inventory.Material.description
-                    : selectedOrder.Material.description}
+                  {selectedProduct.Inventory
+                    ? selectedProduct.Inventory.Material.description
+                    : selectedProduct.Material.description}
                 </strong>
                 <p>
-                  {selectedOrder.Inventory
-                    ? selectedOrder.Inventory.Material.materialNo
-                    : selectedOrder.Material.materialNo}
+                  {selectedProduct.Inventory
+                    ? selectedProduct.Inventory.Material.materialNo
+                    : selectedProduct.Material.materialNo}
                 </p>
                 <div className="d-flex align-items-center">
                   <CButton
@@ -1108,9 +1108,9 @@ const Home = () => {
                   </CButton>
                   <span className="mx-3 fw-light">
                     (
-                    {selectedOrder.Inventory
-                      ? selectedOrder.Inventory.Material.uom
-                      : selectedOrder.Material.uom}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
                     )
                   </span>
                 </div>
@@ -1118,7 +1118,7 @@ const Home = () => {
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary" onClick={() => handleAddToCart(selectedOrder, quantity)}>
+            <CButton color="primary" onClick={() => handleAddToCart(selectedProduct, quantity)}>
               Add to Cart
             </CButton>
           </CModalFooter>

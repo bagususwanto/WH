@@ -69,6 +69,7 @@ const ProductList = () => {
 
     if (warehouse && warehouse.id) {
       if (query) {
+        setProductsData([])
         getProductByQueries(query)
       } else if (categoryId) {
         setProductsData([])
@@ -99,7 +100,7 @@ const ProductList = () => {
         setProductsData([])
         return
       }
-      setProductsData([])
+
       const newProducts = response.data
       setProductsData((prevProducts) => [...prevProducts, ...newProducts])
       setHasMore(newProducts.length === 25) // Misalkan limit per halaman adalah 24
