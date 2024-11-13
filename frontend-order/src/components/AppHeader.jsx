@@ -649,14 +649,7 @@ const AppHeader = () => {
                   <CRow className="w-100">
                     <CCol xs="2">
                       <CImage
-                        src={
-                          product?.Inventory?.Material?.img
-                            ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
-                            : 'path/to/placeholder-image.jpg'
-                        }
-                        alt={
-                          product?.Inventory?.Material?.description || 'No description available'
-                        }
+                        src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                         style={{ width: '40px', height: '40px' }}
                       />
                     </CCol>
