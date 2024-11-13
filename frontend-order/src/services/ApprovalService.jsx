@@ -15,9 +15,9 @@ const useApprovalService = () => {
 
   
 
-  const getApproval = async (warehouseid, role) => {
+  const getApproval = async (warehouseid, approved) => {
     try {
-      const response = await axiosJWT.get(`/approval/${warehouseid}?page=1&limit=10&role=${role}`, {
+      const response = await axiosJWT.get(`/approval/${warehouseid}?page=1&limit=10&approved=${approved}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -28,6 +28,7 @@ const useApprovalService = () => {
     }
   }
 
+ 
   const getMasterDataById = async (api, id) => {
     try {
       const response = await axiosJWT.get(`/${api}/${id}`, {

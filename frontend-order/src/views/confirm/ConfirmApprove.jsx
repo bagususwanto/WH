@@ -90,17 +90,15 @@ const Confirm = () => {
   const { roleName } = useVerify()
   const location = useLocation()
   const { Confirmapproval } = location.state
-console.log (Confirmapproval)
+  console.log(Confirmapproval)
   const navigate = useNavigate()
 
   const apiCategory = 'category'
 
- 
   useEffect(() => {
-    if(Confirmapproval.deliveryMethod=='Pickup'){
+    if (Confirmapproval.deliveryMethod == 'Pickup') {
       setIsPickup(true)
-      
-    }else {
+    } else {
       setIsPickup(false)
     }
   }, [Confirmapproval])
@@ -145,7 +143,7 @@ console.log (Confirmapproval)
     setCurrentPage(pageNumber)
   }
 
-  const handleCheckout = () => {
+  const handleApprove = () => {
     MySwal.fire({
       title: 'Confirm Checkout',
       text: `Are you sure you want to proceed to checkout products?`,
@@ -190,8 +188,6 @@ console.log (Confirmapproval)
     setClicked(true)
     navigate('/order')
   }
- 
-
 
   return (
     <CContainer>
@@ -200,29 +196,29 @@ console.log (Confirmapproval)
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               {/* {roleName === 'super admin' && ( */}
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                  <img
-                    src="path-to-user-photo.jpg"
-                    alt="User Profile"
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      marginRight: '16px',
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                      <strong>FORM:</strong> {Confirmapproval.User.name}
-                    </div>
-                    <div>
-                      <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                    </div>
-                    <div>
-                      <small>Request at 11:19</small>
-                    </div>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <img
+                  src="path-to-user-photo.jpg"
+                  alt="User Profile"
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    marginRight: '16px',
+                  }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div>
+                    <strong>FORM:</strong> {Confirmapproval.User.name}
+                  </div>
+                  <div>
+                    <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
+                  </div>
+                  <div>
+                    <small>Request at 11:19</small>
                   </div>
                 </div>
+              </div>
               {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
@@ -308,7 +304,7 @@ console.log (Confirmapproval)
                 <label className="fw-bold mb-2">
                   Total: Rp {totalAmount.toLocaleString('id-ID')}
                 </label>
-                <CButton color="primary" onClick={handleCheckout}>
+                <CButton color="primary" onClick={handleApprove}>
                   Approve Now
                 </CButton>
               </div>
@@ -336,71 +332,83 @@ console.log (Confirmapproval)
 
         <CCol xs={8}>
           <CRow className="g-2">
-          {Confirmapproval.Detail_Orders.map((product, index) => ( // Change from productsData to currentProducts
-              <CCard className="h-80" key={product.id}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    <CCol xs="1">
-                      <CCardImage
-                        src={'https://via.placeholder.com/150'}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                      />
-                    </CCol>
-                    <CCol xs="6">
-                      <div>
-                        <label>
-                          {product.Inventory.Material.description} 
-                        </label>
-                        <br></br>
-                        <label className="fw-bold fs-6">
-                          Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
-                        </label>
-                      </div>
-                    </CCol>
-                    <CCol xs="3">
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                      >
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDecreaseQuantity(product.id)}
-                        >
-                          -
-                        </CButton>
-                        <CFormInput
-                          type="text"
-                          value={quantities[product.id] || 1}
-                          aria-label="Number input"
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+            {Confirmapproval.Detail_Orders.map(
+              (
+                product,
+                index, // Change from productsData to currentProducts
+              ) => (
+                <CCard className="h-80" key={product.id}>
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <CRow className="align-items-center">
+                      <CCol xs="1">
+                        <CCardImage
+                          src={'https://via.placeholder.com/150'}
+                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
-
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleIncreaseQuantity(product.id)}
+                      </CCol>
+                      <CCol xs="6">
+                        <div>
+                          <label>{product.Inventory.Material.description}</label>
+                          <br></br>
+                          <label className="fw-bold fs-6">
+                            Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
+                          </label>
+                        </div>
+                      </CCol>
+                      <CCol xs="3">
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
                         >
-                          +
-                        </CButton>
+                          <CButton
+                            color="secondary"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDecreaseQuantity(product.id)}
+                          >
+                            -
+                          </CButton>
+                          <CFormInput
+                            type="text"
+                            value={quantities[product.id] || 1}
+                            aria-label="Number input"
+                            onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                          />
 
-                        <span className="px-2">({product.Material?.uom || 'UOM'})</span>
-                      </div>
-                    </CCol>
+                          <CButton
+                            color="secondary"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleIncreaseQuantity(product.id)}
+                          >
+                            +
+                          </CButton>
+                          {' '}
+                        {/* Apply margin-left (ms-2) to create space */}
+                        <span className="fw-light">({product.Material?.uom || 'UOM'})</span>
+                        </div>
+       
+                    
+                      </CCol>
+                
+                    
 
-                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                      <CIcon
-                        icon={cilTrash}
-                        className="text-danger"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleDelete(product.id)}
-                      />
-                    </CCol>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
+                      <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                        <CIcon
+                          icon={cilTrash}
+                          className="text-danger"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleDelete(product.id)}
+                        />
+                      </CCol>
+                    </CRow>
+                  </CCardBody>
+                </CCard>
+              ),
+            )}
           </CRow>
           <div className="d-flex justify-content-center mt-4">
             <CPagination>

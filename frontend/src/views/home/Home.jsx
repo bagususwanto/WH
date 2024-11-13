@@ -141,19 +141,19 @@ const Home = () => {
 
               <CDropdown>
                 <CDropdownToggle
-                  className="px-5 py-1 px-md-4 py-md-3 fw-bold"
+                  className="py-2 px-4 py-md-3 px-md-5 me-md-4 mb-3 mb-md-0 fw-bold"
                   color="secondary"
                   size="sm"
                 >
                   INVENTORY
                 </CDropdownToggle>
                 <CDropdownMenu>
-                  <CDropdownItem>
+                  <CDropdownItem  className="py-1 px-5 py-md-3 px-md-3 me-md-3 mb-3 mb-md-0 fw-bold">
                     <Link to="/inventory/input" style={{ textDecoration: 'none' }}>
                       INPUT INVENTORY
                     </Link>
                   </CDropdownItem>
-                  <CDropdownItem>
+                  <CDropdownItem className="py-1 px-5 py-md-3 px-md-3 me-md-3 mb-3 mb-md-0 fw-bold">
                     <Link to="/inventory/data" style={{ textDecoration: 'none' }}>
                       TABEL INVENTORY
                     </Link>

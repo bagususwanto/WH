@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
+import './scss/nav.scss'
 import {
   cilAccountLogout,
   cilAddressBook,
@@ -28,6 +29,7 @@ import {
   cilHandPointUp,
   cilDescription,
   cilCopy,
+  cilMinus,
   cilUserX,
   cilUserFollow,
 } from '@coreui/icons'
@@ -39,6 +41,7 @@ import withReactContent from 'sweetalert2-react-content'
 import useAuthService from './services/AuthService'
 
 const useNavigation = () => {
+  const location = useLocation() // untuk mendapatkan lokasi saat ini
   const [navigation, setNavigation] = useState([])
   const { roleName } = useVerify()
 
@@ -74,6 +77,7 @@ const useNavigation = () => {
         name: 'Home',
         to: '/home',
         icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+        active: location.pathname === '/home', // Membuatnya aktif jika path sesuai
       },
     ]
     // NAV DASHBOARD
@@ -89,6 +93,7 @@ const useNavigation = () => {
         name: 'Dasboard',
         to: '/dashboard',
         icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+        active: location.pathname === '/dashboard',
       })
     }
     // NAV INVENTORY
@@ -112,7 +117,7 @@ const useNavigation = () => {
               component: CNavItem,
               name: 'Incoming',
               to: '/incoming',
-              icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
             },
             {
               component: CNavGroup,
@@ -124,13 +129,13 @@ const useNavigation = () => {
                   component: CNavItem,
                   name: 'Input Inventory',
                   to: '/inventory/input',
-                  icon: <CIcon icon={cilHandPointUp} customClassName="nav-icon" />,
+                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
                 },
                 {
                   component: CNavItem,
                   name: 'Data Inventory',
                   to: '/inventory/data',
-                  icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
+                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
                 },
               ],
             },
@@ -151,22 +156,24 @@ const useNavigation = () => {
               component: CNavItem,
               name: 'Good Issue Order',
               to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/home`, '_blank') // Opens URL in a new tab
               },
+              className: location.pathname === '/order' ? 'nav-item-active' : '',
             },
 
             {
               component: CNavItem,
               name: 'Good Issue Approval',
               to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/approveall`, '_blank') // Use base URL from config
               },
+              className: location.pathname === '/order' ? 'nav-item-active' : '',
             },
           ],
         },
@@ -180,7 +187,7 @@ const useNavigation = () => {
               component: CNavItem,
               name: 'Good Issue Confirm',
               to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilEnvelopeLetter} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/confirmall`, '_blank') // Use base URL from config
@@ -190,7 +197,7 @@ const useNavigation = () => {
               component: CNavItem,
               name: 'Shopping',
               to: '/dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/shopping`, '_blank') // Use base URL from config
@@ -297,7 +304,7 @@ const useNavigation = () => {
             component: CNavItem,
             name: 'Good Issue Data',
             to: '/category',
-            icon: <CIcon icon={cilCopy} customClassName="nav-icon" />,
+            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
           },
         ],
       },
@@ -411,7 +418,7 @@ const useNavigation = () => {
     )
 
     setNavigation(baseNav)
-  }, [roleName])
+  }, [roleName, location.pathname]) // update saat roleName atau location berubah
 
   return navigation
 }
