@@ -94,7 +94,7 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
             {
               model: Material,
               required: false,
-              attributes: ["id", "materialNo", "description", "uom", "price"],
+              attributes: ["id", "materialNo", "description", "uom", "price", "img"],
               where: { flag: 1 },
             },
           ],
@@ -372,7 +372,7 @@ const isCertainPrice = async (orderId) => {
 };
 
 export const approveOrder = async (req, res) => {
-  const transaction = await db.transaction(); // Mulai transaksi
+  const transaction = await db.transaction();
   try {
     const warehouseId = req.params.warehouseId;
     const orderId = req.params.orderId;
@@ -380,46 +380,48 @@ export const approveOrder = async (req, res) => {
     const role = req.user.roleName;
     const updateQuantity = req.body.updateQuantity;
 
-    // Example data updateQuantity
-    // {
-    //   "updateQuantity": [
-    //     {
-    //       "detailOrderId": 1,
-    //       "quantity": 50
-    //     },
-    //     {
-    //       "detailOrderId": 2,
-    //       "quantity": 30
-    //     }
-    //   ]
-    // }
-
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
+      attributes: ["id", "quantity"],
+      include: [
+        {
+          model: Inventory,
+          include: [
+            {
+              model: Material,
+              where: { flag: 1 },
+              attributes: ["id", "materialNo", "description", "uom", "price"],
+            },
+          ],
+        },
+      ],
     });
 
-    // Cek apakah user berwenang untuk approve
     if (!(await isAuthorizedApproval(orderId, userId))) {
-      await transaction.rollback(); // Batalkan transaksi jika tidak berwenang
+      await transaction.rollback();
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    let quantityBefore;
-    let quantityAfter;
     const status = `approved ${role}`;
+    const updatedOrders = [];
 
-    // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
       for (const item of updateQuantity) {
         const order = orders.find((o) => o.id === item.detailOrderId);
         if (order) {
-          quantityBefore = order.quantity;
-          quantityAfter = item.quantity;
+          const quantityBefore = order.quantity;
+          const quantityAfter = item.quantity;
+          const price = order.Inventory.Material.price;
 
-          // Update quantity di DetailOrder
-          await DetailOrder.update({ quantity: quantityAfter }, { where: { id: item.detailOrderId }, transaction });
+          // Update quantity dan price di DetailOrder
+          await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
 
-          // Log perubahan ke tabel LogApproval
+          // Menyimpan detail order yang di-update
+          updatedOrders.push({
+            quantity: quantityAfter,
+            price: quantityAfter * price, // Menghitung harga total untuk item ini
+          });
+
           await LogApproval.create(
             {
               typeLog: "adjust",
@@ -434,7 +436,16 @@ export const approveOrder = async (req, res) => {
       }
     }
 
-    // Create history approval di tabel Approval
+    // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
+    for (const order of orders) {
+      if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
+        updatedOrders.push({
+          quantity: order.quantity,
+          price: order.quantity * order.Inventory.Material.price, // Menghitung harga total untuk item ini
+        });
+      }
+    }
+
     await Approval.create(
       {
         orderId: orderId,
@@ -449,22 +460,29 @@ export const approveOrder = async (req, res) => {
         typeLog: "approve",
         userId: userId,
         detailOrderId: detailOrder.id,
-        quantityBefore: quantityBefore ? quantityBefore : null,
-        quantityAfter: quantityAfter ? quantityAfter : null,
+        quantityBefore: detailOrder.quantity,
+        quantityAfter: detailOrder.quantity,
       })),
       { transaction }
     );
 
-    // create order history
     await postOrderHistory(status, userId, orderId, { transaction });
 
-    // Cek apakah ada approval terakhir
     const isLast = await isLastApproval(orderId);
 
-    // Jika isLastApproval = 1, update isApproval = 1
+    // Hitung totalPrice berdasarkan updatedOrders yang sudah berisi semua data yang diperlukan
+    const totalPrice = updatedOrders.reduce((total, detailOrder) => {
+      return total + detailOrder.price;
+    }, 0);
+
     if (isLast == 1) {
-      const order = await Order.update(
-        { isApproval: 1, transactionNumber: await generateOrderNumber(1), status: "approved" },
+      await Order.update(
+        {
+          isApproval: 1,
+          transactionNumber: await generateOrderNumber(1),
+          status: "approved",
+          totalPrice: totalPrice,
+        },
         { where: { id: orderId }, transaction }
       );
 
@@ -476,39 +494,34 @@ export const approveOrder = async (req, res) => {
       };
       await createNotification(userIds, notification, transaction);
 
-      // Commit transaksi setelah operasi berhasil
       await transaction.commit();
 
-      // Respon success
       return res.status(200).json({
         message: "Approval success",
         status: "Approved",
-        "transaction number": order.transactionNumber,
       });
     }
 
-    // Jika isLastApproval = 0, update currentRoleApprovalId dan isLastApproval
     if (isLast == 0) {
-      // Jika isCertainPrice = 1, update currentRoleApprovalId dan isLastApproval
       if ((await isCertainPrice(orderId)) == 1) {
-        const order = await Order.update(
-          { currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId, transaction), isLastApproval: 1 },
+        await Order.update(
+          {
+            currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId, transaction),
+            isLastApproval: 1,
+            totalPrice: totalPrice,
+          },
           { where: { id: orderId }, transaction }
         );
 
-        // Commit transaksi setelah operasi berhasil
         await transaction.commit();
 
-        // Respon waiting approve
         return res.status(200).json({
           message: "Waiting for next approval",
           status: "Waiting approval",
-          "request number": order.requestNumber,
         });
       }
     }
   } catch (error) {
-    // Rollback transaksi jika terjadi error
     await transaction.rollback();
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

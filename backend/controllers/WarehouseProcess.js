@@ -14,6 +14,7 @@ import LogEntry from "../models/LogEntryModel.js";
 import { Op } from "sequelize";
 import { postOrderHistory } from "./OrderHistory.js";
 import db from "../utils/Database.js";
+import { createNotification } from "./Notification.js";
 
 export const getOrderWarehouse = async (req, res) => {
   try {
@@ -247,39 +248,56 @@ export const processOrder = async (req, res) => {
 
     const orders = await DetailOrder.findAll({
       where: { orderId: orderId },
+      include: [
+        {
+          model: Inventory,
+          include: [
+            {
+              model: Material,
+              where: { flag: 1 },
+              attributes: ["id", "price"],
+            },
+          ],
+        },
+      ],
     });
 
-    if (orderStatus.status == "waiting approval" || orderStatus.isApproval !== 1) {
-      await transaction.rollback(); // Batalkan transaksi jika tidak berwenang
+    if (orderStatus.status === "waiting approval" || orderStatus.isApproval !== 1) {
+      await transaction.rollback(); // Batalkan transaksi jika belum disetujui
       return res.status(401).json({ message: "Unauthorized, the order must be approved" });
     }
 
-    if (orderStatus !== "approved") {
-      await transaction.rollback(); // Batalkan transaksi jika tidak berwenang
+    if (orderStatus.status !== "approved") {
+      await transaction.rollback(); // Batalkan transaksi jika status bukan "approved"
       return res.status(401).json({ message: "Unauthorized, the order has been processed" });
     }
 
-    if (role) {
-      if (role !== "warehouse staff") {
-        return res.status(401).json({ message: "Unauthorized, only warehouse staff can process the order" });
-      }
+    if (role && role !== "warehouse staff") {
+      await transaction.rollback(); // Batalkan transaksi jika bukan warehouse staff
+      return res.status(401).json({ message: "Unauthorized, only warehouse staff can process the order" });
     }
 
     let typeLog = "accepted warehouse";
-    let quantityBefore;
-    let quantityAfter;
     const status = "accepted warehouse";
+    const updatedOrders = [];
 
     // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
       for (const item of updateQuantity) {
         const order = orders.find((o) => o.id === item.detailOrderId);
         if (order) {
-          quantityBefore = order.quantity;
-          quantityAfter = item.quantity;
+          const quantityBefore = order.quantity;
+          const quantityAfter = item.quantity;
+          const price = order.Inventory.Material.price;
 
-          // Update quantity di DetailOrder
-          await DetailOrder.update({ quantity: quantityAfter }, { where: { id: item.detailOrderId }, transaction });
+          // Update quantity dan price di DetailOrder
+          await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
+
+          // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
+          updatedOrders.push({
+            quantity: quantityAfter,
+            price: quantityAfter * price,
+          });
 
           // Log perubahan ke tabel LogApproval
           await LogApproval.create(
@@ -295,7 +313,18 @@ export const processOrder = async (req, res) => {
         }
       }
     }
-    // Create history approval di tabel Approval
+
+    // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
+    for (const order of orders) {
+      if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
+        updatedOrders.push({
+          quantity: order.quantity,
+          price: order.quantity * order.Inventory.Material.price,
+        });
+      }
+    }
+
+    // Buat riwayat approval di tabel Approval
     await Approval.create(
       {
         orderId: orderId,
@@ -310,17 +339,28 @@ export const processOrder = async (req, res) => {
         typeLog: typeLog,
         userId: userId,
         detailOrderId: detailOrder.id,
-        quantityBefore: quantityBefore ? quantityBefore : null,
-        quantityAfter: quantityAfter ? quantityAfter : null,
+        quantityBefore: detailOrder.quantity,
+        quantityAfter: detailOrder.quantity,
       })),
       { transaction }
     );
 
-    // create order history
+    // Buat riwayat order
     await postOrderHistory(status, userId, orderId, { transaction });
 
-    // update status order
-    const order = await Order.update({ status: "on process" }, { where: { id: orderId }, transaction });
+    // Hitung totalPrice dari updatedOrders
+    const totalPrice = updatedOrders.reduce((total, detailOrder) => {
+      return total + detailOrder.price;
+    }, 0);
+
+    // Update status order menjadi "on process" dan simpan totalPrice
+    const updatedOrder = await Order.update(
+      {
+        status: "on process",
+        totalPrice: totalPrice,
+      },
+      { where: { id: orderId }, transaction }
+    );
 
     // Commit transaksi setelah operasi berhasil
     await transaction.commit();
@@ -329,7 +369,7 @@ export const processOrder = async (req, res) => {
     return res.status(200).json({
       message: "Process success",
       status: "Processed",
-      "Transaction Number": order.transactionNumber,
+      "Transaction Number": updatedOrder.transactionNumber,
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error
@@ -454,6 +494,14 @@ export const completeOrder = async (req, res) => {
 
     // update status order
     const order = await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
+
+    const userOrder = await Order.findOne({ where: { id: orderId }, attributes: ["userId"] });
+    const notification = {
+      title: "Order Completed",
+      description: `Order with transaction number ${order.transactionNumber} has been completed`,
+      category: "order",
+    };
+    await createNotification(userOrder, notification, transaction);
 
     // Commit transaksi setelah operasi berhasil
     await transaction.commit();

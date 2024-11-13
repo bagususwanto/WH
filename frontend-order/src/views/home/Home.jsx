@@ -222,12 +222,17 @@ const Home = () => {
 
   const handleAddToCart = async (product, quantity) => {
     try {
-      // Find the existing product in the cart by matching inventoryId
-      const existingProduct = cart.find(
-        (item) =>
-          item.Inventory.materialId ===
-          (product.Inventory ? product.Inventory.materialId : product.materialId),
-      )
+      let existingProduct
+
+      if (cart.Inventory && product.Inventory) {
+        // Find the existing product in the cart by matching inventoryId
+        existingProduct = cart.find(
+          (item) =>
+            item.Inventory.id === (product.Inventory ? product.Inventory.id : product.Inventory.id),
+        )
+      } else {
+        existingProduct = cart.find((item) => item.id === product.id)
+      }
 
       if (existingProduct) {
         // If product exists in the cart, update the quantity
@@ -239,7 +244,7 @@ const Home = () => {
         // Update the cart with the new quantity (use API updateCart)
         const updatedCartResponse = await updateCart(
           {
-            inventoryId: product.id,
+            inventoryId: product.Inventory ? product.Inventory.id : product.id,
             quantity: updatedProduct.quantity,
           },
           warehouse.id,
@@ -251,7 +256,7 @@ const Home = () => {
       } else {
         // If product doesn't exist in the cart, add a new product
         const newCartItem = {
-          inventoryId: product.id,
+          inventoryId: product.Inventory ? product.Inventory.id : product.id,
           quantity: quantity,
         }
 
@@ -261,7 +266,10 @@ const Home = () => {
         const addToCartResponse = await postCart(newCartItem, warehouse.id)
         if (addToCartResponse) {
           // Add the new product to the cart state
-          setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])
+          setCart([
+            ...cart,
+            { ...newCartItem, Inventory: product.Inventory ? product.Inventory : product },
+          ])
         }
       }
 
@@ -719,7 +727,9 @@ const Home = () => {
                       >
                         {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
                       </CBadge>
-                      <label className=" me-2 fw-light ">{order.transactionNumber ? order.transactionNumber : order.requestNumber}</label>
+                      <label className=" me-2 fw-light ">
+                        {order.transactionNumber ? order.transactionNumber : order.requestNumber}
+                      </label>
                     </CCol>
                   </div>
                   <CCol xs="5"></CCol>
@@ -1065,7 +1075,7 @@ const Home = () => {
       )}
       {/* )} */}
 
-      {selectedProduct  && (
+      {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>

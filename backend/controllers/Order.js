@@ -737,7 +737,7 @@ export const createOrder = async (req, res) => {
         orderId: order.id,
         inventoryId: cart.inventoryId,
         quantity: cart.quantity,
-        price: cart.Inventory.Material.price,
+        price: cart.Inventory.Material.price * cart.quantity,
         isMoreThanCertainPrice: cart.Inventory.Material.price >= 20000000 ? 1 : 0,
       })),
       { transaction: t } // Menambahkan transaksi
