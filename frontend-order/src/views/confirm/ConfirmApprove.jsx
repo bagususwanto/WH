@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import { format, parseISO } from 'date-fns'
@@ -15,7 +15,7 @@ import {
   CFormSelect,
   CContainer,
   CFormTextarea,
-  CButtonGroup,
+  CFormLabel,
   CModal,
   CModalHeader,
   CModalTitle,
@@ -43,11 +43,13 @@ import {
   cilLocationPin,
   cilArrowBottom,
 } from '@coreui/icons'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import useVerify from '../../hooks/UseVerify'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
+import useApprovalService from '../../services/ApprovalService'
+import { GlobalContext } from '../../context/GlobalProvider'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -90,9 +92,11 @@ const Confirm = () => {
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
   const location = useLocation()
-  const { Confirmapproval } = location.state
-  console.log(Confirmapproval)
+  const { initialConfirmApproval } = location.state
+  const { deleteOrderItemApproval, postApproval } = useApprovalService()
+  const { warehouse } = useContext(GlobalContext)
   const navigate = useNavigate()
+  const [Confirmapproval, setConfirmapproval] = useState(initialConfirmApproval)
 
   const apiCategory = 'category'
 
@@ -102,7 +106,8 @@ const Confirm = () => {
     } else {
       setIsPickup(false)
     }
-  }, [Confirmapproval])
+  }, [initialConfirmApproval])
+  console.log('initial', initialConfirmApproval)
 
   // This is where currentProducts is initialized
   const indexOfLastItem = currentPage * itemsPerPage
@@ -111,40 +116,95 @@ const Confirm = () => {
   const totalPages = Math.ceil(productsData.length / itemsPerPage)
 
   useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1
-        return acc + product.Material.price * quantity
-      }
+    const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
+      // Ensure that the product is checked
+      const quantity = quantities[product.id] || 1
+      const price = product.Inventory.Material?.price || 0
+      acc += price * quantity
       return acc
     }, 0)
+
     setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts])
-
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
-
-    const updatedCheckedItems = currentProducts.reduce((acc, product) => {
-      acc[product.id] = newSelectAll
+  }, [Confirmapproval])
+  console.log('total', totalAmount)
+  //useeffect quantity
+  useEffect(() => {
+    // Map the quantities from the API response (Confirmapproval.Detail_Orders)
+    const initialQuantities = Confirmapproval.Detail_Orders.reduce((acc, product) => {
+      acc[product.id] = product.quantity // Store the quantity with the product id
       return acc
     }, {})
-    setCheckedItems(updatedCheckedItems)
-  }
+    setQuantities(initialQuantities) // Set the quantities state
+  }, [Confirmapproval])
 
-  const handleDelete = (productId) => {
-    setProductsData(productsData.filter((product) => product.id !== productId))
-    setCheckedItems((prev) => {
-      const { [productId]: _, ...newCheckedItems } = prev
-      return newCheckedItems
-    })
+  const handleDelete = async (detailorderId) => {
+    try {
+      if (warehouse && warehouse.id) {
+        // Menentukan parameter berdasarkan isApproved
+        const result = await MySwal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!',
+          cancelButtonText: 'No, cancel!',
+          reverseButtons: true, // This option will reverse the positions of the buttons
+        })
+        if (result.isConfirmed) {
+          try {
+            const response = await deleteOrderItemApproval(detailorderId, warehouse.id)
+
+            console.log('warehuse id :', warehouse.id)
+            console.log('tess', response.data)
+
+            // Update Confirmapproval state by removing the deleted item
+            const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
+              (order) => order.id !== detailorderId,
+            )
+
+            // Set the new state with updated Detail_Orders
+            setConfirmapproval((prevConfirmapproval) => ({
+              ...prevConfirmapproval,
+              Detail_Orders: updatedDetailOrders,
+            }))
+
+            Swal.fire('Deleted!', 'Delete success.', 'success')
+          } catch (error) {
+            console.error('Error deleting item approval:', error)
+            MySwal.fire('Error!', 'There was an error deleting your item.', 'error')
+          }
+        }
+      } else {
+        console.log('warehouse id not found')
+      }
+    } catch (error) {
+      console.error('Error fetching Approval:', error)
+    }
   }
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
   }
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
+    // Collect the necessary data
+    const orderId = Confirmapproval.id // Assuming orderId is stored in Confirmapproval object
+    const warehouseId = warehouse.id // Assuming warehouseId is available in `warehouse` state
+
+    // Create the updateQuantity array with the updated quantities
+    const updateQuantity = Confirmapproval.Detail_Orders.map((product) => ({
+      detailOrderId: product.id, // Detail order ID from API
+      quantity: quantities[product.id] || product.quantity, // Get updated quantity from state or use the original quantity
+    }))
+
+    // Construct the data object to send in the POST request
+    const data = {
+      updateQuantity,
+    }
+
+    // Confirm with the user before proceeding
     MySwal.fire({
       title: 'Confirm Checkout',
       text: `Are you sure you want to proceed to checkout products?`,
@@ -154,40 +214,79 @@ const Confirm = () => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, proceed',
       cancelButtonText: 'No, cancel',
-      reverseButtons: true, // This option will reverse the positions of the buttons
-    }).then((result) => {
+      reverseButtons: true, // Reverse the order of buttons
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        order()
+        try {
+          // Call the postApproval function
+          const response = await postApproval(orderId, warehouseId, data)
+
+          if (response && response.status === 200) {
+            Swal.fire('Approved!', 'The order has been approved successfully.', 'success')
+            // Optionally, update the state or navigate after successful approval
+            navigate('/approveall')
+          }
+        } catch (error) {
+          console.error('Error in approval:', error)
+          Swal.fire('Error', 'There was an error approving the order.', 'error')
+        }
       }
     })
   }
 
   const handleIncreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: (prevQuantities[productId] || 1) + 1,
-    }))
+    setQuantities((prevQuantities) => {
+      const newQuantity = (prevQuantities[productId] || 1) + 1 // Increase quantity by 1
+      return {
+        ...prevQuantities,
+        [productId]: newQuantity, // Update the quantity for the specific product
+      }
+    })
   }
 
   const handleDecreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
-    }))
+    setQuantities((prevQuantities) => {
+      const currentQuantity = prevQuantities[productId] || 1
+      const newQuantity = Math.max(currentQuantity - 1, 1) // Decrease by 1, but prevent it from going below 1
+      return {
+        ...prevQuantities,
+        [productId]: newQuantity,
+      }
+    })
   }
 
   const handleQuantityChange = (productId, value) => {
-    if (!isNaN(value) && value >= 0) {
-      setQuantities({
-        ...quantities,
-        [productId]: parseInt(value, 10),
-      })
+    const newQuantity = parseInt(value, 10)
+    if (!isNaN(newQuantity) && newQuantity >= 1) {
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [productId]: newQuantity,
+      }))
+    } else {
+      // Optionally, you can add validation for non-numeric or invalid inputs
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [productId]: 1, // set to 1 if the input is invalid
+      }))
     }
   }
-
   const handleButtonClick = () => {
     setClicked(true)
     navigate('/order')
+  }
+  // Function to calculate total amount based on the updated quantities and prices
+  const updateTotalAmount = (productId, newQuantity) => {
+    const updatedTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
+      if (quantities[product.id] > 0) {
+        const price = product.Inventory.Material.price
+        const quantity = quantities[product.id] || 1 // Fallback to 1 if quantity is not set
+        acc += price * quantity
+      }
+      return acc
+    }, 0)
+
+    // Update the total amount in the state
+    setTotalAmount(updatedTotal)
   }
 
   return (
@@ -216,7 +315,9 @@ const Confirm = () => {
                     <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}
                   </div>
                   <div>
-                    <small>Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}</small>
+                    <small>
+                      Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}
+                    </small>
                   </div>
                 </div>
               </div>
@@ -262,13 +363,13 @@ const Confirm = () => {
                 <>
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
-                  <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option value="">Select Shift</option>
-                    <option value="dayShift1">Day Shift 1: 08:00</option>
-                    <option value="dayShift2">Day Shift 2: 10:00</option>
-                    <option value="nightShift1">Night Shift 1: 22:00</option>
-                    <option value="nightShift2">Night Shift 2: 10:00</option>
-                  </CFormSelect>
+                  <div>
+                    <CFormInput
+                      type="text"
+                      value={Confirmapproval.scheduleDelivery} // Bind the input value to state
+                      readOnly // Make the input readonly so users cannot change it
+                    />
+                  </div>
                 </>
               )}
               <hr />
@@ -343,7 +444,7 @@ const Confirm = () => {
                     <CRow className="align-items-center">
                       <CCol xs="1">
                         <CCardImage
-                          src={'https://via.placeholder.com/150'}
+                          src={product.Inventory.Material.img}
                           style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
                       </CCol>
@@ -352,7 +453,7 @@ const Confirm = () => {
                           <label>{product.Inventory.Material.description}</label>
                           <br></br>
                           <label className="fw-bold fs-6">
-                            Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
+                            Rp {product.price.toLocaleString('id-ID')}
                           </label>
                         </div>
                       </CCol>
@@ -374,9 +475,9 @@ const Confirm = () => {
                           </CButton>
                           <CFormInput
                             type="text"
-                            value={quantities[product.id] || 1}
+                            value={quantities[product.id] || 1} // Dynamically set the value from state
                             aria-label="Number input"
-                            onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                            onChange={(e) => handleQuantityChange(product.id, e.target.value)} // Update state on change
                           />
                           <CButton
                             color="secondary"
@@ -387,7 +488,9 @@ const Confirm = () => {
                             +
                           </CButton>{' '}
                           {/* Apply margin-left (ms-2) to create space */}
-                          <span className="fw-light">({product.Material?.uom || 'UOM'})</span>
+                          <span className="fw-light">
+                            ({product.Inventory.Material?.uom || 'UOM'})
+                          </span>
                         </div>
                       </CCol>
 
