@@ -117,7 +117,10 @@ const History = () => {
         return 'warning'
       case 'on process':
         return 'warning'
+        case 'approved':
+        return 'success'
       case 'ready to deliver':
+          return 'secondary'
       case 'ready to pickup':
         return 'secondary'
       case 'completed':
