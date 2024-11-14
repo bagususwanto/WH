@@ -262,9 +262,14 @@ export const processOrder = async (req, res) => {
       ],
     });
 
-    if (orderStatus.status === "waiting approval" || orderStatus.isApproval !== 1) {
+    if (orderStatus.status === "waiting confirmation" || orderStatus.isApproval !== 1) {
       await transaction.rollback(); // Batalkan transaksi jika belum disetujui
       return res.status(401).json({ message: "Unauthorized, the order must be approved" });
+    }
+
+    if (orderStatus.status !== "waiting confirmation") {
+      await transaction.rollback(); // Batalkan transaksi jika status bukan "approved"
+      return res.status(401).json({ message: "Unauthorized, the order has been processed" });
     }
 
 

@@ -133,12 +133,22 @@ const Confirm = () => {
       const deliveryMethod = isPickup ? 'pickup' : 'otodoke' // Delivery method
 
       // Validate order details
-      if ((!isPickup && !orderTime) || !paymentNumber || !paymentMethod || !deliveryMethod) {
-        return MySwal.fire({
-          icon: 'error',
-          title: 'Order Error',
-          text: 'Please ensure all order details are filled out before proceeding.',
-        })
+      if (!isPickup) {
+        if (!orderTime || !paymentNumber || !paymentMethod || !deliveryMethod) {
+          return MySwal.fire({
+            icon: 'error',
+            title: 'Order Error',
+            text: 'Please ensure all order details are filled out before proceeding.',
+          })
+        }
+      } else {
+        if (!paymentNumber || !paymentMethod || !deliveryMethod) {
+          return MySwal.fire({
+            icon: 'error',
+            title: 'Order Error',
+            text: 'Please ensure all order details are filled out before proceeding.',
+          })
+        }
       }
 
       await createOrder(

@@ -40,7 +40,7 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: ["waiting approval", "on process", "ready to pickup", "ready to deliver"],
+          [Op.in]: ["waiting approval", "waiting confirmation", "on process", "ready to pickup", "ready to deliver"],
         },
       },
       include: [
@@ -632,8 +632,14 @@ export const createOrder = async (req, res) => {
     const role = req.user.roleName;
 
     // Validasi jika setiap nilai kosong
-    if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (deliveryMethod == "pickup") {
+      if (!cartIds || !paymentNumber || !paymentMethod || !deliveryMethod) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+    } else {
+      if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
     }
 
     const carts = await Cart.findAll({
@@ -719,7 +725,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: "waiting approval",
+        status: leftTransactionNo ? "waiting confirmation" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
