@@ -53,11 +53,10 @@ export const getMyOrder = async (req, res) => {
       include: [
         {
           model: DetailOrder,
-          required: true,
+          separate: true,
           include: [
             {
               model: Inventory,
-              required: true,
               include: [
                 {
                   model: Material,
