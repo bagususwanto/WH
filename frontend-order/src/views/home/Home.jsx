@@ -222,51 +222,53 @@ const Home = () => {
 
   const handleAddToCart = async (product, quantity) => {
     try {
-      // Find the existing product in the cart by matching inventoryId
-      const existingProduct = cart.find(
-        (item) =>
-          item.Inventory.materialId ===
-          (product.Inventory ? product.Inventory.materialId : product.materialId),
-      )
+      // Cek inventoryId yang sesuai dari product
+      const inventoryId = product.Inventory ? product.Inventory.id : product.id
+
+      // Cari produk yang ada di cart berdasarkan inventoryId
+      const existingProduct = cart.find((item) => item.inventoryId === inventoryId)
 
       if (existingProduct) {
-        // If product exists in the cart, update the quantity
+        // Jika produk ada di cart, update kuantitasnya
         const updatedProduct = {
           ...existingProduct,
           quantity: existingProduct.quantity + quantity,
         }
 
-        // Update the cart with the new quantity (use API updateCart)
+        // Update cart menggunakan API updateCart
         const updatedCartResponse = await updateCart(
           {
-            inventoryId: product.id,
+            inventoryId,
             quantity: updatedProduct.quantity,
           },
           warehouse.id,
         )
+
         if (updatedCartResponse) {
-          // Update the cart state with the updated product
+          // Update state cart dengan produk yang sudah diperbarui
           setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
         }
       } else {
-        // If product doesn't exist in the cart, add a new product
+        // Jika produk tidak ada di cart, tambahkan produk baru
         const newCartItem = {
-          inventoryId: product.id,
-          quantity: quantity,
+          inventoryId,
+          quantity,
         }
 
-        const arraycartIds = []
+        setCartCount(cartCount + quantity)
 
-        // Post the new cart item to the API (use postCart)
+        // Posting produk baru ke API menggunakan postCart
         const addToCartResponse = await postCart(newCartItem, warehouse.id)
+
         if (addToCartResponse) {
-          // Add the new product to the cart state
-          setCart([...cart, { ...newCartItem, Inventory: product.Inventory }])
+          // Tambahkan produk baru ke state cart
+          setCart([
+            ...cart,
+            { ...newCartItem, Inventory: product.Inventory ? product.Inventory : product },
+          ])
         }
       }
 
-      // Update cart count
-      setCartCount(cartCount + quantity)
       setModalOrder(false)
 
       MySwal.fire({
@@ -279,7 +281,6 @@ const Home = () => {
         reverseButtons: true,
       }).then((result) => {
         if (result.isConfirmed) {
-          // Navigasi ke halaman wishlist
           navigate('/cart')
         }
       })
@@ -719,7 +720,9 @@ const Home = () => {
                       >
                         {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
                       </CBadge>
-                      <label className=" me-2 fw-light ">{order.transactionNumber ? order.transactionNumber : order.requestNumber}</label>
+                      <label className=" me-2 fw-light ">
+                        {order.transactionNumber ? order.transactionNumber : order.requestNumber}
+                      </label>
                     </CCol>
                   </div>
                   <CCol xs="5"></CCol>
@@ -1065,7 +1068,7 @@ const Home = () => {
       )}
       {/* )} */}
 
-      {selectedProduct  && (
+      {selectedProduct && (
         <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
           <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>

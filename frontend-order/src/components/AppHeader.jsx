@@ -408,10 +408,7 @@ const AppHeader = () => {
       // Ensure that the warehouse is found
       setWarehouse(selectedWarehouseData)
       setModalVisible(false)
-    } else {
-      // Handle case where no warehouse was selected
-      console.error('No warehouse selected')
-    }
+    } 
   }
 
   const handleClickOutside = (e) => {
@@ -429,7 +426,7 @@ const AppHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-  console.log('aa', cart)
+  
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -649,7 +646,14 @@ const AppHeader = () => {
                   <CRow className="w-100">
                     <CCol xs="2">
                       <CImage
-                        src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                        src={
+                          product?.Inventory?.Material?.img
+                            ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
+                            : ''
+                        }
+                        alt={
+                          product?.Inventory?.Material?.description || 'No description available'
+                        }
                         style={{ width: '40px', height: '40px' }}
                       />
                     </CCol>

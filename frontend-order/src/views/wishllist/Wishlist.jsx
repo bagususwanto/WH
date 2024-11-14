@@ -30,13 +30,14 @@ import { GlobalContext } from '../../context/GlobalProvider'
 import { AiFillHeart } from 'react-icons/ai'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import config from '../../utils/Config'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const { getInventory } = useManageStockService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, clearWishlist, } = useOrderService()
+  const { getWishlist, clearWishlist } = useOrderService()
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
@@ -252,9 +253,13 @@ const Wishlist = () => {
 
               <CCardImage
                 orientation="top"
-                src={product.Inventory.Material.img || 'https://via.placeholder.com/150'}
+                src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                 alt={product.Inventory.Material.description}
-                style={{ height: '150px', objectFit: 'cover' }}
+                style={{
+                  width: '100%', // Ensure it takes the full width
+                  height: '150px', // Fixed height for uniformity
+                  objectFit: 'contain', // Keep the aspect ratio
+                }}
               />
               <CCardBody className="d-flex flex-column justify-content-between">
                 <div>

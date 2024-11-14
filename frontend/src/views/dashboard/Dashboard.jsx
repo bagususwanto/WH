@@ -730,7 +730,7 @@ const Dashboard = () => {
 
                     <CRow className="mb-3">
                       <CCol xs={3}>
-                        <strong>Estimation Incoming:</strong>
+                        <strong>Estimation Stock:</strong>
                       </CCol>
                       <CCol xs={9}>{selectedData.estimatedStock} Shift</CCol>
                     </CRow>

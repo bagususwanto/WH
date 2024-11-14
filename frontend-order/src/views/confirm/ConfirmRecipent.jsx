@@ -165,7 +165,6 @@ const Confirm = () => {
       setDeadline('') // Reset the deadline when cart items are updated
     }
   }, [verifiedCartItems])
-  console.log(verifiedCartItems)
 
   const totalItems = currentProducts.length
 
@@ -211,7 +210,7 @@ const Confirm = () => {
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                       <CIcon icon={cilLocationPin} size="lg" />
                       <label style={{ marginLeft: '8px' }}>
-                        {verifiedCartItems[0].User.Organization.Line.lineName}
+                        {verifiedCartItems[0].User.Organization.Line?.lineName}
                       </label>
                     </div>
                   </>
