@@ -480,7 +480,6 @@ export const approveOrder = async (req, res) => {
         {
           isApproval: 1,
           transactionNumber: await generateOrderNumber(1),
-          status: "approved",
           totalPrice: totalPrice,
         },
         { where: { id: orderId }, transaction }

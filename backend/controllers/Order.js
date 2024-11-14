@@ -40,7 +40,7 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: ["waiting approval", "approved", "on process", "ready to pickup", "ready to deliver"],
+          [Op.in]: ["waiting approval", "on process", "ready to pickup", "ready to deliver"],
         },
       },
       include: [
@@ -719,7 +719,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: leftTransactionNo == "TR" ? "approved" : "waiting approval",
+        status: "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
@@ -776,7 +776,7 @@ export const createOrder = async (req, res) => {
 
     try {
       // Transaksi kedua untuk mencatat sejarah pesanan
-      await postOrderHistory(leftTransactionNo == "TR" ? "your item received" : "order created", userId, order.id, { transaction: t2 });
+      await postOrderHistory("order created", userId, order.id, { transaction: t2 });
 
       // Commit transaksi kedua
       await t2.commit();

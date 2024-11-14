@@ -222,50 +222,46 @@ const Home = () => {
 
   const handleAddToCart = async (product, quantity) => {
     try {
-      let existingProduct
+      // Cek inventoryId yang sesuai dari product
+      const inventoryId = product.Inventory ? product.Inventory.id : product.id
 
-      if (cart.Inventory && product.Inventory) {
-        // Find the existing product in the cart by matching inventoryId
-        existingProduct = cart.find(
-          (item) =>
-            item.Inventory.id === (product.Inventory ? product.Inventory.id : product.Inventory.id),
-        )
-      } else {
-        existingProduct = cart.find((item) => item.id === product.id)
-      }
+      // Cari produk yang ada di cart berdasarkan inventoryId
+      const existingProduct = cart.find((item) => item.inventoryId === inventoryId)
 
       if (existingProduct) {
-        // If product exists in the cart, update the quantity
+        // Jika produk ada di cart, update kuantitasnya
         const updatedProduct = {
           ...existingProduct,
           quantity: existingProduct.quantity + quantity,
         }
 
-        // Update the cart with the new quantity (use API updateCart)
+        // Update cart menggunakan API updateCart
         const updatedCartResponse = await updateCart(
           {
-            inventoryId: product.Inventory ? product.Inventory.id : product.id,
+            inventoryId,
             quantity: updatedProduct.quantity,
           },
           warehouse.id,
         )
+
         if (updatedCartResponse) {
-          // Update the cart state with the updated product
+          // Update state cart dengan produk yang sudah diperbarui
           setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
         }
       } else {
-        // If product doesn't exist in the cart, add a new product
+        // Jika produk tidak ada di cart, tambahkan produk baru
         const newCartItem = {
-          inventoryId: product.Inventory ? product.Inventory.id : product.id,
-          quantity: quantity,
+          inventoryId,
+          quantity,
         }
 
-        const arraycartIds = []
+        setCartCount(cartCount + quantity)
 
-        // Post the new cart item to the API (use postCart)
+        // Posting produk baru ke API menggunakan postCart
         const addToCartResponse = await postCart(newCartItem, warehouse.id)
+
         if (addToCartResponse) {
-          // Add the new product to the cart state
+          // Tambahkan produk baru ke state cart
           setCart([
             ...cart,
             { ...newCartItem, Inventory: product.Inventory ? product.Inventory : product },
@@ -273,8 +269,6 @@ const Home = () => {
         }
       }
 
-      // Update cart count
-      setCartCount(cartCount + quantity)
       setModalOrder(false)
 
       MySwal.fire({
@@ -287,7 +281,6 @@ const Home = () => {
         reverseButtons: true,
       }).then((result) => {
         if (result.isConfirmed) {
-          // Navigasi ke halaman wishlist
           navigate('/cart')
         }
       })

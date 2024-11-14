@@ -267,10 +267,6 @@ export const processOrder = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized, the order must be approved" });
     }
 
-    if (orderStatus.status !== "approved") {
-      await transaction.rollback(); // Batalkan transaksi jika status bukan "approved"
-      return res.status(401).json({ message: "Unauthorized, the order has been processed" });
-    }
 
     if (role && role !== "warehouse staff") {
       await transaction.rollback(); // Batalkan transaksi jika bukan warehouse staff
