@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
-import './scss/nav.scss'
 import {
   cilAccountLogout,
   cilAddressBook,
@@ -48,6 +47,7 @@ const useNavigation = () => {
   const MySwal = withReactContent(Swal)
   const navigate = useNavigate()
   const { logout } = useAuthService()
+
 
   const handleLogout = async () => {
     try {
@@ -161,7 +161,7 @@ const useNavigation = () => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/home`, '_blank') // Opens URL in a new tab
               },
-              className: location.pathname === '/order' ? 'nav-item-active' : '',
+          
             },
 
             {
@@ -173,7 +173,7 @@ const useNavigation = () => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/approveall`, '_blank') // Use base URL from config
               },
-              className: location.pathname === '/order' ? 'nav-item-active' : '',
+
             },
           ],
         },
