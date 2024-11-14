@@ -165,7 +165,6 @@ const Confirm = () => {
       setDeadline('') // Reset the deadline when cart items are updated
     }
   }, [verifiedCartItems])
-  console.log(verifiedCartItems)
 
   const totalItems = currentProducts.length
 
