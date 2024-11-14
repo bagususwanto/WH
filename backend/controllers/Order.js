@@ -725,7 +725,7 @@ export const createOrder = async (req, res) => {
         totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: leftTransactionNo ? "waiting confirmation" : "waiting approval",
+        status: leftTransactionNo == "TR" ? "waiting confirmation" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,

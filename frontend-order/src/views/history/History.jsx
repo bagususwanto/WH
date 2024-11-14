@@ -115,12 +115,14 @@ const History = () => {
     switch (status) {
       case 'waiting approval':
         return 'warning'
+      case 'waiting confirmation':
+        return 'warning'
       case 'on process':
         return 'warning'
-        case 'approved':
+      case 'approved':
         return 'success'
       case 'ready to deliver':
-          return 'secondary'
+        return 'secondary'
       case 'ready to pickup':
         return 'secondary'
       case 'completed':

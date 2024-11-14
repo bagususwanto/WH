@@ -1,4 +1,5 @@
 import OrderHistory from "../models/OrderHistoryModel.js";
+import User from "../models/UserModel.js";
 
 export const postOrderHistory = async (status, userId, orderId) => {
   try {
@@ -45,6 +46,12 @@ export const getOrderHistory = async (req, res) => {
     const response = await OrderHistory.findAll({
       where: { orderId: orderId },
       order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: User,
+          attributes: ["id", "username", "name"],
+        },
+      ],
     });
 
     if (!response) {
