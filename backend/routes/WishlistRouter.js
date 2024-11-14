@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get(
   "/wishlist/:warehouseId",
-  checkRole(["super admin", "group head", "line head", "section head", "department head"]),
+  checkRole(["super admin", "group head", "line head", "section head", "department head", "warehouse staff", "warehouse member"]),
   getWishlistByUser
 );
 router.post(

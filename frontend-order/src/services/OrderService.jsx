@@ -66,9 +66,9 @@ const useOrderService = () => {
     }
   }
 
-  const getMyorder = async (id, status) => {
+  const getMyorder = async (id, status, page) => {
     try {
-      const response = await axiosJWT.get(`/myorder/${id}?page=1&limit=10&status=${status}`, {
+      const response = await axiosJWT.get(`/myorder/${id}?page=${page}&limit=10&status=${status}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -5,7 +5,11 @@ import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
 
 const router = express.Router();
 
-router.get("/cart/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), getCartItems);
+router.get(
+  "/cart/:warehouseId",
+  checkRole(["super admin", "group head", "line head", "section head", "department head", "warehouse staff", "warehouse member"]),
+  getCartItems
+);
 router.post(
   "/cart/:warehouseId",
   checkRole(["super admin", "group head", "line head", "section head", "department head"]),
@@ -24,6 +28,10 @@ router.delete(
   checkUserWarehouse,
   removeFromCart
 );
-router.get("/cart-count/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), countCartItems);
+router.get(
+  "/cart-count/:warehouseId",
+  checkRole(["super admin", "group head", "line head", "section head", "department head", "warehouse staff", "warehouse member"]),
+  countCartItems
+);
 
 export default router;

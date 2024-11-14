@@ -53,7 +53,7 @@ export const getMyOrder = async (req, res) => {
       include: [
         {
           model: DetailOrder,
-          separate: true,
+          required: true,
           include: [
             {
               model: Inventory,
@@ -84,8 +84,8 @@ export const getMyOrder = async (req, res) => {
         },
         {
           model: OrderHistory,
+          separate: true,
           required: false,
-          separate: true, // Query terpisah untuk memastikan pengurutan
           order: [["createdAt", "DESC"]],
         },
       ],

@@ -68,6 +68,8 @@ const History = () => {
   const { warehouse } = useContext(GlobalContext)
   const [activeTab, setActiveTab] = useState('all')
   const [orderHistory, setOrderHistory] = useState([])
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
   const navigate = useNavigate()
 
   const icons = {
@@ -80,16 +82,21 @@ const History = () => {
     cilCircle,
   }
 
-  const getMyorders = async (activeTab) => {
+  const getMyorders = async (activeTab, page) => {
     try {
       if (warehouse && warehouse.id) {
-        const response = await getMyorder(warehouse.id, activeTab)
-        setMyOrderData(response.data)
-        console.log('warehuse id :', warehouse.id)
-      } else {
-        console.log('warehouse id not found')
+        const response = await getMyorder(warehouse.id, activeTab, page)
+        if (!response.data) {
+          console.error('No orders found')
+          setHasMore(false)
+          setMyOrderData([])
+          return
+        }
+
+        const newData = response.data
+        setMyOrderData((prevData) => [...prevData, ...newData])
+        setHasMore(newData.length ? newData.length : false)
       }
-      console.log(activeTab)
     } catch (error) {
       console.error('Error fetching orders:', error)
     }
@@ -106,6 +113,9 @@ const History = () => {
 
   const handleTabChange = (newStatus) => {
     setActiveTab(newStatus)
+    setMyOrderData([])
+    setPage(1)
+    setHasMore(true)
   }
 
   useEffect(() => {
@@ -195,6 +205,13 @@ const History = () => {
     { key: 'completed', label: 'Completed' },
     { key: 'rejected', label: 'Rejected' },
   ]
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1
+    setPage(nextPage)
+    getMyorders(activeTab, nextPage)
+  }
+
   return (
     <>
       <CRow>
@@ -297,18 +314,22 @@ const History = () => {
 
                         <CRow className="d-flex justify-content-between my-2">
                           <CCol xs="1">
-                            <CCardImage
-                              src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
-                              style={{ height: '100%', width: '100%' }}
-                            />
+                            {order.Detail_Orders[0]?.Inventory?.Material?.img && (
+                              <CCardImage
+                                src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
+                                style={{ height: '100%', width: '100%' }}
+                              />
+                            )}
                           </CCol>
 
                           <CCol xs="8">
                             {order.Detail_Orders.length === 1 ? (
-                              <label>{order.Detail_Orders[0].Inventory.Material.description}</label>
+                              <label>
+                                {order.Detail_Orders[0]?.Inventory?.Material?.description}
+                              </label>
                             ) : (
                               <label>
-                                {order.Detail_Orders[0].Inventory.Material.description}...
+                                {order.Detail_Orders[0]?.Inventory?.Material?.description}...
                               </label>
                             )}
                             <br />
@@ -341,6 +362,15 @@ const History = () => {
                   <p>No orders available.</p>
                 )}
               </CRow>
+
+              {hasMore && myOrderData.length >= 5 && (
+                <div className="text-center mt-4 mb-4">
+                  <CButton color="secondary" onClick={handleLoadMore}>
+                    Load More
+                  </CButton>
+                </div>
+              )}
+
               {selectedProduct && (
                 <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                   <CModalHeader>

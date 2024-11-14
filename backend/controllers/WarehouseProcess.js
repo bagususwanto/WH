@@ -51,7 +51,7 @@ export const getOrderWarehouse = async (req, res) => {
       ];
     }
 
-    if (isReject) {
+    if (isReject == 1) {
       whereCondition2.isReject = isReject;
     }
 
