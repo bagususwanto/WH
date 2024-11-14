@@ -478,28 +478,23 @@ const ApproveAll = () => {
                 <CRow className="g-1 mt-2">
                   <CCard className="h-80">
                     <CCardBody>
-                      {/* Order Information */}
                       {selectedProduct && (
                         <CRow className="align-items-center mb-3">
                           <CCol>
                             <CIcon className="me-2" icon={cilCart} />
                             <label className="me-2 fs-6">
-                              {/* Ensure createdAt exists before formatting */}
-                              {selectedProduct.createdAt
-                                ? format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')
-                                : 'N/A'}
+                            {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
                             </label>
                             <CBadge className="me-2" color={getSeverity(selectedProduct.status)}>
-                              {selectedProduct.status?.toUpperCase() || 'N/A'}
+                              {selectedProduct.status?.toUpperCase() }
                             </CBadge>
                             <label className="me-2 fw-light">
-                              {selectedProduct.transactionNumber || 'N/A'}
+                              {selectedProduct.requestNumber }
                             </label>
                           </CCol>
                         </CRow>
                       )}
 
-                      {/* Product Details */}
                       {selectedProduct?.Detail_Orders?.map((detail, index) => (
                         <CRow className="align-items-center mb-3" key={index}>
                           <CCol xs="1">
@@ -523,7 +518,6 @@ const ApproveAll = () => {
                         </CRow>
                       ))}
 
-                      {/* Order History */}
                       {orderHistory?.map((item, index) => (
                         <div
                           key={index}
