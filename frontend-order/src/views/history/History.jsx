@@ -46,6 +46,7 @@ import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import config from '../../utils/Config'
 
 const iconMap = {
   'Office Supp.': cilCart,
@@ -297,7 +298,7 @@ const History = () => {
                         <CRow className="d-flex justify-content-between my-2">
                           <CCol xs="1">
                             <CCardImage
-                              src={'https://via.placeholder.com/150'}
+                              src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
                               style={{ height: '100%', width: '100%' }}
                             />
                           </CCol>
@@ -368,7 +369,7 @@ const History = () => {
                             <CRow className="align-items-center mb-3" key={index}>
                               <CCol xs="1">
                                 <CCardImage
-                                  src={'https://via.placeholder.com/150'}
+                                  src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
                                   style={{ height: '100%', width: '100%' }}
                                 />
                               </CCol>

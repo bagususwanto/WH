@@ -48,7 +48,7 @@ import withReactContent from 'sweetalert2-react-content'
 
 const Confirm = () => {
   const { createOrder } = useOrderService()
-  const { warehouse } = useContext(GlobalContext)
+  const { warehouse, setCart, setCartCount } = useContext(GlobalContext)
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
   const [deadline, setDeadline] = useState('')
@@ -162,6 +162,9 @@ const Confirm = () => {
         },
         warehouse.id,
       )
+
+      setCart([])
+      setCartCount(0)
 
       navigate('/history') // Navigate to history page after successful order
     } catch (error) {
