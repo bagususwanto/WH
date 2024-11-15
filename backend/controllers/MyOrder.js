@@ -57,21 +57,26 @@ export const getMyOrder = async (req, res) => {
           include: [
             {
               model: Inventory,
+              required: true,
               include: [
                 {
                   model: Material,
+                  required: true,
                   where: { flag: 1 },
                 },
                 {
                   model: AddressRack,
+                  required: true,
                   where: { flag: 1 },
                   include: [
                     {
                       model: Storage,
+                      required: true,
                       where: { flag: 1 },
                       include: [
                         {
                           model: Plant,
+                          required: true,
                           where: { warehouseId: warehouseId, flag: 1 },
                         },
                       ],
