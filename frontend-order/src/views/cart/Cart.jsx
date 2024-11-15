@@ -60,7 +60,7 @@ const Cart = () => {
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
-  const [hasMore, setHasMore] = useState(true)
+
   const [isLoading, setIsLoading] = useState(true) // Track loading state
 
   const [modalVisible, setModalVisible] = useState(false)
@@ -77,7 +77,7 @@ const Cart = () => {
     try {
       const response = await getCart(warehouse.id)
       setCartData(response.data)
-      setHasMore(false)
+      setIsLoading(false) // Data finished loading
     } catch (error) {
       console.error('Error fetching cart:', error)
       setIsLoading(false) // In case of error, set loading to false
@@ -275,10 +275,9 @@ const Cart = () => {
     return acc
   }, []).length // Return the length of the array which holds distinct inventoryIds
 
-  const handleLoadMore = () => {
-    setVisibleCards((prevVisibleCards) => prevVisibleCards + 3) // Show 3 more cards
+  const handleCancel = () => {
+    setModalVisible(false)
   }
-
   return (
     <>
       <CRow className="mt-1">
@@ -434,22 +433,9 @@ const Cart = () => {
                   </CCard>
                 ))}
           </CRow>
-
-          {/* Load More Button */}
-          {hasMore && cartData.length >= 5 && (
-            <div className="text-center mt-4 mb-4">
-              <CButton
-                color="secondary"
-                onClick={handleLoadMore}
-                size="sm"
-                style={{ width: '100px' }}
-              >
-                Load More
-              </CButton>
-            </div>
-          )}
         </CCard>
       </CRow>
+
       {/* Sticky Footer */}
       <div className="sticky-footer">
         <h5>Total Item: {totalQuantity}</h5>
