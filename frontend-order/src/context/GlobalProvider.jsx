@@ -48,7 +48,7 @@ const GlobalProvider = ({ children }) => {
       fetchCartCount()
       fetchCart()
     }
-  }, [warehouse])
+  }, [warehouse, cartCount])
 
   return (
     <GlobalContext.Provider
