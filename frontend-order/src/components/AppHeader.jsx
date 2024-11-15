@@ -652,9 +652,6 @@ const AppHeader = () => {
                             ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
                             : ''
                         }
-                        alt={
-                          product?.Inventory?.Material?.description || 'No description available'
-                        }
                         style={{ width: '40px', height: '40px' }}
                       />
                     </CCol>
@@ -707,9 +704,9 @@ const AppHeader = () => {
               {notifDesc?.length > 0 ? (
                 notifDesc.map((notif, index) => (
                   <CDropdownItem key={index}>
-                    <CRow className='fw-ligt'>Notif</CRow>
-                    <CRow className='fw-ligt'>{notif.description}</CRow>
-                    <hr/>
+                    <CRow className="fw-ligt">Notif</CRow>
+                    <CRow className="fw-ligt">{notif.description}</CRow>
+                    <hr />
                   </CDropdownItem>
                 ))
               ) : (
