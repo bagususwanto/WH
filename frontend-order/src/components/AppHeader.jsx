@@ -706,7 +706,11 @@ const AppHeader = () => {
               </CDropdownHeader>
               {notifDesc?.length > 0 ? (
                 notifDesc.map((notif, index) => (
-                  <CDropdownItem key={index}>{notif.description}</CDropdownItem>
+                  <CDropdownItem key={index}>
+                    <CRow className='fw-ligt'>Notif</CRow>
+                    <CRow className='fw-ligt'>{notif.description}</CRow>
+                    <hr/>
+                  </CDropdownItem>
                 ))
               ) : (
                 <CDropdownItem>No notification</CDropdownItem>

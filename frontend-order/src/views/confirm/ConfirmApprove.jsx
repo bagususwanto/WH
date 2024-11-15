@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
+import '../../scss/body_gray.scss'
 import { format, parseISO } from 'date-fns'
 import {
   CCard,
@@ -99,7 +100,15 @@ const Confirm = () => {
   const [Confirmapproval, setConfirmapproval] = useState(initialConfirmApproval)
 
   const apiCategory = 'category'
+  useEffect(() => {
+    // Add a specific class to body
+    document.body.classList.add('body-gray-background')
 
+    // Remove the class on component unmount
+    return () => {
+      document.body.classList.remove('body-gray-background')
+    }
+  }, [])
   useEffect(() => {
     if (Confirmapproval.deliveryMethod == 'Pickup') {
       setIsPickup(true)
@@ -237,6 +246,14 @@ const Confirm = () => {
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
       const newQuantity = (prevQuantities[productId] || 1) + 1 // Increase quantity by 1
+
+      // Update total amount directly
+      const updatedTotalAmount =
+        totalAmount +
+        (Confirmapproval.Detail_Orders.find((p) => p.id === productId)?.Inventory.Material.price ||
+          0)
+      setTotalAmount(updatedTotalAmount)
+
       return {
         ...prevQuantities,
         [productId]: newQuantity, // Update the quantity for the specific product
@@ -248,6 +265,14 @@ const Confirm = () => {
     setQuantities((prevQuantities) => {
       const currentQuantity = prevQuantities[productId] || 1
       const newQuantity = Math.max(currentQuantity - 1, 1) // Decrease by 1, but prevent it from going below 1
+      // Update total amount directly, subtracting price only if quantity decreased
+      if (currentQuantity > 1) {
+        const updatedTotalAmount =
+          totalAmount -
+          (Confirmapproval.Detail_Orders.find((p) => p.id === productId)?.Inventory.Material
+            .price || 0)
+        setTotalAmount(updatedTotalAmount)
+      }
       return {
         ...prevQuantities,
         [productId]: newQuantity,
@@ -258,35 +283,25 @@ const Confirm = () => {
   const handleQuantityChange = (productId, value) => {
     const newQuantity = parseInt(value, 10)
     if (!isNaN(newQuantity) && newQuantity >= 1) {
-      setQuantities((prevQuantities) => ({
-        ...prevQuantities,
-        [productId]: newQuantity,
-      }))
-    } else {
-      // Optionally, you can add validation for non-numeric or invalid inputs
-      setQuantities((prevQuantities) => ({
-        ...prevQuantities,
-        [productId]: 1, // set to 1 if the input is invalid
-      }))
+      setQuantities((prevQuantities) => {
+        // Calculate the price difference
+        const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
+        const price = product?.Inventory.Material.price || 0
+        const quantityDifference = newQuantity - (prevQuantities[productId] || 1)
+
+        // Update total amount based on the quantity difference
+        setTotalAmount(totalAmount + price * quantityDifference)
+
+        return {
+          ...prevQuantities,
+          [productId]: newQuantity,
+        }
+      })
     }
   }
   const handleButtonClick = () => {
     setClicked(true)
     navigate('/order')
-  }
-  // Function to calculate total amount based on the updated quantities and prices
-  const updateTotalAmount = (productId, newQuantity) => {
-    const updatedTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
-      if (quantities[product.id] > 0) {
-        const price = product.Inventory.Material.price
-        const quantity = quantities[product.id] || 1 // Fallback to 1 if quantity is not set
-        acc += price * quantity
-      }
-      return acc
-    }, 0)
-
-    // Update the total amount in the state
-    setTotalAmount(updatedTotal)
   }
 
   return (
@@ -296,6 +311,21 @@ const Confirm = () => {
           <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               {/* {roleName === 'super admin' && ( */}
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <label className="fw-bold mb-2">
+                  Total: Rp {totalAmount.toLocaleString('id-ID')}
+                </label>
+                <CButton color="primary" onClick={handleApprove}>
+                  Approve Now
+                </CButton>
+              </div>
+            </CCardBody>
+          </CCard>
+          {/* sticky Detail */}
+          <CCard className="mt-2" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+            <CCardBody>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                 <img
                   src="path-to-user-photo.jpg"
@@ -399,17 +429,6 @@ const Confirm = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                className="mt-4"
-              >
-                <label className="fw-bold mb-2">
-                  Total: Rp {totalAmount.toLocaleString('id-ID')}
-                </label>
-                <CButton color="primary" onClick={handleApprove}>
-                  Approve Now
-                </CButton>
-              </div>
             </CCardBody>
           </CCard>
           <CButton
@@ -439,7 +458,7 @@ const Confirm = () => {
                 product,
                 index, // Change from productsData to currentProducts
               ) => (
-                <CCard className="h-80" key={product.id}>
+                <CCard className="h-80 rounded-0 bg-grey" key={product.id}>
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <CRow className="align-items-center">
                       <CCol xs="1">
@@ -453,7 +472,7 @@ const Confirm = () => {
                           <label>{product.Inventory.Material.description}</label>
                           <br></br>
                           <label className="fw-bold fs-6">
-                            Rp {product.price.toLocaleString('id-ID')}
+                            Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
                           </label>
                         </div>
                       </CCol>

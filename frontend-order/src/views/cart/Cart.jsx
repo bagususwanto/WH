@@ -280,7 +280,7 @@ const Cart = () => {
   }
   return (
     <>
-      <CRow className="mt-3">
+      <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
           <h3 className="fw-bold fs-4">Your Cart</h3>
           <div
