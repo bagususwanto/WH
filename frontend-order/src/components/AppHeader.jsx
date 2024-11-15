@@ -408,7 +408,7 @@ const AppHeader = () => {
       // Ensure that the warehouse is found
       setWarehouse(selectedWarehouseData)
       setModalVisible(false)
-    } 
+    }
   }
 
   const handleClickOutside = (e) => {
@@ -426,7 +426,7 @@ const AppHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-  
+
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -472,8 +472,8 @@ const AppHeader = () => {
         </CModal>
       </CContainer>
 
-      <CContainer className="border-bottom px-2" fluid>
-        <CCol xs={2}>
+      <CContainer className="border-bottom pb-2 px-4" fluid>
+        <CCol xs={6} sm={1} md={2} lg={2}>
           <a href="/#/home" className="d-flex align-items-center">
             <img
               src="/src/assets/brand/TWIIS-NEW.png"
@@ -482,10 +482,20 @@ const AppHeader = () => {
             />
           </a>
         </CCol>
-        <CCol xs={2}>
+
+        {/* AppHeaderDropdown hanya tampil di kiri pada layar xs */}
+        <CCol xs={5} className="d-xs-block d-sm-none">
+          <CHeaderNav>
+            <AppHeaderDropdown />
+          </CHeaderNav>
+        </CCol>
+
+        <CCol xs={12} sm={1} md={1} lg={1}>
           <CButton onClick={handleToggleCategories}>Category</CButton>
         </CCol>
-        <CCol sm={4}>
+
+        {/* Search bar tetap */}
+        <CCol xs={6} sm={3} md={3} lg={5}>
           <form ref={dropdownRef} onSubmit={handleSubmit} style={{ position: 'relative' }}>
             <CFormInput
               type="search"
@@ -494,15 +504,16 @@ const AppHeader = () => {
               onChange={handleSearchInputChange}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              className="border-0 p-2 me-3"
+              className="border-0 p-2"
               style={{
                 border: '1px solid #ddd',
                 borderRadius: '4px',
                 boxShadow: 'none',
                 outline: '1px solid #ddd',
-                width: '410px',
+                width: '100%',
               }}
             />
+            {/* Konten dropdown untuk saran dan pencarian */}
             {(filteredSuggestions.length > 0 ||
               (showRecentSearches && searchHistory.length > 0)) && (
               <div
@@ -554,41 +565,36 @@ const AppHeader = () => {
                               borderBottom: '1px solid #ddd',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#f0f0f0' // Warna saat hover
+                              e.currentTarget.style.backgroundColor = '#f0f0f0'
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#fff' // Kembalikan ke warna default
+                              e.currentTarget.style.backgroundColor = '#fff'
                             }}
                           >
-                            <div
-                              className="d-flex justify-content-between align-items-center"
-                              style={{ width: '100%' }}
+                            <button
+                              onClick={(e) => handleSearchHistoryClick(item, e)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                width: '100%',
+                                textAlign: 'left',
+                              }}
                             >
-                              <button
-                                onClick={(e) => handleSearchHistoryClick(item, e)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: '16px',
-                                  width: '100%',
-                                  textAlign: 'left',
-                                }}
-                              >
-                                {item}
-                              </button>
-                              <button
-                                onClick={(e) => handleDeleteSearch(item, e)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: '16px',
-                                }}
-                              >
-                                &#10005;
-                              </button>
-                            </div>
+                              {item}
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteSearch(item, e)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                              }}
+                            >
+                              &#10005;
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -598,19 +604,14 @@ const AppHeader = () => {
           </form>
         </CCol>
 
-        <CHeaderNav className="d-flex align-items-center ms-auto">
-          {/* Button Order */}
-          {/* <CButton onClick={() => navigate('/order')} className="text-dark ms-3">
-            <CIcon icon={cilLibrary} size="lg" />
-          </CButton> */}
-
-          {/* Button Cart */}
+        <CHeaderNav className="d-flex align-items-center">
+          {/* Konten keranjang dan notifikasi */}
           <CDropdown variant="nav-item">
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
             >
-              <CIcon icon={cilCart} size="lg" className="ms-3" />
+              <CIcon icon={cilCart} size="lg" className="me-3" />
               {cartCount > 0 && (
                 <CBadge
                   color="danger"
@@ -682,13 +683,12 @@ const AppHeader = () => {
             </CDropdownMenu>
           </CDropdown>
 
-          {/* Button Notifications */}
           <CDropdown variant="nav-item">
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
             >
-              <CIcon icon={cilBell} size="lg" className="ms-3" />
+              <CIcon icon={cilBell} size="lg" className="me-5" />
               {notifCount > 0 && (
                 <CBadge
                   color="danger"
@@ -718,13 +718,13 @@ const AppHeader = () => {
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>
-        <CHeaderNav>
-          <li className="nav-item py-1">
-            <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
-          </li>
+
+        {/* AppHeaderDropdown di kanan untuk layar sm ke atas */}
+        <CHeaderNav className="d-none d-sm-flex">
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
+
       <CContainer>
         <CRow>
           <CCollapse visible={showCategories}>
