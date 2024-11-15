@@ -414,6 +414,8 @@ const Home = () => {
     switch (status) {
       case 'waiting approval':
         return 'warning'
+      case 'waiting confirmation':
+        return 'warning'
       case 'on process':
         return 'warning'
       case 'ready to deliver':
