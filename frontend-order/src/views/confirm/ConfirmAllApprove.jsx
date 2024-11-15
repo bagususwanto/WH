@@ -35,19 +35,18 @@ import {
   cilDeaf,
   cilFax,
   cilFolder,
-  cilHome,
   cilInbox,
   cilKeyboard,
   cilUser,
   cilCart,
   cilCalendar,
   cilSearch,
-  cilArrowRight,
-  cilArrowLeft,
-  cilTrash,
-  cilCarAlt,
-  cilPin,
-  cilLocationPin,
+  cilClipboard,
+  cilHome,
+  cilCheckCircle,
+  cilTruck,
+  cilWalk,
+  cilCircle,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -103,6 +102,15 @@ const ApproveAll = () => {
 
   const apiCategory = 'category'
   const apiUser = 'user'
+  const icons = {
+    cilClipboard,
+    cilHome,
+    cilUser,
+    cilCheckCircle,
+    cilTruck,
+    cilWalk,
+    cilCircle,
+  }
 
   const getApprove = async (isApproved) => {
     try {
@@ -126,6 +134,15 @@ const ApproveAll = () => {
   const getUsers = async () => {
     const response = await getMasterData(apiUser)
     setUserData(response.data)
+  }
+
+  const getOrderHistories = async (id) => {
+    try {
+      const response = await getOrderHistory(id)
+      setOrderHistory(response.data)
+    } catch (error) {
+      console.error('Error fetching Order History:', error)
+    }
   }
 
   useEffect(() => {
@@ -181,11 +198,14 @@ const ApproveAll = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleViewHistoryOrder = (initialConfirmApproval) => {
+  const handleViewHistoryOrder = (product,initialConfirmApproval) => {
+    getOrderHistories(product.id)
     setSelectedProduct(initialConfirmApproval)
     setVisible(true)
     navigate('/confirmapp', { state: { initialConfirmApproval } })
+ 
   }
+
   const handleSearchInputChange = (e) => {
     const query = e.target.value
     setSearchQuery(query)
@@ -225,14 +245,7 @@ const ApproveAll = () => {
     setVisible(true)
     console.log('aa', approval)
   }
-  const getOrderHistories = async (id) => {
-    try {
-      const response = await getOrderHistory(id)
-      setOrderHistory(response.data)
-    } catch (error) {
-      console.error('Error fetching Order History:', error)
-    }
-  }
+ 
   return (
     <>
       <CRow>
@@ -471,8 +484,7 @@ const ApproveAll = () => {
 
                               <CCol className="text-end">
                                 <label className="fw-bold fs-6 me-1">
-                                  Rp{' '}
-                                  {approval.totalPrice.toLocaleString('id-ID')}
+                                  Rp {approval.totalPrice.toLocaleString('id-ID')}
                                 </label>
                                 <br />
                                 <label className="me-1">
@@ -504,7 +516,7 @@ const ApproveAll = () => {
                 </div>
               </CCard>
             </CRow>
-            {console.log('111111', selectedProduct)}
+            {console.log('111111', orderHistory)}
 
             {selectedProduct && (
               <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
@@ -524,9 +536,7 @@ const ApproveAll = () => {
                             <CBadge className="me-2" size="md" color="success">
                               {selectedProduct.status?.toUpperCase()}
                             </CBadge>
-                            <label className="me-2 fw-light">
-                              {selectedProduct.requestNumber}
-                            </label>
+                            <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
                           </CCol>
                         </CRow>
                         {selectedProduct?.Detail_Orders?.map((detail, index) => (
