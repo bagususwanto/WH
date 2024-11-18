@@ -82,10 +82,16 @@ const History = () => {
     cilCircle,
   }
 
-  const getMyorders = async (activeTab, page) => {
+  const getMyorders = async (activeTab) => {
     try {
       if (warehouse && warehouse.id) {
-        const response = await getMyorder(warehouse.id, activeTab, page)
+        let response
+        if (activeTab == 'rejected') {
+          response = await getMyorder(warehouse.id, 'all', page, 1)
+        } else {
+          response = await getMyorder(warehouse.id, activeTab, page, 0)
+        }
+        
         if (!response.data) {
           console.error('No orders found')
           setHasMore(false)
@@ -209,7 +215,7 @@ const History = () => {
   const handleLoadMore = () => {
     const nextPage = page + 1
     setPage(nextPage)
-    getMyorders(activeTab, nextPage)
+    getMyorders(activeTab)
   }
 
   return (
@@ -363,7 +369,7 @@ const History = () => {
                 )}
               </CRow>
 
-              {hasMore && myOrderData.length >= 5 && (
+              {hasMore && (
                 <div className="text-center mt-4 mb-4">
                   <CButton color="secondary" onClick={handleLoadMore}>
                     Load More

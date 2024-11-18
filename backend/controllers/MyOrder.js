@@ -14,11 +14,13 @@ export const getMyOrder = async (req, res) => {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10, status, startDate, endDate, q } = req.query;
+    const { page = 1, limit = 10, status, startDate, endDate, q, isReject } = req.query;
     const offset = (page - 1) * limit;
 
     // Buat kondisi where yang dinamis
     let whereCondition = { userId: userId };
+
+    let whereCondition2 = { isDelete: 0, isReject: 0 };
 
     // Jika status tidak 'all', tambahkan status ke kondisi where
     if (status && status !== "all") {
@@ -47,12 +49,17 @@ export const getMyOrder = async (req, res) => {
       ];
     }
 
+    if (isReject == 1) {
+      whereCondition2.isReject = isReject;
+    }
+
     // Cari data my order berdasarkan filter dengan paginasi (limit dan offset)
     const myOrder = await Order.findAll({
       where: whereCondition,
       include: [
         {
           model: DetailOrder,
+          where: whereCondition2,
           required: true,
           include: [
             {
