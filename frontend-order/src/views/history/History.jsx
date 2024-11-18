@@ -254,7 +254,10 @@ const History = () => {
                 </div>
               </CCol>
               <CCol xs={9} className="d-flex justify-content-end py-2">
-                <div className="flatpickr-wrapper" style={{ position: 'relative', width: '40%' }}>
+                <div
+                  className="flatpickr-wrapper"
+                  style={{ position: 'relative', width: '40%', height: '36px' }}
+                >
                   <CIcon
                     icon={cilCalendar}
                     size="lg"
