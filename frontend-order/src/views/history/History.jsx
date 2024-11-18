@@ -91,7 +91,7 @@ const History = () => {
         } else {
           response = await getMyorder(warehouse.id, activeTab, page, 0)
         }
-        
+
         if (!response.data) {
           console.error('No orders found')
           setHasMore(false)
@@ -253,26 +253,31 @@ const History = () => {
                   />
                 </div>
               </CCol>
-              <CCol xs={9} className="d-flex justify-content-end">
-                {/* Right side: Date picker */}
-                <div
-                  className="d-flex align-items-center border rounded p-2"
-                  style={{ width: '250px' }}
-                >
-                  <CIcon icon={cilCalendar} size="xl" className="px-1" />
+              <CCol xs={9} className="d-flex justify-content-end py-2">
+                <div className="flatpickr-wrapper" style={{ position: 'relative', width: '40%' }}>
+                  <CIcon
+                    icon={cilCalendar}
+                    size="lg"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '10px',
+                      transform: 'translateY(-50%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
                   <Flatpickr
                     value={dates}
                     onChange={(selectedDates) => setDates(selectedDates)}
                     options={{
                       mode: 'range',
                       dateFormat: 'Y-m-d',
-                      placeholder: 'Select a date range',
                     }}
-                    className="border-0 fw-light"
+                    className="form-control"
+                    placeholder="Select a date"
                     style={{
-                      outline: 'none',
-                      boxShadow: 'none',
-                      width: '100%', // Ensures Flatpickr fills container width
+                      paddingLeft: '40px', // Beri ruang untuk ikon
+                      height: '100%',
                     }}
                   />
                 </div>
