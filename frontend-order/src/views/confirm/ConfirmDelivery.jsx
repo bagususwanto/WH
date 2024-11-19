@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
-
+import { format, parseISO } from 'date-fns'
 import {
   CCard,
   CCardBody,
@@ -16,9 +16,12 @@ import {
   CModalTitle,
   CModalBody,
   CBadge,
+  CContainer,
   CFormInput,
   CFormCheck,
   CFooter,
+  CFormLabel,
+  CFormTextarea
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -38,13 +41,16 @@ import {
   cilTrash,
   cilCarAlt,
   cilPin,
+  cilArrowBottom,
   cilLocationPin,
   cilTruck,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
+import { GlobalContext } from '../../context/GlobalProvider'
+import withReactContent from 'sweetalert2-react-content'
+import useWarehouseService from '../../services/WarehouseService'
 
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
@@ -79,133 +85,132 @@ const ApproveAll = () => {
   const [quantities, setQuantities] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [currentProducts, setCurrentProducts] = useState([])
-  const navigate = useNavigate()
-  const MySwal = withReactContent(Swal);
-  const apiCategory = 'category'
+  const MySwal = withReactContent(Swal)
   const apiUser = 'user'
-
-  const handleStatusFilterClick = (status) => {
-    setSelectedStatusFilter(status)
-  }
-
-  const handleViewProduct = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
-  }
-
-  const getProducts = async () => {
-    const response = await getProduct(1)
-    setProductsData(response.data)
-  }
-
-  const getUsers = async () => {
-    const response = await getMasterData(apiUser)
-    setUserData(response.data)
-  }
+  const [isPickup, setIsPickup] = useState(true)
+  const [iswbs, setIswbs] = useState(true)
+  const { completeWarehouse } = useWarehouseService()
+  const savedConfirmWarehouse = JSON.parse(localStorage.getItem('CompleteWarehouse')) || {}
+  const [Confirmwarehouse, setConfirmwarehouse] = useState(savedConfirmWarehouse)
+  const navigate = useNavigate()
+  const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
+  const apiCategory = 'category'
+  const { warehouse } = useContext(GlobalContext)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
-    getProducts()
-    getUsers()
-  }, [])
+    // Add a specific class to body
+    document.body.classList.add('body-gray-background')
 
-  useEffect(() => {
-    const fetchProductsAndCategories = async () => {
-      try {
-        const responseProducts = await getInventory()
-        setProductsData(responseProducts.data)
-        setCurrentProducts(responseProducts.data) // Set currentProducts here
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-
-      try {
-        const responseCategories = await getMasterData(apiCategory)
-        setCategoriesData(responseCategories.data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
+    // Remove the class on component unmount
+    return () => {
+      document.body.classList.remove('body-gray-background')
     }
+  }, [])
+  useEffect(() => {
+    if (Confirmwarehouse.deliveryMethod == 'Pickup') {
+      setIsPickup(true)
+    } else {
+      setIsPickup(false)
+    }
+  }, [savedConfirmWarehouse])
+  console.log('initial', savedConfirmWarehouse)
 
-    fetchProductsAndCategories()
+  // Simpan perubahan Confirmwarehouse ke localStorage
+  useEffect(() => {
+    if (Confirmwarehouse) {
+      localStorage.setItem('CompleteWarehouse', JSON.stringify(Confirmwarehouse))
+    }
+  }, [Confirmwarehouse])
+
+  // Pastikan initialConfirmWarehouse tetap sinkron
+
+  useEffect(() => {
+    return () => {
+      // Bersihkan data dari localStorage ketika halaman tidak lagi digunakan
+      localStorage.removeItem('CompleteWarehouse')
+    }
   }, [])
 
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
+  // This is where currentProducts is initialized
 
-    // Update all individual checkboxes
-    const updatedCheckedItems = currentProducts.reduce((acc, product) => {
-      acc[product.id] = newSelectAll
+  //useeffect quantity
+  useEffect(() => {
+    // Map the quantities from the API response (Confirmapproval.Detail_Orders)
+    const initialQuantities = Confirmwarehouse.Detail_Orders?.reduce((acc, product) => {
+      acc[product.id] = product.quantity // Store the quantity with the product id
       return acc
     }, {})
-    setCheckedItems(updatedCheckedItems)
-  }
+    setQuantities(initialQuantities) // Set the quantities state
+  }, [Confirmwarehouse])
 
-  const getSeverity = (status) => {
-    switch (status) {
-      case 'Waiting':
-        return 'gray'
-
-      case 'On Process':
-        return 'warning'
-
-      case 'Delivery':
-        return 'secondary'
-
-      case 'Pickup':
-        return 'blue'
-
-      case 'Completed':
-        return 'success'
-
-      case 'Rejected':
-        return 'danger'
+  const totalQuantity = (Confirmwarehouse.Detail_Orders || []).reduce((acc, product) => {
+    // Ensure only unique Inventory items are counted
+    if (!acc.some((item) => item.id === product.Inventory.id)) {
+      acc.push(product.Inventory) // Add unique Inventory
     }
-  }
+    return acc
+  }, []).length
 
-  // Total harga produk
-  useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-        return acc + product.Material.price * quantity
-      }
-      return acc
-    }, 0)
-    setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts])
+  const handleApprove = async () => {
+    // Collect the necessary data
+    const orderId = Confirmwarehouse.id // Assuming orderId is stored in Confirmapproval object
+    const warehouseId = warehouse.id // Assuming warehouseId is available in `warehouse` state
 
-  const handleViewHistoryOrder = (product) => {
-    setSelectedProduct(product)
-    setVisible(true)
-  }
-  const handleConfirm = () => {
+    const data = {}
+
+    // Confirm with the user before proceeding
     MySwal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
+      title: 'Confirm Checkout',
+      text: `Are you sure you want to proceed to checkout products?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, confirm it!'
-    }).then((result) => {
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      reverseButtons: true, // Reverse the order of buttons
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        // Perform the confirm action here
-        Swal.fire(
-          'Confirmed!',
-          'Your action has been confirmed.',
-          'success'
-        );
+        try {
+          // Call the postApproval function
+          const response = await completeWarehouse(warehouseId,orderId,data)
+
+          if (response && response.status === 200) {
+            Swal.fire('Approved!', 'The order has been Confirm order successfully.', 'success')
+            // Optionally, update the state or navigate after successful approval
+            navigate('/confirmall')
+          }
+        } catch (error) {
+          console.error('Error in approval:', error)
+          Swal.fire('Error', 'There was an error Confirm the order.', 'error')
+        }
       }
-    });
-  };
+    })
+  }
+  console.log('confirm', Confirmwarehouse)
+  console.log('saved', savedConfirmWarehouse)
 
   return (
-    <>
-      <CRow className="mt-1">
-        <CCard style={{ border: 'none' }}>
-          <CRow>
-            <CCol xs={1}>
+    <CContainer>
+    <CRow className="mt-1">
+      <CCol xs={4}>
+      <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCardBody>
+            {/* {roleName === 'super admin' && ( */}
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+              <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
+              <CButton color="primary" onClick={handleApprove}>
+               Delivery Now
+              </CButton>
+            </div>
+          </CCardBody>
+        </CCard>
+        <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCardBody>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
               <img
                 src="path-to-user-photo.jpg"
                 alt="User Profile"
@@ -216,199 +221,162 @@ const ApproveAll = () => {
                   marginRight: '16px',
                 }}
               />
-            </CCol>
-            {userData.map((user) => (
-              <CCol xs={4}>
-                <label className="fw-bold">FORM:</label>
-                <label>{user.name}</label>
-                <br />
-                <label className="fw-bold">GRUP:</label>{' '}
-                <label>{user.Organization.Line.lineName}</label>
-                <br />
-                <label className="fw-bold">Request at 11:19</label>
-              </CCol>
-            ))}
-            <CCol xs={2} className="ms-auto d-flex flex-column justify-content-end" style={{ height: '100%' }}>
-              <CButton onClick={() => handleViewProduct(product)} color="primary" size="sm">
-                Confirm All
-              </CButton>
-            </CCol>
-          </CRow>
-          <CRow className="g-1 mt-1">
-            {productsData.map((product, index) => (
-              <CCard className="h-78 mb-2" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center ">
-                    {/* Informasi pesanan */}
-                    <CCol>
-                    <CIcon className="me-2" icon={cilTruck} />
-                      <label className="me-2 fs-6">3 Oktober 2024</label>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div>
+                  <strong>FORM:</strong> {Confirmwarehouse.User?.name}
+                </div>
+                <div>
+                  <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
+                </div>
+                <div>
+                  <small>Request at {format(parseISO(Confirmwarehouse.createdAt),'dd/MM/yyyy')} </small>
+                </div>
+              </div>
+            </div>
+            {/* )} */}
+            <label className="fw-bold mb-2">Select Delivery Type</label>
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <CFormCheck
+                className="me-3"
+                type="radio"
+                id="pickup"
+                label="Pickup"
+                checked={isPickup}
+                onChange={() => setIsPickup(true)}
+                disabled
+              />
+              <CFormCheck
+                type="radio"
+                id="otodoke"
+                label="Otodoke"
+                checked={!isPickup}
+                onChange={() => setIsPickup(false)}
+                disabled
+              />
+            </div>
+            <hr />
+            <label className="fw-bold mb-2">Address Detail Confirmation</label>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <CIcon icon={cilHome} size="lg" />
+                <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+              </div>
+              {!isPickup && (
+                <>
+                  <CIcon icon={cilArrowBottom} size="lg" />
+                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                    <CIcon icon={cilLocationPin} size="lg" />
+                    <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                  </div>
+                </>
+              )}
+            </div>
+            {!isPickup && (
+              <>
+                <hr />
+                <label className="fw-bold mb-2">Deadline Order</label>
+                <div>
+                  <CFormInput
+                    type="text"
+                    value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
+                    readOnly // Make the input readonly so users cannot change it
+                  />
+                </div>
+              </>
+            )}
+            <hr />
+            <label className="fw-bold mb-2">Payment</label>
+            <CFormCheck
+              type="radio"
+              id="payment2"
+              label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
+              checked={iswbs}
+              onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
+              disabled
+            />
+            <hr />
+            <CFormTextarea
+              className="mt-3"
+              placeholder="Leave a message"
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              disabled
+            />
+          </CCardBody>
+        </CCard>
+      </CCol>
 
-                      <label className="me-2 fw-light">X21000000000/20/20</label>
-                    </CCol>
+      <CCol xs={8}>
+        {/* Address Code Form */}
+        <CRow className="g-1   mb-2">
+          <CFormLabel htmlFor="address">Address Code</CFormLabel>
+        </CRow>
 
-                    {/* Product and user information */}
-                    <CRow xs="1" className="mt-1">
+        {/* Scrollable Products Section */}
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          <CRow className="g-2">
+            {Confirmwarehouse.Detail_Orders?.map(
+              (
+                product,
+                index, // Change from productsData to currentProducts
+              ) => (
+                <CCard
+                  className={`h-80 ${selectedCardIndexes.includes(index) ? 'bg-success text-white' : ''}`} // Apply green background if selected
+                  key={index}
+                  onClick={() => handleCardClick(index)} // Handle card click
+                  style={{
+                    cursor: 'pointer', // Show pointer cursor on hover to indicate it's clickable
+                    transition: 'background-color 0.3s', // Smooth transition for background color change
+                  }}
+                >
+                  <CCardBody className="d-flex flex-column justify-content-between">
+                    <CRow className="align-items-center">
                       <CCol xs="1">
                         <CCardImage
-                          src={product.Material.img}
-                          style={{ height: '100%', width: '100%' }}
+                          src={'https://via.placeholder.com/150'}
+                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
                       </CCol>
-
-                      <CCol xs="4">
-                        <label className="fs-6 ">{product.Material.description}</label>
-                        <br />
-                        <label className="fw-light ">{product.Material.materialNo}</label>
+                      <CCol xs="8">
+                        <div>
+                          <label>{product.Inventory.Material?.description}</label>
+                          <br />
+                          <label className="fw-bold">
+                            {product.Inventory.Address_Rack ?.addressRackName}
+                          </label>
+                        </div>
                       </CCol>
-
-                      <CCol className="text-end mb-2">
-                        <label className="fs-6">Address Rack Name</label>
-                        <br />
-                        <label className="fw-bold fs-6">
-                          {product.Address_Rack.addressRackName}
-                        </label>
-                      </CCol>
-                    </CRow>
-
-                    {/* View Detail button */}
-                    <CRow xs="1" className="d-flex justify-content-end align-items-center">
-                      <CCol xs={4} className="d-flex justify-content-end">
-                        <CButton
-                          onClick={handleConfirm}
-                          color="primary"
-                          size="sm"
+                      <CCol xs="2">
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
                         >
-                          Confirm Delivery
-                        </CButton>
+                          <span>2</span>
+                          <span className="px-2 fw-light">{product.Material?.uom || 'UOM'}</span>
+                        </div>
                       </CCol>
                     </CRow>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-          </CRow>
-          {/* Modal for product details */}
-          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-            <CModalHeader>
-              <CModalTitle>Product Details</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              {selectedProduct && (
-                <CRow className="g-1 mt-2">
-                  <CCard className="h-80">
-                    <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center">
-                        <CCol xs="1">
-                          <CCardImage
-                            src={selectedProduct.Material.img || 'https://via.placeholder.com/150'}
-                            alt={selectedProduct.Material.description}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs="6" className="mb-2">
-                          <div>
-                            <label>{selectedProduct.Material.description}</label>
-                            <br />
-                            <label className="fw-bold fs-6">
-                              Rp {selectedProduct.Material.price.toLocaleString('id-ID')}
-                            </label>
-                          </div>
-                        </CCol>
-                        <CCol xs="5">
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                            }}
-                          >
-                            <label className="d-flex flex-column justify-content-between fs-6">
-                              Status:
-                            </label>
-                            <CBadge className="me-2" size="sm" color={getSeverity('Completed')}>
-                              ON PROCESS
-                            </CBadge>
-                          </div>
-                        </CCol>
-                      </CRow>
 
-                      <hr />
-
-                      {/* History Order Timeline */}
-                      <label className="fw-bold mb-2">MY HISTORY ORDER</label>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        {[
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilLocationPin,
-                            label: 'YOUR ITEM RECEIVED',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilCarAlt,
-                            label: 'DELIVERY OTODOKE',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilHome,
-                            label: 'ACCEPTED WAREHOUSE STAFF',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL SECTION HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'APPROVAL LINE HEAD',
-                          },
-                          {
-                            date: '20 JANUARI 2024 20:34 WIB',
-                            icon: cilUser,
-                            label: 'ORDER CREATED',
-                          },
-                        ].map((item, index) => (
-                          <div
-                            key={index}
-                            style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}
-                          >
-                            <label style={{ marginRight: '8px' }}>{item.date}</label>
-                            <div
-                              style={{
-                                border: '2px solid #000',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <CIcon icon={item.icon} size="lg" />
-                            </div>
-                            <label style={{ marginLeft: '8px' }}>{item.label}</label>
-                          </div>
-                        ))}
+                    {/* Show the rejection reason under the product if rejected */}
+                    {product.rejected && (
+                      <div style={{ marginTop: '10px' }}>
+                        <label className="fw-bold">Rejection Reason:</label>
+                        <p>{product.rejectionReason}</p>
                       </div>
-
-                      <CRow></CRow>
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              )}
-            </CModalBody>
-          </CModal>
-        </CCard>
-      </CRow>
-    </>
+                    )}
+                  </CCardBody>
+                </CCard>
+              ),
+            )}
+          </CRow>
+        </div>
+      </CCol>
+    </CRow>
+  </CContainer>
   )
 }
 

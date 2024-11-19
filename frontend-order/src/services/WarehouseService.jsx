@@ -52,6 +52,18 @@ const useApprovalService = () => {
       handleError(error, 'Error post:')
     }
   }
+  const completeWarehouse = async (warehouseId,orderId,data) => {
+    try {
+      const response = await axiosJWT.post(`/complete-order/${warehouseId}/${orderId}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
   const rejectWarehouseConfirm = async (warehouseId,detailorderId,data) => {
     try {
       const response = await axiosJWT.post(`/reject-order/${warehouseId}/${detailorderId}`, data, {
@@ -69,6 +81,7 @@ const useApprovalService = () => {
     getWarehouseConfirm,
     postWarehouseConfirm,
     postWarehouseShopping,
+    completeWarehouse,
     rejectWarehouseConfirm
   }
 }

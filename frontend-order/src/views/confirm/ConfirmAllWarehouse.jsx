@@ -40,7 +40,7 @@ import {
   cilCalendar,
   cilCart,
   cilHeart,
-  cilArrowRight,
+  cilSearch,
   cilArrowLeft,
   cilTrash,
   cilCarAlt,
@@ -54,7 +54,7 @@ import {
 } from '@coreui/icons'
 import { GlobalContext } from '../../context/GlobalProvider'
 import useWarehouseService from '../../services/WarehouseService'
-
+import { InputText } from 'primereact/inputtext'
 const categoriesData = [
   { id: 1, categoryName: 'Office Supp.' },
   { id: 2, categoryName: 'Oper Supp.' },
@@ -79,7 +79,7 @@ const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
   const [userData, setUserData] = useState([])
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
-
+  const [searchQuery, setSearchQuery] = useState('') // New state for search query
   const [quantities, setQuantities] = useState({})
   const { getWarehouseConfirm } = useWarehouseService()
   const [currentProducts, setCurrentProducts] = useState([])
@@ -157,12 +157,14 @@ const ApproveAll = () => {
   const handleOnProcess = (product) => {
     setSelectedProduct(product)
     setVisible(true)
+    localStorage.setItem('shoppingWarehouse', JSON.stringify(product))
     navigate('/shopping', { state: { product } })
   }
 
   const handleReadyToDeliver = (product) => {
     setSelectedProduct(product)
     setVisible(true)
+    localStorage.setItem('CompleteWarehouse', JSON.stringify(product))
     navigate('/confirmdel', { state: { product } })
   }
 
@@ -187,46 +189,79 @@ const ApproveAll = () => {
     { key: 'Completed', label: 'Completed' },
     { key: 'Rejected', label: 'Rejected' },
   ]
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setCurrentPage(1)
+      setMyOrderData([])
+      getMyorders()
+    }
+  }
   return (
     <>
-      <CRow className="mt-1">
-        <CCard style={{ border: 'none' }}>
-          <CCardBody>
+      <CRow className="mt-0">
+          
             <h3 className="fw-bold fs-4">Warehouse Confirmation</h3>
-          </CCardBody>
-        </CCard>
-      </CRow>
-      <div className="mt-0 mb-1 d-flex justify-content-end">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            border: '1px solid #ccc', // Border around the icon and date picker
-            borderRadius: '4px', // Optional: rounded corners
-            padding: '5px', // Optional: padding inside the border
-          }}
-        >
-          <CIcon icon={cilCalendar} size="xl" className="px-1" /> {/* Your calendar icon */}
-          <Flatpickr
-            value={dates}
-            onChange={(selectedDates) => {
-              setDates(selectedDates) // Update the state with the selected date range
-              // Logic to filter products based on selected date range can go here
-            }}
-            options={{
-              mode: 'range', // Enable range selection
-              dateFormat: 'Y-m-d', // Desired date format
-              placeholder: 'Select a date range',
-            }}
-            className="border-0 fw-light" // Remove the border from Flatpickr
-            style={{
-              outline: 'none', // Remove outline
-              boxShadow: 'none', // Remove any box shadow
-            }}
-          />
-        </div>
-      </div>
+         
+    
+      <CCol xs={6} sm={6} md={6} lg={6} className="py-2">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    padding: '4px 8px',
+                  }}
+                >
+                  {/* CoreUI Search Icon */}
+                  <CIcon
+                    icon={cilSearch}
+                    style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+                  />
 
+                  <InputText
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                    onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
+                    placeholder="Search"
+                    style={{ width: '100%', border: 'none', outline: 'none' }}
+                  />
+                </div>
+              </CCol>
+              <CCol xs={6} sm={6} md={6} lg={6} className="d-flex justify-content-end py-2">
+                <div
+                  className="flatpickr-wrapper"
+                  style={{ position: 'relative', width: '300px', height: '36px' }}
+                >
+                  <CIcon
+                    icon={cilCalendar}
+                    size="lg"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '10px',
+                      transform: 'translateY(-50%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <Flatpickr
+                    value={dates}
+                    onChange={(selectedDates) => setDates(selectedDates)}
+                    options={{
+                      mode: 'range',
+                      dateFormat: 'Y-m-d',
+                    }}
+                    className="form-control"
+                    placeholder="Select a date"
+                    style={{
+                      paddingLeft: '40px', // Beri ruang untuk ikon
+                      height: '100%',
+                    }}
+                  />
+                </div>
+              </CCol>
+              </CRow>
       <CTabs activeItemKey={activeTab}>
         <CTabList variant="pills">
           {tabs.map((tab) => (
