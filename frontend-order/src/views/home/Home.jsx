@@ -154,8 +154,8 @@ const Home = () => {
 
   const getMyorders = async () => {
     try {
-      const response = await getMyorder(warehouse.id, 'all')
-      setMyOrderData(response.data)
+      const response = await getMyorder({ id: warehouse.id })
+      setMyOrderData(response.data.data)
     } catch (error) {
       console.error('Error fetching wishlist:', error)
     }
@@ -792,8 +792,8 @@ const Home = () => {
                       </CCol>
                     </CRow>
 
-                    {selectedOrder.Detail_Orders.map((detail, index) => (
-                      <CRow className="align-items-center mb-3" key={index}>
+                    {selectedOrder.Detail_Orders.map((detail) => (
+                      <CRow className="align-items-center mb-3" key={detail.id}>
                         <CCol xs="1">
                           <CCardImage
                             src={'https://via.placeholder.com/150'}
@@ -806,8 +806,9 @@ const Home = () => {
                       </CRow>
                     ))}
 
-                    {orderHistory.map((item, index) => (
+                    {orderHistory.map((item) => (
                       <div
+                        key={item.id}
                         style={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -815,7 +816,6 @@ const Home = () => {
                         }}
                       >
                         <div
-                          key={index}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

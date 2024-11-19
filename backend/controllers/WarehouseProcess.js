@@ -262,16 +262,15 @@ export const processOrder = async (req, res) => {
       ],
     });
 
-    if (orderStatus.status === "waiting confirmation" || orderStatus.isApproval !== 1) {
+    if (orderStatus.status === "waiting approval" || orderStatus.isApproval !== 1) {
       await transaction.rollback(); // Batalkan transaksi jika belum disetujui
-      return res.status(401).json({ message: "Unauthorized, the order must be approved" });
+      return res.status(401).json({ message: "Order must be approved" });
     }
 
     if (orderStatus.status !== "waiting confirmation") {
       await transaction.rollback(); // Batalkan transaksi jika status bukan "approved"
-      return res.status(401).json({ message: "Unauthorized, the order has been processed" });
+      return res.status(401).json({ message: "Order has been processed" });
     }
-
 
     if (role && role !== "warehouse staff") {
       await transaction.rollback(); // Batalkan transaksi jika bukan warehouse staff
@@ -527,6 +526,7 @@ export const rejectOrderWarehouse = async (req, res) => {
     const detailOrderId = req.params.detailOrderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
+    const remarks = req.body.remarks;
 
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
@@ -563,8 +563,8 @@ export const rejectOrderWarehouse = async (req, res) => {
       }
     }
 
-    // Update isReject di tabel DetailOrder
-    await DetailOrder.update({ isReject: 1 }, { where: { id: detailOrderId }, transaction });
+    // Update isReject di tabel DetailOrder dengan remarks
+    await DetailOrder.update({ isReject: 1, remarks }, { where: { id: detailOrderId }, transaction });
 
     // Create history reject di tabel LogApproval
     await LogApproval.create(
@@ -576,7 +576,7 @@ export const rejectOrderWarehouse = async (req, res) => {
       { transaction }
     );
 
-    const status = `rejected warehouse for items: ${order.Material.description}`;
+    const status = `rejected warehouse for items: ${order.Inventory.Material.description}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, { transaction });
@@ -587,6 +587,7 @@ export const rejectOrderWarehouse = async (req, res) => {
       message: "Reject success",
       status: "Rejected",
       "request number": order.Order.requestNumber,
+      "material description": order.Inventory.Material.description,
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error
