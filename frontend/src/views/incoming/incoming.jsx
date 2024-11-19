@@ -53,6 +53,7 @@ const Incoming = () => {
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
+  const [storageId, setStorageId] = useState()
   const [incomingData, setIncomingData] = useState({
     importDate: date,
     file: null, // Mengubah tipe ke null karena file adalah objek
@@ -60,6 +61,7 @@ const Incoming = () => {
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
+  const [dates, setDates] = useState([null, null])
 
   const { getIncoming, postIncomingPlan, postIncomingActual, updateIncomingById } =
     useManageStockService()
@@ -143,8 +145,11 @@ const Incoming = () => {
     if (imported) {
       fetchIncoming()
       setImported(false) // Reset state
+      return
     }
-  }, [imported])
+
+    fetchIncoming()
+  }, [imported, selectedDate, plantId, storageId])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -159,10 +164,41 @@ const Incoming = () => {
     }
   }
 
+  // const fetchIncoming = async () => {
+  //   setLoading(true)
+  //   try {
+  //     const response = await getIncoming()
+  //     const dataWithFormattedFields = response.data.map((item) => {
+  //       const discrepancy = item.actual - item.planning
+
+  //       return {
+  //         ...item,
+  //         discrepancy,
+  //         formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+  //         formattedUpdateAt: item.updatedAt
+  //           ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+  //           : '',
+  //       }
+  //     })
+  //     setIncoming(dataWithFormattedFields)
+  //   } catch (error) {
+  //     console.error('Error fetching incoming:', error)
+  //   } finally {
+  //     setLoading(false) // Set loading to false after data is fetched
+  //   }
+  // }
+
   const fetchIncoming = async () => {
     setLoading(true)
     try {
-      const response = await getIncoming()
+      const startDate = format(dates, 'yyyy-MM-dd')
+      const endDate = format(dates, 'yyyy-MM-dd')
+      const response = await getIncoming(
+        startDate ? startDate : '',
+        endDate ? endDate : '',
+        plantId ? plantId : '',
+        storageId ? storageId : '',
+      )
       const dataWithFormattedFields = response.data.map((item) => {
         const discrepancy = item.actual - item.planning
 
@@ -182,34 +218,6 @@ const Incoming = () => {
       setLoading(false) // Set loading to false after data is fetched
     }
   }
-
-  useEffect(() => {
-    const fetchIncoming = async () => {
-      setLoading(true)
-      try {
-        const response = await getIncoming()
-        const dataWithFormattedFields = response.data.map((item) => {
-          const discrepancy = item.actual - item.planning
-
-          return {
-            ...item,
-            discrepancy,
-            formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-            formattedUpdateAt: item.updatedAt
-              ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-              : '',
-          }
-        })
-        setIncoming(dataWithFormattedFields)
-      } catch (error) {
-        console.error('Error fetching incoming:', error)
-      } finally {
-        setLoading(false) // Set loading to false after data is fetched
-      }
-    }
-
-    fetchIncoming()
-  }, [])
 
   const getPlant = async () => {
     try {
@@ -275,10 +283,13 @@ const Incoming = () => {
   }
 
   const handleStorageChange = (e) => {
-    const value = e.value
-    let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.storageName'].value = value
-    setFilters(_filters)
+    const selectedStorageName = e.value
+    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
+    const storageId = selectedStorage?.id // Dapatkan storage.id
+    setStorageId(storageId)
+    // let _filters = { ...filters }
+    // _filters['Inventory.Address_Rack.Storage.storageName'].value = value
+    // setFilters(_filters)
   }
 
   const handleShopChange = (e) => {
@@ -301,9 +312,9 @@ const Incoming = () => {
 
     getStorageByPlantId(plantId)
 
-    let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
-    setFilters(_filters)
+    // let _filters = { ...filters }
+    // _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
+    // setFilters(_filters)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -524,11 +535,11 @@ const Incoming = () => {
 
   // Handle perubahan date picker
   const handleDateChange = (selectedDate) => {
-    setDate(selectedDate[0])
-    setIncomingData((prevData) => ({
-      ...prevData,
-      importDate: selectedDate[0],
-    }))
+    setDate(selectedDate)
+    // setIncomingData((prevData) => ({
+    //   ...prevData,
+    //   importDate: selectedDate[0],
+    // }))
   }
 
   const handleFileChange = (e) => {
@@ -576,12 +587,12 @@ const Incoming = () => {
   }
 
   const handleFilterDate = (date) => {
-    setSelectedDate(date)
-    const fornmattedDate = date[0].toLocaleDateString('en-CA')
+    setDates(date)
+    // const fornmattedDate = date[0].toLocaleDateString('en-CA')
 
-    let _filters = { ...filters }
-    _filters['Log_Import.importDate'].value = fornmattedDate
-    setFilters(_filters)
+    // let _filters = { ...filters }
+    // _filters['Log_Import.importDate'].value = fornmattedDate
+    // setFilters(_filters)
   }
 
   const LoadingComponent = () => (
@@ -613,13 +624,14 @@ const Incoming = () => {
             <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Flatpickr
-                  value={selectedDate}
+                  value={dates}
                   options={{
                     dateFormat: 'Y-m-d',
                     maxDate: new Date(),
                     allowInput: true,
+                    mode: 'range',
                   }}
-                  onChange={handleFilterDate}
+                  onChange={(date) => setDates(date)}
                   className="form-control mb-2"
                   placeholder="Select a date"
                   style={{
@@ -806,7 +818,7 @@ const Incoming = () => {
                 maxDate: new Date(),
                 allowInput: true,
               }}
-              onChange={handleDateChange}
+              onChange={(date) => setDate(date)}
               className="form-control"
               placeholder="Select a date"
             />
