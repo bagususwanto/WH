@@ -254,7 +254,7 @@ const ApproveAll = () => {
 
             <CRow>
               {/* Left side: Search field */}
-              <CCol xs={3} className="py-2">
+              <CCol xs={6} sm={6} md={3} lg={3} className="py-2">
                 <div
                   style={{
                     display: 'flex',
@@ -271,40 +271,48 @@ const ApproveAll = () => {
                     style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
                   />
 
-                  {/* Input Text Field */}
                   <InputText
                     value={searchQuery}
-                    onChange={handleSearchInputChange}
+                    onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                    onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
                     placeholder="Search"
                     style={{ width: '100%', border: 'none', outline: 'none' }}
                   />
                 </div>
               </CCol>
-              <CCol xs={9} className="d-flex justify-content-end">
-                {/* Right side: Date picker */}
+              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-2">
                 <div
-                  className="d-flex align-items-center border rounded p-2"
-                  style={{ width: '250px' }}
+                  className="flatpickr-wrapper"
+                  style={{ position: 'relative', width: '300px', height: '36px' }}
                 >
-                  <CIcon icon={cilCalendar} size="xl" className="px-1" />
+                  <CIcon
+                    icon={cilCalendar}
+                    size="lg"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '10px',
+                      transform: 'translateY(-50%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
                   <Flatpickr
                     value={dates}
                     onChange={(selectedDates) => setDates(selectedDates)}
                     options={{
                       mode: 'range',
                       dateFormat: 'Y-m-d',
-                      placeholder: 'Select a date range',
                     }}
-                    className="border-0 fw-light"
+                    className="form-control"
+                    placeholder="Select a date"
                     style={{
-                      outline: 'none',
-                      boxShadow: 'none',
-                      width: '100%', // Ensures Flatpickr fills container width
+                      paddingLeft: '40px', // Beri ruang untuk ikon
+                      height: '100%',
                     }}
                   />
                 </div>
               </CCol>
-            </CRow>
+            </CRow> 
           </CCardBody>
         </CCard>
       </CRow>

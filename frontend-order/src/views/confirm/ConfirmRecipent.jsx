@@ -4,6 +4,7 @@ import '../../scss/home.scss'
 import config from '../../utils/Config'
 import 'react-loading-skeleton/dist/skeleton.css'
 import '../../scss/body_blur.scss'
+import '../../scss/body_gray.scss'
 import Skeleton from 'react-loading-skeleton'
 import {
   CCard,
@@ -69,6 +70,15 @@ const Confirm = () => {
     return acc
   }, []).length
 
+  useEffect(() => {
+    // Add a specific class to body
+    document.body.classList.add('body-gray-background')
+
+    // Remove the class on component unmount
+    return () => {
+      document.body.classList.remove('body-gray-background')
+    }
+  }, [])
   const totalPages = Math.ceil(verifiedCartItems.length / itemsPerPage)
 
   // Get current items based on the current page
@@ -186,7 +196,7 @@ const Confirm = () => {
     <CContainer>
       <CRow>
         <CCol xs={4}>
-          <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
@@ -220,7 +230,13 @@ const Confirm = () => {
                 </div>
                 {!isPickup && (
                   <>
-                    <CIcon icon={cilArrowBottom} size="lg" />
+                    <CIcon
+                      icon={cilArrowBottom}
+                      size="lg" /* Ukuran lebih kecil */
+                      className="text-muted" /* Warna abu-abu */
+                      style={{ opacity: 0.7, marginTop: '5px' }}
+                    />
+
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                       <CIcon icon={cilLocationPin} size="lg" />
                       <label style={{ marginLeft: '8px' }}>
@@ -236,9 +252,10 @@ const Confirm = () => {
                   <hr />
                   <label className="fw-bold mb-2">Schedule Otodoke</label>
                   <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option className="fw-light" value="">
+                    <option value="" class="fw-light">
                       Select Cycle
                     </option>
+
                     {verifiedCartItems.length > 0 &&
                       verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
                         (serviceHour) => (
@@ -283,7 +300,7 @@ const Confirm = () => {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 className="mt-4"
               >
-                <label className="fw-bold">Total Items: {totalQuantity} Items</label>
+                <label className="fw-bold">Total Item: {totalQuantity} Item</label>
                 <CButton color="primary" onClick={handleCheckout}>
                   Order Now
                 </CButton>

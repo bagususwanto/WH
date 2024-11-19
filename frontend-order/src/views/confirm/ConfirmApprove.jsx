@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import '../../scss/body_gray.scss'
+import Flatpickr from 'react-flatpickr'
+import 'flatpickr/dist/flatpickr.css'
 import { format, parseISO } from 'date-fns'
 import {
   CCard,
@@ -405,20 +407,13 @@ const Confirm = () => {
               <label className="fw-bold mb-2">Payment</label>
               <CFormCheck
                 type="radio"
-                id="payment1"
-                label="WBS - ####-###-###"
-                checked={iswbs}
-                onChange={() => setIswbs(false)}
-                disabled
-              />
-              <CFormCheck
-                type="radio"
                 id="payment2"
-                label="GIC - ####-###-###"
-                checked={!iswbs}
-                onChange={() => setIswbs(false)}
+                label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
+                checked={iswbs}
+                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
                 disabled
               />
+
               <hr />
               <CFormTextarea
                 className="mt-3"
