@@ -458,7 +458,7 @@ export const completeOrder = async (req, res) => {
 
     const respOrder = await Order.findOne({
       where: { id: orderId },
-      attributes: ["id", "status", "isApproval"],
+      attributes: ["id", "status", "isApproval", "transactionNumber", "userId"],
       include: [
         {
           model: DetailOrder,
@@ -467,9 +467,13 @@ export const completeOrder = async (req, res) => {
       ],
     });
 
-    if (respOrder.status !== "ready to deliver" && respOrder.status !== "ready to pickup" && respOrder.isApproval !== 1) {
-      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
-      return res.status(401).json({ message: "Unauthorized, the order cannot be processed" });
+    const allowedStatuses = ["ready to deliver", "ready to pickup"];
+
+    if (!allowedStatuses.includes(respOrder.status)) {
+      await transaction.rollback(); // Batalkan transaksi jika status order tidak sesuai
+      return res.status(401).json({
+        message: "Order cannot be processed, order status is not ready to deliver or ready to pickup",
+      });
     }
 
     if (role) {
@@ -493,15 +497,15 @@ export const completeOrder = async (req, res) => {
     await postOrderHistory("your items received", userId, orderId, { transaction });
 
     // update status order
-    const order = await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
+    await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
 
-    const userOrder = await Order.findOne({ where: { id: orderId }, attributes: ["userId"] });
+    // create notification
     const notification = {
       title: "Order Completed",
-      description: `Order with transaction number ${order.transactionNumber} has been completed`,
+      description: `Order with transaction number ${respOrder.transactionNumber} has been completed`,
       category: "order",
     };
-    await createNotification(userOrder, notification, transaction);
+    await createNotification([respOrder.userId], notification, { transaction });
 
     // Commit transaksi setelah operasi berhasil
     await transaction.commit();
@@ -510,7 +514,7 @@ export const completeOrder = async (req, res) => {
     return res.status(200).json({
       message: "Order completed",
       status: "Completed",
-      "Transaction Number": order.transactionNumber,
+      "Transaction Number": respOrder.transactionNumber,
     });
   } catch (error) {
     // Rollback transaksi jika terjadi error

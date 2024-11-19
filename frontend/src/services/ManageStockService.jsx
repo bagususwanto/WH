@@ -26,13 +26,16 @@ const useManageStockService = () => {
     }
   }
 
-  const getIncoming = async () => {
+  const getIncoming = async (startDate, endDate, plantId, storageId) => {
     try {
-      const response = await axiosJWT.get('/incoming', {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/incoming?startDate=${startDate}&endDate=${endDate}&plantId=${plantId}&storageId=${storageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')

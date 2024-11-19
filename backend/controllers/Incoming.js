@@ -18,18 +18,45 @@ export const getIncoming = async (req, res) => {
     const limit = 1000;
     let batch;
 
+    let whereCondition = {};
+    let whereConditionPlant = { flag: 1 };
+    let whereConditionStorage = { flag: 1 };
+
+    const { plantId, storageId, startDate, endDate } = req.query;
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    if (storageId) {
+      whereConditionStorage.id = storageId;
+    }
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      whereCondition.createdAt = {
+        [Op.between]: [start, end],
+      };
+    }
+
     do {
       // Fetch a batch of 1000 records
       batch = await Incoming.findAll({
         limit,
         offset,
+        where: whereCondition,
         include: [
           {
             model: Inventory,
+            required: true,
             attributes: ["id"],
             include: [
               {
                 model: Material,
+                required: true,
                 attributes: ["id", "materialNo", "description", "uom"],
                 where: { flag: 1 },
                 include: [
@@ -46,14 +73,17 @@ export const getIncoming = async (req, res) => {
               {
                 model: AddressRack,
                 where: { flag: 1 },
+                required: true,
                 include: [
                   {
                     model: Storage,
-                    where: { flag: 1 },
+                    required: true,
+                    where: whereConditionStorage,
                     include: [
                       {
                         model: Plant,
-                        where: { flag: 1 },
+                        required: true,
+                        where: whereConditionPlant,
                       },
                     ],
                   },
@@ -96,6 +126,10 @@ export const getIncoming = async (req, res) => {
       // Update offset for the next batch
       offset += limit;
     } while (batch.length === limit); // Continue until we get less than 1000 records
+
+    if (!response) {
+      return res.status(404).json({ message: "Incoming not found" });
+    }
 
     res.status(200).json(response);
   } catch (error) {
