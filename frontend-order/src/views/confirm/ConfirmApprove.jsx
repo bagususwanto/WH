@@ -165,8 +165,7 @@ const Confirm = () => {
           try {
             const response = await deleteOrderItemApproval(detailorderId, warehouse.id)
 
-            console.log('warehuse id :', warehouse.id)
-            console.log('tess', response.data)
+      
 
             // Update Confirmapproval state by removing the deleted item
             const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
@@ -308,7 +307,7 @@ const Confirm = () => {
     <CContainer>
       <CRow>
         <CCol xs={4}>
-          <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               {/* {roleName === 'super admin' && ( */}
               <div
@@ -324,7 +323,7 @@ const Confirm = () => {
             </CCardBody>
           </CCard>
           {/* sticky Detail */}
-          <CCard className="mt-2" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                 <img
@@ -409,7 +408,7 @@ const Confirm = () => {
                 id="payment1"
                 label="WBS - ####-###-###"
                 checked={iswbs}
-                onChange={() => setIswbs(true)}
+                onChange={() => setIswbs(false)}
                 disabled
               />
               <CFormCheck
@@ -458,7 +457,7 @@ const Confirm = () => {
                 product,
                 index, // Change from productsData to currentProducts
               ) => (
-                <CCard className="h-80 rounded-0 bg-grey" key={product.id}>
+                <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <CRow className="align-items-center">
                       <CCol xs="1">

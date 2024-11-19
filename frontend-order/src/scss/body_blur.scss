@@ -1,0 +1,11 @@
+/* Apply blur effect when modal is active */
+body.blurred {
+    filter: blur(5px);
+    transition: filter 0.3s ease-in-out;
+  }
+  
+  /* Prevent interactions with elements behind modal */
+  body.blurred * {
+    pointer-events: none;
+  }
+  

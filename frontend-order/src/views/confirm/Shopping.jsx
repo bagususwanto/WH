@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState,useContext } from 'react'
+import {useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import {
   CCard,
@@ -28,236 +28,83 @@ import CIcon from '@coreui/icons-react'
 import { cilHome, cilCart, cilTrash, cilLocationPin, cilArrowBottom } from '@coreui/icons'
 import Select from 'react-select'
 import useVerify from '../../hooks/UseVerify'
-import useProductService from '../../services/ProductService'
-import useMasterDataService from '../../services/MasterDataService'
+import { GlobalContext } from '../../context/GlobalProvider'
+import useWarehouseService from '../../services/WarehouseService'
 import '../../scss/modal.scss'
 
 const Confirm = () => {
   const [productsData, setProductsData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
-  const { getMasterData } = useMasterDataService()
-  const { getProduct } = useProductService()
   const [clicked, setClicked] = useState(false)
   const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [selectedProductId, setSelectedProductId] = useState(null)
-  const [rejectionReason, setRejectionReason] = useState('')
-  const [totalAmount, setTotalAmount] = useState(0)
   const [isPickup, setIsPickup] = useState(true)
   const [iswbs, setIswbs] = useState(true)
-  const [quantities, setQuantities] = useState({})
-  const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalConfirm, setModalConfirm] = useState(false)
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
-  const [currentProducts, setCurrentProducts] = useState([])
-  const [isClearable, setIsClearable] = useState(true)
-  const [addressData, setAddressData] = useState([]) // List of addresses
-  const [selectedAddressCode, setSelectedAddressCode] = useState(null) // Selected address code
-  const [selectedDescription, setSelectedDescription] = useState(null) // Selected product description
+  const location = useLocation()
+  const { initialShopping } = location.state
+  const { getWarehouseConfirm } = useWarehouseService()
+  const [ShoppingWarehouse, setShoppingWarehouse] = useState(initialShopping)
+  const { warehouse } = useContext(GlobalContext)
+
   const navigate = useNavigate()
   const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
 
-  const getProducts = async () => {
-    try {
-      const response = await getProduct(1)
-      setProductsData(response.data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
   useEffect(() => {
-    getProducts()
+    // Add a specific class to body
+    document.body.classList.add('body-gray-background')
+
+    // Remove the class on component unmount
+    return () => {
+      document.body.classList.remove('body-gray-background')
+    }
   }, [])
-
-  const handleCheckout = () => {
-    setModalVisible(true)
-  }
-  const handleConfirm = () => {
-    setModalVisible(false)
-    navigate('/confirmall') // Use navigate instead of history.push
-  }
-
-  const handleCancel = () => {
-    setModalVisible(false)
-  }
-  const handleModalCart = (product) => {
-    console.log(product)
-    setSelectedProduct(product)
-    setModalConfirm(true)
-  }
-  const handleCloseModalOrder = () => {
-    setModalConfirm(false)
-  }
-
-  const handleSelectAllChange = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
-
-    // Update all individual checkboxes
-    const updatedCheckedItems = currentProducts.reduce((acc, product) => {
-      acc[product.id] = newSelectAll
-      return acc
-    }, {})
-    setCheckedItems(updatedCheckedItems)
-  }
-
-  const handleDeleteClick = (productId) => {
-    setSelectedProductId(productId)
-    setIsModalVisible(true)
-  }
-  const handleInputChange = (e) => {
-    setRejectionReason(e.target.value)
-  }
-  const handleConfirmRejection = () => {
-    console.log('test')
-    // Update the product state with the rejection flag and reason
-    setCurrentProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === selectedProductId
-          ? { ...product, rejected: true, rejectionReason } // Update the product with rejection details
-          : product,
-      ),
-    )
-
-    // Close the modal and reset states
-    setIsModalVisible(false)
-    setSelectedProductId(null)
-    setRejectionReason('')
-  }
-  // Total harga produk
   useEffect(() => {
-    const newTotal = currentProducts.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || 1 // Ambil jumlah dari quantities atau gunakan 1 sebagai default
-        return acc + product.Material.price * quantity
-      }
-      return acc
-    }, 0)
-    setTotalAmount(newTotal)
-  }, [checkedItems, quantities, currentProducts])
-
-  const handleIncreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: (prevQuantities[productId] || 1) + 1,
-    }))
-  }
-
-  const handleDecreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: Math.max((prevQuantities[productId] || 1) - 1, 1),
-    }))
-  }
-  const handleQuantityChange = (productId, value) => {
-    // Validasi jika nilai yang dimasukkan adalah angka
-    if (!isNaN(value) && value >= 0) {
-      setQuantities({
-        ...quantities,
-        [productId]: parseInt(value, 10),
-      })
+    if (ShoppingWarehouse.deliveryMethod == 'Pickup') {
+      setIsPickup(true)
+    } else {
+      setIsPickup(false)
     }
-  }
-
-  const totalItems = currentProducts.length
-
-  const handleButtonClick = () => {
-    setClicked(true) // Change the button state to clicked
-    navigate('/order') // Redirect to the Order page
-  }
-  useEffect(() => {
-    if (productsData.length > 0) {
-      const initialCheckedItems = {}
-      productsData.forEach((product) => {
-        initialCheckedItems[product.id] = false // Initialize each product as unchecked
-      })
-      setCheckedItems(initialCheckedItems)
-    }
-  }, [productsData])
-  // Fetch product and address data
-  const getProductsAndAddresses = async () => {
-    try {
-      const responseProducts = await getProduct(1)
-      setProductsData(responseProducts.data)
-
-      const responseMasterData = await getMasterData('address') // Assuming 'address' is the correct master data type
-      setAddressData(responseMasterData.data)
-    } catch (error) {
-      console.error('Error fetching products or address data:', error)
-    }
-  }
-
-  useEffect(() => {
-    getProductsAndAddresses()
-  }, [])
-
-  const handleAddressCodeChange = (selectedOption) => {
-    setSelectedAddressCode(selectedOption)
-  }
-
-  const handleDescriptionChange = (selectedOption) => {
-    setSelectedDescription(selectedOption)
-  }
-
-  // Filter the products based on the description search
-  const filteredProducts = productsData.filter((product) =>
-    product.Material.description
-      .toLowerCase()
-      .includes(selectedDescription ? selectedDescription.label.toLowerCase() : ''),
-  )
-
-  const sortedAddressData = addressData
-  .map((address) => ({
-    value: address.id,
-    label: address.Address_Rack.addressRackName,
-  }))
-  .sort((a, b) => {
-    if (a.label === selectedAddressCode?.label) {
-      return -1;  // Put the selected address at the top
-    }
-    if (b.label === selectedAddressCode?.label) {
-      return 1;   // Put the selected address at the top
-    }
-    return 0;  // Keep the order of other addresses unchanged
-  });
-
+  }, [initialShopping])
+  console.log('initial', initialShopping)
 
   return (
     <CContainer>
       <CRow className="mt-1">
         <CCol xs={4}>
-          <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+        <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
-              {roleName === 'super admin' && (
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                  <img
-                    src="path-to-user-photo.jpg"
-                    alt="User Profile"
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      marginRight: '16px',
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                      <strong>FORM:</strong> ANDI (TEAM LEADER)
-                    </div>
-                    <div>
-                      <strong>GRUP:</strong> ASSY PRE TRIM 2 OPR RED
-                    </div>
-                    <div>
-                      <small>Request at 11:19</small>
-                    </div>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <img
+                  src="path-to-user-photo.jpg"
+                  alt="User Profile"
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    marginRight: '16px',
+                  }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div>
+                    <strong>FORM:</strong> {ShoppingWarehouse.User.name}
+                  </div>
+                  <div>
+                    <strong>LINE:</strong> {ShoppingWarehouse.User.Organization.Line.lineName}
+                  </div>
+                  <div>
+                    <small>
+                      Request at {format(parseISO(ShoppingWarehouse.createdAt), 'dd/MM/yyyy')}
+                    </small>
                   </div>
                 </div>
-              )}
+              </div>
+              {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <CFormCheck
@@ -299,31 +146,23 @@ const Confirm = () => {
                 <>
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
-                  <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                    <option value="">Select Shift</option>
-                    <option value="dayShift1">Day Shift 1: 08:00</option>
-                    <option value="dayShift2">Day Shift 2: 10:00</option>
-                    <option value="nightShift1">Night Shift 1: 22:00</option>
-                    <option value="nightShift2">Night Shift 2: 10:00</option>
-                  </CFormSelect>
+                  <div>
+                    <CFormInput
+                      type="text"
+                      value={ShoppingWarehouse.scheduleDelivery} // Bind the input value to state
+                      readOnly // Make the input readonly so users cannot change it
+                    />
+                  </div>
                 </>
               )}
               <hr />
               <label className="fw-bold mb-2">Payment</label>
               <CFormCheck
                 type="radio"
-                id="payment1"
-                label="WBS - ####-###-###"
-                checked={iswbs}
-                onChange={() => setIswbs(true)}
-                disabled
-              />
-              <CFormCheck
-                type="radio"
                 id="payment2"
-                label="GIC - ####-###-###"
-                checked={!iswbs}
-                onChange={() => setIswbs(false)}
+                label={`${ShoppingWarehouse.paymentMethod} = ${ShoppingWarehouse.paymentNumber}`} // Corrected syntax
+                checked={iswbs}
+                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
                 disabled
               />
               <hr />
@@ -333,57 +172,10 @@ const Confirm = () => {
                 rows={3}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                disabled
               />
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                className="mt-4"
-              >
-                <label className="fw-bold">Total Items: {totalItems} Items</label>
-                <CButton color="primary" onClick={handleCheckout}>
-                  Delivery Now
-                </CButton>
-                <CModal visible={modalVisible} onClose={handleCancel}>
-                  <CModalHeader>
-                    <CModalTitle>Confirm Order</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    <label className="fs-6"> Are you sure you want to proceed to checkout?</label>
-                    <br />
-                    <label className="fw-bold">
-                      Total Items:{' '}
-                      {Object.keys(checkedItems).filter((id) => checkedItems[id]).length} Item
-                    </label>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="danger" onClick={handleCancel}>
-                      Cancel
-                    </CButton>
-                    <CButton color="success" onClick={handleConfirm}>
-                      OK
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
-              </div>
             </CCardBody>
           </CCard>
-          <CButton
-            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`} // Add a class for when clicked
-            color="secondary"
-            style={{
-              position: 'fixed',
-              bottom: '20px', // Position the button 20px from the bottom
-              right: '20px', // Position the button 20px from the right
-              width: '55px', // Set a fixed width
-              height: '55px', // Set a fixed height (same as width for a perfect circle)
-              border: '1px solid white',
-              color: 'white',
-              borderRadius: '50%', // This ensures it's perfectly circular
-              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none', // Add a shadow when clicked
-            }}
-            onClick={handleButtonClick}
-          >
-            <CIcon icon={cilCart} size="lg" /> {/* Adjust the icon size with size="lg" */}
-          </CButton>
         </CCol>
 
         <CCol xs={8}>
@@ -402,7 +194,11 @@ const Confirm = () => {
           {/* Scrollable Products Section */}
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
             <CRow className="g-2">
-              {productsData.map((product, index) => (
+            {ShoppingWarehouse.Detail_Orders.map(
+              (
+                product,
+                index, // Change from productsData to currentProducts
+              ) => (
                 <CCard
                   className={`h-80 ${selectedCardIndexes.includes(index) ? 'bg-success text-white' : ''}`} // Apply green background if selected
                   key={index}

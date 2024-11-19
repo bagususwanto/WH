@@ -44,6 +44,9 @@ const AppHeaderDropdown = () => {
   const handleapproveall = () => {
     navigate('/approveall')
   }
+  const handleconfirmall = () => {
+    navigate('/confirmall')
+  }
 
   const handleLogout = async () => {
     try {
@@ -67,6 +70,7 @@ const AppHeaderDropdown = () => {
 
   const [firstName, lastName] = name.split(' ')
   let shouldShowApproval = false
+  let shouldShowWarehouse = false
 
   // Cek kondisi untuk roleName
   if (
@@ -76,6 +80,11 @@ const AppHeaderDropdown = () => {
     roleName === 'department head'
   ) {
     shouldShowApproval = true
+  }
+  if (roleName === 'super admin' ||
+     roleName === 'warehouse staff'
+  ) {
+    shouldShowWarehouse = true
   }
 
   return (
@@ -116,6 +125,15 @@ const AppHeaderDropdown = () => {
             <CDropdownItem onClick={handleapproveall} style={{ cursor: 'pointer' }}>
               <CIcon icon={cilEnvelopeLetter} className="me-2" />
               Approval
+            </CDropdownItem>
+          </>
+        )}
+        {shouldShowWarehouse && (
+          <>
+            <CDropdownDivider />
+            <CDropdownItem onClick={handleconfirmall} style={{ cursor: 'pointer' }}>
+              <CIcon icon={cilEnvelopeLetter} className="me-2" />
+              GI Confirm
             </CDropdownItem>
           </>
         )}

@@ -54,7 +54,7 @@ import {
   cilPaintBucket,
   cilFootball,
   cilPencil,
-  cilInputHdmi,
+  cilEnvelopeClosed,
   cilCog,
   cilCut,
   cilTags,
@@ -697,21 +697,48 @@ const AppHeader = () => {
                 </CBadge>
               )}
             </CDropdownToggle>
-            <CDropdownMenu className="pt-0" placement="bottom-end">
-              <CDropdownHeader className="bg-body-secondary fw-semibold">
+            <CDropdownMenu
+              className="pt-0"
+              placement="bottom-end"
+              style={{ width: '300px', position: 'relative' }} // Atur lebar atau sesuaikan sesuai kebutuhan
+            >
+              <CDropdownHeader
+                className="bg-body-secondary fw-semibold"
+                style={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  backgroundColor: 'inherit', // Warna latar belakang tetap sama
+                  padding: '10px',
+                  borderBottom: '1px solid #dee2e6', // Garis pemisah
+                }}
+              >
                 Anda memiliki ({notifCount}) notifikasi
               </CDropdownHeader>
-              {notifDesc?.length > 0 ? (
-                notifDesc.map((notif, index) => (
-                  <CDropdownItem key={index}>
-                    <CRow className="fw-ligt">Notif</CRow>
-                    <CRow className="fw-ligt">{notif.description}</CRow>
-                    <hr />
-                  </CDropdownItem>
-                ))
-              ) : (
-                <CDropdownItem>No notification</CDropdownItem>
-              )}
+              <div
+                style={{
+                  maxHeight: '300px', // Batas tinggi scroll
+                  overflowY: 'auto', // Scroll aktif hanya di sini
+                }}
+              >
+                {notifDesc?.length > 0 ? (
+                  notifDesc.map((notif, index) => (
+                    <CDropdownItem key={index}>
+                      <CRow className="fw-light py-0 mb-0">
+                        <small>
+                          <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
+                        </small>
+                      </CRow>
+                      <CRow className="py-0 mb-1">
+                        <small>{notif.description}</small>
+                      </CRow>
+                      <hr className="mt-1 mb-1" />
+                    </CDropdownItem>
+                  ))
+                ) : (
+                  <CDropdownItem>No notification</CDropdownItem>
+                )}
+              </div>
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>

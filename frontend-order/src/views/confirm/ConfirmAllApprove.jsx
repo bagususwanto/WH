@@ -198,12 +198,10 @@ const ApproveAll = () => {
     setTotalAmount(newTotal)
   }, [checkedItems, quantities, currentProducts])
 
-  const handleViewHistoryOrder = (product,initialConfirmApproval) => {
-    getOrderHistories(product.id)
+  const handleViewHistoryOrder = (initialConfirmApproval) => {
     setSelectedProduct(initialConfirmApproval)
     setVisible(true)
     navigate('/confirmapp', { state: { initialConfirmApproval } })
- 
   }
 
   const handleSearchInputChange = (e) => {
@@ -241,11 +239,12 @@ const ApproveAll = () => {
   }
   const handleApproveDetail = (approval) => {
     // getOrderHistories(product.id)
+    getOrderHistories(approval.id)
     setSelectedProduct(approval)
     setVisible(true)
     console.log('aa', approval)
   }
- 
+
   return (
     <>
       <CRow>
@@ -362,15 +361,7 @@ const ApproveAll = () => {
 
                             {/* Product and user information */}
                             <CRow xs="1">
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
+                              <CCol xs="1"></CCol>
                               <CCol xs="4">
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <div>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import config from '../../utils/Config'
 import 'react-loading-skeleton/dist/skeleton.css'
+import '../../scss/body_blur.scss'
 import Skeleton from 'react-loading-skeleton'
 import {
   CCard,

@@ -79,13 +79,15 @@ const ApproveAll = () => {
   const [productsData, setProductsData] = useState([])
   const [userData, setUserData] = useState([])
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
-  const [totalAmount, setTotalAmount] = useState(0)
+
   const [quantities, setQuantities] = useState({})
-  const { getWarehouseConfirmation } = useWarehouseService()
+  const { getWarehouseConfirm } = useWarehouseService()
   const [currentProducts, setCurrentProducts] = useState([])
   const [activeTab, setActiveTab] = useState('Waiting Confirmation')
   const navigate = useNavigate()
   const { warehouse } = useContext(GlobalContext)
+  const [selectedProduct, setSelectedProduct] = useState(null) // Add this state
+  const [visible, setVisible] = useState(false) // State for modal visibility
 
   const getSeverity = (status) => {
     switch (status) {
@@ -107,8 +109,15 @@ const ApproveAll = () => {
   const getWarehouseConfirmations = async (activeTab) => {
     try {
       if (warehouse && warehouse.id) {
-        const response = await getWarehouseConfirmation(warehouse.id, activeTab, '')
-        setProductsData(response.data)
+        const response = await getWarehouseConfirm(warehouse.id, activeTab, '')
+        //jika ada isi di API
+        if (response) {
+          setProductsData(response.data)
+        }
+        //  jika kosong
+        else {
+          setProductsData([])
+        }
         console.log('warehuse id :', warehouse.id)
       } else {
         console.log('warehouse id not found')
@@ -128,26 +137,48 @@ const ApproveAll = () => {
   }
   // Total harga produk
   const handleWarehouseConfirmationproduct = (product) => {
-    setProductsData([product]); // Set the specific product data
-    setVisible(true);
-  
-    // Define a route mapping based on status
-    const statusRouteMap = {
-      'Waiting Confirmation': '/confirmwer',
-      'On Process': '/on-process',
-      'Ready to Deliver': '/ready-to-deliver',
-      'Ready to Pickup': '/ready-to-pickup',
-      'Completed': '/completed',
-      'Rejected': '/rejected',
-    };
-  
-    // Get the route based on the product status
-    const route = statusRouteMap[product.status] || '/default-route'; // Fallback route if no match
-  
-    // Navigate to the appropriate route with the product state
-    navigate(route, { state: { product } });
-  };
- 
+    const statusHandlerMap = {
+      'Waiting Confirmation': handleWaitingConfirmation,
+      'On Process': handleOnProcess,
+      'Ready to Deliver': handleReadyToDeliver,
+      'Ready to Pickup': handleReadyToPickup,
+    }
+
+    const handler = statusHandlerMap[activeTab] || handleDefault
+    handler(product) // Panggil handler yang sesuai
+  }
+  const handleWaitingConfirmation = (initialConfirmWarehouse) => {
+    setSelectedProduct(initialConfirmWarehouse)
+    setVisible(true)
+    localStorage.setItem('confirmWarehouse', JSON.stringify(initialConfirmWarehouse))
+    navigate('/confirmwer', { state: { initialConfirmWarehouse } })
+  }
+
+  const handleOnProcess = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+    navigate('/shopping', { state: { product } })
+  }
+
+  const handleReadyToDeliver = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+    navigate('/confirmdel', { state: { product } })
+  }
+
+  const handleReadyToPickup = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+    navigate('/confirmdel', { state: { product } })
+  }
+
+  // Fallback for unknown statuses
+  const handleDefault = (product) => {
+    setSelectedProduct(product)
+    setVisible(true)
+    navigate('/default-route', { state: { product } })
+  }
+
   const tabs = [
     { key: 'Waiting Confirmation', label: 'Waiting Confirmation' },
     { key: 'On Process', label: 'Shopping' },
@@ -212,99 +243,101 @@ const ApproveAll = () => {
                 <CCard style={{ border: 'none' }}>
                   <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
                     <CRow className="g-1 mt-1">
-                        {productsData.length > 0 ? (
-                          productsData.map((product) => (
-                        <CCard className="d-block w-100 p-3 mb-3" key={product.id}>
-                          <CRow className="align-items-center">
-                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <CCol>
-                                <CIcon className="me-2" icon={cilCart} />
-                                <label className="me-2 fs-6">
-                                  {format(parseISO(product.createdAt), 'dd/MM/yyyy')}
-                                </label>
-                                <CBadge className="me-2" color={getSeverity(product.status)}>
-                                  {product.isReject === 1
-                                    ? 'REJECTED'
-                                    : product.status.toUpperCase()}
-                                </CBadge>
-                                <label className="me-2 fw-light">
-                                  {product.transactionNumber
-                                    ? `${product.transactionNumber}`
-                                    : `${product.requestNumber}`}
-                                </label>
-                              </CCol>
-                            </div>
-                            <CRow className="py-2" xs="1">
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>Form:</strong> {product.User.name}
-                                  </div>
-                                  <div>
-                                    <strong>Role:</strong> {product.User.position}
-                                  </div>
-                                  <div>
-                                    <strong>Section:</strong>{' '}
-                                    {product.User.Organization.Section.sectionName}
-                                  </div>
-                                </div>
-                              </CCol>
-                              <CCol xs="4">
-                                {product.Detail_Orders.length === 1 ? (
-                                  <label>
-                                    {product.Detail_Orders[0]?.Inventory?.Material?.description}
+                      {productsData.length > 0 ? (
+                        productsData.map((product) => (
+                          <CCard className="d-block w-100 p-3 mb-3" key={product.id}>
+                            <CRow className="align-items-center">
+                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                                <CCol>
+                                  <CIcon className="me-2" icon={cilCart} />
+                                  <label className="me-2 fs-6">
+                                    {format(parseISO(product.createdAt), 'dd/MM/yyyy')}
                                   </label>
-                                ) : (
-                                  <label>
-                                    {product.Detail_Orders[0]?.Inventory?.Material?.description}...
+                                  <CBadge className="me-2" color={getSeverity(product.status)}>
+                                    {product.isReject === 1
+                                      ? 'REJECTED'
+                                      : product.status.toUpperCase()}
+                                  </CBadge>
+                                  <label className="me-2 fw-light">
+                                    {product.transactionNumber
+                                      ? `${product.transactionNumber}`
+                                      : `${product.requestNumber}`}
                                   </label>
-                                )}
-                                <br />
-                                <label className="fw-bold fs-6">
-                                  Total: {product.Detail_Orders.length} Item
-                                </label>
-                              </CCol>
-                              <CCol xs="3" className="text-end">
-                                <label className="fw-bold fs-6 me-1">
-                                  Rp{' '}
-                                  {product.Detail_Orders.reduce(
-                                    (total, order) => total + (order.Inventory.Material.price || 0),
-                                    0,
-                                  ).toLocaleString('id-ID')}
-                                </label>
-                                <br />
-                                <label className="me-1">
-                                  <span className="fw-light">{product.paymentMethod}:</span>{' '}
-                                  {product.paymentNumber}
-                                </label>
-                              </CCol>
-                            </CRow>
+                                </CCol>
+                              </div>
+                              <CRow className="py-2" xs="1">
+                                <CCol xs="1">
+                                  {userData.map((user) => (
+                                    <CCardImage
+                                      key={user.id}
+                                      src={user.img}
+                                      style={{ height: '100%', width: '100%' }}
+                                    />
+                                  ))}
+                                </CCol>
+                                <CCol xs="4">
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div>
+                                      <strong>Form:</strong> {product.User.name}
+                                    </div>
+                                    <div>
+                                      <strong>Role:</strong> {product.User.position}
+                                    </div>
+                                    <div>
+                                      <strong>Section:</strong>{' '}
+                                      {product?.User?.Organization?.Section?.sectionName}
+                                    </div>
+                                  </div>
+                                </CCol>
+                                <CCol xs="4">
+                                  {product.Detail_Orders.length === 1 ? (
+                                    <label>
+                                      {product.Detail_Orders[0]?.Inventory?.Material?.description}
+                                    </label>
+                                  ) : (
+                                    <label>
+                                      {product.Detail_Orders[0]?.Inventory?.Material?.description}
+                                      ...
+                                    </label>
+                                  )}
+                                  <br />
+                                  <label className="fw-bold fs-6">
+                                    Total: {product.Detail_Orders.length} Item
+                                  </label>
+                                </CCol>
+                                <CCol xs="3" className="text-end">
+                                  <label className="fw-bold fs-6 me-1">
+                                    Rp{' '}
+                                    {product.Detail_Orders.reduce(
+                                      (total, order) =>
+                                        total + (order.Inventory.Material.price || 0),
+                                      0,
+                                    ).toLocaleString('id-ID')}
+                                  </label>
+                                  <br />
+                                  <label className="me-1">
+                                    <span className="fw-light">{product.paymentMethod}:</span>{' '}
+                                    {product.paymentNumber}
+                                  </label>
+                                </CCol>
+                              </CRow>
 
-                            <CRow className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleWarehouseConfirmationproduct(product)}
-                                  color="primary"
-                                  size="sm"
-                                >
-                                  View Detail Confirm
-                                </CButton>
-                              </CCol>
+                              <CRow className="d-flex justify-content-end align-items-center">
+                                <CCol xs={4} className="d-flex justify-content-end">
+                                  <CButton
+                                    onClick={() => handleWarehouseConfirmationproduct(product)}
+                                    color="primary"
+                                    size="sm"
+                                  >
+                                    View Detail Confirm
+                                  </CButton>
+                                </CCol>
+                              </CRow>
                             </CRow>
-                          </CRow>
-                        </CCard>
-                       ))
+                          </CCard>
+                        ))
                       ) : (
-                        <p>No Approval available.</p>
+                        <p>No orders found</p>
                       )}
                     </CRow>
                   </div>

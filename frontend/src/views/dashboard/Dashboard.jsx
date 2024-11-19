@@ -312,7 +312,7 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 9, // Ukuran font
+            size: 8, // Ukuran font
             color: 'black', // Menetapkan warna font menjadi hitam
             weight: 'bold', // Menjadikan font bold
           },
@@ -411,15 +411,16 @@ const Dashboard = () => {
             borderWidth: 2,
             label: {
               display: true,
-              content: selectedChart === 'overflow'
-                ? `Max Stock: ${referenceLineValue} Shift`
-                : `Min Stock: ${referenceLineValue} Shift`,
+              content:
+                selectedChart === 'overflow'
+                  ? `Max Stock: ${referenceLineValue} Shift`
+                  : `Min Stock: ${referenceLineValue} Shift`,
               position: 'end',
               yAdjust: -16,
               color: 'white',
             },
           },
-          
+
           // Garis untuk 6 (Max Stock Line)
           {
             type: 'line',
@@ -439,29 +440,32 @@ const Dashboard = () => {
               color: 'white',
             },
           },
-      
+
           // Garis untuk 1.5 hanya muncul jika selectedChart === 'critical'
-          ...(selectedChart === 'critical' ? [{
-            type: 'line',
-            yMin: 1.5, // Garis pada nilai 1.5
-            yMax: 1.5, // Garis pada nilai 1.5
-            borderColor: 'red', // Warna merah
-            borderWidth: 0.5,
-            borderDash: [5, 5], // Garis putus-putus
-            label: {
-              display: true, // Menampilkan label
-              content: 'Critical Stock 1.5 Shift', // Isi label
-              position: 'end', // Menentukan posisi label di akhir garis
-              font: {
-                size: 9,
-              },
-              yAdjust: -6, // Menyesuaikan posisi label di sumbu Y
-              color: 'white', // Warna label
-            },
-          }] : []), // Jika bukan Critical Stock, tidak akan menambahkan garis ini
+          ...(selectedChart === 'critical'
+            ? [
+                {
+                  type: 'line',
+                  yMin: 1.5, // Garis pada nilai 1.5
+                  yMax: 1.5, // Garis pada nilai 1.5
+                  borderColor: 'red', // Warna merah
+                  borderWidth: 0.5,
+                  borderDash: [5, 5], // Garis putus-putus
+                  label: {
+                    display: true, // Menampilkan label
+                    content: 'Critical Stock 1.5 Shift', // Isi label
+                    position: 'end', // Menentukan posisi label di akhir garis
+                    font: {
+                      size: 9,
+                    },
+                    yAdjust: -6, // Menyesuaikan posisi label di sumbu Y
+                    color: 'white', // Warna label
+                  },
+                },
+              ]
+            : []), // Jika bukan Critical Stock, tidak akan menambahkan garis ini
         ],
-      }
-      
+      },
     },
     onClick: (event, elements) => {
       if (elements.length > 0) {
@@ -528,12 +532,13 @@ const Dashboard = () => {
               <Select
                 className="basic-single"
                 classNamePrefix="select"
-                options={chartvalue} // Pass the chart options
-                value={chartvalue.find((option) => option.value === selectedChart)} // Set selected value based on selectedChart
-                onChange={handleChartChange} // Handle chart type change
-                isClearable={false} // Make it non-clearable
-                placeholder="Select Status" // Placeholder text
+                options={chartvalue.filter((option) => option.value !== 'lowest')} // Sembunyikan opsi "Lowest"
+                value={chartvalue.find((option) => option.value === selectedChart)} // Tetap tetapkan value berdasarkan state
+                onChange={handleChartChange} // Tetap gunakan fungsi onChange
+                isClearable={false} // Non-clearable
+                placeholder="Select Status"
               />
+
               <CButton
                 className="ms-2"
                 color="secondary"
