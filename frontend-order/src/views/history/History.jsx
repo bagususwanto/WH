@@ -84,7 +84,7 @@ const History = () => {
     cilCircle,
   }
 
-  const getMyorders = async (page) => {
+  const getMyorders = async (page, startDate, endDate) => {
     try {
       if (warehouse && warehouse.id) {
         let response
@@ -93,6 +93,8 @@ const History = () => {
             id: warehouse.id,
             page: page,
             isReject: 1,
+            startDate: startDate,
+            endDate: endDate,
             q: searchQuery,
           })
         } else {
@@ -100,6 +102,8 @@ const History = () => {
             id: warehouse.id,
             status: activeTab,
             page: page,
+            startDate: startDate,
+            endDate: endDate,
             q: searchQuery,
           })
         }
@@ -135,8 +139,15 @@ const History = () => {
   }
 
   useEffect(() => {
-    getMyorders()
-  }, [warehouse, activeTab])
+    if (dates[0] && dates[1]) {
+      setMyOrderData([])
+      const startDate = format(dates[0], 'yyyy-MM-dd')
+      const endDate = format(dates[1], 'yyyy-MM-dd')
+      getMyorders(1, startDate, endDate)
+      return
+    }
+    getMyorders(1)
+  }, [warehouse, activeTab, dates])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -164,9 +175,8 @@ const History = () => {
   // Fungsi handleKeyDown
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      setCurrentPage(1)
       setMyOrderData([])
-      getMyorders()
+      getMyorders(1)
     }
   }
 
@@ -250,6 +260,7 @@ const History = () => {
                     options={{
                       mode: 'range',
                       dateFormat: 'Y-m-d',
+                      allowInput: true,
                     }}
                     className="form-control"
                     placeholder="Select a date"
