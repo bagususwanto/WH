@@ -49,7 +49,7 @@ import {
   cilInbox,
   cilFax,
   cilLifeRing,
-  cilKeyboard,
+  cilSearch,
   cilFactory,
   cilPaintBucket,
   cilFootball,
@@ -430,22 +430,25 @@ const AppHeader = () => {
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
-        <span>
+        <span style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
           <CIcon
             icon={cilLocationPin}
-            size="lg"
+            size="sm" // Mengubah ukuran ikon menjadi kecil
             style={{ transition: 'color 0.3s', color: '#333', marginRight: '5px' }}
           />
-          <b className="me-2">{warehouse.warehouseName}</b>
+          <b className="me-2" style={{ fontSize: '0.85rem' }}>
+            {warehouse.warehouseName}
+          </b>
           <CLink
             color="primary"
             onClick={handleShowModal}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', fontSize: '0.85rem' }} // Ukuran teks lebih kecil
             className="text-decoration-none text-color-primary"
           >
             Change
           </CLink>
         </span>
+
         <CModal visible={modalVisible} onClose={handleCloseModal}>
           <CModalHeader>
             <CModalTitle>Select Warehouse</CModalTitle>
@@ -497,22 +500,36 @@ const AppHeader = () => {
         {/* Search bar tetap */}
         <CCol xs={6} sm={3} md={3} lg={5}>
           <form ref={dropdownRef} onSubmit={handleSubmit} style={{ position: 'relative' }}>
-            <CFormInput
-              type="search"
-              placeholder="Search product..."
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              className="border-0 p-2"
+            <div
               style={{
+                display: 'flex',
+                alignItems: 'center',
                 border: '1px solid #ddd',
                 borderRadius: '4px',
-                boxShadow: 'none',
-                outline: '1px solid #ddd',
-                width: '100%',
+                overflow: 'hidden',
               }}
-            />
+            >
+              <CIcon
+                icon={cilSearch}
+                style={{ marginLeft: '8px', color: '#888', fontSize: '1.2em', cursor: 'pointer' }}
+              />
+              <CFormInput
+                type="search"
+                placeholder="Search product..."
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                className="border-0 p-2"
+                style={{
+                  border: 'none', // Menghapus border duplikat karena sudah ada di container
+                  boxShadow: 'none',
+                  outline: 'none',
+                  width: '100%', // Pastikan input mengisi ruang yang tersisa
+                }}
+              />
+            </div>
+
             {/* Konten dropdown untuk saran dan pencarian */}
             {(filteredSuggestions.length > 0 ||
               (showRecentSearches && searchHistory.length > 0)) && (
@@ -628,55 +645,77 @@ const AppHeader = () => {
               placement="bottom-end"
               style={{ minWidth: '300px', maxHeight: '400px', overflowY: 'auto' }}
             >
-              <CDropdownHeader className="bg-body-secondary fw-semibold d-flex justify-content-between align-items-center">
-                <span>Your Cart ({cartCount})</span>
-                <CLink
-                  onClick={() => navigate('/cart')}
-                  className="text-primary ms-auto"
-                  style={{ cursor: 'pointer' }}
+              <CDropdownHeader
+                className="bg-body-secondary fw-semibold"
+                style={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  backgroundColor: 'inherit', // Warna latar belakang tetap sama
+                  padding: '10px',
+                  borderBottom: '1px solid #dee2e6', // Garis pemisah
+                }}
+              >
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  Show
-                </CLink>
+                  <span>Your Cart ({cartCount})</span>
+                  <CLink
+                    onClick={() => navigate('/cart')}
+                    className="text-primary"
+                    style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    Show
+                  </CLink>
+                </div>
               </CDropdownHeader>
-              {cart.map((product, index) => (
-                <CDropdownItem
-                  key={`${product.id}-${index}`}
-                  className="d-flex align-items-center"
-                  onClick={() => handleCartItemClick(product.Inventory.Material.description)}
-                >
-                  <CRow className="w-100">
-                    <CCol xs="2">
-                      <CImage
-                        src={
-                          product?.Inventory?.Material?.img
-                            ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
-                            : ''
-                        }
-                        style={{ width: '40px', height: '40px' }}
-                      />
-                    </CCol>
-                    <CCol xs="8" className="mb-2">
-                      <CCardTitle style={{ fontSize: '12px' }}>
-                        {product.Inventory && product.Inventory.Material
-                          ? product.Inventory.Material.description.length > 20
-                            ? product.Inventory.Material.description.substring(0, 20) + '...'
-                            : product.Inventory.Material.description
-                          : 'No description'}
-                      </CCardTitle>
-                      <CCardText style={{ fontSize: '12px' }}>
-                        {product.Inventory && product.Inventory.Material
-                          ? product.Inventory.Material.materialNo
-                          : 'No material number'}
-                      </CCardText>
-                    </CCol>
-                    <CCol xs="2" className="text-end">
-                      <CCardText style={{ fontSize: '12px' }}>
-                        <b>{product.quantity} Item</b>
-                      </CCardText>
-                    </CCol>
-                  </CRow>
-                </CDropdownItem>
-              ))}
+
+              <div
+                style={{
+                  maxHeight: '300px', // Batas tinggi scroll
+                  overflowY: 'auto', // Scroll aktif hanya di sini
+                }}
+              >
+                {cart.map((product, index) => (
+                  <CDropdownItem
+                    key={`${product.id}-${index}`}
+                    className="d-flex align-items-center"
+                    onClick={() => handleCartItemClick(product.Inventory.Material.description)}
+                  >
+                    <CRow className="w-100">
+                      <CCol xs="2">
+                        <CImage
+                          src={
+                            product?.Inventory?.Material?.img
+                              ? `${config.BACKEND_URL}${product.Inventory.Material.img}`
+                              : ''
+                          }
+                          style={{ width: '40px', height: '40px' }}
+                        />
+                      </CCol>
+                      <CCol xs="8" className="mb-2">
+                        <CCardTitle style={{ fontSize: '12px' }}>
+                          {product.Inventory && product.Inventory.Material
+                            ? product.Inventory.Material.description.length > 20
+                              ? product.Inventory.Material.description.substring(0, 20) + '...'
+                              : product.Inventory.Material.description
+                            : 'No description'}
+                        </CCardTitle>
+                        <CCardText style={{ fontSize: '12px' }}>
+                          {product.Inventory && product.Inventory.Material
+                            ? product.Inventory.Material.materialNo
+                            : 'No material number'}
+                        </CCardText>
+                      </CCol>
+                      <CCol xs="2" className="text-end">
+                        <CCardText style={{ fontSize: '12px' }}>
+                          <b>{product.quantity} Item</b>
+                        </CCardText>
+                      </CCol>
+                    </CRow>
+                  </CDropdownItem>
+                ))}
+              </div>
             </CDropdownMenu>
           </CDropdown>
 
@@ -700,7 +739,7 @@ const AppHeader = () => {
             <CDropdownMenu
               className="pt-0"
               placement="bottom-end"
-              style={{ width: '300px', position: 'relative' }} // Atur lebar atau sesuaikan sesuai kebutuhan
+              style={{ width: '460px', position: 'relative' }} // Atur lebar atau sesuaikan sesuai kebutuhan
             >
               <CDropdownHeader
                 className="bg-body-secondary fw-semibold"
@@ -713,7 +752,18 @@ const AppHeader = () => {
                   borderBottom: '1px solid #dee2e6', // Garis pemisah
                 }}
               >
-                Anda memiliki ({notifCount}) notifikasi
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  Anda memiliki ({notifCount}) notifikasi
+                  <CLink
+                    onClick={() => navigate('/profile')}
+                    className="text-primary"
+                    style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    View all
+                  </CLink>
+                </div>
               </CDropdownHeader>
               <div
                 style={{
@@ -722,19 +772,24 @@ const AppHeader = () => {
                 }}
               >
                 {notifDesc?.length > 0 ? (
-                  notifDesc.map((notif, index) => (
-                    <CDropdownItem key={index}>
-                      <CRow className="fw-light py-0 mb-0">
-                        <small>
-                          <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
-                        </small>
-                      </CRow>
-                      <CRow className="py-0 mb-1">
-                        <small>{notif.description}</small>
-                      </CRow>
-                      <hr className="mt-1 mb-1" />
-                    </CDropdownItem>
-                  ))
+                  notifDesc.slice(0, 10).map(
+                    (
+                      notif,
+                      index, // Hanya ambil 10 item pertama
+                    ) => (
+                      <CDropdownItem key={index}>
+                        <CRow className="fw-light py-0 mb-0">
+                          <small>
+                            <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
+                          </small>
+                        </CRow>
+                        <CRow className="py-0 mb-1">
+                          <small>{notif.description}</small>
+                        </CRow>
+                        <hr className="mt-1 mb-1" />
+                      </CDropdownItem>
+                    ),
+                  )
                 ) : (
                   <CDropdownItem>No notification</CDropdownItem>
                 )}

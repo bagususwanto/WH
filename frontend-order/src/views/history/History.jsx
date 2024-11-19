@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.css'
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 import {
   CCard,
   CCardBody,
@@ -22,6 +24,7 @@ import {
   CTabContent,
   CTabPanel,
   CBadge,
+  CCollapse
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -73,6 +76,17 @@ const History = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true) // Add loading state
+  const [isCollapsed, setIsCollapsed] = useState(true); // State for collaps
+
+  useEffect(() => {
+    // Simulate data fetching or processing delay
+    const timeout = setTimeout(() => {
+      setLoading(false) // Set loading to false after fetching data
+    }, 1000)
+
+    return () => clearTimeout(timeout)
+  }, [])
 
   const icons = {
     cilClipboard,
@@ -202,6 +216,9 @@ const History = () => {
     setCurrentPage(page)
     getMyorders(page)
   }
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed); // Toggle collapse state
+  };
 
   return (
     <>
@@ -288,7 +305,31 @@ const History = () => {
           {tabs.map((tab) => (
             <CTabPanel key={tab.key} itemKey={tab.key}>
               <CRow className="g-1 mt-2">
-                {myOrderData.length > 0 ? (
+                {loading ? (
+                  // Show skeleton loader while data is loading
+                  [...Array(2)].map((_, index) => (
+                    <CCard className="d-block w-100 p-3 mb-2" key={index}>
+                      <CRow>
+                        <CCol>
+                          <Skeleton width={150} height={20} className="mb-2" />
+                          <Skeleton width={80} height={20} className="mb-2" />
+                          <Skeleton width={120} height={20} />
+                        </CCol>
+                        <CCol xs={1}>
+                          <Skeleton circle height={50} width={50} />
+                        </CCol>
+                        <CCol xs={8}>
+                          <Skeleton width="100%" height={20} className="mb-2" />
+                          <Skeleton width="60%" height={20} />
+                        </CCol>
+                        <CCol xs={3}>
+                          <Skeleton width="80%" height={20} className="mb-2" />
+                          <Skeleton width="50%" height={20} />
+                        </CCol>
+                      </CRow>
+                    </CCard>
+                  ))
+                ) : myOrderData.length > 0 ? (
                   myOrderData.map((order) => (
                     <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
                       <CRow className="align-items-center">
@@ -368,11 +409,15 @@ const History = () => {
               </CRow>
 
               <div className="d-flex justify-content-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
+                {loading ? (
+                  <Skeleton width={200} height={30} />
+                ) : (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
               </div>
             </CTabPanel>
           ))}
@@ -406,24 +451,35 @@ const History = () => {
                           ? 'REJECTED'
                           : selectedProduct.status.toUpperCase()}
                       </CBadge>
-                      <label className="me-2 fw-light">{selectedProduct.transactionNumber}</label>
+                      <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
                     </CCol>
                   </CRow>
-
-                  {selectedProduct.Detail_Orders.map((detail) => (
-                    <CRow className="align-items-center mb-3" key={detail.id}>
-                      <CCol xs="1">
-                        <CCardImage
-                          src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
-                          style={{ height: '100%', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="9">
-                        <label>{detail.Inventory.Material.description}</label>
-                      </CCol>
-                    </CRow>
-                  ))}
-
+                  <hr />
+                  <div>
+                    <label onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
+                      List of Product
+                    </label>
+                    <CCollapse show={!isCollapsed}>
+                      <div>
+                        {selectedProduct.Detail_Orders.map((detail) => (
+                          <CRow className="align-items-center mb-2" key={detail.id}>
+                            <CCol xs="1">
+                              <CCardImage
+                                src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
+                                style={{ height: '40px', width: '40px', objectFit: 'contain' }}
+                              />
+                            </CCol>
+                            <CCol xs="9">
+                              <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                                {detail.Inventory.Material.description}
+                              </label>
+                            </CCol>
+                          </CRow>
+                        ))}
+                      </div>
+                    </CCollapse>
+                  </div>
+                  <hr />
                   {orderHistory.map((item) => (
                     <div
                       key={item.id}
