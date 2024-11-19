@@ -14,45 +14,92 @@ export const getMyOrder = async (req, res) => {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10, status, startDate, endDate, q } = req.query;
+    const { page = 1, limit = 10, status, startDate, endDate, q, isReject } = req.query;
     const offset = (page - 1) * limit;
 
     // Buat kondisi where yang dinamis
     let whereCondition = { userId: userId };
+    let whereCondition2 = { isDelete: 0, isReject: 0 };
 
-    // Jika status tidak 'all', tambahkan status ke kondisi where
     if (status && status !== "all") {
       whereCondition.status = status;
     }
 
-    // Jika ada rentang tanggal, tambahkan kondisi untuk filter berdasarkan createdAt
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-
-      // Jika startDate dan endDate sama, tambahkan waktu agar rentang mencakup seluruh hari
-      end.setHours(23, 59, 59, 999); // Set end date ke akhir hari (23:59:59)
+      end.setHours(23, 59, 59, 999);
 
       whereCondition.createdAt = {
         [Op.between]: [start, end],
       };
     }
 
-    // Jika ada query 'q', tambahkan kondisi untuk pencarian
     if (q) {
       whereCondition[Op.or] = [
         { transactionNumber: { [Op.like]: `%${q}%` } },
         { requestNumber: { [Op.like]: `%${q}%` } },
-        { "$Detail_Orders.Inventory.Material.description$": { [Op.like]: `%${q}%` } }, // Query terkait ke Material description
+        { "$Detail_Orders.Inventory.Material.description$": { [Op.like]: `%${q}%` } },
       ];
     }
 
-    // Cari data my order berdasarkan filter dengan paginasi (limit dan offset)
+    if (parseInt(isReject) === 1) {
+      whereCondition2.isReject = 1;
+    }
+
+    // Hitung total data untuk menghitung totalPages
+    const totalData = await Order.count({
+      where: whereCondition,
+      include: [
+        {
+          model: DetailOrder,
+          where: whereCondition2,
+          required: true,
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  where: { flag: 1 },
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          where: { warehouseId: warehouseId, flag: 1 },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const totalPages = Math.ceil(totalData / limit);
+
+    // Ambil data berdasarkan filter dengan paginasi
     const myOrder = await Order.findAll({
       where: whereCondition,
       include: [
         {
           model: DetailOrder,
+          where: whereCondition2,
           required: true,
           include: [
             {
@@ -96,11 +143,15 @@ export const getMyOrder = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [["createdAt", "DESC"]], // Sort by createdAt descending (terbaru di atas)
-      subQuery: false, // Memastikan limit dan offset hanya diterapkan di tabel utama (Order)
+      order: [["createdAt", "DESC"]],
+      subQuery: false,
     });
 
-    res.status(200).json(myOrder);
+    // Kirimkan response dengan data dan totalPages
+    res.status(200).json({
+      data: myOrder,
+      totalPages: totalPages,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });

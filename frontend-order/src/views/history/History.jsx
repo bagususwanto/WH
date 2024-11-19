@@ -47,6 +47,7 @@ import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
 import config from '../../utils/Config'
+import Pagination from '../../components/Pagination'
 
 const iconMap = {
   'Office Supp.': cilCart,
@@ -69,7 +70,8 @@ const History = () => {
   const [activeTab, setActiveTab] = useState('all')
   const [orderHistory, setOrderHistory] = useState([])
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const navigate = useNavigate()
 
   const icons = {
@@ -82,20 +84,35 @@ const History = () => {
     cilCircle,
   }
 
-  const getMyorders = async (activeTab, page) => {
+  const getMyorders = async (page) => {
     try {
       if (warehouse && warehouse.id) {
-        const response = await getMyorder(warehouse.id, activeTab, page)
-        if (!response.data) {
+        let response
+        if (activeTab == 'rejected') {
+          response = await getMyorder({
+            id: warehouse.id,
+            page: page,
+            isReject: 1,
+            q: searchQuery,
+          })
+        } else {
+          response = await getMyorder({
+            id: warehouse.id,
+            status: activeTab,
+            page: page,
+            q: searchQuery,
+          })
+        }
+
+        if (!response.data.data) {
           console.error('No orders found')
-          setHasMore(false)
           setMyOrderData([])
           return
         }
 
-        const newData = response.data
+        const newData = response.data.data
         setMyOrderData((prevData) => [...prevData, ...newData])
-        setHasMore(newData.length ? newData.length : false)
+        setTotalPages(response.data.totalPages)
       }
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -114,12 +131,11 @@ const History = () => {
   const handleTabChange = (newStatus) => {
     setActiveTab(newStatus)
     setMyOrderData([])
-    setPage(1)
-    setHasMore(true)
+    setCurrentPage(1)
   }
 
   useEffect(() => {
-    getMyorders(activeTab)
+    getMyorders()
   }, [warehouse, activeTab])
 
   const getSeverity = (status) => {
@@ -144,51 +160,16 @@ const History = () => {
         return 'primary'
     }
   }
-  // Function to handle search input changes and filter suggestions
-  const handleSearchInputChange = (e) => {
-    const query = e.target.value
-    setSearchQuery(query)
 
-    if (query) {
-      const results = searchProducts(query)
-      setFilteredSuggestions(results.slice(0, 5))
-      setShowRecentSearches(false)
-    } else {
-      setFilteredSuggestions([])
-      setShowRecentSearches(searchHistory.length > 0)
+  // Fungsi handleKeyDown
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setCurrentPage(1)
+      setMyOrderData([])
+      getMyorders()
     }
   }
 
-  // Function to filter through productsData
-  const searchProducts = (query) => {
-    if (!query) return []
-    const lowerCaseQuery = query.toLowerCase()
-
-    return myOrderData.filter((product) => {
-      const productName = product.Detail_Orders[0].Inventory.Material.description?.toLowerCase()
-      const productTransaction = product.Detail_Orders[0].order.transactionNumber?.toLowerCase()
-
-      return (
-        (productName && productName.includes(lowerCaseQuery)) ||
-        (productTransaction && productTransaction.includes(lowerCaseQuery))
-      )
-    })
-  }
-  // Search filter handler
-  const onGlobalFilterChange = (e) => {
-    setGlobalFilterValue(e.target.value)
-  }
-
-  // Filtered order data based on search input
-  // const filteredOrders = myOrderData.filter(
-  //   (order) =>
-  //     order.transactionNumber.toLowerCase().includes(globalFilterValue.toLowerCase()) ||
-  //     order.Detail_Orders.some((detail) =>
-  //       detail.Inventory.Material.description
-  //         .toLowerCase()
-  //         .includes(globalFilterValue.toLowerCase()),
-  //     ),
-  // )
   const handleViewHistoryOrder = (product) => {
     getOrderHistories(product.id)
     setSelectedProduct(product)
@@ -206,10 +187,10 @@ const History = () => {
     { key: 'rejected', label: 'Rejected' },
   ]
 
-  const handleLoadMore = () => {
-    const nextPage = page + 1
-    setPage(nextPage)
-    getMyorders(activeTab, nextPage)
+  const handlePageChange = (page) => {
+    setMyOrderData([])
+    setCurrentPage(page)
+    getMyorders(page)
   }
 
   return (
@@ -221,7 +202,7 @@ const History = () => {
 
             <CRow>
               {/* Left side: Search field */}
-              <CCol xs={3} className="py-2">
+              <CCol xs={6} sm={6} md={3} lg={3} className="py-2">
                 <div
                   style={{
                     display: 'flex',
@@ -238,35 +219,43 @@ const History = () => {
                     style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
                   />
 
-                  {/* Input Text Field */}
                   <InputText
                     value={searchQuery}
-                    onChange={handleSearchInputChange}
+                    onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                    onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
                     placeholder="Search"
                     style={{ width: '100%', border: 'none', outline: 'none' }}
                   />
                 </div>
               </CCol>
-              <CCol xs={9} className="d-flex justify-content-end">
-                {/* Right side: Date picker */}
+              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-2">
                 <div
-                  className="d-flex align-items-center border rounded p-2"
-                  style={{ width: '250px' }}
+                  className="flatpickr-wrapper"
+                  style={{ position: 'relative', width: '300px', height: '36px' }}
                 >
-                  <CIcon icon={cilCalendar} size="xl" className="px-1" />
+                  <CIcon
+                    icon={cilCalendar}
+                    size="lg"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '10px',
+                      transform: 'translateY(-50%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
                   <Flatpickr
                     value={dates}
                     onChange={(selectedDates) => setDates(selectedDates)}
                     options={{
                       mode: 'range',
                       dateFormat: 'Y-m-d',
-                      placeholder: 'Select a date range',
                     }}
-                    className="border-0 fw-light"
+                    className="form-control"
+                    placeholder="Select a date"
                     style={{
-                      outline: 'none',
-                      boxShadow: 'none',
-                      width: '100%', // Ensures Flatpickr fills container width
+                      paddingLeft: '40px', // Beri ruang untuk ikon
+                      height: '100%',
                     }}
                   />
                 </div>
@@ -300,9 +289,13 @@ const History = () => {
                             </label>
                             <CBadge
                               className="me-2"
-                              color={getSeverity(order.isReject === 1 ? 'rejected' : order.status)}
+                              color={getSeverity(
+                                order.Detail_Orders[0].isReject == 1 ? 'rejected' : order.status,
+                              )}
                             >
-                              {order.isReject === 1 ? 'REJECTED' : order.status.toUpperCase()}
+                              {order.Detail_Orders[0].isReject == 1
+                                ? 'REJECTED'
+                                : order.status.toUpperCase()}
                             </CBadge>
                             <label className="me-2 fw-light">
                               {order.transactionNumber
@@ -363,109 +356,115 @@ const History = () => {
                 )}
               </CRow>
 
-              {hasMore && myOrderData.length >= 5 && (
-                <div className="text-center mt-4 mb-4">
-                  <CButton color="secondary" onClick={handleLoadMore}>
-                    Load More
-                  </CButton>
-                </div>
-              )}
-
-              {selectedProduct && (
-                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-                  <CModalHeader>
-                    <CModalTitle>Order Details</CModalTitle>
-                  </CModalHeader>
-                  <CModalBody>
-                    <CRow className="g-1 mt-2">
-                      <CCard className="h-80">
-                        <CCardBody>
-                          <CRow className="align-items-center mb-3">
-                            <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
-                              <label className="me-2 fs-6">
-                                {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
-                              </label>
-                              <CBadge className="me-2" color={getSeverity(selectedProduct.status)}>
-                                {selectedProduct.status.toUpperCase()}
-                              </CBadge>
-                              <label className="me-2 fw-light">
-                                {selectedProduct.transactionNumber}
-                              </label>
-                            </CCol>
-                          </CRow>
-
-                          {selectedProduct.Detail_Orders.map((detail, index) => (
-                            <CRow className="align-items-center mb-3" key={index}>
-                              <CCol xs="1">
-                                <CCardImage
-                                  src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
-                                  style={{ height: '100%', width: '100%' }}
-                                />
-                              </CCol>
-                              <CCol xs="9">
-                                <label>{detail.Inventory.Material.description}</label>
-                              </CCol>
-                            </CRow>
-                          ))}
-
-                          {orderHistory.map((item, index) => (
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                              }}
-                            >
-                              <div
-                                key={index}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  marginBottom: '16px',
-                                }}
-                              >
-                                <label style={{ marginRight: '8px' }}>
-                                  {format(parseISO(item.createdAt), 'dd MMM yyyy')}
-                                  {', '}
-                                  {format(parseISO(item.createdAt), 'HH:mm')}
-                                </label>
-                                <div
-                                  style={{
-                                    border: '2px solid #000',
-                                    borderRadius: '50%',
-                                    width: '40px',
-                                    height: '40px',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  <CIcon icon={icons[item.icon]} size="lg" />
-                                </div>
-                                <label style={{ marginLeft: '8px' }}>
-                                  {' '}
-                                  {item.status.charAt(0).toUpperCase() +
-                                    item.status.slice(1).toLowerCase()}
-                                </label>
-                              </div>
-                            </div>
-                          ))}
-                        </CCardBody>
-                      </CCard>
-                    </CRow>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="secondary" onClick={() => setVisible(false)}>
-                      Close
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
-              )}
+              <div className="d-flex justify-content-center">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             </CTabPanel>
           ))}
         </CTabContent>
       </CTabs>
+
+      {selectedProduct && (
+        <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+          <CModalHeader>
+            <CModalTitle>Order Details</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <CRow className="g-1 mt-2">
+              <CCard className="h-80">
+                <CCardBody>
+                  <CRow className="align-items-center mb-3">
+                    <CCol>
+                      <CIcon className="me-2" icon={cilCart} />
+                      <label className="me-2 fs-6">
+                        {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                      </label>
+                      <CBadge
+                        className="me-2"
+                        color={getSeverity(
+                          selectedProduct.Detail_Orders[0].isReject == 1
+                            ? 'rejected'
+                            : selectedProduct.status,
+                        )}
+                      >
+                        {selectedProduct.Detail_Orders[0].isReject == 1
+                          ? 'REJECTED'
+                          : selectedProduct.status.toUpperCase()}
+                      </CBadge>
+                      <label className="me-2 fw-light">{selectedProduct.transactionNumber}</label>
+                    </CCol>
+                  </CRow>
+
+                  {selectedProduct.Detail_Orders.map((detail) => (
+                    <CRow className="align-items-center mb-3" key={detail.id}>
+                      <CCol xs="1">
+                        <CCardImage
+                          src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
+                          style={{ height: '100%', width: '100%' }}
+                        />
+                      </CCol>
+                      <CCol xs="9">
+                        <label>{detail.Inventory.Material.description}</label>
+                      </CCol>
+                    </CRow>
+                  ))}
+
+                  {orderHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginBottom: '16px',
+                        }}
+                      >
+                        <label style={{ marginRight: '8px' }}>
+                          {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                          {', '}
+                          {format(parseISO(item.createdAt), 'HH:mm')}
+                        </label>
+                        <div
+                          style={{
+                            border: '2px solid #000',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <CIcon icon={icons[item.icon]} size="lg" />
+                        </div>
+                        <label style={{ marginLeft: '8px' }}>
+                          {' '}
+                          {item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase()}
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </CCardBody>
+              </CCard>
+            </CRow>
+          </CModalBody>
+          <CModalFooter>
+            <CButton color="secondary" onClick={() => setVisible(false)}>
+              Close
+            </CButton>
+          </CModalFooter>
+        </CModal>
+      )}
     </>
   )
 }

@@ -66,13 +66,16 @@ const useOrderService = () => {
     }
   }
 
-  const getMyorder = async (id, status, page) => {
+  const getMyorder = async ({ id, status = 'all', page = 1, isReject = 0, q = '' }) => {
     try {
-      const response = await axiosJWT.get(`/myorder/${id}?page=${page}&limit=10&status=${status}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/myorder/${id}?page=${page}&limit=10&status=${status}&isReject=${isReject}&q=${q}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')
