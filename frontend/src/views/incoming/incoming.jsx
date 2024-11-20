@@ -62,6 +62,7 @@ const Incoming = () => {
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
   const [dates, setDates] = useState([null, null])
+  const [shouldFetch, setShouldFetch] = useState(false)
 
   const { getIncoming, postIncomingPlan, postIncomingActual, updateIncomingById } =
     useManageStockService()
@@ -142,13 +143,14 @@ const Incoming = () => {
   }, [filters, globalFilterValue, incoming])
 
   useEffect(() => {
+    if (!shouldFetch) return
     if (imported) {
       fetchIncoming()
       setImported(false) // Reset state
       return
     }
-
-  }, [imported, dates, plantId, storageId])
+    fetchIncoming()
+  }, [imported, dates, plantId, storageId, shouldFetch])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -162,30 +164,6 @@ const Incoming = () => {
         return 'warning'
     }
   }
-
-  // const fetchIncoming = async () => {
-  //   setLoading(true)
-  //   try {
-  //     const response = await getIncoming()
-  //     const dataWithFormattedFields = response.data.map((item) => {
-  //       const discrepancy = item.actual - item.planning
-
-  //       return {
-  //         ...item,
-  //         discrepancy,
-  //         formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-  //         formattedUpdateAt: item.updatedAt
-  //           ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-  //           : '',
-  //       }
-  //     })
-  //     setIncoming(dataWithFormattedFields)
-  //   } catch (error) {
-  //     console.error('Error fetching incoming:', error)
-  //   } finally {
-  //     setLoading(false) // Set loading to false after data is fetched
-  //   }
-  // }
 
   const fetchIncoming = async () => {
     setLoading(true)
@@ -238,23 +216,6 @@ const Incoming = () => {
     }
   }
 
-  const getShopByPlantId = async (id) => {
-    if (!id) {
-      return
-    }
-    try {
-      const response = await getMasterDataById(apiShop, id)
-      const shopOptions = response.map((shop) => ({
-        label: shop.shopName,
-        value: shop.shopName,
-        id: shop?.id,
-      }))
-      setShop(shopOptions)
-    } catch (error) {
-      console.error('Error fetching shop by ID:', error)
-    }
-  }
-
   const getStorageByPlantId = async (id) => {
     if (!id) {
       return
@@ -292,20 +253,9 @@ const Incoming = () => {
     const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
     const storageId = selectedStorage?.id // Dapatkan storage.id
     setStorageId(storageId)
-    // let _filters = { ...filters }
-    // _filters['Inventory.Address_Rack.Storage.storageName'].value = value
-    // setFilters(_filters)
-  }
-
-  const handleShopChange = (e) => {
-    const selectedShopName = e.value
-    const selectedShop = shop.find((s) => s.value === selectedShopName) // Cari objek shop berdasarkan shopName
-    const shopId = selectedShop?.id // Dapatkan shop.id
-
-    getStorageByShopId(shopId)
-
+    setShouldFetch(true)
     let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.shopName'].value = selectedShopName
+    _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
     setFilters(_filters)
   }
 
@@ -316,10 +266,11 @@ const Incoming = () => {
     setPlantId(plantId)
 
     getStorageByPlantId(plantId)
+    setShouldFetch(true)
 
-    // let _filters = { ...filters }
-    // _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
-    // setFilters(_filters)
+    let _filters = { ...filters }
+    _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
+    setFilters(_filters)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -490,28 +441,6 @@ const Incoming = () => {
     )
   }
 
-  const statusBodyTemplate = (rowData) => {
-    const { quantityActualCheck, Material } = rowData
-    const minStock = Material?.minStock
-    const maxStock = Material?.maxStock
-
-    if (quantityActualCheck < minStock)
-      return <Tag value="shortage" severity={getSeverity('shortage')} />
-    if (quantityActualCheck > maxStock) return <Tag value="over" severity={getSeverity('over')} />
-    return <Tag value="ok" severity={getSeverity('ok')} />
-  }
-
-  const discrepancyBodyTemplate = (rowData) => {
-    const { discrepancy } = rowData
-
-    if (discrepancy < 0) {
-      return <Tag value={discrepancy} severity={getSeverity('shortage')} />
-    }
-    if (discrepancy > 0) {
-      return <Tag value={discrepancy} severity={getSeverity('over')} />
-    }
-  }
-
   const onColumnToggle = (event) => {
     let selectedColumns = event.value
     let orderedSelectedColumns = columns.filter((col) =>
@@ -536,15 +465,6 @@ const Incoming = () => {
 
   const clearFilter = () => {
     initFilters()
-  }
-
-  // Handle perubahan date picker
-  const handleDateChange = (selectedDate) => {
-    setDate(selectedDate)
-    // setIncomingData((prevData) => ({
-    //   ...prevData,
-    //   importDate: selectedDate[0],
-    // }))
   }
 
   const handleFileChange = (e) => {
@@ -583,21 +503,13 @@ const Incoming = () => {
       }
 
       setImported(true)
+      setShouldFetch(true)
     } catch (error) {
       console.error('Error during import:', error)
     } finally {
       setLoadingImport(false)
       setVisible(false)
     }
-  }
-
-  const handleFilterDate = (date) => {
-    setDates(date)
-    // const fornmattedDate = date[0].toLocaleDateString('en-CA')
-
-    // let _filters = { ...filters }
-    // _filters['Log_Import.importDate'].value = fornmattedDate
-    // setFilters(_filters)
   }
 
   const LoadingComponent = () => (
@@ -636,7 +548,10 @@ const Incoming = () => {
                     allowInput: true,
                     mode: 'range',
                   }}
-                  onChange={(date) => setDates(date)}
+                  onChange={(date) => {
+                    setDates(date)
+                    setShouldFetch(true)
+                  }}
                   className="form-control mb-2"
                   placeholder="Select a date"
                   style={{
