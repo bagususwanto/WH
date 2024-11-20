@@ -48,7 +48,6 @@ const useNavigation = () => {
   const navigate = useNavigate()
   const { logout } = useAuthService()
 
-
   const handleLogout = async () => {
     try {
       const result = await MySwal.fire({
@@ -81,13 +80,7 @@ const useNavigation = () => {
       },
     ]
     // NAV DASHBOARD
-    if (
-      roleName === 'super admin' ||
-      roleName === 'line head' ||
-      roleName === 'section head' ||
-      roleName === 'section head' ||
-      roleName === 'section head'
-    ) {
+    if (roleName === 'super admin' || roleName === 'line head' || roleName === 'section head') {
       baseNav.push({
         component: CNavItem,
         name: 'Dasboard',
@@ -115,29 +108,15 @@ const useNavigation = () => {
           items: [
             {
               component: CNavItem,
-              name: 'Incoming',
-              to: '/incoming',
+              name: 'Input Inventory',
+              to: '/inventory/input',
               icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
             },
             {
-              component: CNavGroup,
-              name: 'Inventory',
-              to: '/order',
-              icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
-              items: [
-                {
-                  component: CNavItem,
-                  name: 'Input Inventory',
-                  to: '/inventory/input',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-                {
-                  component: CNavItem,
-                  name: 'Data Inventory',
-                  to: '/inventory/data',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-              ],
+              component: CNavItem,
+              name: 'Data Inventory',
+              to: '/inventory/data',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
             },
           ],
         },
@@ -161,7 +140,6 @@ const useNavigation = () => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/home`, '_blank') // Opens URL in a new tab
               },
-          
             },
 
             {
@@ -173,7 +151,6 @@ const useNavigation = () => {
                 e.preventDefault() // Prevent the default behavior of `to`
                 window.open(`${config.ORDER_URL}/#/approveall`, '_blank') // Use base URL from config
               },
-
             },
           ],
         },
@@ -292,23 +269,29 @@ const useNavigation = () => {
     baseNav.push(
       {
         component: CNavTitle,
-        name: 'Good Issue Data',
+        name: 'Data',
       },
       {
-        component: CNavGroup,
-        name: 'Data Good Issue',
-        to: '/order',
+        component: CNavItem,
+        name: 'Good Issue Data',
+        to: '/goodissue',
         icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Good Issue Data',
-            to: '/category',
-            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-          },
-        ],
       },
     )
+
+    if (
+      roleName === 'super admin' ||
+      roleName === 'warehouse staff' ||
+      roleName === 'warehouse member'
+    ) {
+      baseNav.push({
+        component: CNavItem,
+        name: 'Incoming Data',
+        to: '/incoming',
+        icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+      })
+    }
+
     if (roleName === 'super admin') {
       baseNav.push(
         {
