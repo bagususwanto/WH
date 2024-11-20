@@ -148,8 +148,7 @@ const Incoming = () => {
       return
     }
 
-    fetchIncoming()
-  }, [imported, selectedDate, plantId, storageId])
+  }, [imported, dates, plantId, storageId])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -191,8 +190,14 @@ const Incoming = () => {
   const fetchIncoming = async () => {
     setLoading(true)
     try {
-      const startDate = format(dates, 'yyyy-MM-dd')
-      const endDate = format(dates, 'yyyy-MM-dd')
+      let startDate
+      let endDate
+
+      if (dates[0] && dates[1]) {
+        startDate = format(dates[0], 'yyyy-MM-dd')
+        endDate = format(dates[1], 'yyyy-MM-dd')
+      }
+
       const response = await getIncoming(
         startDate ? startDate : '',
         endDate ? endDate : '',
