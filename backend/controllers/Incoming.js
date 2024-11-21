@@ -93,7 +93,9 @@ export const getIncoming = async (req, res) => {
           },
           {
             model: LogImport,
-            where: { typeLog: { [Op.in]: ["incoming plan", "incoming actual"] } },
+            where: {
+              typeLog: { [Op.in]: ["incoming plan", "incoming actual"] },
+            },
             include: [
               {
                 model: User,

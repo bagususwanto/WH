@@ -19,7 +19,15 @@ import { createNotification } from "./Notification.js";
 export const getOrderWarehouse = async (req, res) => {
   try {
     const warehouseId = req.params.warehouseId;
-    const { page = 1, limit = 10, status, startDate, endDate, isReject, q } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      startDate,
+      endDate,
+      isReject,
+      q,
+    } = req.query;
     const offset = (page - 1) * limit;
 
     let whereCondition = { isApproval: 1 };
@@ -33,8 +41,6 @@ export const getOrderWarehouse = async (req, res) => {
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-
-      // Jika startDate dan endDate sama, tambahkan waktu agar rentang mencakup seluruh hari
       end.setHours(23, 59, 59, 999); // Set end date ke akhir hari (23:59:59)
 
       whereCondition.createdAt = {
@@ -55,6 +61,35 @@ export const getOrderWarehouse = async (req, res) => {
       whereCondition2.isReject = isReject;
     }
 
+    // Hitung total entri sesuai kondisi pencarian
+    const totalRecords = await Order.count({
+      where: whereCondition,
+      include: [
+        {
+          model: DetailOrder,
+          where: whereCondition2,
+        },
+        {
+          model: User,
+          include: [
+            {
+              model: Organization,
+              include: [{ model: Line }, { model: Section }],
+            },
+            {
+              model: Warehouse,
+              as: "alternateWarehouse",
+              where: { id: warehouseId },
+            },
+          ],
+        },
+      ],
+    });
+
+    // Hitung total halaman
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // Ambil data Order
     const response = await Order.findAll({
       where: whereCondition,
       include: [
@@ -75,7 +110,13 @@ export const getOrderWarehouse = async (req, res) => {
                 {
                   model: Material,
                   required: false,
-                  attributes: ["id", "materialNo", "description", "uom", "price"],
+                  attributes: [
+                    "id",
+                    "materialNo",
+                    "description",
+                    "uom",
+                    "price",
+                  ],
                   where: { flag: 1 },
                 },
               ],
@@ -85,7 +126,17 @@ export const getOrderWarehouse = async (req, res) => {
         {
           model: User,
           where: { flag: 1 },
-          attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+          attributes: [
+            "id",
+            "username",
+            "name",
+            "position",
+            "img",
+            "noHandphone",
+            "email",
+            "createdAt",
+            "updatedAt",
+          ],
           include: [
             {
               model: Organization,
@@ -120,7 +171,11 @@ export const getOrderWarehouse = async (req, res) => {
       return res.status(404).json({ message: "No orders found" });
     }
 
-    res.status(200).json(response);
+    res.status(200).json({
+      totalPages,
+      totalRecords,
+      data: response,
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
@@ -153,7 +208,17 @@ export const getDetailOrderWarehouse = async (req, res) => {
             {
               model: User,
               where: { flag: 1 },
-              attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+              attributes: [
+                "id",
+                "username",
+                "name",
+                "position",
+                "img",
+                "noHandphone",
+                "email",
+                "createdAt",
+                "updatedAt",
+              ],
               include: [
                 {
                   model: Organization,
@@ -262,7 +327,10 @@ export const processOrder = async (req, res) => {
       ],
     });
 
-    if (orderStatus.status === "waiting approval" || orderStatus.isApproval !== 1) {
+    if (
+      orderStatus.status === "waiting approval" ||
+      orderStatus.isApproval !== 1
+    ) {
       await transaction.rollback(); // Batalkan transaksi jika belum disetujui
       return res.status(401).json({ message: "Order must be approved" });
     }
@@ -274,7 +342,11 @@ export const processOrder = async (req, res) => {
 
     if (role && role !== "warehouse staff") {
       await transaction.rollback(); // Batalkan transaksi jika bukan warehouse staff
-      return res.status(401).json({ message: "Unauthorized, only warehouse staff can process the order" });
+      return res
+        .status(401)
+        .json({
+          message: "Unauthorized, only warehouse staff can process the order",
+        });
     }
 
     let typeLog = "accepted warehouse";
@@ -291,7 +363,10 @@ export const processOrder = async (req, res) => {
           const price = order.Inventory.Material.price;
 
           // Update quantity dan price di DetailOrder
-          await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
+          await DetailOrder.update(
+            { quantity: quantityAfter, price: quantityAfter * price },
+            { where: { id: item.detailOrderId }, transaction }
+          );
 
           // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
           updatedOrders.push({
@@ -398,7 +473,9 @@ export const shopingOrder = async (req, res) => {
 
     if (respOrder.status !== "on process" || respOrder.isApproval !== 1) {
       await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
-      return res.status(401).json({ message: "Unauthorized, the order cannot be processed" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized, the order cannot be processed" });
     }
 
     let status;
@@ -411,7 +488,12 @@ export const shopingOrder = async (req, res) => {
 
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
-        return res.status(401).json({ message: "Unauthorized, you are not warehouse member or warehouse staff" });
+        return res
+          .status(401)
+          .json({
+            message:
+              "Unauthorized, you are not warehouse member or warehouse staff",
+          });
       }
     }
 
@@ -430,7 +512,10 @@ export const shopingOrder = async (req, res) => {
     await postOrderHistory(status, userId, orderId, { transaction });
 
     // update status order
-    const order = await Order.update({ status: status }, { where: { id: orderId }, transaction });
+    const order = await Order.update(
+      { status: status },
+      { where: { id: orderId }, transaction }
+    );
 
     // Commit transaksi setelah operasi berhasil
     await transaction.commit();
@@ -472,13 +557,19 @@ export const completeOrder = async (req, res) => {
     if (!allowedStatuses.includes(respOrder.status)) {
       await transaction.rollback(); // Batalkan transaksi jika status order tidak sesuai
       return res.status(401).json({
-        message: "Order cannot be processed, order status is not ready to deliver or ready to pickup",
+        message:
+          "Order cannot be processed, order status is not ready to deliver or ready to pickup",
       });
     }
 
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
-        return res.status(401).json({ message: "Unauthorized, you are not warehouse member or warehouse staff" });
+        return res
+          .status(401)
+          .json({
+            message:
+              "Unauthorized, you are not warehouse member or warehouse staff",
+          });
       }
     }
 
@@ -494,10 +585,15 @@ export const completeOrder = async (req, res) => {
     );
 
     // Create order history
-    await postOrderHistory("your items received", userId, orderId, { transaction });
+    await postOrderHistory("your items received", userId, orderId, {
+      transaction,
+    });
 
     // update status order
-    await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
+    await Order.update(
+      { status: "completed" },
+      { where: { id: orderId }, transaction }
+    );
 
     // create notification
     const notification = {
@@ -563,12 +659,19 @@ export const rejectOrderWarehouse = async (req, res) => {
 
     if (role) {
       if (role !== "warehouse staff") {
-        return res.status(401).json({ message: "Unauthorized, only warehouse staff can reject the order" });
+        return res
+          .status(401)
+          .json({
+            message: "Unauthorized, only warehouse staff can reject the order",
+          });
       }
     }
 
     // Update isReject di tabel DetailOrder dengan remarks
-    await DetailOrder.update({ isReject: 1, remarks }, { where: { id: detailOrderId }, transaction });
+    await DetailOrder.update(
+      { isReject: 1, remarks },
+      { where: { id: detailOrderId }, transaction }
+    );
 
     // Create history reject di tabel LogApproval
     await LogApproval.create(
