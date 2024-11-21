@@ -13,7 +13,7 @@ const useApprovalService = () => {
     throw new Error(message + error.message)
   }
 
-  const getWarehouseConfirm = async (id,status,page,startDate = '', endDate = '',q = '',isReject= 0) => {
+  const getWarehouseConfirm = async ({id,status = 'Waiting Confirmation',page = 1,startDate = '', endDate = '',q = '',isReject= 0}) => {
     try {
       const response = await axiosJWT.get(
         `/list-orders/${id}?status=${status}&page=${page}&limit=10&startDate=${startDate}&endDate=${endDate}&q=${q}&isReject=${isReject}`,
