@@ -372,7 +372,7 @@ const Confirm = () => {
                     />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <div>
-                        <strong>FORM:</strong> {Confirmapproval.User.name}
+                        <strong>FROM:</strong> {Confirmapproval.User.name}
                       </div>
                       <div>
                         <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}

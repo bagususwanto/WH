@@ -203,7 +203,7 @@ const ApproveAll = () => {
             >
               <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
               <CButton color="primary" onClick={handleApprove}>
-               Delivery Now
+               Confirm Now
               </CButton>
             </div>
           </CCardBody>
@@ -236,23 +236,15 @@ const ApproveAll = () => {
             {/* )} */}
             <label className="fw-bold mb-2">Select Delivery Type</label>
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <CFormCheck
-                className="me-3"
-                type="radio"
-                id="pickup"
-                label="Pickup"
-                checked={isPickup}
-                onChange={() => setIsPickup(true)}
-                disabled
-              />
-              <CFormCheck
-                type="radio"
-                id="otodoke"
-                label="Otodoke"
-                checked={!isPickup}
-                onChange={() => setIsPickup(false)}
-                disabled
-              />
+            <CFormCheck
+                  className="me-3"
+                  type="radio"
+                  id="pickup"
+                  label={`${Confirmwarehouse.deliveryMethod}`}
+                  checked={!isPickup}
+                  onChange={() => setIsPickup()}
+                  disabled
+                />
             </div>
             <hr />
             <label className="fw-bold mb-2">Address Detail Confirmation</label>
@@ -261,29 +253,29 @@ const ApproveAll = () => {
                 <CIcon icon={cilHome} size="lg" />
                 <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
               </div>
-              {!isPickup && (
+             {Confirmwarehouse.deliveryMethod !== 'pickup' && (
+                  <>
+                    <CIcon icon={cilArrowBottom} size="lg" />
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                      <CIcon icon={cilLocationPin} size="lg" />
+                      <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                    </div>
+                  </>
+                )}
+              </div>
+              {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                 <>
-                  <CIcon icon={cilArrowBottom} size="lg" />
-                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                    <CIcon icon={cilLocationPin} size="lg" />
-                    <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                  <hr />
+                  <label className="fw-bold mb-2">Deadline Order</label>
+                  <div>
+                    <CFormInput
+                      type="text"
+                      value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
+                      readOnly // Make the input readonly so users cannot change it
+                    />
                   </div>
                 </>
               )}
-            </div>
-            {!isPickup && (
-              <>
-                <hr />
-                <label className="fw-bold mb-2">Deadline Order</label>
-                <div>
-                  <CFormInput
-                    type="text"
-                    value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
-                    readOnly // Make the input readonly so users cannot change it
-                  />
-                </div>
-              </>
-            )}
             <hr />
             <label className="fw-bold mb-2">Payment</label>
             <CFormCheck

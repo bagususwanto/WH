@@ -374,7 +374,7 @@ const Confirm = () => {
                 />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div>
-                    <strong>FORM:</strong> {Confirmwarehouse.User.name}
+                    <strong>FROM:</strong> {Confirmwarehouse.User.name}
                   </div>
                   <div>
                     <strong>LINE:</strong> {Confirmwarehouse.User.Organization.Line.lineName}

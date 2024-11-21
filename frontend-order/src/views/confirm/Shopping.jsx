@@ -55,8 +55,8 @@ const Confirm = () => {
   const [quantities, setQuantities] = useState({})
   const { warehouse } = useContext(GlobalContext)
   const MySwal = withReactContent(Swal)
-  const [selectedAddressCode, setSelectedAddressCode] = useState(null);
-  const [sortedOrders, setSortedOrders] = useState([]);
+  const [selectedAddressCode, setSelectedAddressCode] = useState(null)
+  const [sortedOrders, setSortedOrders] = useState([])
   const navigate = useNavigate()
   const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
@@ -99,29 +99,28 @@ const Confirm = () => {
 
   useEffect(() => {
     // Initialize sortedOrders with Detail_Orders
-    setSortedOrders(Confirmwarehouse.Detail_Orders || []);
-  }, [Confirmwarehouse.Detail_Orders]);
+    setSortedOrders(Confirmwarehouse.Detail_Orders || [])
+  }, [Confirmwarehouse.Detail_Orders])
 
   // Handle address selection and sorting
   const handleAddressCodeChange = (selectedOption) => {
-    const selectedCode = selectedOption ? selectedOption.label : '';
-    setSelectedAddressCode(selectedCode);
+    const selectedCode = selectedOption ? selectedOption.label : ''
+    setSelectedAddressCode(selectedCode)
 
     // Sort orders: items with matching addressRackName's first 2 characters come first
     const updatedOrders = [...Confirmwarehouse.Detail_Orders].sort((a, b) => {
-      const rackA = a.Inventory.Address_Rack.addressRackName.slice(0, 2);
-    
+      const rackA = a.Inventory.Address_Rack.addressRackName.slice(0, 2)
+
       // Check if the rack matches the selected address code
-      const isMatchA = rackA === selectedCode;
-  
+      const isMatchA = rackA === selectedCode
 
-      if (isMatchA && !isMatchB) return -1; // a comes first
-     
-      return 0; // No change in order
-    });
+      if (isMatchA) return -1 // a comes first
 
-    setSortedOrders(updatedOrders);
-  };
+      return 0 // No change in order
+    })
+
+    setSortedOrders(updatedOrders)
+  }
   const totalQuantity = (Confirmwarehouse.Detail_Orders || []).reduce((acc, product) => {
     // Ensure only unique Inventory items are counted
     if (!acc.some((item) => item.id === product.Inventory.id)) {
@@ -201,7 +200,7 @@ const Confirm = () => {
                 />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div>
-                    <strong>FORM:</strong> {Confirmwarehouse.User?.name}
+                    <strong>FROM:</strong> {Confirmwarehouse.User?.name}
                   </div>
                   <div>
                     <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
@@ -278,19 +277,14 @@ const Confirm = () => {
             </CCardBody>
           </CCard>
         </CCol>
-        
-        {Confirmwarehouse.Detail_Orders?.map(
-          (
-            product,
-            index, // Change from productsData to currentProducts
-          ) => (
-            <CCol xs={8}>
-              {/* Address Code Form */}
 
-              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                <CRow className="g-2">
-                <CFormLabel htmlFor="address">Address Code</CFormLabel>
-                <Select
+        <CCol xs={8}>
+          {/* Address Code Form */}
+
+          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+            <CRow className="g-2">
+              <CFormLabel htmlFor="address">Address Code</CFormLabel>
+              <Select
                 className="basic-single"
                 classNamePrefix="select"
                 options={Confirmwarehouse.Detail_Orders.map((order) => ({
@@ -302,8 +296,17 @@ const Confirm = () => {
                 )}
                 id="address"
                 onChange={handleAddressCodeChange}
-                value={selectedAddressCode ? { label: selectedAddressCode, value: selectedAddressCode } : null}
+                value={
+                  selectedAddressCode
+                    ? { label: selectedAddressCode, value: selectedAddressCode }
+                    : null
+                }
               />
+              {Confirmwarehouse.Detail_Orders?.map(
+                (
+                  product,
+                  index, // Change from productsData to currentProducts
+                ) => (
                   <CCardBody className="d-flex flex-column justify-content-between">
                     <CRow className="align-items-center">
                       <CCol xs="1">
@@ -343,11 +346,11 @@ const Confirm = () => {
                       </div>
                     )}
                   </CCardBody>
-                </CRow>
-              </div>
-            </CCol>
-          ),
-        )}
+                ),
+              )}
+            </CRow>
+          </div>
+        </CCol>
       </CRow>
     </CContainer>
   )
