@@ -84,7 +84,7 @@ const findRoleAndOrders = async (
     whereCondition[Op.or] = [
       { transactionNumber: { [Op.like]: `%${q}%` } },
       { requestNumber: { [Op.like]: `%${q}%` } },
-      { "User.name": { [Op.like]: `%${q}%` } },
+      { "$User.name$": { [Op.like]: `%${q}%` } },
     ];
   }
 
