@@ -133,7 +133,7 @@ const ApproveAll = () => {
           })
         }
         if (!response?.data?.data) {
-          console.error('No orders found')
+          console.error('No confirm found')
           setProductsData([])
           return
         }
@@ -170,10 +170,11 @@ const ApproveAll = () => {
     setCurrentPage(page)
     getWarehouseConfirmations(page)
   }
- 
 
   const handleTabChange = (newStatus) => {
     setActiveTab(newStatus)
+    setProductsData([])
+    setCurrentPage(1)
   }
   // Total harga produk
   const handleWarehouseConfirmationproduct = (product) => {
@@ -210,6 +211,7 @@ const ApproveAll = () => {
 
   const handleReadyToPickup = (product) => {
     setSelectedProduct(product)
+    localStorage.setItem('CompleteWarehouse', JSON.stringify(product))
     setVisible(true)
     navigate('/confirmdel', { state: { product } })
   }
@@ -258,25 +260,37 @@ const ApproveAll = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              width: '60%',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              padding: '4px 8px',
+              width: '100%',
             }}
           >
-            {/* CoreUI Search Icon */}
-            <CIcon
-              icon={cilSearch}
-              style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
-            />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '60%',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                padding: '4px 8px',
+              }}
+            >
+              {/* CoreUI Search Icon */}
+              <CIcon
+                icon={cilSearch}
+                style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+              />
 
-            <InputText
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
-              onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
-              placeholder="Search"
-              style={{ width: '70%', border: 'none', outline: 'none' }}
-            />
+              <InputText
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
+                placeholder="Search"
+                style={{ width: '70%', border: 'none', outline: 'none' }}
+              />
+            </div>
+            <label style={{ fontSize: '0.5em ', marginLeft: '8px' }}>
+              {' '}
+              *Search by No Transaction & Name Recipent
+            </label>
           </div>
         </CCol>
         <CCol xs={6} sm={6} md={6} lg={6} className="d-flex justify-content-end py-2">
@@ -362,7 +376,7 @@ const ApproveAll = () => {
                               <CCol xs="4">
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <div>
-                                    <strong>Form:</strong> {product.User.name}
+                                    <strong>From:</strong> {product.User.name}
                                   </div>
                                   <div>
                                     <strong>Role:</strong> {product.User.position}

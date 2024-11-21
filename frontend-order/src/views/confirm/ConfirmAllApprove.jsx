@@ -262,8 +262,8 @@ const ApproveAll = () => {
     })
   }
   const handleTabChange = (newStatus) => {
+    setMyApprovalData([])
     setActiveTab(newStatus)
-    getApprove(newStatus - 1)
   }
   const handleApproveDetail = (approval) => {
     // getOrderHistories(product.id)
@@ -369,14 +369,14 @@ const ApproveAll = () => {
           <CTab
             aria-controls="Confirmation-tab-pane"
             itemKey={'waiting approval'}
-            onClick={() => handleTabChange(1)}
+            onClick={() => handleTabChange()}
           >
             Waiting Approve
           </CTab>
           <CTab
             aria-controls="Ready Pickup-tab-pane"
             itemKey={'approved'}
-            onClick={() => handleTabChange(2)}
+            onClick={() => handleTabChange('approved')}
           >
             Approved
           </CTab>
@@ -413,7 +413,7 @@ const ApproveAll = () => {
                                   <label className="me-2 fs-6">
                                     {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
                                   </label>
-                                  <CBadge className="me-2" size="lg" color="warning">
+                                  <CBadge className="me-2"  color="warning">
                                     {approval.status}
                                   </CBadge>
                                   <label className="me-2 fw-light">{approval.requestNumber}</label>
@@ -426,12 +426,12 @@ const ApproveAll = () => {
                             <hr />
 
                             {/* Product and user information */}
-                            <CRow xs="1">
+                            <CRow>
                               <CCol xs="1"></CCol>
                               <CCol xs="4">
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <div>
-                                    <strong>Form:</strong> {approval.User.name}
+                                    <strong>From:</strong> {approval.User.name}
                                   </div>
                                   <div>
                                     <strong>Role:</strong> {approval.User.position}
@@ -460,7 +460,7 @@ const ApproveAll = () => {
                             </CRow>
 
                             {/* View Detail button */}
-                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                            <CRow className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
                                   onClick={() => handleViewHistoryOrder(approval)} // Pass the approval data when clicked
@@ -492,7 +492,7 @@ const ApproveAll = () => {
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-              
+                {console.log('coba data',myApprovalData)}
                   <CRow className="g-1 mt-1">
                     {isLoading ? (
                       // Skeleton loading untuk kartu persetujuan
@@ -510,6 +510,7 @@ const ApproveAll = () => {
                             </CCardBody>
                           </CCard>
                         ))
+                       
                     ) : myApprovalData.length > 0 ? (
                       myApprovalData.map((approval) => (
                         <CCard className="h-78 mb-2" key={approval.id}>
@@ -535,7 +536,7 @@ const ApproveAll = () => {
                             <hr />
 
                             {/* Product and user information */}
-                            <CRow xs="1">
+                            <CRow >
                               <CCol xs="1">
                                 {userData.map((user) => (
                                   <CCardImage
@@ -548,7 +549,7 @@ const ApproveAll = () => {
                               <CCol xs="4">
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                   <div>
-                                    <strong>Form:</strong> {approval.User.name}
+                                    <strong>From:</strong> {approval.User.name}
                                   </div>
                                   <div>
                                     <strong>Role:</strong> {approval.User.position}
@@ -573,7 +574,7 @@ const ApproveAll = () => {
                             </CRow>
 
                             {/* View Detail button */}
-                            <CRow xs="1" className="d-flex justify-content-end align-items-center">
+                            <CRow className="d-flex justify-content-end align-items-center">
                               <CCol xs={4} className="d-flex justify-content-end">
                                 <CButton
                                   onClick={() => handleApproveDetail(approval)} // Pass the approval data when clicked
@@ -589,13 +590,7 @@ const ApproveAll = () => {
                       ))
                     ) : (
                       // Skeleton Loader untuk kondisi kosong
-                      <>
-                        {Array.from({ length: 3 }).map((_, idx) => (
-                          <div key={idx} style={{ marginBottom: '10px' }}>
-                            <Skeleton height={150} />
-                          </div>
-                        ))}
-                      </>
+                     <label>order not found</label>
                     )}
                   </CRow>
              
