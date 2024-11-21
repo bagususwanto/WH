@@ -123,7 +123,11 @@ export const getMaterialIdByMaterialNo = async (materialNo) => {
   }
 };
 
-export const getAddressIdByAddressName = async (addressRackName, storageName, logImportId) => {
+export const getAddressIdByAddressName = async (
+  addressRackName,
+  storageName,
+  logImportId
+) => {
   try {
     // Cek apakah address sudah ada
     let address = await AddressRack.findOne({
@@ -167,7 +171,11 @@ export const getStorageIdByStorageName = async (storageName) => {
   }
 };
 
-export const getLastLogImportIdByUserId = async (userId, typeLog, importDate = null) => {
+export const getLastLogImportIdByUserId = async (
+  userId,
+  typeLog,
+  importDate = null
+) => {
   try {
     // Buat kondisi where yang akan digunakan dalam pencarian
     const whereCondition = { userId, typeLog };
@@ -194,16 +202,28 @@ export const getLastLogImportIdByUserId = async (userId, typeLog, importDate = n
   }
 };
 
-export const getInventoryIdByMaterialIdAndAddressId = async (materialId, addressId) => {
+export const getInventoryIdByMaterialIdAndAddressId = async (
+  materialId,
+  addressId
+) => {
   try {
-    const [inventory] = await Inventory.findOrCreate({
-      where: { materialId, addressId },
-      defaults: { materialId, addressId },
+    // Cari data berdasarkan materialId
+    const inventory = await Inventory.findOne({
+      where: { materialId },
     });
-    return inventory.id;
+
+    if (inventory) {
+      // Jika data ditemukan, perbarui addressId
+      await inventory.update({ addressId });
+      return inventory.id;
+    } else {
+      // Jika data tidak ditemukan, buat data baru
+      const newInventory = await Inventory.create({ materialId, addressId });
+      return newInventory.id;
+    }
   } catch (error) {
     console.error(error.message);
-    throw new Error("Failed to retrieve or create inventory ID");
+    throw new Error("Failed to retrieve, update, or create inventory ID");
   }
 };
 
@@ -219,7 +239,11 @@ const checkMaterialNo = async (materialNo) => {
   return true;
 };
 
-const checkAddressRackName = async (addressRackName, storageName, logImportId) => {
+const checkAddressRackName = async (
+  addressRackName,
+  storageName,
+  logImportId
+) => {
   const existingAddress = await AddressRack.findOne({
     where: { addressRackName, flag: 1 },
   });
@@ -251,8 +275,17 @@ const checkStorageName = async (storageName) => {
 };
 
 const validateHeaderIncoming = (header) => {
-  const expectedHeader = ["materialNo", "addressRackName", "planning", "actual", "storageName"];
-  return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
+  const expectedHeader = [
+    "materialNo",
+    "addressRackName",
+    "planning",
+    "actual",
+    "storageName",
+  ];
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
 };
 
 const checkIncomingActualImport = async (importDate) => {
@@ -295,14 +328,22 @@ export const uploadIncomingPlan = async (req, res) => {
 
   try {
     // Cek import log actual dan log plan
-    const logImportActual = await checkIncomingActualImport(req.body.importDate);
+    const logImportActual = await checkIncomingActualImport(
+      req.body.importDate
+    );
     if (logImportActual) {
-      return res.status(400).send({ message: "Incoming actual already imported!" });
+      return res
+        .status(400)
+        .send({ message: "Incoming actual already imported!" });
     }
 
     const logImportPlan = await checkIncomingPlanImport(req.body.importDate);
     if (logImportPlan && !logImportActual) {
-      const logImportId = await getLastLogImportIdByUserId(req.user.userId, "incoming plan", req.body.importDate);
+      const logImportId = await getLastLogImportIdByUserId(
+        req.user.userId,
+        "incoming plan",
+        req.body.importDate
+      );
       await Incoming.destroy({ where: { logImportId } });
     }
 
@@ -328,7 +369,9 @@ export const uploadIncomingPlan = async (req, res) => {
     const rows = await readXlsxFile(path, { sheet: sheetName });
 
     if (rows.length > 5000) {
-      return res.status(400).send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
     }
 
     const header = rows.shift();
@@ -360,9 +403,18 @@ export const uploadIncomingPlan = async (req, res) => {
 
       await checkAddressRackName(row[1], row[4], logImportId);
 
-      const materialId = await getMaterialIdByMaterialNo(removeWhitespace(row[0]));
-      const addressId = await getAddressIdByAddressName(removeWhitespace(row[1]), row[4], logImportId);
-      const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
+      const materialId = await getMaterialIdByMaterialNo(
+        removeWhitespace(row[0])
+      );
+      const addressId = await getAddressIdByAddressName(
+        removeWhitespace(row[1]),
+        row[4],
+        logImportId
+      );
+      const inventoryId = await getInventoryIdByMaterialIdAndAddressId(
+        materialId,
+        addressId
+      );
 
       incomingPlan.push({
         inventoryId,
@@ -371,7 +423,9 @@ export const uploadIncomingPlan = async (req, res) => {
       });
 
       if (incomingPlan.length === BATCH_SIZE) {
-        await Incoming.bulkCreate(incomingPlan, { transaction: mainTransaction });
+        await Incoming.bulkCreate(incomingPlan, {
+          transaction: mainTransaction,
+        });
         incomingPlan.length = 0;
       }
     }
@@ -383,12 +437,20 @@ export const uploadIncomingPlan = async (req, res) => {
     // Commit transaksi utama
     await mainTransaction.commit();
 
-    res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
+    res
+      .status(200)
+      .send({
+        message: `Uploaded the file successfully: ${req.file.originalname}`,
+      });
   } catch (error) {
     if (logImportTransaction) await logImportTransaction.rollback();
     if (mainTransaction) await mainTransaction.rollback();
     console.error("File processing error:", error);
-    res.status(500).send({ message: `Could not process the file: ${req.file?.originalname}. ${error}` });
+    res
+      .status(500)
+      .send({
+        message: `Could not process the file: ${req.file?.originalname}. ${error}`,
+      });
   }
 };
 
@@ -440,13 +502,17 @@ export const uploadIncomingActual = async (req, res) => {
     }
 
     const incomings = await getIncomingByLogImportId(logImportId);
-    const existingIncomingMap = new Map(incomings.map((incoming) => [incoming.inventoryId, incoming]));
+    const existingIncomingMap = new Map(
+      incomings.map((incoming) => [incoming.inventoryId, incoming])
+    );
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
     const rows = await readXlsxFile(path, { sheet: "incoming" });
 
     if (rows.length > 5000) {
-      return res.status(400).json({ message: "Batch size exceeds the limit! Max 5000 rows." });
+      return res
+        .status(400)
+        .json({ message: "Batch size exceeds the limit! Max 5000 rows." });
     }
 
     const transaction = await db.transaction();
@@ -468,19 +534,37 @@ export const uploadIncomingActual = async (req, res) => {
       const rowsToUpdate = [];
 
       for (const row of rows) {
-        const [materialNo, address, planningQuantity, actualQuantity, storage] = row;
+        const [materialNo, address, planningQuantity, actualQuantity, storage] =
+          row;
 
-        if (!materialNo || !address || typeof planningQuantity !== "number" || typeof actualQuantity !== "number" || !storage) {
+        if (
+          !materialNo ||
+          !address ||
+          typeof planningQuantity !== "number" ||
+          typeof actualQuantity !== "number" ||
+          !storage
+        ) {
           console.error(`Invalid row data for Material No: ${materialNo}`);
           continue;
         }
 
-        const materialId = await getMaterialIdByMaterialNo(removeWhitespace(materialNo));
-        const addressId = await getAddressIdByAddressName(removeWhitespace(address), storage, logImportId);
-        const inventoryId = await getInventoryIdByMaterialIdAndAddressId(materialId, addressId);
+        const materialId = await getMaterialIdByMaterialNo(
+          removeWhitespace(materialNo)
+        );
+        const addressId = await getAddressIdByAddressName(
+          removeWhitespace(address),
+          storage,
+          logImportId
+        );
+        const inventoryId = await getInventoryIdByMaterialIdAndAddressId(
+          materialId,
+          addressId
+        );
 
         if (!materialId || !addressId || !inventoryId) {
-          console.error(`Failed to get necessary IDs for Material No: ${materialNo}`);
+          console.error(
+            `Failed to get necessary IDs for Material No: ${materialNo}`
+          );
           continue;
         }
 
@@ -511,15 +595,27 @@ export const uploadIncomingActual = async (req, res) => {
       }
 
       await transaction.commit();
-      res.status(200).json({ message: `Uploaded the file successfully: ${req.file.originalname}` });
+      res
+        .status(200)
+        .json({
+          message: `Uploaded the file successfully: ${req.file.originalname}`,
+        });
     } catch (error) {
       await transaction.rollback();
       console.error("Transaction error:", error);
-      res.status(500).json({ message: `Could not upload the file: ${req.file.originalname}. ${error.message}` });
+      res
+        .status(500)
+        .json({
+          message: `Could not upload the file: ${req.file.originalname}. ${error.message}`,
+        });
     }
   } catch (error) {
     console.error("File processing error:", error);
-    res.status(500).json({ message: `Could not process the file: ${req.file.originalname}. ${error.message}` });
+    res
+      .status(500)
+      .json({
+        message: `Could not process the file: ${req.file.originalname}. ${error.message}`,
+      });
   }
 };
 
@@ -542,7 +638,10 @@ export const getCategoryIdByCategoryName = async (categoryName) => {
   }
 };
 
-export const getSupplierIdBySupplierName = async (SupplierName, logImportId) => {
+export const getSupplierIdBySupplierName = async (
+  SupplierName,
+  logImportId
+) => {
   try {
     // Cek apakah supplier sudah ada
     let supplier = await Supplier.findOne({
@@ -583,7 +682,10 @@ const validateHeaderMaterial = (header) => {
     "category",
     "supplier",
   ];
-  return header.every((value, index) => value.trim().toLowerCase() === expectedHeader[index].toLowerCase());
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
 };
 
 // Fungsi checkSupplierName yang diperbarui untuk menggunakan cache
@@ -594,7 +696,9 @@ const upsertSuppliers = async (supplierNames, logImportId, transaction) => {
     transaction,
   });
 
-  const existingSupplierMap = new Map(existingSuppliers.map((supplier) => [supplier.supplierName, supplier.id]));
+  const existingSupplierMap = new Map(
+    existingSuppliers.map((supplier) => [supplier.supplierName, supplier.id])
+  );
 
   const newSuppliers = [];
   const supplierIds = new Map();
@@ -638,7 +742,9 @@ export const uploadMasterMaterial = async (req, res) => {
     const header = rows.shift();
 
     if (rows.length > 5000) {
-      return res.status(400).send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
 
     if (!validateHeaderMaterial(header)) {
@@ -661,11 +767,15 @@ export const uploadMasterMaterial = async (req, res) => {
 
     let materialMap;
     if (materialsCache) {
-      materialMap = new Map(materialsCache.map((material) => [material.materialNo, material]));
+      materialMap = new Map(
+        materialsCache.map((material) => [material.materialNo, material])
+      );
     } else {
       const existingMaterials = await Material.findAll({ where: { flag: 1 } });
       materialsCache = existingMaterials;
-      materialMap = new Map(existingMaterials.map((material) => [material.materialNo, material]));
+      materialMap = new Map(
+        existingMaterials.map((material) => [material.materialNo, material])
+      );
     }
 
     const newMaterials = [];
@@ -674,13 +784,18 @@ export const uploadMasterMaterial = async (req, res) => {
     const supplierNames = new Set(
       rows.map((row) => {
         const supplier = row[13];
-        if (!supplier || supplier === "" || supplier === 0) throw new Error(`Supplier ${supplier} not found`);
+        if (!supplier || supplier === "" || supplier === 0)
+          throw new Error(`Supplier ${supplier} not found`);
         return supplier.trim().toUpperCase();
       })
     );
 
     // Upsert all suppliers at once and get a map of supplier IDs
-    const supplierMap = await upsertSuppliers(supplierNames, logImportId, transaction);
+    const supplierMap = await upsertSuppliers(
+      supplierNames,
+      logImportId,
+      transaction
+    );
 
     const processBatch = async (batch) => {
       const updatePromises = batch.map(async (row) => {
@@ -703,17 +818,36 @@ export const uploadMasterMaterial = async (req, res) => {
           const existingMaterial = materialMap.get(materialNo);
           const categoryId = await getCategoryIdByCategoryName(category);
 
-          if (!categoryId) throw new Error(`Category: ${category} does not exist`);
+          if (!categoryId)
+            throw new Error(`Category: ${category} does not exist`);
 
-          if (!materialNo || !description || !uom || !typeMat || !mrpType || !img || !category) {
-            throw new Error(`Invalid data in row ${materialNo}, ${description}`);
+          if (
+            !materialNo ||
+            !description ||
+            !uom ||
+            !typeMat ||
+            !mrpType ||
+            !img ||
+            !category
+          ) {
+            throw new Error(
+              `Invalid data in row ${materialNo}, ${description}`
+            );
           }
 
-          if (typeof price !== "number" || typeof minStock !== "number" || typeof maxStock !== "number" || typeof minOrder !== "number") {
-            throw new Error(`Data must be number in row ${materialNo}, ${description}`);
+          if (
+            typeof price !== "number" ||
+            typeof minStock !== "number" ||
+            typeof maxStock !== "number" ||
+            typeof minOrder !== "number"
+          ) {
+            throw new Error(
+              `Data must be number in row ${materialNo}, ${description}`
+            );
           }
 
-          if (!supplier || supplier == 0) throw new Error(`Supplier ${supplier} not found`);
+          if (!supplier || supplier == 0)
+            throw new Error(`Supplier ${supplier} not found`);
 
           const supplierName = supplier.trim().toUpperCase();
           const supplierId = supplierMap.get(supplierName);
@@ -758,7 +892,9 @@ export const uploadMasterMaterial = async (req, res) => {
             });
           }
         } catch (error) {
-          console.error(`Error processing row with materialNo ${row[0]}: ${error.message}`);
+          console.error(
+            `Error processing row with materialNo ${row[0]}: ${error.message}`
+          );
           throw error;
         }
       });
@@ -777,10 +913,18 @@ export const uploadMasterMaterial = async (req, res) => {
 
     await transaction.commit();
 
-    res.status(200).send({ message: `Uploaded the file successfully: ${req.file.originalname}` });
+    res
+      .status(200)
+      .send({
+        message: `Uploaded the file successfully: ${req.file.originalname}`,
+      });
   } catch (error) {
     if (transaction) await transaction.rollback();
     console.error(error);
-    res.status(500).send({ message: `Could not upload the file: ${req.file?.originalname}. ${error}` });
+    res
+      .status(500)
+      .send({
+        message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+      });
   }
 };
