@@ -177,7 +177,7 @@ export const getOrderWarehouse = async (req, res) => {
       data: response,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -342,11 +342,9 @@ export const processOrder = async (req, res) => {
 
     if (role && role !== "warehouse staff") {
       await transaction.rollback(); // Batalkan transaksi jika bukan warehouse staff
-      return res
-        .status(401)
-        .json({
-          message: "Unauthorized, only warehouse staff can process the order",
-        });
+      return res.status(401).json({
+        message: "Unauthorized, only warehouse staff can process the order",
+      });
     }
 
     let typeLog = "accepted warehouse";
@@ -488,12 +486,10 @@ export const shopingOrder = async (req, res) => {
 
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
-        return res
-          .status(401)
-          .json({
-            message:
-              "Unauthorized, you are not warehouse member or warehouse staff",
-          });
+        return res.status(401).json({
+          message:
+            "Unauthorized, you are not warehouse member or warehouse staff",
+        });
       }
     }
 
@@ -564,12 +560,10 @@ export const completeOrder = async (req, res) => {
 
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
-        return res
-          .status(401)
-          .json({
-            message:
-              "Unauthorized, you are not warehouse member or warehouse staff",
-          });
+        return res.status(401).json({
+          message:
+            "Unauthorized, you are not warehouse member or warehouse staff",
+        });
       }
     }
 
@@ -659,11 +653,9 @@ export const rejectOrderWarehouse = async (req, res) => {
 
     if (role) {
       if (role !== "warehouse staff") {
-        return res
-          .status(401)
-          .json({
-            message: "Unauthorized, only warehouse staff can reject the order",
-          });
+        return res.status(401).json({
+          message: "Unauthorized, only warehouse staff can reject the order",
+        });
       }
     }
 
