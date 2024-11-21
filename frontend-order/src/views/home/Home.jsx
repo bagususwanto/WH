@@ -4,6 +4,11 @@ import Skeleton from 'react-loading-skeleton'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import { AiFillHeart } from 'react-icons/ai'
+import InventoryVideo from '/src/assets/home/INVENTORY.mp4'
+import Slide1 from '/src/assets/home/1.jpg'
+import Slide2 from '/src/assets/home/2.jpg'
+import Slide3 from '/src/assets/home/3.jpg'
+
 import {
   CCard,
   CCardBody,
@@ -495,19 +500,19 @@ const Home = () => {
                 <Skeleton height={250} width="100%" />
               ) : (
                 <video className="d-block w-100" controls autoPlay loop muted>
-                  <source src="/src/assets/home/INVENTORY.mp4" type="video/mp4" />
+                  <source src={InventoryVideo} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               )}
             </CCarouselItem>
-            {['1.jpg', '2.jpg', '3.jpg'].map((img, index) => (
+            {[Slide1, Slide2, Slide3].map((img, index) => (
               <CCarouselItem key={index}>
                 {isLoading ? (
                   <Skeleton height={250} width="100%" />
                 ) : (
                   <CImage
                     className="d-block w-100"
-                    src={`/src/assets/home/${img}`}
+                    src={img}
                     alt={`slide ${index + 1}`}
                     fluid
                     rounded
