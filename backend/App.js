@@ -58,11 +58,20 @@ if (process.platform === "win32") {
 }
 
 // Mengatur path untuk menyimpan gambar produk
-app.use("/uploads/products", express.static(path.join(__dirname, "resources/uploads/products")));
+app.use(
+  "/uploads/products",
+  express.static(path.join(__dirname, "resources/uploads/products"))
+);
 
 // Mengambil sertifikat dan kunci
-const privateKey = fs.readFileSync(path.join(__dirname, "certificates", "server.key"), "utf8");
-const certificate = fs.readFileSync(path.join(__dirname, "certificates", "server.crt"), "utf8");
+const privateKey = fs.readFileSync(
+  path.join(__dirname, "certificates", "server.key"),
+  "utf8"
+);
+const certificate = fs.readFileSync(
+  path.join(__dirname, "certificates", "server.crt"),
+  "utf8"
+);
 const credentials = { key: privateKey, cert: certificate };
 
 // Middleware
@@ -75,6 +84,7 @@ app.use(
       "http://localhost:4000",
       "http://localhost:3000",
       "https://twiis-toyota.web.app",
+      "https://twiis-gi-toyota.web.app",
     ],
   })
 );
