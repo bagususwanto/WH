@@ -66,6 +66,7 @@ import useCartService from '../services/CartService'
 import useNotificationService from '../services/NotificationService'
 import '../scss/appheader.scss'
 import { GlobalContext } from '../context/GlobalProvider'
+import logo from 'src/assets/brand/TWIIS-NEW.png'
 
 const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
@@ -478,11 +479,7 @@ const AppHeader = () => {
       <CContainer className="border-bottom pb-2 px-2" fluid>
         <CCol xs={6} sm={1} md={2} lg={2}>
           <a href="/#/home" className="d-flex align-items-center">
-            <img
-              src="/src/assets/brand/TWIIS-NEW.png"
-              alt="Logo"
-              style={{ height: '40px', marginLeft: '20px' }}
-            />
+          <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
           </a>
         </CCol>
 
