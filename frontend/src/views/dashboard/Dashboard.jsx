@@ -742,11 +742,7 @@ const Dashboard = () => {
                   </>
                 )}
               </CModalBody>
-              <CModalFooter>
-                <CButton color="secondary" onClick={handleCloseModal}>
-                  Close
-                </CButton>
-              </CModalFooter>
+             
             </CModal>
             {isTableVisible && (
               <DataTable

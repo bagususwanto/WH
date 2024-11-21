@@ -13,10 +13,10 @@ const useApprovalService = () => {
     throw new Error(message + error.message)
   }
 
-  const getWarehouseConfirm = async (warehouseid, status, isReject) => {
+  const getWarehouseConfirm = async (id,status,page,startDate = '', endDate = '',q = '',isReject= 0) => {
     try {
       const response = await axiosJWT.get(
-        `/list-orders/${warehouseid}?status=${status}&page=1&limit=10&isReject=${isReject}`,
+        `/list-orders/${id}?status=${status}&page=${page}&limit=10&startDate=${startDate}&endDate=${endDate}&q=${q}&isReject=${isReject}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -25,7 +25,7 @@ const useApprovalService = () => {
       )
       return response
     } catch (error) {
-      console.log(error, 'Error fetching Approval:')
+      console.log(error, 'Error fetching confrim warehouse:')
     }
   }
   const postWarehouseConfirm = async (warehouseId,orderId,data) => {

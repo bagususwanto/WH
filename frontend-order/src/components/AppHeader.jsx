@@ -475,7 +475,7 @@ const AppHeader = () => {
         </CModal>
       </CContainer>
 
-      <CContainer className="border-bottom pb-2 px-4" fluid>
+      <CContainer className="border-bottom pb-2 px-2" fluid>
         <CCol xs={6} sm={1} md={2} lg={2}>
           <a href="/#/home" className="d-flex align-items-center">
             <img
@@ -721,7 +721,7 @@ const AppHeader = () => {
 
           <CDropdown variant="nav-item">
             <CDropdownToggle
-              className="py-0 pe-0 d-flex align-items-center position-relative"
+              className="px-3 py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
             >
               <CIcon icon={cilBell} size="lg" className="me-5" />

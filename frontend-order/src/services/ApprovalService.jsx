@@ -15,9 +15,9 @@ const useApprovalService = () => {
 
   
 
-  const getApproval = async (warehouseid, approved) => {
+  const getApproval = async ({id,isApproved = 0,page = 1, startDate = '', endDate = '',q = '' }) => {
     try {
-      const response = await axiosJWT.get(`/approval/${warehouseid}?page=1&limit=10&approved=${approved}`, {
+      const response = await axiosJWT.get(`/approval/${id}?approved=${isApproved}&page=${page}&limit=10&startDate=${startDate}&endDate=${endDate}&q=${q}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

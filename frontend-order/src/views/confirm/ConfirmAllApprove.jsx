@@ -6,6 +6,8 @@ import 'flatpickr/dist/flatpickr.css'
 import { InputText } from 'primereact/inputtext'
 import { format, parseISO } from 'date-fns'
 import useVerify from '../../hooks/UseVerify'
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 import {
   CCard,
   CCardBody,
@@ -53,6 +55,7 @@ import useMasterDataService from '../../services/MasterDataService'
 import useApprovalService from '../../services/ApprovalService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import Pagination from '../../components/Pagination'
 
 import 'react-datepicker/dist/react-datepicker.css' // Import datepicker style
 
@@ -99,6 +102,9 @@ const ApproveAll = () => {
   const { roleName } = useVerify()
   const [orderHistory, setOrderHistory] = useState([])
   const { getMyorder, getOrderHistory } = useOrderService()
+  const [isLoading, setIsLoading] = useState(true)
+  const [totalPages, setTotalPages] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const apiCategory = 'category'
   const apiUser = 'user'
@@ -111,21 +117,46 @@ const ApproveAll = () => {
     cilWalk,
     cilCircle,
   }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 2000) // 2 detik loading simulasi
 
-  const getApprove = async (isApproved) => {
+    return () => clearTimeout(timeout)
+  }, [])
+
+  const getApprove = async (page, startDate, endDate) => {
     try {
       if (warehouse && warehouse.id) {
-        // Menentukan parameter berdasarkan isApproved
-
-        const response = await getApproval(warehouse.id, isApproved)
-
-        setMyApprovalData(response.data)
-        console.log('warehuse id :', warehouse.id)
-        console.log('tess', response.data)
-      } else {
-        console.log('warehouse id not found')
+        let response
+        if (activeTab == 'approved') {
+          response = await getApproval({
+            id: warehouse.id,
+            page: page,
+            isApproved: 1,
+            startDate: startDate,
+            endDate: endDate,
+            q: searchQuery,
+          })
+        } else {
+          response = await getApproval({
+            id: warehouse.id,
+            page: page,
+            startDate: startDate,
+            endDate: endDate,
+            q: searchQuery,
+          })
+        }
+        if (!response?.data?.orders) {
+          console.error('No orders found')
+          setMyApprovalData([])
+          return
+        }
+        console.log('response', response)
+        const newData = response.data.orders
+        setMyApprovalData((prevData) => [...prevData, ...newData])
+        setTotalPages(response.data.totalPages)
       }
-      console.log(activeTab)
     } catch (error) {
       console.error('Error fetching Approval:', error)
     }
@@ -146,12 +177,23 @@ const ApproveAll = () => {
   }
 
   useEffect(() => {
-    getApprove(0)
-    getUsers
-  }, [warehouse])
-  console.log('aba', myApprovalData)
-  console.log('aca', warehouse.id)
-  console.log('ada', activeTab)
+    if (dates[0] && dates[1]) {
+      setMyApprovalData([])
+      const startDate = format(dates[0], 'yyyy-MM-dd')
+      const endDate = format(dates[1], 'yyyy-MM-dd')
+      getApprove(1, startDate, endDate)
+      return
+    }
+    getApprove(1)
+  }, [warehouse, activeTab, dates])
+
+  // useEffect(() => {
+  //   getApprove(0)
+  //   getUsers
+  // }, [warehouse])
+  // console.log('aba', myApprovalData)
+  // console.log('aca', warehouse.id)
+  // console.log('ada', activeTab)
 
   const filteredProducts = selectedDate
     ? productsData.filter((product) => {
@@ -204,20 +246,6 @@ const ApproveAll = () => {
     navigate('/confirmapp', { state: { initialConfirmApproval } })
   }
 
-  const handleSearchInputChange = (e) => {
-    const query = e.target.value
-    setSearchQuery(query)
-
-    if (query) {
-      const results = searchProducts(query)
-      setFilteredSuggestions(results.slice(0, 5))
-      setShowRecentSearches(false)
-    } else {
-      setFilteredSuggestions([])
-      setShowRecentSearches(searchHistory.length > 0)
-    }
-  }
-
   // Function to filter through productsData
   const searchProducts = (query) => {
     if (!query) return []
@@ -244,6 +272,17 @@ const ApproveAll = () => {
     setVisible(true)
     console.log('aa', approval)
   }
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setMyApprovalData([])
+      getApprove(1)
+    }
+  }
+  const handlePageChange = (page) => {
+    setMyApprovalData([])
+    setCurrentPage(page)
+    getApprove(page)
+  }
 
   return (
     <>
@@ -254,33 +293,42 @@ const ApproveAll = () => {
 
             <CRow>
               {/* Left side: Search field */}
-              <CCol xs={6} sm={6} md={3} lg={3} className="py-2">
+              <CCol xs={8} sm={8} md={7} lg={5} className="py-2">
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    padding: '4px 8px',
                   }}
                 >
-                  {/* CoreUI Search Icon */}
-                  <CIcon
-                    icon={cilSearch}
-                    style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
-                  />
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '60%',
+                      border: '1px solid #ddd',
+                      borderRadius: '5px',
+                      padding: '4px 8px',
+                    }}
+                  >
+                    {/* CoreUI Search Icon */}
+                    <CIcon
+                      icon={cilSearch}
+                      style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+                    />
 
-                  <InputText
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
-                    onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
-                    placeholder="Search"
-                    style={{ width: '100%', border: 'none', outline: 'none' }}
-                  />
+                    <InputText
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                      onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
+                      placeholder="Search"
+                      style={{ width: '100%', border: 'none', outline: 'none' }}
+                    />
+                  </div>
+                  <label style={{ fontSize: '0.5em ',marginLeft: '8px' }}> *Search by No Transaction & Name Recipent</label>
                 </div>
               </CCol>
-              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-2">
+              <CCol xs={4} sm={4} md={5} lg={7} className="d-flex justify-content-end py-2">
                 <div
                   className="flatpickr-wrapper"
                   style={{ position: 'relative', width: '300px', height: '36px' }}
@@ -312,22 +360,22 @@ const ApproveAll = () => {
                   />
                 </div>
               </CCol>
-            </CRow> 
+            </CRow>
           </CCardBody>
         </CCard>
       </CRow>
-      <CTabs activeItemKey={1}>
+      <CTabs activeItemKey={'waiting approval'}>
         <CTabList variant="pills">
           <CTab
             aria-controls="Confirmation-tab-pane"
-            itemKey={1}
+            itemKey={'waiting approval'}
             onClick={() => handleTabChange(1)}
           >
             Waiting Approve
           </CTab>
           <CTab
             aria-controls="Ready Pickup-tab-pane"
-            itemKey={2}
+            itemKey={'approved'}
             onClick={() => handleTabChange(2)}
           >
             Approved
@@ -337,13 +385,23 @@ const ApproveAll = () => {
         {/* Container for product cards with scroll */}
 
         <CTabContent>
-          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={1}>
+          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={'waiting approval'}>
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+               
                   <CRow className="g-1 mt-1">
-                    {myApprovalData.length > 0 ? (
+                    {isLoading ? (
+                      // Tampilkan Skeleton Loader
+                      <>
+                        {Array.from({ length: 5 }).map((_, idx) => (
+                          <div key={idx} style={{ marginBottom: '10px' }}>
+                            <Skeleton height={150} />
+                          </div>
+                        ))}
+                      </>
+                    ) : myApprovalData.length > 0 ? (
+                      // Data Approval
                       myApprovalData.map((approval) => (
                         <CCard className="h-78 mb-2" key={approval.id}>
                           <CCardBody className="d-flex flex-column justify-content-between">
@@ -355,7 +413,7 @@ const ApproveAll = () => {
                                   <label className="me-2 fs-6">
                                     {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
                                   </label>
-                                  <CBadge className="me-2" size="sm" color="warning">
+                                  <CBadge className="me-2" size="lg" color="warning">
                                     {approval.status}
                                   </CBadge>
                                   <label className="me-2 fw-light">{approval.requestNumber}</label>
@@ -420,18 +478,39 @@ const ApproveAll = () => {
                       <p>No Approval available.</p>
                     )}
                   </CRow>
-                </div>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+              
               </CCard>
             </CRow>
           </CTabPanel>
 
-          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={2}>
+          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={'approved'}>
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-                <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+              
                   <CRow className="g-1 mt-1">
-                    {myApprovalData.length > 0 ? (
+                    {isLoading ? (
+                      // Skeleton loading untuk kartu persetujuan
+                      Array(3)
+                        .fill(null)
+                        .map((_, index) => (
+                          <CCard className="h-78 mb-2" key={index}>
+                            <CCardBody>
+                              <Skeleton height={20} width="60%" />
+                              <Skeleton height={15} width="40%" />
+                              <Skeleton height={15} width="80%" />
+                              <hr />
+                              <Skeleton height={20} width="50%" />
+                              <Skeleton height={20} width="70%" />
+                            </CCardBody>
+                          </CCard>
+                        ))
+                    ) : myApprovalData.length > 0 ? (
                       myApprovalData.map((approval) => (
                         <CCard className="h-78 mb-2" key={approval.id}>
                           <CCardBody className="d-flex flex-column justify-content-between">
@@ -509,10 +588,17 @@ const ApproveAll = () => {
                         </CCard>
                       ))
                     ) : (
-                      <p>No Approval available.</p>
+                      // Skeleton Loader untuk kondisi kosong
+                      <>
+                        {Array.from({ length: 3 }).map((_, idx) => (
+                          <div key={idx} style={{ marginBottom: '10px' }}>
+                            <Skeleton height={150} />
+                          </div>
+                        ))}
+                      </>
                     )}
                   </CRow>
-                </div>
+             
               </CCard>
             </CRow>
             {console.log('111111', orderHistory)}
@@ -538,68 +624,127 @@ const ApproveAll = () => {
                             <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
                           </CCol>
                         </CRow>
+                        <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
+                        <label
+                          className="fw-light mb-1"
+                          style={{
+                            fontSize: '0.85rem', // Ukuran font kecil
+                          }}
+                        >
+                          List of Product
+                        </label>
                         {selectedProduct?.Detail_Orders?.map((detail, index) => (
-                          <CRow className="align-items-center mb-3" key={index}>
+                          <CRow className="align-items-center mb-2" key={index}>
                             <CCol xs="1">
                               <CCardImage
                                 src={detail.Inventory.Material.img}
-                                style={{ height: '100%', width: '100%' }}
+                                style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
                               />
                             </CCol>
                             <CCol xs="9">
-                              <label>{detail.Inventory.Material.description || 'N/A'}</label>
+                              <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                                {' '}
+                                {/* Smaller text */}
+                                {detail.Inventory.Material.description}
+                              </label>
                             </CCol>
-                            <CCol xs="2" className="text-end">
+                            <CCol
+                              xs="2"
+                              className="text-end"
+                              style={{ fontSize: '0.8rem', lineHeight: '1.2' }}
+                            >
                               <label className="fw-bold">
                                 Rp {detail.Inventory.Material.price.toLocaleString('id-ID') || '0'}
                               </label>
                             </CCol>
                           </CRow>
                         ))}
-                        {orderHistory?.map((item, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                              marginBottom: '16px',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <label style={{ marginRight: '8px' }}>
-                                {item.createdAt
-                                  ? format(parseISO(item.createdAt), 'dd MMM yyyy, HH:mm')
-                                  : 'N/A'}
-                              </label>
+                        <hr style={{ height: '5px', margin: '2px ' }} />
+                        <label
+                          className="fw-light mb-1"
+                          style={{
+                            fontSize: '0.85rem', // Ukuran font kecil
+                          }}
+                        >
+                          Tracking Item
+                        </label>
+                        {orderHistory.map((item, index) => {
+                          const isFirst = index === 0 // Memeriksa apakah item adalah yang pertama
+
+                          return (
+                            <div
+                              key={item.id}
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                              }}
+                            >
                               <div
                                 style={{
-                                  border: '2px solid #000',
-                                  borderRadius: '50%',
-                                  width: '40px',
-                                  height: '40px',
                                   display: 'flex',
-                                  justifyContent: 'center',
                                   alignItems: 'center',
+                                  marginBottom: '12px',
                                 }}
                               >
-                                <CIcon icon={icons[item.icon]} size="lg" />
+                                {/* Tanggal dan waktu */}
+                                <label
+                                  style={{
+                                    marginRight: '7px',
+                                    fontSize: '0.95rem',
+                                    color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
+                                  }}
+                                >
+                                  {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                                  {', '}
+                                  {format(parseISO(item.createdAt), 'HH:mm')}
+                                </label>
+
+                                {/* Ikon dalam lingkaran */}
+                                <div
+                                  style={{
+                                    border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
+                                    borderRadius: '50%',
+                                    width: '40px',
+                                    height: '40px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <CIcon
+                                    icon={icons[item.icon]}
+                                    size="lg"
+                                    style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
+                                  />
+                                </div>
+
+                                {/* Status */}
+                                <label
+                                  style={{
+                                    marginLeft: '8px',
+                                    fontSize: '0.95rem',
+                                    textTransform: 'capitalize',
+                                    color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
+                                  }}
+                                >
+                                  {item.status}
+                                </label>
                               </div>
-                              <label style={{ marginLeft: '8px' }}>
-                                {item.status
-                                  ? item.status.charAt(0).toUpperCase() +
-                                    item.status.slice(1).toLowerCase()
-                                  : 'N/A'}
-                              </label>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </CCardBody>
                     </CCard>
                   </CRow>
                 </CModalBody>
               </CModal>
             )}
+             <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
           </CTabPanel>
         </CTabContent>
       </CTabs>

@@ -5,6 +5,8 @@ import '../../scss/body_gray.scss'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.css'
 import { format, parseISO } from 'date-fns'
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 import {
   CCard,
   CCardBody,
@@ -100,8 +102,18 @@ const Confirm = () => {
   const { warehouse } = useContext(GlobalContext)
   const navigate = useNavigate()
   const [Confirmapproval, setConfirmapproval] = useState(initialConfirmApproval)
+  const [loading, setLoading] = useState(true) // Add loading state
 
   const apiCategory = 'category'
+  useEffect(() => {
+    // Simulate data fetching or processing delay
+    const timeout = setTimeout(() => {
+      setLoading(false) // Set loading to false after fetching data
+    }, 1000)
+
+    return () => clearTimeout(timeout)
+  }, [])
+
   useEffect(() => {
     // Add a specific class to body
     document.body.classList.add('body-gray-background')
@@ -166,8 +178,6 @@ const Confirm = () => {
         if (result.isConfirmed) {
           try {
             const response = await deleteOrderItemApproval(detailorderId, warehouse.id)
-
-      
 
             // Update Confirmapproval state by removing the deleted item
             const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
@@ -309,244 +319,302 @@ const Confirm = () => {
     <CContainer>
       <CRow>
         <CCol xs={4}>
-          <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+          {/* Total Section */}
+          <CCard className="rounded-0 " style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
-              {/* {roleName === 'super admin' && ( */}
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <label className="fw-bold mb-2">
-                  Total: Rp {totalAmount.toLocaleString('id-ID')}
-                </label>
-                <CButton color="primary" onClick={handleApprove}>
-                  Approve Now
-                </CButton>
+                {loading ? (
+                  <>
+                    <Skeleton width={100} height={20} />
+                    <Skeleton width={80} height={30} />
+                  </>
+                ) : (
+                  <>
+                    <label className="fw-bold mb-1">
+                      Total: Rp {totalAmount.toLocaleString('id-ID')}
+                    </label>
+                    <CButton color="primary" onClick={handleApprove}>
+                      Approve Now
+                    </CButton>
+                  </>
+                )}
               </div>
             </CCardBody>
           </CCard>
-          {/* sticky Detail */}
+
+          {/* User Detail Section */}
           <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                <img
-                  src="path-to-user-photo.jpg"
-                  alt="User Profile"
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    marginRight: '16px',
-                  }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div>
-                    <strong>FORM:</strong> {Confirmapproval.User.name}
-                  </div>
-                  <div>
-                    <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}
-                  </div>
-                  <div>
-                    <small>
-                      Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}
-                    </small>
-                  </div>
-                </div>
-              </div>
-              {/* )} */}
-              <label className="fw-bold mb-2">Select Delivery Type</label>
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <CFormCheck
-                  className="me-3"
-                  type="radio"
-                  id="pickup"
-                  label="Pickup"
-                  checked={isPickup}
-                  onChange={() => setIsPickup(true)}
-                  disabled
-                />
-                <CFormCheck
-                  type="radio"
-                  id="otodoke"
-                  label="Otodoke"
-                  checked={!isPickup}
-                  onChange={() => setIsPickup(false)}
-                  disabled
-                />
-              </div>
-              <hr />
-              <label className="fw-bold mb-2">Address Detail Confirmation</label>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <CIcon icon={cilHome} size="lg" />
-                  <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
-                </div>
-                {!isPickup && (
+                {loading ? (
                   <>
-                    <CIcon icon={cilArrowBottom} size="lg" />
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                      <CIcon icon={cilLocationPin} size="lg" />
-                      <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                    <Skeleton
+                      circle={true}
+                      height={60}
+                      width={60}
+                      style={{ marginRight: '16px' }}
+                    />
+                    <Skeleton width="100%" height={50} />
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src="path-to-user-photo.jpg"
+                      alt="User Profile"
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        marginRight: '16px',
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div>
+                        <strong>FORM:</strong> {Confirmapproval.User.name}
+                      </div>
+                      <div>
+                        <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}
+                      </div>
+                      <div>
+                        <small>
+                          Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}
+                        </small>
+                      </div>
                     </div>
                   </>
                 )}
               </div>
-              {!isPickup && (
+
+              <label className="fw-bold mb-2">Select Delivery Type</label>
+              {loading ? (
+                <Skeleton width="100%" height={20} />
+              ) : (
+                <CFormCheck
+                  className="me-3"
+                  type="radio"
+                  id="pickup"
+                  label={`${Confirmapproval.deliveryMethod}`}
+                  checked={!isPickup}
+                  onChange={() => setIsPickup()}
+                  disabled
+                />
+              )}
+
+              <hr />
+              <label className="fw-bold mb-2">Address Detail Confirmation</label>
+              {loading ? (
+                <Skeleton count={3} height={20} />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <CIcon icon={cilHome} size="lg" />
+                    <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+                  </div>
+                  {Confirmapproval.deliveryMethod !== 'pickup' && (
+                    <>
+                      <CIcon icon={cilArrowBottom} size="lg" />
+                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                        <CIcon icon={cilLocationPin} size="lg" />
+                        <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {Confirmapproval.deliveryMethod !== 'pickup' && (
                 <>
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
-                  <div>
-                    <CFormInput
-                      type="text"
-                      value={Confirmapproval.scheduleDelivery} // Bind the input value to state
-                      readOnly // Make the input readonly so users cannot change it
-                    />
-                  </div>
+                  {loading ? (
+                    <Skeleton width="100%" height={30} />
+                  ) : (
+                    <div>
+                      <CFormInput type="text" value={Confirmapproval.scheduleDelivery} readOnly />
+                    </div>
+                  )}
                 </>
               )}
-              <hr />
-              <label className="fw-bold mb-2">Payment</label>
-              <CFormCheck
-                type="radio"
-                id="payment2"
-                label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
-                checked={iswbs}
-                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
-                disabled
-              />
 
               <hr />
-              <CFormTextarea
-                className="mt-3"
-                placeholder="Leave a message"
-                rows={3}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                disabled
-              />
+              <label className="fw-bold mb-2">Payment</label>
+              {loading ? (
+                <Skeleton width="100%" height={20} />
+              ) : (
+                <CFormCheck
+                  type="radio"
+                  id="payment2"
+                  label={`${Confirmapproval.paymentMethod} = ${Confirmapproval.paymentNumber}`}
+                  checked={iswbs}
+                  onChange={() => setIswbs(false)}
+                  disabled
+                />
+              )}
+
+              <hr />
+              <label className="fw-bold mb-2">Message</label>
+              {loading ? (
+                <Skeleton width="100%" height={60} />
+              ) : (
+                <CFormTextarea
+                  className="mt-3"
+                  placeholder="Leave a message"
+                  rows={3}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled
+                />
+              )}
             </CCardBody>
           </CCard>
+
           <CButton
-            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`} // Add a class for when clicked
+            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`}
             color="secondary"
             style={{
               position: 'fixed',
-              bottom: '20px', // Position the button 20px from the bottom
-              right: '20px', // Position the button 20px from the right
-              width: '55px', // Set a fixed width
-              height: '55px', // Set a fixed height (same as width for a perfect circle)
+              bottom: '20px',
+              right: '20px',
+              width: '55px',
+              height: '55px',
               border: '1px solid white',
               color: 'white',
-              borderRadius: '50%', // This ensures it's perfectly circular
-              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none', // Add a shadow when clicked
+              borderRadius: '50%',
+              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none',
             }}
             onClick={handleButtonClick}
           >
-            <CIcon icon={cilCart} size="lg" /> {/* Adjust the icon size with size="lg" */}
+            <CIcon icon={cilCart} size="lg" />
           </CButton>
         </CCol>
 
         <CCol xs={8}>
-          <CRow className="g-2">
-            {Confirmapproval.Detail_Orders.map(
-              (
-                product,
-                index, // Change from productsData to currentProducts
-              ) => (
-                <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <CRow className="align-items-center">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={product.Inventory.Material.img}
-                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="6">
-                        <div>
-                          <label>{product.Inventory.Material.description}</label>
-                          <br></br>
-                          <label className="fw-bold fs-6">
-                            Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
-                          </label>
-                        </div>
-                      </CCol>
-                      <CCol xs="3">
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                          }}
+      <CRow className="g-2">
+        {loading
+          ? Array.from({ length: 5 }).map((_, index) => (
+              <CCard className="h-80 rounded-45 bg-grey" key={index}>
+                <CCardBody className="d-flex flex-column justify-content-between">
+                  <CRow className="align-items-center">
+                    <CCol xs="1">
+                      <Skeleton height="100%" width="100%" />
+                    </CCol>
+                    <CCol xs="6">
+                      <div>
+                        <Skeleton height={20} width="80%" />
+                        <Skeleton height={15} width="60%" style={{ marginTop: '5px' }} />
+                      </div>
+                    </CCol>
+                    <CCol xs="3">
+                      <Skeleton height={40} width="100%" />
+                    </CCol>
+                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                      <Skeleton circle height={20} width={20} />
+                    </CCol>
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            ))
+          : Confirmapproval.Detail_Orders.map((product) => (
+              <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
+                <CCardBody className="d-flex flex-column justify-content-between">
+                  <CRow className="align-items-center">
+                    <CCol xs="1">
+                      <CCardImage
+                        src={product.Inventory.Material.img}
+                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                      />
+                    </CCol>
+                    <CCol xs="6">
+                      <div>
+                        <label>{product.Inventory.Material.description}</label>
+                        <br />
+                        <label className="fw-bold fs-6">
+                          Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
+                        </label>
+                      </div>
+                    </CCol>
+                    <CCol xs="3">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <CButton
+                          color="secondary"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDecreaseQuantity(product.id)}
                         >
-                          <CButton
-                            color="secondary"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDecreaseQuantity(product.id)}
-                          >
-                            -
-                          </CButton>
-                          <CFormInput
-                            type="text"
-                            value={quantities[product.id] || 1} // Dynamically set the value from state
-                            aria-label="Number input"
-                            onChange={(e) => handleQuantityChange(product.id, e.target.value)} // Update state on change
-                          />
-                          <CButton
-                            color="secondary"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleIncreaseQuantity(product.id)}
-                          >
-                            +
-                          </CButton>{' '}
-                          {/* Apply margin-left (ms-2) to create space */}
-                          <span className="fw-light">
-                            ({product.Inventory.Material?.uom || 'UOM'})
-                          </span>
-                        </div>
-                      </CCol>
-
-                      <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                        <CIcon
-                          icon={cilTrash}
-                          className="text-danger"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => handleDelete(product.id)}
+                          -
+                        </CButton>
+                        <CFormInput
+                          type="text"
+                          value={quantities[product.id] || 1}
+                          aria-label="Number input"
+                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                         />
-                      </CCol>
-                    </CRow>
-                  </CCardBody>
-                </CCard>
-              ),
-            )}
-          </CRow>
-          <div className="d-flex justify-content-center mt-4">
-            <CPagination>
+                        <CButton
+                          color="secondary"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleIncreaseQuantity(product.id)}
+                        >
+                          +
+                        </CButton>
+                        <span className="fw-light">
+                          ({product.Inventory.Material?.uom || 'UOM'})
+                        </span>
+                      </div>
+                    </CCol>
+                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                      <CIcon
+                        icon={cilTrash}
+                        className="text-danger"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleDelete(product.id)}
+                      />
+                    </CCol>
+                  </CRow>
+                </CCardBody>
+              </CCard>
+            ))}
+      </CRow>
+
+      {/* Pagination */}
+      <div className="d-flex justify-content-center mt-4">
+        {loading ? (
+          <Skeleton height={30} width={200} />
+        ) : (
+          <CPagination>
+            <CPaginationItem
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              Previous
+            </CPaginationItem>
+            {[...Array(totalPages)].map((_, index) => (
               <CPaginationItem
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
+                key={index + 1}
+                active={index + 1 === currentPage}
+                onClick={() => handlePageChange(index + 1)}
               >
-                Previous
+                {index + 1}
               </CPaginationItem>
-              {[...Array(totalPages)].map((_, index) => (
-                <CPaginationItem
-                  key={index + 1}
-                  active={index + 1 === currentPage}
-                  onClick={() => handlePageChange(index + 1)}
-                >
-                  {index + 1}
-                </CPaginationItem>
-              ))}
-              <CPaginationItem
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </CPaginationItem>
-            </CPagination>
-          </div>
-        </CCol>
+            ))}
+            <CPaginationItem
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Next
+            </CPaginationItem>
+          </CPagination>
+        )}
+      </div>
+    </CCol>
       </CRow>
     </CContainer>
   )

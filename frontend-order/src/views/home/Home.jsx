@@ -901,7 +901,7 @@ const Home = () => {
                     cursor: 'pointer',
                     width: '100%',
                     padding: '1px',
-                    margin: '10px',
+                    margin: '7px',
                     backgroundColor:
                       selectedCategory && selectedCategory.id === category.id
                         ? 'navy' // Warna navy jika kategori terpilih

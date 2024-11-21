@@ -24,7 +24,6 @@ import {
   CTabContent,
   CTabPanel,
   CBadge,
-  CCollapse
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -77,7 +76,6 @@ const History = () => {
   const [totalPages, setTotalPages] = useState(1)
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true) // Add loading state
-  const [isCollapsed, setIsCollapsed] = useState(true); // State for collaps
 
   useEffect(() => {
     // Simulate data fetching or processing delay
@@ -216,18 +214,15 @@ const History = () => {
     setCurrentPage(page)
     getMyorders(page)
   }
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed); // Toggle collapse state
-  };
 
   return (
     <>
       <CRow>
         <CCard style={{ border: 'none' }}>
           <CCardBody>
-            <h3 className="fw-bold fs-4">YOUR HISTORY</h3>
+            <h3 className="fw-bold fs-4 ">YOUR HISTORY</h3>
 
-            <CRow>
+            <CRow className="mt-1 ">
               {/* Left side: Search field */}
               <CCol xs={6} sm={6} md={3} lg={3} className="py-2">
                 <div
@@ -304,7 +299,7 @@ const History = () => {
         <CTabContent>
           {tabs.map((tab) => (
             <CTabPanel key={tab.key} itemKey={tab.key}>
-              <CRow className="g-1 mt-2">
+              <CRow className="g-1 mt-1">
                 {loading ? (
                   // Show skeleton loader while data is loading
                   [...Array(2)].map((_, index) => (
@@ -430,10 +425,10 @@ const History = () => {
             <CModalTitle>Order Details</CModalTitle>
           </CModalHeader>
           <CModalBody>
-            <CRow className="g-1 mt-2">
-              <CCard className="h-80">
+            <CRow className="g-1 ">
+              <CCard className="h-80 mt-1">
                 <CCardBody>
-                  <CRow className="align-items-center mb-3">
+                  <CRow className="align-items-center mb-2">
                     <CCol>
                       <CIcon className="me-2" icon={cilCart} />
                       <label className="me-2 fs-6">
@@ -454,73 +449,113 @@ const History = () => {
                       <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
                     </CCol>
                   </CRow>
-                  <hr />
-                  <div>
-                    <label onClick={toggleCollapse} style={{ cursor: 'pointer' }}>
-                      List of Product
-                    </label>
-                    <CCollapse show={!isCollapsed}>
-                      <div>
-                        {selectedProduct.Detail_Orders.map((detail) => (
-                          <CRow className="align-items-center mb-2" key={detail.id}>
-                            <CCol xs="1">
-                              <CCardImage
-                                src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
-                                style={{ height: '40px', width: '40px', objectFit: 'contain' }}
-                              />
-                            </CCol>
-                            <CCol xs="9">
-                              <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-                                {detail.Inventory.Material.description}
-                              </label>
-                            </CCol>
-                          </CRow>
-                        ))}
-                      </div>
-                    </CCollapse>
-                  </div>
-                  <hr />
-                  {orderHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                      }}
-                    >
+                  <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
+                  <label
+                    className="fw-light mb-1"
+                    style={{
+                      fontSize: '0.85rem', // Ukuran font kecil
+                    }}
+                  >
+                    List of Product
+                  </label>
+
+                  {selectedProduct.Detail_Orders.map((detail) => (
+                    <CRow className="align-items-center mb-2" key={detail.id}>
+                      <CCol xs="1">
+                        <CCardImage
+                          src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
+                          style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
+                        />
+                      </CCol>
+                      <CCol xs="8">
+                        <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                          {detail.Inventory.Material.description}
+                        </label>
+                      </CCol>
+
+                      {/* Kolom Kuantitas di Pojok Kanan */}
+                      <CCol xs="3" className="d-flex justify-content-end">
+                        <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                          {`${detail.quantity} ${detail.Inventory.Material.uom}`}
+                        </label>
+                      </CCol>
+                    </CRow>
+                  ))}
+                  <hr style={{ height: '5px', margin: '5px ' }} />
+                  <label
+                    className="fw-light mb-1"
+                    style={{
+                      fontSize: '0.85rem', // Ukuran font kecil
+                    }}
+                  >
+                    Tracking Item
+                  </label>
+                  {orderHistory.map((item, index) => {
+                    const isFirst = index === 0 // Memeriksa apakah item adalah yang pertama
+
+                    return (
                       <div
+                        key={item.id}
                         style={{
                           display: 'flex',
-                          alignItems: 'center',
-                          marginBottom: '16px',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
                         }}
                       >
-                        <label style={{ marginRight: '8px' }}>
-                          {format(parseISO(item.createdAt), 'dd MMM yyyy')}
-                          {', '}
-                          {format(parseISO(item.createdAt), 'HH:mm')}
-                        </label>
                         <div
                           style={{
-                            border: '2px solid #000',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
                             display: 'flex',
-                            justifyContent: 'center',
                             alignItems: 'center',
+                            marginBottom: '12px',
                           }}
                         >
-                          <CIcon icon={icons[item.icon]} size="lg" />
+                          {/* Tanggal dan waktu */}
+                          <label
+                            style={{
+                              marginRight: '7px',
+                              fontSize: '0.95rem',
+                              color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
+                            }}
+                          >
+                            {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                            {', '}
+                            {format(parseISO(item.createdAt), 'HH:mm')}
+                          </label>
+
+                          {/* Ikon dalam lingkaran */}
+                          <div
+                            style={{
+                              border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
+                              borderRadius: '50%',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <CIcon
+                              icon={icons[item.icon]}
+                              size="lg"
+                              style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
+                            />
+                          </div>
+
+                          {/* Status */}
+                          <label
+                            style={{
+                              marginLeft: '8px',
+                              fontSize: '0.95rem',
+                              textTransform: 'capitalize',
+                              color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
+                            }}
+                          >
+                            {item.status}
+                          </label>
                         </div>
-                        <label style={{ marginLeft: '8px' }}>
-                          {' '}
-                          {item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase()}
-                        </label>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </CCardBody>
               </CCard>
             </CRow>

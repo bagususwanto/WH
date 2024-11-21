@@ -389,42 +389,34 @@ const Confirm = () => {
               {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <CFormCheck
+              <CFormCheck
                   className="me-3"
                   type="radio"
                   id="pickup"
-                  label="Pickup"
-                  checked={isPickup}
-                  onChange={() => setIsPickup(true)}
-                  disabled
-                />
-                <CFormCheck
-                  type="radio"
-                  id="otodoke"
-                  label="Otodoke"
+                  label={`${Confirmwarehouse.deliveryMethod}`}
                   checked={!isPickup}
-                  onChange={() => setIsPickup(false)}
+                  onChange={() => setIsPickup()}
                   disabled
                 />
               </div>
               <hr />
               <label className="fw-bold mb-2">Address Detail Confirmation</label>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
                   <CIcon icon={cilHome} size="lg" />
                   <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
                 </div>
-                {!isPickup && (
+                {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                   <>
                     <CIcon icon={cilArrowBottom} size="lg" />
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
                       <CIcon icon={cilLocationPin} size="lg" />
                       <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
                     </div>
                   </>
                 )}
               </div>
-              {!isPickup && (
+              {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                 <>
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
@@ -454,7 +446,7 @@ const Confirm = () => {
                 className="mt-3"
                 placeholder="Leave a message"
                 rows={3}
-                value={message}
+                value={Confirmwarehouse.remarks}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />

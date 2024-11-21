@@ -282,7 +282,7 @@ const Cart = () => {
     <>
       <CRow className="mt-1">
         <CCard style={{ border: 'none' }}>
-          <h3 className="fw-bold fs-4">Your Cart</h3>
+          <h3 className="fw-bold fs-3">Your Cart</h3>
           <div
             className="ms-auto"
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -296,13 +296,13 @@ const Cart = () => {
             <CButton
               color="danger"
               onClick={handleDeleteAll}
-              className="btn-sm p-1 mb-2 text-white" // CoreUI class names
+              className="btn-sm p-1 mb-1 text-white" // CoreUI class names
             >
               Delete All
             </CButton>
           </div>
 
-          <CRow className="g-2">
+          <CRow className="g-1">
             {isLoading
               ? // Render skeleton loaders when loading is true
                 [...Array(5)].map((_, index) => (
@@ -359,7 +359,7 @@ const Cart = () => {
                   <CCard className="h-70" key={index}>
                     {/* Fixed card height */}
                     <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center" style={{ height: '100%' }}>
+                      <CRow className="align-items-center" style={{ height: '90%' }}>
                         {/* Image Column */}
                         <CCol xs="2" className="d-flex justify-content-center align-items-center">
                           <CCardImage
@@ -367,7 +367,7 @@ const Cart = () => {
                             alt={product.Inventory.Material.description}
                             style={{
                               height: '82px', // Fixed height for image
-                              width: '43%', // Make image take the full width of the column
+                              width: '48%', // Make image take the full width of the column
                               objectFit: 'cover', // Ensure the image scales to fill the space without distorting (may crop)
                             }}
                           />
