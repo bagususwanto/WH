@@ -230,22 +230,34 @@ const useNavigation = () => {
     }
 
     if (roleName === 'warehouse staff') {
-      baseNav.push(
-        {
-          component: CNavTitle,
-          name: 'Good Issue Confirm',
-        },
-        {
-          component: CNavItem,
-          name: 'Confirmation Order',
-          to: '/dummy-route', // Internal route, just a placeholder
-          icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
-          onClick: (e) => {
-            e.preventDefault() // Prevent the default behavior of `to`
-            window.open(`${config.ORDER_URL}/#/confirmall`, '_blank') // Use base URL from config
+      baseNav.push({
+        component: CNavGroup,
+        name: 'TWIIS-Confirmation',
+        to: '/order',
+        icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Good Issue Confirm',
+            to: '/dummy-route', // Internal route, just a placeholder
+            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            onClick: (e) => {
+              e.preventDefault() // Prevent the default behavior of `to`
+              window.open(`${config.ORDER_URL}/#/confirmall`, '_blank') // Use base URL from config
+            },
           },
-        },
-      )
+          {
+            component: CNavItem,
+            name: 'Shopping',
+            to: '/dummy-route', // Internal route, just a placeholder
+            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            onClick: (e) => {
+              e.preventDefault() // Prevent the default behavior of `to`
+              window.open(`${config.ORDER_URL}/#/shopping`, '_blank') // Use base URL from config
+            },
+          },
+        ],
+      })
     }
     if (roleName === 'warehouse member') {
       baseNav.push(
