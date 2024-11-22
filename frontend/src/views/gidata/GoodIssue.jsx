@@ -54,7 +54,7 @@ const Incoming = () => {
   const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
   const [sectionId, setSectionId] = useState()
-
+  const [status, setStatus] = useState([])
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
@@ -66,6 +66,7 @@ const Incoming = () => {
 
   const apiPlant = 'plant-public'
   const apiSection = 'section-plant'
+  const apiStatus = 'status-order'
 
   const columns = [
     {
@@ -126,6 +127,7 @@ const Incoming = () => {
 
   useEffect(() => {
     getPlant()
+    getStatus()
     setLoading(false)
     initFilters()
   }, [])
@@ -197,6 +199,20 @@ const Incoming = () => {
         id: plant.id,
       }))
       setPlant(plantOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
+  const getStatus = async () => {
+    try {
+      const response = await getMasterData(apiStatus)
+      const statusOptions = response.data.map((status) => ({
+        label: status.status,
+        value: status.status,
+        id: status.id,
+      }))
+      setStatus(statusOptions)
     } catch (error) {
       console.error('Error fetching plant:', error)
     }
@@ -534,7 +550,7 @@ const Incoming = () => {
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['status'].value}
-                  options={storage}
+                  options={status}
                   onChange={handleSectionChange}
                   placeholder="Select Status"
                   className="p-column-filter mb-2"
