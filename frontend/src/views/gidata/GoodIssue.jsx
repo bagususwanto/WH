@@ -45,7 +45,7 @@ const Incoming = () => {
   const [goodIssue, setGoodIssue] = useState([])
   const [plant, setPlant] = useState([])
   const [shop, setShop] = useState([])
-  const [storage, setStorage] = useState([])
+  const [section, setSection] = useState([])
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
@@ -208,7 +208,10 @@ const Incoming = () => {
     try {
       const response = await getMasterData(apiStatus)
       const statusOptions = response.data.map((status) => ({
-        label: status.status,
+        label: status.status
+          .split(' ') // Pisahkan berdasarkan spasi
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Ubah huruf pertama jadi kapital dan sisanya kecil
+          .join(' '), // Gabungkan kembali menjadi string
         value: status.status,
         id: status.id,
       }))
@@ -228,7 +231,7 @@ const Incoming = () => {
         label: section.sectionName,
         value: section.sectionName,
       }))
-      setStorage(sectionOptions)
+      setSection(sectionOptions)
     } catch (error) {
       console.error('Error fetching storage by ID:', error)
     }
@@ -236,13 +239,21 @@ const Incoming = () => {
 
   const handleSectionChange = (e) => {
     const selectedSectionName = e.value
-    const selectedSection = storage.find((s) => s.value === selectedSectionName) // Cari objek storage berdasarkan storageName
-    const sectionId = selectedSection?.id // Dapatkan storage.id
+    const selectedSection = section.find((s) => s.value === selectedSectionName)
+    const sectionId = selectedSection?.id
     setSectionId(sectionId)
-    // setShouldFetch(true)
-    // let _filters = { ...filters }
-    // _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
-    // setFilters(_filters)
+    let _filters = { ...filters }
+    _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
+    setFilters(_filters)
+  }
+
+  const handleStatusChange = (e) => {
+    const selectedStatus = e.value
+
+    setStatusOrder(selectedStatus)
+    let _filters = { ...filters }
+    _filters['status'].value = e.value
+    setFilters(_filters)
   }
 
   const handlePlantChange = (e) => {
@@ -252,7 +263,6 @@ const Incoming = () => {
     setPlantId(plantId)
 
     getSectionByPlantId(plantId)
-    // setShouldFetch(true)
 
     let _filters = { ...filters }
     _filters['User.Organization.Plant.plantName'].value = selectedPlantName
@@ -349,30 +359,6 @@ const Incoming = () => {
     })
   }
 
-  const downloadTemplate = () => {
-    import('xlsx').then((xlsx) => {
-      // Mapping data untuk ekspor
-      const mappedData = [
-        {
-          materialNo: '',
-          addressRackName: '',
-          planning: '',
-          actual: '',
-          storageName: '',
-        },
-      ]
-
-      const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { goodIssue: worksheet }, SheetNames: ['goodIssue'] }
-      const excelBuffer = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
-      })
-
-      saveAsExcelFile(excelBuffer, 'template_goodIssue')
-    })
-  }
-
   const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
       if (module && module.default) {
@@ -428,51 +414,6 @@ const Incoming = () => {
 
   const clearFilter = () => {
     initFilters()
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    setGoodIssueData((prevData) => ({
-      ...prevData,
-      file: file,
-    }))
-  }
-
-  const showModalUpload = () => {
-    setVisible(true)
-  }
-
-  const handleImport = async () => {
-    setLoadingImport(true)
-    try {
-      if (!plantId) {
-        MySwal.fire('Error', 'Plant is required, please select a dropdown plant.', 'error')
-        return
-      }
-
-      if (!goodIssueData.file) {
-        MySwal.fire('Error', 'Please select a file', 'error')
-        return
-      }
-
-      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
-
-      if (radio === 'plan') {
-        await postIncomingPlan(apiIncomingPlan, warehouseId.id, goodIssueData)
-        MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
-      } else if (radio === 'actual') {
-        await postIncomingActual(apiIncomingActual, warehouseId.id, goodIssueData)
-        MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
-      }
-
-      setImported(true)
-      setShouldFetch(true)
-    } catch (error) {
-      console.error('Error during import:', error)
-    } finally {
-      setLoadingImport(false)
-      setVisible(false)
-    }
   }
 
   const LoadingComponent = () => (
@@ -539,7 +480,7 @@ const Incoming = () => {
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['User.Organization.Section.sectionName'].value}
-                  options={storage}
+                  options={section}
                   onChange={handleSectionChange}
                   placeholder="Select Section"
                   className="p-column-filter mb-2"
@@ -579,24 +520,6 @@ const Incoming = () => {
                         severity="success"
                         className="rounded-5 me-2 mb-2"
                         onClick={exportExcel}
-                        data-pr-tooltip="XLS"
-                      />
-                      <Button
-                        type="button"
-                        label="Upload"
-                        icon="pi pi-file-import"
-                        severity="primary"
-                        className="rounded-5 me-2 mb-2"
-                        onClick={showModalUpload}
-                        data-pr-tooltip="XLS"
-                      />
-                      <Button
-                        type="button"
-                        label="Template"
-                        icon="pi pi-download"
-                        severity="primary"
-                        className="rounded-5 mb-2"
-                        onClick={downloadTemplate}
                         data-pr-tooltip="XLS"
                       />
                     </div>
@@ -684,88 +607,6 @@ const Incoming = () => {
           </CCardBody>
         </CCard>
       </CCol>
-
-      <CModal visible={visible} onClose={() => setVisible(false)}>
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Upload Incoming</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <div className="mb-3">
-            <CFormSelect
-              label="Plant"
-              aria-label="Select Plant"
-              options={[
-                'Select Plant',
-                ...plant.map((plant) => ({ label: plant.label, value: plant.id })),
-              ]}
-              value={plantId}
-              onChange={(e) => setPlantId(e.target.value)}
-            />
-          </div>
-          <CFormLabel>Date</CFormLabel>
-          <div className="mb-3">
-            <Flatpickr
-              value={date}
-              options={{
-                dateFormat: 'Y-m-d',
-                maxDate: new Date(),
-                allowInput: true,
-              }}
-              onChange={(date) => setDate(date)}
-              className="form-control"
-              placeholder="Select a date"
-            />
-          </div>
-          <div className="mb-3">
-            <CFormInput
-              onChange={handleFileChange} // Handle perubahan file
-              type="file"
-              label="Excel File"
-              accept=".xlsx" // Hanya menerima file Excel
-            />
-          </div>
-          <div className="mb-3 d-flex justify-content-center">
-            <CFormCheck
-              type="radio"
-              name="flexRadioDefault"
-              id="flexRadioDefault1"
-              label="Incoming Plan"
-              defaultChecked={radio === 'plan'}
-              inline
-              onChange={() => setRadio('plan')}
-            />
-            <CFormCheck
-              type="radio"
-              name="flexRadioDefault"
-              id="flexRadioDefault2"
-              label="Incoming Actual"
-              defaultChecked={radio === 'actual'}
-              inline
-              onChange={() => setRadio('actual')}
-            />
-          </div>
-        </CModalBody>
-        <CModalFooter>
-          <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
-          >
-            <CButton color="primary" onClick={() => handleImport()}>
-              {loadingImport ? (
-                <>
-                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
-                  Importing...
-                </>
-              ) : (
-                'Import'
-              )}
-            </CButton>
-          </Suspense>
-        </CModalFooter>
-      </CModal>
     </CRow>
   )
 }
