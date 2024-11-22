@@ -41,7 +41,7 @@ import 'flatpickr/dist/flatpickr.min.css'
 
 const MySwal = withReactContent(Swal)
 
-const Incoming = () => {
+const GoodIssue = () => {
   const [goodIssue, setGoodIssue] = useState([])
   const [plant, setPlant] = useState([])
   const [shop, setShop] = useState([])
@@ -611,4 +611,4 @@ const Incoming = () => {
   )
 }
 
-export default Incoming
+export default GoodIssue
