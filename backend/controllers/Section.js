@@ -119,6 +119,7 @@ export const getSectionByPlant = async (req, res) => {
             {
               model: Plant,
               required: true,
+              limit: 1,
               attributes: ["id"],
               where: { id: plantId, flag: 1 },
             },
