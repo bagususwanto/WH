@@ -14,6 +14,7 @@ import Order from "../models/OrderModel.js";
 import Approval from "../models/ApprovalModel.js";
 import Organization from "../models/OrganizationModel.js";
 import Section from "../models/SectionModel.js";
+import DetailOrder from "../models/DetailOrderModel.js";
 
 export const getGoodIssue = async (req, res) => {
   try {
@@ -58,33 +59,40 @@ export const getGoodIssue = async (req, res) => {
         where: whereCondition,
         include: [
           {
-            model: Inventory,
+            model: DetailOrder,
             required: true,
             attributes: ["id"],
             include: [
               {
-                model: Material,
+                model: Inventory,
                 required: true,
-                attributes: ["id", "materialNo", "description", "uom"],
-                where: { flag: 1 },
-              },
-              {
-                model: AddressRack,
-                where: { flag: 1 },
                 attributes: ["id"],
-                required: true,
                 include: [
                   {
-                    model: Storage,
+                    model: Material,
                     required: true,
+                    attributes: ["id", "materialNo", "description", "uom"],
+                    where: { flag: 1 },
+                  },
+                  {
+                    model: AddressRack,
                     where: { flag: 1 },
                     attributes: ["id"],
+                    required: true,
                     include: [
                       {
-                        model: Plant,
+                        model: Storage,
                         required: true,
-                        where: whereConditionPlant,
-                        attributes: ["id", "plantName"],
+                        where: { flag: 1 },
+                        attributes: ["id"],
+                        include: [
+                          {
+                            model: Plant,
+                            required: true,
+                            where: whereConditionPlant,
+                            attributes: ["id", "plantName"],
+                          },
+                        ],
                       },
                     ],
                   },
