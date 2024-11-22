@@ -42,7 +42,7 @@ import 'flatpickr/dist/flatpickr.min.css'
 const MySwal = withReactContent(Swal)
 
 const Incoming = () => {
-  const [incoming, setIncoming] = useState([])
+  const [goodIssue, setGoodIssue] = useState([])
   const [plant, setPlant] = useState([])
   const [shop, setShop] = useState([])
   const [storage, setStorage] = useState([])
@@ -54,10 +54,7 @@ const Incoming = () => {
   const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
   const [sectionId, setSectionId] = useState()
-  const [incomingData, setIncomingData] = useState({
-    importDate: date,
-    file: null, // Mengubah tipe ke null karena file adalah objek
-  })
+
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
@@ -68,11 +65,7 @@ const Incoming = () => {
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant-public'
-  const apiShop = 'shop-plant'
   const apiSection = 'section-plant'
-  const apiIncomingPlan = 'upload-incoming-plan'
-  const apiIncomingActual = 'upload-incoming-actual'
-  const apiWarehousePlant = 'warehouse-plant'
 
   const columns = [
     {
@@ -97,15 +90,15 @@ const Incoming = () => {
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'Log_Import.importDate': {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
-    'Inventory.Address_Rack.Storage.storageName': {
+    'User.Organization.Section.sectionName': {
       value: null,
       matchMode: FilterMatchMode.CONTAINS,
     },
-    'Inventory.Address_Rack.Storage.Plant.plantName': {
+    'User.Organization.Plant.plantName': {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+    status: {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -114,15 +107,15 @@ const Incoming = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'Log_Import.importDate': {
+      'User.Organization.Section.sectionName': {
+        value: null,
+        matchMode: FilterMatchMode.CONTAINS,
+      },
+      'User.Organization.Plant.plantName': {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-      'Inventory.Address_Rack.Storage.storageName': {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-      'Inventory.Address_Rack.Storage.Plant.plantName': {
+      status: {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
@@ -139,17 +132,11 @@ const Incoming = () => {
 
   useEffect(() => {
     applyFilters()
-  }, [filters, globalFilterValue, incoming])
+  }, [filters, globalFilterValue, goodIssue])
 
-  // useEffect(() => {
-  //   if (!shouldFetch) return
-  //   if (imported) {
-  //     fetchIncoming()
-  //     setImported(false) // Reset state
-  //     return
-  //   }
-  //   fetchIncoming()
-  // }, [imported, dates, plantId, storageId, shouldFetch])
+  useEffect(() => {
+    fetchGoodIssue()
+  }, [])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -164,7 +151,7 @@ const Incoming = () => {
     }
   }
 
-  const fetchIncoming = async () => {
+  const fetchGoodIssue = async () => {
     setLoading(true)
     try {
       let startDate
@@ -175,27 +162,27 @@ const Incoming = () => {
         endDate = format(dates[1], 'yyyy-MM-dd')
       }
 
-      const response = await getIncoming(
+      const response = await getGoodIssue(
         startDate ? startDate : '',
         endDate ? endDate : '',
         plantId ? plantId : '',
-        storageId ? storageId : '',
+        sectionId ? sectionId : '',
+        'waiting approval',
       )
-      const dataWithFormattedFields = response.data.map((item) => {
-        const discrepancy = item.actual - item.planning
+      // const dataWithFormattedFields = response.data.map((item) => {
 
-        return {
-          ...item,
-          discrepancy,
-          formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          formattedUpdateAt: item.updatedAt
-            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-            : '',
-        }
-      })
-      setIncoming(dataWithFormattedFields)
+      //   return {
+      //     ...item,
+      //     formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+      //     formattedUpdateAt: item.updatedAt
+      //       ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+      //       : '',
+      //   }
+      // })
+      setGoodIssue(response.data)
+      console.log(response.data)
     } catch (error) {
-      console.error('Error fetching incoming:', error)
+      console.error('Error fetching goodIssue:', error)
     } finally {
       setLoading(false) // Set loading to false after data is fetched
     }
@@ -231,22 +218,6 @@ const Incoming = () => {
     }
   }
 
-  const editIncoming = async (updateItem) => {
-    try {
-      const { id, ...data } = updateItem
-      if (!plantId) {
-        MySwal.fire('Error!', 'Plant is required, please select a dropdown plant', 'error')
-        return
-      }
-      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
-      await updateIncomingById(id, warehouseId.id, data)
-      fetchIncoming()
-      Swal.fire('Updated!', 'Data has been updated.', 'success')
-    } catch (error) {
-      console.error('Error fetching incoming:', error)
-    }
-  }
-
   const handleSectionChange = (e) => {
     const selectedSectionName = e.value
     const selectedSection = storage.find((s) => s.value === selectedSectionName) // Cari objek storage berdasarkan storageName
@@ -267,9 +238,9 @@ const Incoming = () => {
     getSectionByPlantId(plantId)
     // setShouldFetch(true)
 
-    // let _filters = { ...filters }
-    // _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
-    // setFilters(_filters)
+    let _filters = { ...filters }
+    _filters['User.Organization.Plant.plantName'].value = selectedPlantName
+    setFilters(_filters)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -281,7 +252,7 @@ const Incoming = () => {
   }
 
   const applyFilters = () => {
-    let filteredData = [...incoming]
+    let filteredData = [...goodIssue]
 
     if (filters['global'].value) {
       const globalFilterValue = filters['global'].value.toLowerCase()
@@ -291,26 +262,24 @@ const Incoming = () => {
       })
     }
 
-    if (filters['Log_Import.importDate'].value) {
+    if (filters['User.Organization.Section.sectionName'].value) {
       filteredData = filteredData.filter(
-        (item) => item.Log_Import.importDate === filters['Log_Import.importDate'].value,
+        (item) =>
+          item.User.Organization.Section.sectionName ===
+          filters['User.Organization.Section.sectionName'].value,
       )
     }
 
-    if (filters['Inventory.Address_Rack.Storage.storageName'].value) {
+    if (filters['User.Organization.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.Inventory.Address_Rack.Storage.storageName ===
-          filters['Inventory.Address_Rack.Storage.storageName'].value,
+          item.User.Organization.Plant.plantName ===
+          filters['User.Organization.Plant.plantName'].value,
       )
     }
 
-    if (filters['Inventory.Address_Rack.Storage.Plant.plantName'].value) {
-      filteredData = filteredData.filter(
-        (item) =>
-          item.Inventory.Address_Rack.Storage.Plant.plantName ===
-          filters['Inventory.Address_Rack.Storage.Plant.plantName'].value,
-      )
+    if (filters['status'].value) {
+      filteredData = filteredData.filter((item) => item.status === filters['status'].value)
     }
 
     setVisibleData(filteredData)
@@ -360,7 +329,7 @@ const Incoming = () => {
         type: 'array',
       })
 
-      saveAsExcelFile(excelBuffer, 'incoming')
+      saveAsExcelFile(excelBuffer, 'goodIssue')
     })
   }
 
@@ -378,13 +347,13 @@ const Incoming = () => {
       ]
 
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { incoming: worksheet }, SheetNames: ['incoming'] }
+      const workbook = { Sheets: { goodIssue: worksheet }, SheetNames: ['goodIssue'] }
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
         type: 'array',
       })
 
-      saveAsExcelFile(excelBuffer, 'template_incoming')
+      saveAsExcelFile(excelBuffer, 'template_goodIssue')
     })
   }
 
@@ -398,7 +367,7 @@ const Incoming = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_incoming') {
+        if (fileName === 'template_goodIssue') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -409,27 +378,6 @@ const Incoming = () => {
             fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION,
           )
         }
-      }
-    })
-  }
-
-  const onRowEditComplete = (e) => {
-    let _incoming = [...incoming]
-    let { newData, index } = e
-    MySwal.fire({
-      title: 'Are you sure?',
-      html: `You are about to update the data <span style="color: red;">${newData.Inventory.Material.materialNo}</span>
-      with quantity <span style="color: blue;">${newData.actual}</span>. Do you want to proceed?`,
-      icon: 'question',
-      showCancelButton: true,
-      // confirmButtonColor: '#3085d6',
-      // cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, update it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        _incoming[index] = newData
-        setIncoming(_incoming)
-        editIncoming(_incoming[index])
       }
     })
   }
@@ -468,7 +416,7 @@ const Incoming = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    setIncomingData((prevData) => ({
+    setGoodIssueData((prevData) => ({
       ...prevData,
       file: file,
     }))
@@ -486,7 +434,7 @@ const Incoming = () => {
         return
       }
 
-      if (!incomingData.file) {
+      if (!goodIssueData.file) {
         MySwal.fire('Error', 'Please select a file', 'error')
         return
       }
@@ -494,10 +442,10 @@ const Incoming = () => {
       const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
 
       if (radio === 'plan') {
-        await postIncomingPlan(apiIncomingPlan, warehouseId.id, incomingData)
+        await postIncomingPlan(apiIncomingPlan, warehouseId.id, goodIssueData)
         MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
       } else if (radio === 'actual') {
-        await postIncomingActual(apiIncomingActual, warehouseId.id, incomingData)
+        await postIncomingActual(apiIncomingActual, warehouseId.id, goodIssueData)
         MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
       }
 
@@ -514,7 +462,7 @@ const Incoming = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading incoming data...</p>
+      <p>Loading goodIssue data...</p>
     </div>
   )
 
@@ -563,7 +511,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Inventory.Address_Rack.Storage.Plant.plantName'].value}
+                  value={filters['User.Organization.Plant.plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -574,7 +522,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Inventory.Address_Rack.Storage.storageName'].value}
+                  value={filters['User.Organization.Section.sectionName'].value}
                   options={storage}
                   onChange={handleSectionChange}
                   placeholder="Select Section"
@@ -585,7 +533,7 @@ const Incoming = () => {
               </CCol>
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
-                  value={filters['Inventory.Address_Rack.Storage.storageName'].value}
+                  value={filters['status'].value}
                   options={storage}
                   onChange={handleSectionChange}
                   placeholder="Select Status"
@@ -651,11 +599,10 @@ const Incoming = () => {
                   dataKey="id"
                   filters={filters}
                   loading={loading}
-                  emptyMessage="No incoming found."
+                  emptyMessage="No goodIssue found."
                   size="small"
                   scrollable
                   editMode="row"
-                  onRowEditComplete={onRowEditComplete}
                   removableSort
                   header={header}
                 >
