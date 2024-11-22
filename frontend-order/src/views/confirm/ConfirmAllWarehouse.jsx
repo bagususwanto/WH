@@ -48,9 +48,8 @@ import {
   cilCheckCircle,
   cilClipboard,
   cilTruck,
-  cilTask,
-  cilX,
-  cilXCircle,
+  cilWalk,
+  cilCircle,
 } from '@coreui/icons'
 import { GlobalContext } from '../../context/GlobalProvider'
 import useWarehouseService from '../../services/WarehouseService'
@@ -86,6 +85,7 @@ const ApproveAll = () => {
   const [currentProducts, setCurrentProducts] = useState([])
   const [activeTab, setActiveTab] = useState('Waiting Confirmation')
   const navigate = useNavigate()
+  const [orderHistory, setOrderHistory] = useState([])
   const { warehouse } = useContext(GlobalContext)
   const [selectedProduct, setSelectedProduct] = useState(null) // Add this state
   const [visible, setVisible] = useState(false) // State for modal visibility
@@ -106,6 +106,25 @@ const ApproveAll = () => {
         return 'success'
       case 'rejected':
         return 'danger'
+    }
+  }
+
+  const icons = {
+    cilClipboard,
+    cilHome,
+    cilUser,
+    cilCheckCircle,
+    cilTruck,
+    cilWalk,
+    cilCircle,
+  }
+
+  const getOrderHistories = async (id) => {
+    try {
+      const response = await getWarehouseConfirm(id)
+      setOrderHistory(response.data)
+    } catch (error) {
+      console.error('Error fetching Order History:', error)
     }
   }
 
@@ -178,6 +197,14 @@ const ApproveAll = () => {
   }
   // Total harga produk
   const handleWarehouseConfirmationproduct = (product) => {
+    if (activeTab === 'Completed') {
+      getOrderHistories(product.id)
+      setSelectedProduct(product) // Simpan produk yang dipilih ke state
+
+      setVisible(true) // Tampilkan modal
+      return
+    }
+
     const statusHandlerMap = {
       'Waiting Confirmation': handleWaitingConfirmation,
       'On Process': handleOnProcess,
@@ -439,6 +466,146 @@ const ApproveAll = () => {
                   </CRow>
                 </CCard>
               </CRow>
+              {selectedProduct && (
+                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+                  <CModalHeader>
+                    <CModalTitle>Product Details</CModalTitle>
+                  </CModalHeader>
+                  <CModalBody>
+                    <CRow className="g-1 mt-2">
+                      <CCard className="h-80">
+                        <CCardBody>
+                          <CRow className="align-items-center mb-3">
+                            <CCol>
+                              <CIcon className="me-2" icon={cilCart} />
+                              <label className="me-2 fs-6">
+                                {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                              </label>
+                              <CBadge className="me-2" size="md" color="success">
+                                {selectedProduct.status?.toUpperCase()}
+                              </CBadge>
+                              <label className="me-2 fw-light">
+                                {selectedProduct.requestNumber}
+                              </label>
+                            </CCol>
+                          </CRow>
+                          <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
+                          <label
+                            className="fw-light mb-1"
+                            style={{
+                              fontSize: '0.85rem', // Ukuran font kecil
+                            }}
+                          >
+                            List of Product
+                          </label>
+                          {selectedProduct?.Detail_Orders?.map((detail, index) => (
+                            <CRow className="align-items-center mb-2" key={index}>
+                              <CCol xs="1">
+                                <CCardImage
+                                  src={detail.Inventory.Material.img}
+                                  style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
+                                />
+                              </CCol>
+                              <CCol xs="9">
+                                <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                                  {' '}
+                                  {/* Smaller text */}
+                                  {detail.Inventory.Material.description}
+                                </label>
+                              </CCol>
+                              <CCol
+                                xs="2"
+                                className="text-end"
+                                style={{ fontSize: '0.8rem', lineHeight: '1.2' }}
+                              >
+                                <label className="fw-bold">
+                                  Rp{' '}
+                                  {detail.Inventory.Material.price.toLocaleString('id-ID') || '0'}
+                                </label>
+                              </CCol>
+                            </CRow>
+                          ))}
+                          <hr style={{ height: '5px', margin: '2px ' }} />
+                          <label
+                            className="fw-light mb-1"
+                            style={{
+                              fontSize: '0.85rem', // Ukuran font kecil
+                            }}
+                          >
+                            Tracking Item
+                          </label>
+                          {orderHistory.map((item, index) => {
+                            const isFirst = index === 0 // Memeriksa apakah item adalah yang pertama
+
+                            return (
+                              <div
+                                key={item.id}
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    marginBottom: '12px',
+                                  }}
+                                >
+                                  {/* Tanggal dan waktu */}
+                                  <label
+                                    style={{
+                                      marginRight: '7px',
+                                      fontSize: '0.95rem',
+                                      color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
+                                    }}
+                                  >
+                                    {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                                    {', '}
+                                    {format(parseISO(item.createdAt), 'HH:mm')}
+                                  </label>
+
+                                  {/* Ikon dalam lingkaran */}
+                                  <div
+                                    style={{
+                                      border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
+                                      borderRadius: '50%',
+                                      width: '40px',
+                                      height: '40px',
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                    }}
+                                  >
+                                    <CIcon
+                                      icon={icons[item.icon]}
+                                      size="lg"
+                                      style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
+                                    />
+                                  </div>
+
+                                  {/* Status */}
+                                  <label
+                                    style={{
+                                      marginLeft: '8px',
+                                      fontSize: '0.95rem',
+                                      textTransform: 'capitalize',
+                                      color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
+                                    }}
+                                  >
+                                    {item.status}
+                                  </label>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </CCardBody>
+                      </CCard>
+                    </CRow>
+                  </CModalBody>
+                </CModal>
+              )}
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

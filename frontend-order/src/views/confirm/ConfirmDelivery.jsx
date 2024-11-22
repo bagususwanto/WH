@@ -21,7 +21,7 @@ import {
   CFormCheck,
   CFooter,
   CFormLabel,
-  CFormTextarea
+  CFormTextarea,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -97,6 +97,7 @@ const ApproveAll = () => {
   const apiCategory = 'category'
   const { warehouse } = useContext(GlobalContext)
   const [message, setMessage] = useState('')
+  const [selectedItems, setSelectedItems] = useState({})
 
   useEffect(() => {
     // Add a specific class to body
@@ -174,7 +175,7 @@ const ApproveAll = () => {
       if (result.isConfirmed) {
         try {
           // Call the postApproval function
-          const response = await completeWarehouse(warehouseId,orderId,data)
+          const response = await completeWarehouse(warehouseId, orderId, data)
 
           if (response && response.status === 200) {
             Swal.fire('Approved!', 'The order has been Confirm order successfully.', 'success')
@@ -190,53 +191,60 @@ const ApproveAll = () => {
   }
   console.log('confirm', Confirmwarehouse)
   console.log('saved', savedConfirmWarehouse)
-
+  const toggleSelectItem = (index) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle status untuk item berdasarkan index
+    }))
+  }
   return (
     <CContainer>
-    <CRow className="mt-1">
-      <CCol xs={4}>
-      <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-          <CCardBody>
-            {/* {roleName === 'super admin' && ( */}
-            <div
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
-              <CButton color="primary" onClick={handleApprove}>
-               Confirm Now
-              </CButton>
-            </div>
-          </CCardBody>
-        </CCard>
-        <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-          <CCardBody>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-              <img
-                src="path-to-user-photo.jpg"
-                alt="User Profile"
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  marginRight: '16px',
-                }}
-              />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div>
-                  <strong>FORM:</strong> {Confirmwarehouse.User?.name}
-                </div>
-                <div>
-                  <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
-                </div>
-                <div>
-                  <small>Request at {format(parseISO(Confirmwarehouse.createdAt),'dd/MM/yyyy')} </small>
+      <CRow className="mt-1">
+        <CCol xs={4}>
+          <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+            <CCardBody>
+              {/* {roleName === 'super admin' && ( */}
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
+                <CButton color="primary" onClick={handleApprove}>
+                  Confirm Now
+                </CButton>
+              </div>
+            </CCardBody>
+          </CCard>
+          <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+            <CCardBody>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <img
+                  src="path-to-user-photo.jpg"
+                  alt="User Profile"
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    marginRight: '16px',
+                  }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div>
+                    <strong>FORM:</strong> {Confirmwarehouse.User?.name}
+                  </div>
+                  <div>
+                    <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
+                  </div>
+                  <div>
+                    <small>
+                      Request at {format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}{' '}
+                    </small>
+                  </div>
                 </div>
               </div>
-            </div>
-            {/* )} */}
-            <label className="fw-bold mb-2">Select Delivery Type</label>
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <CFormCheck
+              {/* )} */}
+              <label className="fw-bold mb-2">Select Delivery Type</label>
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <CFormCheck
                   className="me-3"
                   type="radio"
                   id="pickup"
@@ -245,15 +253,15 @@ const ApproveAll = () => {
                   onChange={() => setIsPickup()}
                   disabled
                 />
-            </div>
-            <hr />
-            <label className="fw-bold mb-2">Address Detail Confirmation</label>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <CIcon icon={cilHome} size="lg" />
-                <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
               </div>
-             {Confirmwarehouse.deliveryMethod !== 'pickup' && (
+              <hr />
+              <label className="fw-bold mb-2">Address Detail Confirmation</label>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <CIcon icon={cilHome} size="lg" />
+                  <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+                </div>
+                {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                   <>
                     <CIcon icon={cilArrowBottom} size="lg" />
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
@@ -276,37 +284,30 @@ const ApproveAll = () => {
                   </div>
                 </>
               )}
-            <hr />
-            <label className="fw-bold mb-2">Payment</label>
-            <CFormCheck
-              type="radio"
-              id="payment2"
-              label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
-              checked={iswbs}
-              onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
-              disabled
-            />
-            <hr />
-            <CFormTextarea
-              className="mt-3"
-              placeholder="Leave a message"
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              disabled
-            />
-          </CCardBody>
-        </CCard>
-      </CCol>
+              <hr />
+              <label className="fw-bold mb-2">Payment</label>
+              <CFormCheck
+                type="radio"
+                id="payment2"
+                label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
+                checked={iswbs}
+                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
+                disabled
+              />
+              <hr />
+              <CFormTextarea
+                className="mt-3"
+                placeholder="Leave a message"
+                rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled
+              />
+            </CCardBody>
+          </CCard>
+        </CCol>
 
-      <CCol xs={8}>
-        {/* Address Code Form */}
-        <CRow className="g-1   mb-2">
-          <CFormLabel htmlFor="address">Address Code</CFormLabel>
-        </CRow>
-
-        {/* Scrollable Products Section */}
-        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+        <CCol xs={8}>
           <CRow className="g-2">
             {Confirmwarehouse.Detail_Orders?.map(
               (
@@ -314,12 +315,12 @@ const ApproveAll = () => {
                 index, // Change from productsData to currentProducts
               ) => (
                 <CCard
-                  className={`h-80 ${selectedCardIndexes.includes(index) ? 'bg-success text-white' : ''}`} // Apply green background if selected
                   key={index}
-                  onClick={() => handleCardClick(index)} // Handle card click
+                  className="d-flex flex-column justify-content-between"
+                  onClick={() => toggleSelectItem(index)}
                   style={{
-                    cursor: 'pointer', // Show pointer cursor on hover to indicate it's clickable
-                    transition: 'background-color 0.3s', // Smooth transition for background color change
+                    backgroundColor: selectedItems[index] ? '#A1C398' : 'white', // Hijau jika dipilih, putih jika tidak
+                    cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
                   }}
                 >
                   <CCardBody className="d-flex flex-column justify-content-between">
@@ -335,7 +336,7 @@ const ApproveAll = () => {
                           <label>{product.Inventory.Material?.description}</label>
                           <br />
                           <label className="fw-bold">
-                            {product.Inventory.Address_Rack ?.addressRackName}
+                            {product.Inventory.Address_Rack?.addressRackName}
                           </label>
                         </div>
                       </CCol>
@@ -347,8 +348,9 @@ const ApproveAll = () => {
                             alignItems: 'center',
                           }}
                         >
-                          <span>2</span>
-                          <span className="px-2 fw-light">{product.Material?.uom || 'UOM'}</span>
+                          <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                            {`${product.quantity} ${product.Inventory.Material.uom}`}
+                          </label>
                         </div>
                       </CCol>
                     </CRow>
@@ -365,10 +367,9 @@ const ApproveAll = () => {
               ),
             )}
           </CRow>
-        </div>
-      </CCol>
-    </CRow>
-  </CContainer>
+        </CCol>
+      </CRow>
+    </CContainer>
   )
 }
 

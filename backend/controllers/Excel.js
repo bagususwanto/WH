@@ -212,12 +212,18 @@ export const getInventoryIdByMaterialIdAndAddressId = async (
       where: { materialId },
     });
 
-    if (inventory) {
-      // Jika data ditemukan, perbarui addressId
+    if (
+      inventory.materialId === materialId &&
+      inventory.addressId !== addressId
+    ) {
+      // Jika materialId ditemukan dan addressId berbeda, perbarui addressId
       await inventory.update({ addressId });
       return inventory.id;
-    } else {
-      // Jika data tidak ditemukan, buat data baru
+    } else if (
+      inventory.materialId === materialId &&
+      inventory.addressId === addressId
+    ) {
+      // Jika materialId ditemukan dan addressId sama, buat data baru
       const newInventory = await Inventory.create({ materialId, addressId });
       return newInventory.id;
     }
@@ -437,20 +443,16 @@ export const uploadIncomingPlan = async (req, res) => {
     // Commit transaksi utama
     await mainTransaction.commit();
 
-    res
-      .status(200)
-      .send({
-        message: `Uploaded the file successfully: ${req.file.originalname}`,
-      });
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+    });
   } catch (error) {
     if (logImportTransaction) await logImportTransaction.rollback();
     if (mainTransaction) await mainTransaction.rollback();
     console.error("File processing error:", error);
-    res
-      .status(500)
-      .send({
-        message: `Could not process the file: ${req.file?.originalname}. ${error}`,
-      });
+    res.status(500).send({
+      message: `Could not process the file: ${req.file?.originalname}. ${error}`,
+    });
   }
 };
 
@@ -595,27 +597,21 @@ export const uploadIncomingActual = async (req, res) => {
       }
 
       await transaction.commit();
-      res
-        .status(200)
-        .json({
-          message: `Uploaded the file successfully: ${req.file.originalname}`,
-        });
+      res.status(200).json({
+        message: `Uploaded the file successfully: ${req.file.originalname}`,
+      });
     } catch (error) {
       await transaction.rollback();
       console.error("Transaction error:", error);
-      res
-        .status(500)
-        .json({
-          message: `Could not upload the file: ${req.file.originalname}. ${error.message}`,
-        });
+      res.status(500).json({
+        message: `Could not upload the file: ${req.file.originalname}. ${error.message}`,
+      });
     }
   } catch (error) {
     console.error("File processing error:", error);
-    res
-      .status(500)
-      .json({
-        message: `Could not process the file: ${req.file.originalname}. ${error.message}`,
-      });
+    res.status(500).json({
+      message: `Could not process the file: ${req.file.originalname}. ${error.message}`,
+    });
   }
 };
 
@@ -913,18 +909,14 @@ export const uploadMasterMaterial = async (req, res) => {
 
     await transaction.commit();
 
-    res
-      .status(200)
-      .send({
-        message: `Uploaded the file successfully: ${req.file.originalname}`,
-      });
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+    });
   } catch (error) {
     if (transaction) await transaction.rollback();
     console.error(error);
-    res
-      .status(500)
-      .send({
-        message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
-      });
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
   }
 };
