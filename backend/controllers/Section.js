@@ -118,7 +118,7 @@ export const getSectionByPlant = async (req, res) => {
     }
 
     // Query Section berdasarkan Plant
-    const sections = await Section.findAll({
+    const response = await Section.findAll({
       attributes: ["id", "sectionName"],
       include: [
         {
@@ -131,28 +131,18 @@ export const getSectionByPlant = async (req, res) => {
               model: Plant,
               required: true,
               attributes: ["id"],
-              where: { id: plant.id }, // Gunakan Plant yang ditemukan sebelumnya
+              where: { id: plant.id, flag: 1 },
             },
           ],
         },
       ],
     });
 
-    if (!sections || sections.length === 0) {
+    if (!response || response.length === 0) {
       return res.status(404).json({ message: "Section not found" });
     }
 
-    // Filter hanya tampilkan Plant ID 1 dalam Organization
-    const filteredSections = sections.map((section) => {
-      const organizations = section.Organizations.map((org) => ({
-        ...org.toJSON(),
-        Plants: org.Plants.filter((plant) => plant.id === 1), // Filter hanya Plant ID 1
-      })).filter((org) => org.Plants.length > 0); // Hanya organisasi dengan Plant ID 1
-
-      return { ...section.toJSON(), Organizations: organizations };
-    });
-
-    res.status(200).json(filteredSections);
+    res.status(200).json(response);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: "Internal server error" });
