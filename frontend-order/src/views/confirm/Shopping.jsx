@@ -60,6 +60,7 @@ const Confirm = () => {
   const navigate = useNavigate()
   const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
+  const [selectedItems, setSelectedItems] = useState({})
 
   useEffect(() => {
     // Add a specific class to body
@@ -167,6 +168,12 @@ const Confirm = () => {
   }
   console.log('confirm', Confirmwarehouse)
   console.log('saved', savedConfirmWarehouse)
+  const toggleSelectItem = (index) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle status untuk item berdasarkan index
+    }))
+  }
 
   return (
     <CContainer>
@@ -281,75 +288,84 @@ const Confirm = () => {
         <CCol xs={8}>
           {/* Address Code Form */}
 
-          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-            <CRow className="g-2">
-              <CFormLabel htmlFor="address">Address Code</CFormLabel>
-              <Select
-                className="basic-single"
-                classNamePrefix="select"
-                options={Confirmwarehouse.Detail_Orders.map((order) => ({
-                  value: order.Inventory.id,
-                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 2), // First 2 characters
-                })).filter(
-                  (option, index, self) =>
-                    index === self.findIndex((o) => o.label === option.label), // Remove duplicates
-                )}
-                id="address"
-                onChange={handleAddressCodeChange}
-                value={
-                  selectedAddressCode
-                    ? { label: selectedAddressCode, value: selectedAddressCode }
-                    : null
-                }
-              />
-              {Confirmwarehouse.Detail_Orders?.map(
-                (
-                  product,
-                  index, // Change from productsData to currentProducts
-                ) => (
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <CRow className="align-items-center">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={'https://via.placeholder.com/150'}
-                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="8">
-                        <div>
-                          <label>{product.Inventory.Material?.description}</label>
-                          <br />
-                          <label className="fw-bold">
-                            {product.Inventory.Address_Rack?.addressRackName}
-                          </label>
-                        </div>
-                      </CCol>
-                      <CCol xs="2">
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <span>2</span>
-                          <span className="px-2 fw-light">{product.Material?.uom || 'UOM'}</span>
-                        </div>
-                      </CCol>
-                    </CRow>
-
-                    {/* Show the rejection reason under the product if rejected */}
-                    {product.rejected && (
-                      <div style={{ marginTop: '10px' }}>
-                        <label className="fw-bold">Rejection Reason:</label>
-                        <p>{product.rejectionReason}</p>
-                      </div>
-                    )}
-                  </CCardBody>
-                ),
+          <CRow className="g-2">
+            <CFormLabel className="mb-1" htmlFor="address">
+              Address Code
+            </CFormLabel>
+            <Select
+              className="basic-single mt-1"
+              classNamePrefix="select"
+              options={Confirmwarehouse.Detail_Orders.map((order) => ({
+                value: order.Inventory.id,
+                label: order.Inventory.Address_Rack.addressRackName.slice(0, 2), // First 2 characters
+              })).filter(
+                (option, index, self) => index === self.findIndex((o) => o.label === option.label), // Remove duplicates
               )}
-            </CRow>
-          </div>
+              id="address"
+              onChange={handleAddressCodeChange}
+              value={
+                selectedAddressCode
+                  ? { label: selectedAddressCode, value: selectedAddressCode }
+                  : null
+              }
+            />
+            {Confirmwarehouse.Detail_Orders?.map((product, index) => (
+              <CCard  key={index}
+              className="d-flex flex-column justify-content-between"
+              onClick={() => toggleSelectItem(index)}
+              style={{
+                backgroundColor: selectedItems[index] ? '#A1C398' : 'white', // Hijau jika dipilih, putih jika tidak
+                cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
+              }}>
+                <CCardBody
+                
+                >
+                  <CRow className="align-items-center">
+                    <CCol xs="1">
+                      <CCardImage
+                        src={'https://via.placeholder.com/150'}
+                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                      />
+                    </CCol>
+
+                    <CCol xs="8">
+                      <div>
+                        <label style={{ fontSize: '0.95em' }}>
+                          {product.Inventory.Material?.description}
+                        </label>
+                        <br />
+                        <label style={{ fontSize: '0.8em' }} className="fw-bold">
+                          {product.Inventory.Address_Rack?.addressRackName}
+                        </label>
+                      </div>
+                    </CCol>
+                    <CCol xs="3">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          fontSize: '0.8em',
+                        }}
+                      >
+                        <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                          {`${product.quantity} ${product.Inventory.Material.uom}`}
+                        </label>
+                      </div>
+                    </CCol>
+                  </CRow>
+
+                  {/* Show the rejection reason under the product if rejected */}
+                  {product.rejected && (
+                    <div style={{ marginTop: '10px' }}>
+                      <label className="fw-bold">Rejection Reason:</label>
+                      <p>{product.rejectionReason}</p>
+                    </div>
+                  )}
+                </CCardBody>
+              </CCard>
+            ))}
+          </CRow>
         </CCol>
       </CRow>
     </CContainer>
