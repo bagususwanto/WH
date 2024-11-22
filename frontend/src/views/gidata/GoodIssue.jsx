@@ -64,8 +64,7 @@ const Incoming = () => {
   const [dates, setDates] = useState([null, null])
   const [shouldFetch, setShouldFetch] = useState(false)
 
-  const { getIncoming, postIncomingPlan, postIncomingActual, updateIncomingById } =
-    useManageStockService()
+  const { getGoodIssue } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant-public'
@@ -216,7 +215,7 @@ const Incoming = () => {
     }
   }
 
-  const getStorageByPlantId = async (id) => {
+  const getSectionByPlantId = async (id) => {
     if (!id) {
       return
     }
@@ -265,7 +264,7 @@ const Incoming = () => {
     const plantId = selectedPlant?.id // Dapatkan plant.id
     setPlantId(plantId)
 
-    getStorageByPlantId(plantId)
+    getSectionByPlantId(plantId)
     setShouldFetch(true)
 
     let _filters = { ...filters }

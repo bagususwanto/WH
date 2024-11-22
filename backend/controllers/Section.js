@@ -1,3 +1,5 @@
+import Organization from "../models/OrganizationModel.js";
+import Plant from "../models/PlantModel.js";
 import Section from "../models/SectionModel.js";
 
 export const getSection = async (req, res) => {
@@ -95,6 +97,41 @@ export const deleteSection = async (req, res) => {
     await Section.update({ flag: 0 }, { where: { id: sectionId, flag: 1 } });
 
     res.status(200).json({ message: "Section deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getSectionByPlant = async (req, res) => {
+  try {
+    const plantId = req.params.id;
+
+    const response = await Section.findAll({
+      attributes: ["id", "sectionName"],
+      include: [
+        {
+          model: Organization,
+          required: true,
+          attributes: ["id"],
+          where: { flag: 1 },
+          include: [
+            {
+              model: Plant,
+              required: true,
+              attributes: ["id"],
+              where: { id: plantId, flag: 1 },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!response) {
+      return res.status(404).json({ message: "Section not found" });
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
