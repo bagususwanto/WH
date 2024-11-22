@@ -710,7 +710,10 @@ const Home = () => {
         <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
           {isLoading ? (
             <Skeleton count={3} height={150} />
+          ) : myOrderData && myOrderData.length === 0 ? (
+            <p>No orders available.</p>
           ) : (
+            myOrderData &&
             myOrderData.map((order) => (
               <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
                 <CRow className="align-items-center">
