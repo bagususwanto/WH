@@ -135,6 +135,22 @@ const useManageStockService = () => {
     }
   }
 
+  const getGoodIssue = async (startDate, endDate, plantId, sectionId, status) => {
+    try {
+      const response = await axiosJWT.get(
+        `/good-issue?startDate=${startDate}&endDate=${endDate}&plantId=${plantId}&sectionId=${sectionId}&status=${status}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
+
   return {
     getInventory,
     getIncoming,
@@ -145,6 +161,7 @@ const useManageStockService = () => {
     executeInventory,
     getAllInventory,
     updateInventorySubmit,
+    getGoodIssue,
   }
 }
 

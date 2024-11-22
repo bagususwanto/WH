@@ -60,41 +60,46 @@ export const getGoodIssue = async (req, res) => {
         include: [
           {
             model: DetailOrder,
+            where: { isReject: 0, isDelete: 0 },
             required: true,
-            attributes: ["id"],
+            attributes: ["id", "inventoryId"],
             include: [
               {
                 model: Inventory,
-                required: true,
+                required: false,
                 attributes: ["id"],
                 include: [
                   {
                     model: Material,
-                    required: true,
+                    required: false,
                     attributes: ["id", "materialNo", "description", "uom"],
                     where: { flag: 1 },
                   },
+                ],
+              },
+            ],
+          },
+          {
+            model: User,
+            where: { flag: 1 },
+            attributes: ["id", "username", "createdAt", "updatedAt"],
+            required: false,
+            include: [
+              {
+                model: Organization,
+                where: { flag: 1 },
+                attributes: ["id", "createdAt", "updatedAt"],
+                required: false,
+                include: [
                   {
-                    model: AddressRack,
-                    where: { flag: 1 },
-                    attributes: ["id"],
-                    required: true,
-                    include: [
-                      {
-                        model: Storage,
-                        required: true,
-                        where: { flag: 1 },
-                        attributes: ["id"],
-                        include: [
-                          {
-                            model: Plant,
-                            required: true,
-                            where: whereConditionPlant,
-                            attributes: ["id", "plantName"],
-                          },
-                        ],
-                      },
-                    ],
+                    model: Section,
+                    where: whereConditionSection,
+                    attributes: ["id", "sectionName", "createdAt", "updatedAt"],
+                  },
+                  {
+                    model: Plant,
+                    where: whereConditionPlant,
+                    attributes: ["id", "plantName", "createdAt", "updatedAt"],
                   },
                 ],
               },
@@ -109,29 +114,9 @@ export const getGoodIssue = async (req, res) => {
             include: [
               {
                 model: User,
-                where: { flag: 1 },
-                attributes: ["id", "username", "createdAt", "updatedAt"],
                 required: false,
-                include: [
-                  {
-                    model: Organization,
-                    where: { flag: 1 },
-                    attributes: ["id", "createdAt", "updatedAt"],
-                    required: false,
-                    include: [
-                      {
-                        model: Section,
-                        where: whereConditionSection,
-                        attributes: [
-                          "id",
-                          "sectionName",
-                          "createdAt",
-                          "updatedAt",
-                        ],
-                      },
-                    ],
-                  },
-                ],
+                where: { flag: 1 },
+                attributes: ["id", "username"],
               },
             ],
           },
@@ -166,7 +151,7 @@ export const getGoodIssue = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
