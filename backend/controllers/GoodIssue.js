@@ -60,8 +60,9 @@ export const getGoodIssue = async (req, res) => {
         include: [
           {
             model: DetailOrder,
+            separate: true,
             where: { isReject: 0, isDelete: 0 },
-            required: false,
+            required: true,
             attributes: ["id", "inventoryId"],
             include: [
               {

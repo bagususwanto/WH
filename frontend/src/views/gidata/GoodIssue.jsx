@@ -53,7 +53,7 @@ const Incoming = () => {
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
-  const [storageId, setStorageId] = useState()
+  const [sectionId, setSectionId] = useState()
   const [incomingData, setIncomingData] = useState({
     importDate: date,
     file: null, // Mengubah tipe ke null karena file adalah objek
@@ -69,7 +69,7 @@ const Incoming = () => {
 
   const apiPlant = 'plant-public'
   const apiShop = 'shop-plant'
-  const apiStorage = 'storage-plant'
+  const apiSection = 'section-plant'
   const apiIncomingPlan = 'upload-incoming-plan'
   const apiIncomingActual = 'upload-incoming-actual'
   const apiWarehousePlant = 'warehouse-plant'
@@ -141,15 +141,15 @@ const Incoming = () => {
     applyFilters()
   }, [filters, globalFilterValue, incoming])
 
-  useEffect(() => {
-    if (!shouldFetch) return
-    if (imported) {
-      fetchIncoming()
-      setImported(false) // Reset state
-      return
-    }
-    fetchIncoming()
-  }, [imported, dates, plantId, storageId, shouldFetch])
+  // useEffect(() => {
+  //   if (!shouldFetch) return
+  //   if (imported) {
+  //     fetchIncoming()
+  //     setImported(false) // Reset state
+  //     return
+  //   }
+  //   fetchIncoming()
+  // }, [imported, dates, plantId, storageId, shouldFetch])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -220,12 +220,12 @@ const Incoming = () => {
       return
     }
     try {
-      const response = await getMasterDataById(apiStorage, id)
-      const storageOptions = response.map((storage) => ({
-        label: storage.storageName,
-        value: storage.storageName,
+      const response = await getMasterDataById(apiSection, id)
+      const sectionOptions = response.map((section) => ({
+        label: section.sectionName,
+        value: section.sectionName,
       }))
-      setStorage(storageOptions)
+      setStorage(sectionOptions)
     } catch (error) {
       console.error('Error fetching storage by ID:', error)
     }
@@ -247,15 +247,15 @@ const Incoming = () => {
     }
   }
 
-  const handleStorageChange = (e) => {
-    const selectedStorageName = e.value
-    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
-    const storageId = selectedStorage?.id // Dapatkan storage.id
-    setStorageId(storageId)
-    setShouldFetch(true)
-    let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
-    setFilters(_filters)
+  const handleSectionChange = (e) => {
+    const selectedSectionName = e.value
+    const selectedSection = storage.find((s) => s.value === selectedSectionName) // Cari objek storage berdasarkan storageName
+    const sectionId = selectedSection?.id // Dapatkan storage.id
+    setSectionId(sectionId)
+    // setShouldFetch(true)
+    // let _filters = { ...filters }
+    // _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
+    // setFilters(_filters)
   }
 
   const handlePlantChange = (e) => {
@@ -265,11 +265,11 @@ const Incoming = () => {
     setPlantId(plantId)
 
     getSectionByPlantId(plantId)
-    setShouldFetch(true)
+    // setShouldFetch(true)
 
-    let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
-    setFilters(_filters)
+    // let _filters = { ...filters }
+    // _filters['Inventory.Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
+    // setFilters(_filters)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -538,7 +538,7 @@ const Incoming = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Flatpickr
                   value={dates}
                   options={{
@@ -561,7 +561,7 @@ const Incoming = () => {
                   }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['Inventory.Address_Rack.Storage.Plant.plantName'].value}
                   options={plant}
@@ -572,12 +572,23 @@ const Incoming = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['Inventory.Address_Rack.Storage.storageName'].value}
                   options={storage}
-                  onChange={handleStorageChange}
-                  placeholder="Select Storage"
+                  onChange={handleSectionChange}
+                  placeholder="Select Section"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={3}>
+                <Dropdown
+                  value={filters['Inventory.Address_Rack.Storage.storageName'].value}
+                  options={storage}
+                  onChange={handleSectionChange}
+                  placeholder="Select Status"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
