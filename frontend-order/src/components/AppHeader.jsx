@@ -479,7 +479,7 @@ const AppHeader = () => {
       <CContainer className="border-bottom pb-2 px-2" fluid>
         <CCol xs={6} sm={1} md={2} lg={2}>
           <a href="/#/home" className="d-flex align-items-center">
-          <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
+            <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
           </a>
         </CCol>
 
@@ -536,7 +536,7 @@ const AppHeader = () => {
                   borderRadius: '4px',
                   backgroundColor: '#fff',
                   position: 'absolute',
-                  width: '500px',
+                  width: '100%',
                   marginTop: '5px',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                   zIndex: 10,
