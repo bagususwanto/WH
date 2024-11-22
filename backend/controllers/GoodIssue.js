@@ -12,6 +12,9 @@ import Inventory from "../models/InventoryModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import Order from "../models/OrderModel.js";
 import Approval from "../models/ApprovalModel.js";
+import Organization from "../models/OrganizationModel.js";
+import Section from "../models/SectionModel.js";
+import DetailOrder from "../models/DetailOrderModel.js";
 
 export const getGoodIssue = async (req, res) => {
   try {
@@ -22,7 +25,7 @@ export const getGoodIssue = async (req, res) => {
 
     let whereCondition = {};
     let whereConditionPlant = { flag: 1 };
-    let whereConditionStorage = { flag: 1 };
+    let whereConditionSection = { flag: 1 };
 
     const { plantId, sectionId, startDate, endDate, status } = req.query;
 
@@ -31,7 +34,7 @@ export const getGoodIssue = async (req, res) => {
     }
 
     if (sectionId) {
-      whereConditionStorage.id = sectionId;
+      whereConditionSection.id = sectionId;
     }
 
     if (status) {
@@ -56,33 +59,40 @@ export const getGoodIssue = async (req, res) => {
         where: whereCondition,
         include: [
           {
-            model: Inventory,
+            model: DetailOrder,
             required: true,
             attributes: ["id"],
             include: [
               {
-                model: Material,
+                model: Inventory,
                 required: true,
-                attributes: ["id", "materialNo", "description", "uom"],
-                where: { flag: 1 },
-              },
-              {
-                model: AddressRack,
-                where: { flag: 1 },
                 attributes: ["id"],
-                required: true,
                 include: [
                   {
-                    model: Storage,
+                    model: Material,
                     required: true,
-                    where: whereConditionStorage,
+                    attributes: ["id", "materialNo", "description", "uom"],
+                    where: { flag: 1 },
+                  },
+                  {
+                    model: AddressRack,
+                    where: { flag: 1 },
                     attributes: ["id"],
+                    required: true,
                     include: [
                       {
-                        model: Plant,
+                        model: Storage,
                         required: true,
-                        where: whereConditionPlant,
-                        attributes: ["id", "plantName"],
+                        where: { flag: 1 },
+                        attributes: ["id"],
+                        include: [
+                          {
+                            model: Plant,
+                            required: true,
+                            where: whereConditionPlant,
+                            attributes: ["id", "plantName"],
+                          },
+                        ],
                       },
                     ],
                   },
@@ -102,6 +112,26 @@ export const getGoodIssue = async (req, res) => {
                 where: { flag: 1 },
                 attributes: ["id", "username", "createdAt", "updatedAt"],
                 required: false,
+                include: [
+                  {
+                    model: Organization,
+                    where: { flag: 1 },
+                    attributes: ["id", "createdAt", "updatedAt"],
+                    required: false,
+                    include: [
+                      {
+                        model: Section,
+                        where: whereConditionSection,
+                        attributes: [
+                          "id",
+                          "sectionName",
+                          "createdAt",
+                          "updatedAt",
+                        ],
+                      },
+                    ],
+                  },
+                ],
               },
             ],
           },
@@ -131,7 +161,7 @@ export const getGoodIssue = async (req, res) => {
     } while (batch.length === limit); // Continue until we get less than 1000 records
 
     if (!response) {
-      return res.status(404).json({ message: "Incoming not found" });
+      return res.status(404).json({ message: "Good issue not found" });
     }
 
     res.status(200).json(response);

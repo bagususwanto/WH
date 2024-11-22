@@ -43,6 +43,7 @@ import harcodedRouter from "./routes/HarcodedRouter.js";
 import notificationRouter from "./routes/NotificationRouter.js";
 import warehouseProcessRouter from "./routes/WarehouseProcessRouter.js";
 import orderHistoryRouter from "./routes/OrderHistoryRouter.js";
+import goodIssueRouter from "./routes/GoodIssueRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -143,6 +144,9 @@ app.use("/api", warehouseProcessRouter);
 
 // Incoming router
 app.use("/api", incomingRouter);
+
+// Good issue router
+app.use("/api", goodIssueRouter);
 
 // Upload router
 app.use("/api", uploadRouter);

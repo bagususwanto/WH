@@ -1,15 +1,13 @@
 import express from "express";
-import { getIncoming } from "../controllers/Incoming.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
-import { cancelIncomingPlan } from "../controllers/Excel.js";
+import { getGoodIssue } from "../controllers/GoodIssue.js";
 
 const router = express.Router();
 
 router.get(
-  "/incoming",
+  "/good-issue",
   checkRole(["super admin", "warehouse member", "warehouse staff"]),
-  getIncoming
+  getGoodIssue
 );
-router.get("/incoming-plan-cancel/:id", cancelIncomingPlan);
 
 export default router;
