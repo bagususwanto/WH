@@ -118,22 +118,14 @@ export const getSectionByPlant = async (req, res) => {
     }
 
     // Query Section berdasarkan Plant
-    const response = await Section.findAll({
-      attributes: ["id", "sectionName"],
+    const response = await Organization.findAll({
+      attributes: ["id", "sectionId"],
+      where: { plantId: plant.id, flag: 1 },
       include: [
         {
-          model: Organization,
-          required: true,
-          attributes: ["id"],
+          model: Section,
           where: { flag: 1 },
-          include: [
-            {
-              model: Plant,
-              required: true,
-              attributes: ["id"],
-              where: { id: plant.id }, // Gunakan Plant yang ditemukan sebelumnya
-            },
-          ],
+          attributes: ["id", "sectionName"],
         },
       ],
     });
