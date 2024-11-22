@@ -107,13 +107,23 @@ export const getSectionByPlant = async (req, res) => {
   try {
     const plantId = req.params.id;
 
+    // Query untuk mendapatkan satu Plant
+    const plant = await Plant.findOne({
+      where: { id: plantId, flag: 1 },
+      attributes: ["id"],
+    });
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    // Query Section berdasarkan Plant
     const response = await Section.findAll({
       attributes: ["id", "sectionName"],
       include: [
         {
           model: Organization,
           required: true,
-          limit: 1,
           attributes: ["id"],
           where: { flag: 1 },
           include: [
@@ -121,20 +131,20 @@ export const getSectionByPlant = async (req, res) => {
               model: Plant,
               required: true,
               attributes: ["id"],
-              where: { id: plantId, flag: 1 },
+              where: { id: plant.id }, // Gunakan Plant yang ditemukan sebelumnya
             },
           ],
         },
       ],
     });
 
-    if (!response) {
+    if (!response || response.length === 0) {
       return res.status(404).json({ message: "Section not found" });
     }
 
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
