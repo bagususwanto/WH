@@ -4,6 +4,7 @@ import '../../scss/home.scss'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.css'
 import { format, parseISO } from 'date-fns'
+import '../../scss/modal_backdrop.scss'
 import {
   CCard,
   CCardBody,
@@ -119,15 +120,6 @@ const ApproveAll = () => {
     cilCircle,
   }
 
-  const getOrderHistories = async (id) => {
-    try {
-      const response = await getWarehouseConfirm(id)
-      setOrderHistory(response.data)
-    } catch (error) {
-      console.error('Error fetching Order History:', error)
-    }
-  }
-
   const getWarehouseConfirmations = async (page, startDate, endDate) => {
     try {
       if (warehouse && warehouse.id) {
@@ -165,6 +157,15 @@ const ApproveAll = () => {
       console.error('Error fetching confirm:', error)
     }
   }
+  const getOrderHistories = async (id) => {
+    try {
+      const response = await getWarehouseConfirm(id)
+      setOrderHistory(response.data.data)
+      console.log('respon', response)
+    } catch (error) {
+      console.error('Error fetching Order History:', error)
+    }
+  }
 
   useEffect(() => {
     if (dates[0] && dates[1]) {
@@ -200,7 +201,6 @@ const ApproveAll = () => {
     if (activeTab === 'Completed') {
       getOrderHistories(product.id)
       setSelectedProduct(product) // Simpan produk yang dipilih ke state
-
       setVisible(true) // Tampilkan modal
       return
     }
@@ -294,7 +294,7 @@ const ApproveAll = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                width: '60%',
+                width: '50%',
                 border: '1px solid #ddd',
                 borderRadius: '5px',
                 padding: '4px 8px',
@@ -311,12 +311,12 @@ const ApproveAll = () => {
                 onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
                 onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
                 placeholder="Search"
-                style={{ width: '70%', border: 'none', outline: 'none' }}
+                style={{ width: '50%', border: 'none', outline: 'none' }}
               />
             </div>
             <label style={{ fontSize: '0.5em ', marginLeft: '8px' }}>
               {' '}
-              *Search by No Transaction & Name Recipent
+              *Search by No Transaction & Name/Section Recipent
             </label>
           </div>
         </CCol>
@@ -366,106 +366,103 @@ const ApproveAll = () => {
           {tabs.map((tab) => (
             <CTabPanel key={tab.key} itemKey={tab.key}>
               <CRow className="mt-1">
-                <CCard style={{ border: 'none' }}>
-                  <CRow className="g-1 mt-1">
-                    {productsData.length > 0 ? (
-                      productsData.map((product) => (
-                        <CCard className="d-block w-100 p-3 mb-3" key={product.id}>
-                          <CRow className="align-items-center">
-                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <CCol>
-                                <CIcon className="me-2" icon={getTabIcon(product.status)} />
-                                <label className="me-2 fs-6">
-                                  {format(parseISO(product.createdAt), 'dd/MM/yyyy')}
-                                </label>
-                                <CBadge className="me-2" color={getSeverity(product.status)}>
-                                  {product.isReject === 1
-                                    ? 'REJECTED'
-                                    : product.status.toUpperCase()}
-                                </CBadge>
-                                <label className="me-2 fw-light">
-                                  {product.transactionNumber
-                                    ? `${product.transactionNumber}`
-                                    : `${product.requestNumber}`}
-                                </label>
-                              </CCol>
+                {productsData.length > 0 ? (
+                  productsData.map((product) => (
+                    <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
+                      <CRow className="align-items-center">
+                        
+                          <CCol >
+                            <CIcon className="me-2" icon={getTabIcon(product.status)} />
+                            <label className="me-2 fs-6">
+                              {format(parseISO(product.createdAt), 'dd/MM/yyyy')}
+                            </label>
+                            <CBadge className="me-2" color={getSeverity(product.status)}>
+                              {product.isReject === 1 ? 'REJECTED' : product.status.toUpperCase()}
+                            </CBadge>
+                            <label className="me-2 fw-light">
+                              {product.transactionNumber
+                                ? `${product.transactionNumber}`
+                                : `${product.requestNumber}`}
+                            </label>
+                          </CCol>
+                      
+                        <hr style={{marginTop:'3px'}}/>
+                        <CRow className="py-1" >
+                          <CCol xs="1">
+                            {userData.map((user) => (
+                              <CCardImage
+                                key={user.id}
+                                src={user.img}
+                                style={{ height: '100%', width: '100%' }}
+                              />
+                            ))}
+                          </CCol>
+                          <CCol xs="4">
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <div>
+                                <strong>From:</strong> {product.User.name}
+                              </div>
+                              <div>
+                                <strong>Role:</strong> {product.User.position}
+                              </div>
+                              <div>
+                                <strong>Section:</strong>{' '}
+                                {product?.User?.Organization?.Section?.sectionName}
+                              </div>
                             </div>
-                            <CRow className="py-2" xs="1">
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>From:</strong> {product.User.name}
-                                  </div>
-                                  <div>
-                                    <strong>Role:</strong> {product.User.position}
-                                  </div>
-                                  <div>
-                                    <strong>Section:</strong>{' '}
-                                    {product?.User?.Organization?.Section?.sectionName}
-                                  </div>
-                                </div>
-                              </CCol>
-                              <CCol xs="4">
-                                {product.Detail_Orders.length === 1 ? (
-                                  <label>
-                                    {product.Detail_Orders[0]?.Inventory?.Material?.description}
-                                  </label>
-                                ) : (
-                                  <label>
-                                    {product.Detail_Orders[0]?.Inventory?.Material?.description}
-                                    ...
-                                  </label>
-                                )}
-                                <br />
-                                <label className="fw-bold fs-6">
-                                  Total: {product.Detail_Orders.length} Item
-                                </label>
-                              </CCol>
-                              <CCol xs="3" className="text-end">
-                                <label className="fw-bold fs-6 me-1">
-                                  Rp{' '}
-                                  {product.Detail_Orders.reduce(
-                                    (total, order) => total + (order.Inventory.Material.price || 0),
-                                    0,
-                                  ).toLocaleString('id-ID')}
-                                </label>
-                                <br />
-                                <label className="me-1">
-                                  <span className="fw-light">{product.paymentMethod}:</span>{' '}
-                                  {product.paymentNumber}
-                                </label>
-                              </CCol>
-                            </CRow>
+                          </CCol>
+                          <CCol xs="4">
+                            {product.Detail_Orders.length === 1 ? (
+                              <label>
+                                {product.Detail_Orders[0]?.Inventory?.Material?.description}
+                              </label>
+                            ) : (
+                              <label>
+                                {product.Detail_Orders[0]?.Inventory?.Material?.description}
+                                ...
+                              </label>
+                            )}
+                            <br />
+                            <label className="fw-bold fs-6">
+                              Total: {product.Detail_Orders.length} Item
+                            </label>
+                          </CCol>
+                          <CCol xs="3" className="text-end">
+                            <label className="fw-bold fs-6 me-1">
+                              Rp{' '}
+                              {product.Detail_Orders.reduce(
+                                (total, order) => total + (order.Inventory.Material.price || 0),
+                                0,
+                              ).toLocaleString('id-ID')}
+                            </label>
+                            <br />
+                            <label className="me-1">
+                              <span className="fw-light">{product.paymentMethod}:</span>{' '}
+                              {product.paymentNumber}
+                            </label>
+                          </CCol>
+                        </CRow>
 
-                            <CRow className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleWarehouseConfirmationproduct(product)}
-                                  color="primary"
-                                  size="sm"
-                                >
-                                  View Detail Confirm
-                                </CButton>
-                              </CCol>
-                            </CRow>
-                          </CRow>
-                        </CCard>
-                      ))
-                    ) : (
-                      <p>No orders found</p>
-                    )}
-                  </CRow>
-                </CCard>
+                        <CRow className="d-flex justify-content-end align-items-center">
+                          <CCol xs={4} className="d-flex justify-content-end">
+                            <CButton
+                              onClick={() => handleWarehouseConfirmationproduct(product)}
+                              color="primary"
+                              size="sm"
+                            >
+                              View Detail Confirm
+                            </CButton>
+                          </CCol>
+                        </CRow>
+                      </CRow>
+                    </CCard>
+                  ))
+                ) : (
+                  <p>No orders found</p>
+                )}
               </CRow>
+
+              {console.log('111111', orderHistory)}
               {selectedProduct && (
                 <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                   <CModalHeader>
@@ -606,11 +603,13 @@ const ApproveAll = () => {
                   </CModalBody>
                 </CModal>
               )}
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
+              <div className="d-flex justify-content-center mt-3">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             </CTabPanel>
           ))}
         </CTabContent>

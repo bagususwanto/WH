@@ -60,7 +60,7 @@ const Confirm = () => {
   const navigate = useNavigate()
   const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
-  const [selectedItems, setSelectedItems] = useState({})
+  const [selectedItems, setSelectedItems] = useState([]) // Harus array
 
   useEffect(() => {
     // Add a specific class to body
@@ -96,32 +96,70 @@ const Confirm = () => {
     }
   }, [])
 
-  // This is where currentProducts is initialized
-
   useEffect(() => {
-    // Initialize sortedOrders with Detail_Orders
-    setSortedOrders(Confirmwarehouse.Detail_Orders || [])
+    // Inisialisasi sortedOrders dengan produk asli
+    if (Confirmwarehouse.Detail_Orders) {
+      setSortedOrders(Confirmwarehouse.Detail_Orders)
+    }
   }, [Confirmwarehouse.Detail_Orders])
 
-  // Handle address selection and sorting
+  // This is where currentProducts is initialized
+
   const handleAddressCodeChange = (selectedOption) => {
     const selectedCode = selectedOption ? selectedOption.label : ''
     setSelectedAddressCode(selectedCode)
 
-    // Sort orders: items with matching addressRackName's first 2 characters come first
-    const updatedOrders = [...Confirmwarehouse.Detail_Orders].sort((a, b) => {
-      const rackA = a.Inventory.Address_Rack.addressRackName.slice(0, 2)
+    let filteredOrders
 
-      // Check if the rack matches the selected address code
-      const isMatchA = rackA === selectedCode
+    if (selectedCode === 'All' || selectedCode === '') {
+      // Tampilkan semua produk jika "All" dipilih
+      filteredOrders = Confirmwarehouse.Detail_Orders || []
+    } else {
+      // Filter produk berdasarkan Address Rack Name
+      filteredOrders = [...Confirmwarehouse.Detail_Orders].filter((product) =>
+        product.Inventory.Address_Rack.addressRackName.startsWith(selectedCode),
+      )
+    }
 
-      if (isMatchA) return -1 // a comes first
+    // Urutkan produk agar item yang dipilih tetap di atas
+    filteredOrders.sort((a, b) => {
+      const isSelectedA = selectedItems.some((item) => item.id === a.id)
+      const isSelectedB = selectedItems.some((item) => item.id === b.id)
 
-      return 0 // No change in order
+      if (isSelectedA && !isSelectedB) return -1 // Prioritaskan yang dipilih
+      if (!isSelectedA && isSelectedB) return 1 // Prioritaskan yang lain
+      return 0 // Tetap sesuai urutan
     })
 
-    setSortedOrders(updatedOrders)
+    setSortedOrders(filteredOrders) // Perbarui state
   }
+
+  const handleCardClick = (item) => {
+    const isSelected = selectedItems.some((selected) => selected.id === item.id)
+
+    if (isSelected) {
+      // Jika item sudah dipilih, hapus dari daftar
+      setSelectedItems(selectedItems.filter((selected) => selected.id !== item.id))
+    } else {
+      // Tambahkan item ke daftar yang dipilih
+      setSelectedItems([...selectedItems, item])
+    }
+  }
+
+  const toggleSelectItem = (index) => {
+    setSelectedItems((prevSelectedItems) => {
+      const updatedItems = [...prevSelectedItems]
+      if (updatedItems.includes(index)) {
+        // Jika sudah dipilih, hapus dari daftar
+        return updatedItems.filter((item) => item !== index)
+      } else {
+        // Jika belum dipilih, tambahkan ke daftar
+        updatedItems.push(index)
+        return updatedItems
+      }
+    })
+  }
+
   const totalQuantity = (Confirmwarehouse.Detail_Orders || []).reduce((acc, product) => {
     // Ensure only unique Inventory items are counted
     if (!acc.some((item) => item.id === product.Inventory.id)) {
@@ -168,12 +206,6 @@ const Confirm = () => {
   }
   console.log('confirm', Confirmwarehouse)
   console.log('saved', savedConfirmWarehouse)
-  const toggleSelectItem = (index) => {
-    setSelectedItems((prev) => ({
-      ...prev,
-      [index]: !prev[index], // Toggle status untuk item berdasarkan index
-    }))
-  }
 
   return (
     <CContainer>
@@ -213,9 +245,10 @@ const Confirm = () => {
                     <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
                   </div>
                   <div>
-                    <small>
-                      Request at {format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}{' '}
+                  <small className="fw-light" style={{ marginRight: '5px' }}>
+                      Request at
                     </small>
+                    <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')} </small>
                   </div>
                 </div>
               </div>
@@ -254,10 +287,15 @@ const Confirm = () => {
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
                   <div>
-                    <CFormInput
+                  <CFormInput
                       type="text"
-                      value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
-                      readOnly // Make the input readonly so users cannot change it
+                      value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
+                      readOnly
+                      style={{
+                        backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                        color: '#888', // Warna teks abu-abu
+                        border: '1px solid #ccc', // Border abu-abu
+                      }}
                     />
                   </div>
                 </>
@@ -295,12 +333,15 @@ const Confirm = () => {
             <Select
               className="basic-single mt-1"
               classNamePrefix="select"
-              options={Confirmwarehouse.Detail_Orders.map((order) => ({
-                value: order.Inventory.id,
-                label: order.Inventory.Address_Rack.addressRackName.slice(0, 2), // First 2 characters
-              })).filter(
-                (option, index, self) => index === self.findIndex((o) => o.label === option.label), // Remove duplicates
-              )}
+              options={[
+                ...Confirmwarehouse.Detail_Orders.map((order) => ({
+                  value: order.Inventory.id,
+                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 2), // Ambil 2 karakter pertama
+                })).filter(
+                  (option, index, self) =>
+                    index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
+                ),
+              ]}
               id="address"
               onChange={handleAddressCodeChange}
               value={
@@ -309,17 +350,19 @@ const Confirm = () => {
                   : null
               }
             />
-            {Confirmwarehouse.Detail_Orders?.map((product, index) => (
-              <CCard  key={index}
-              className="d-flex flex-column justify-content-between"
-              onClick={() => toggleSelectItem(index)}
-              style={{
-                backgroundColor: selectedItems[index] ? '#A1C398' : 'white', // Hijau jika dipilih, putih jika tidak
-                cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
-              }}>
-                <CCardBody
-                
-                >
+            {sortedOrders.map((product, index) => (
+              <CCard
+                key={product.id}
+                className="d-flex flex-column justify-content-between"
+                onClick={() => handleCardClick(product)}
+                style={{
+                  backgroundColor: selectedItems.some((item) => item.id === product.id)
+                    ? '#C6EBC5'
+                    : 'white', // Highlight item yang dipilih
+                  cursor: 'pointer', // Tambahkan gaya pointer untuk indikasi klik
+                }}
+              >
+                <CCardBody>
                   <CRow className="align-items-center">
                     <CCol xs="1">
                       <CCardImage
@@ -330,11 +373,11 @@ const Confirm = () => {
 
                     <CCol xs="8">
                       <div>
-                        <label style={{ fontSize: '0.95em' }}>
+                        <label style={{ fontSize: '1em' }}>
                           {product.Inventory.Material?.description}
                         </label>
                         <br />
-                        <label style={{ fontSize: '0.8em' }} className="fw-bold">
+                        <label style={{ fontSize: '0.9em' }} className="fw-bold">
                           {product.Inventory.Address_Rack?.addressRackName}
                         </label>
                       </div>
@@ -348,7 +391,7 @@ const Confirm = () => {
                           fontSize: '0.8em',
                         }}
                       >
-                        <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                        <label style={{ fontSize: '1rem', lineHeight: '2' }}>
                           {`${product.quantity} ${product.Inventory.Material.uom}`}
                         </label>
                       </div>

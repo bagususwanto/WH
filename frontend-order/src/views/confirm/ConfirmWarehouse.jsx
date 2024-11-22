@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import { format, parseISO } from 'date-fns'
 import '../../scss/body_gray.scss'
+import '../../scss/modal_backdrop.scss'
 import {
   CCard,
   CCardBody,
@@ -59,7 +60,8 @@ const Confirm = () => {
   const { roleName } = useVerify()
   const location = useLocation()
 
-  const { getWarehouseConfirm, rejectWarehouseConfirm,postWarehouseConfirm } = useWarehouseService()
+  const { getWarehouseConfirm, rejectWarehouseConfirm, postWarehouseConfirm } =
+    useWarehouseService()
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(7) // Limit to 5 items per page
   const savedConfirmWarehouse = JSON.parse(localStorage.getItem('confirmWarehouse'))
@@ -94,10 +96,7 @@ const Confirm = () => {
     }
   }, [Confirmwarehouse])
 
-
-
   // Pastikan initialConfirmWarehouse tetap sinkron
- 
 
   useEffect(() => {
     return () => {
@@ -167,7 +166,7 @@ const Confirm = () => {
       if (result.isConfirmed) {
         try {
           // Call the postApproval function
-          const response = await postWarehouseConfirm(warehouseId,orderId,data)
+          const response = await postWarehouseConfirm(warehouseId, orderId, data)
 
           if (response && response.status === 200) {
             Swal.fire('Approved!', 'The order has been Confirm order successfully.', 'success')
@@ -353,7 +352,7 @@ const Confirm = () => {
               >
                 <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
                 <CButton color="primary" onClick={handleApprove}>
-                 Confirm Now
+                  Confirm Now
                 </CButton>
               </div>
             </CCardBody>
@@ -380,16 +379,17 @@ const Confirm = () => {
                     <strong>LINE:</strong> {Confirmwarehouse.User.Organization.Line.lineName}
                   </div>
                   <div>
-                    <small>
-                      Request at {format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}
+                    <small className="fw-light" style={{ marginRight: '5px' }}>
+                      Request at
                     </small>
+                    <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')} </small>
                   </div>
                 </div>
               </div>
               {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <CFormCheck
+                <CFormCheck
                   className="me-3"
                   type="radio"
                   id="pickup"
@@ -423,8 +423,13 @@ const Confirm = () => {
                   <div>
                     <CFormInput
                       type="text"
-                      value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
-                      readOnly // Make the input readonly so users cannot change it
+                      value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
+                      readOnly
+                      style={{
+                        backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                        color: '#888', // Warna teks abu-abu
+                        border: '1px solid #ccc', // Border abu-abu
+                      }}
                     />
                   </div>
                 </>
@@ -444,9 +449,8 @@ const Confirm = () => {
               <hr />
               <CFormTextarea
                 className="mt-3"
-                placeholder="Leave a message"
                 rows={3}
-                value={Confirmwarehouse.remarks}
+                value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />
@@ -555,25 +559,27 @@ const Confirm = () => {
                         <CModal
                           visible={modalConfirm}
                           onClose={() => setModalConfirm(false)}
-                          backdropClassName="blur" // Custom backdrop
+                     
                         >
                           <CModalHeader>
                             <CModalTitle>Provide Rejection Reason</CModalTitle>
                           </CModalHeader>
                           <CModalBody>
-                            <CCol md="4">
-                              <CImage
-                                src={'https://via.placeholder.com/150'}
-                                // alt={selectedProduct.Material.description}
-                                fluid
-                                className="rounded"
-                              />
-                            </CCol>
-                            <CCol md="12">
-                              <strong>{selectedProduct.Inventory.Material.description}</strong>
-                              <p> {selectedProduct.Inventory.Material.materialNo}</p>
-                              <div className="d-flex align-items-center"></div>
-                            </CCol>
+                            <CRow className="mb-2">
+                              <CCol md="4">
+                                <CImage
+                                  src={'https://via.placeholder.com/150'}
+                                  // alt={selectedProduct.Material.description}
+                                  fluid
+                                  className="rounded"
+                                />
+                              </CCol>
+                              <CCol md="8">
+                                <strong>{selectedProduct.Inventory.Material.description}</strong>
+                                <p> {selectedProduct.Inventory.Material.materialNo}</p>
+                                <div className="d-flex align-items-center"></div>
+                              </CCol>
+                            </CRow>
                             <CFormInput
                               type="text"
                               placeholder="Enter rejection reason"

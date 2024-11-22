@@ -235,9 +235,10 @@ const ApproveAll = () => {
                     <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
                   </div>
                   <div>
-                    <small>
-                      Request at {format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}{' '}
+                    <small className="fw-light" style={{ marginRight: '5px' }}>
+                      Request at
                     </small>
+                    <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')} </small>
                   </div>
                 </div>
               </div>
@@ -278,8 +279,13 @@ const ApproveAll = () => {
                   <div>
                     <CFormInput
                       type="text"
-                      value={Confirmwarehouse.scheduleDelivery} // Bind the input value to state
-                      readOnly // Make the input readonly so users cannot change it
+                      value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
+                      readOnly
+                      style={{
+                        backgroundColor: '#f0f0f0', // Latar belakang abu-abu muda
+                        color: '#888', // Warna teks abu-abu
+                        border: '1px solid #ccc', // Border abu-abu
+                      }}
                     />
                   </div>
                 </>
@@ -299,7 +305,7 @@ const ApproveAll = () => {
                 className="mt-3"
                 placeholder="Leave a message"
                 rows={3}
-                value={message}
+                value={Confirmwarehouse.remark}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />
@@ -333,9 +339,14 @@ const ApproveAll = () => {
                       </CCol>
                       <CCol xs="8">
                         <div>
-                          <label>{product.Inventory.Material?.description}</label>
+                          <label style={{ fontSize: '1rem', lineHeight: '2' }}>
+                            {product.Inventory.Material?.description}
+                          </label>
                           <br />
-                          <label className="fw-bold">
+                          <label
+                            style={{ fontSize: '0.9rem', lineHeight: '0.8' }}
+                            className="fw-bold"
+                          >
                             {product.Inventory.Address_Rack?.addressRackName}
                           </label>
                         </div>
@@ -348,7 +359,7 @@ const ApproveAll = () => {
                             alignItems: 'center',
                           }}
                         >
-                          <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                          <label style={{ fontSize: '1rem', lineHeight: '2' }}>
                             {`${product.quantity} ${product.Inventory.Material.uom}`}
                           </label>
                         </div>
