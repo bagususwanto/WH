@@ -138,7 +138,7 @@ const GoodIssue = () => {
 
   useEffect(() => {
     fetchGoodIssue()
-  }, [])
+  }, [dates, plantId, sectionId])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -243,7 +243,7 @@ const GoodIssue = () => {
     const sectionId = selectedSection?.id
     setSectionId(sectionId)
     let _filters = { ...filters }
-    _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
+    _filters['User.Organization.Section.sectionName'].value = e.value
     setFilters(_filters)
   }
 
@@ -454,7 +454,6 @@ const GoodIssue = () => {
                   }}
                   onChange={(date) => {
                     setDates(date)
-                    setShouldFetch(true)
                   }}
                   className="form-control mb-2"
                   placeholder="Select a date"
@@ -492,7 +491,7 @@ const GoodIssue = () => {
                 <Dropdown
                   value={filters['status'].value}
                   options={status}
-                  onChange={handleSectionChange}
+                  onChange={handleStatusChange}
                   placeholder="Select Status"
                   className="p-column-filter mb-2"
                   showClear
