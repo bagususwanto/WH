@@ -76,11 +76,6 @@ const GoodIssue = () => {
       sortable: true,
     },
     {
-      field: 'paymentMethod',
-      header: 'GI Method',
-      sortable: true,
-    },
-    {
       field: 'User.username',
       header: 'Ordered By',
       sortable: true,
@@ -88,6 +83,11 @@ const GoodIssue = () => {
     {
       field: 'currentApprover',
       header: 'Current Approver',
+      sortable: true,
+    },
+    {
+      field: 'paymentMethod',
+      header: 'GI Method',
       sortable: true,
     },
   ]
@@ -210,7 +210,6 @@ const GoodIssue = () => {
         }
       })
       setGoodIssue(dataWithFormattedFields)
-      console.log(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching goodIssue:', error)
     } finally {
@@ -575,7 +574,12 @@ const GoodIssue = () => {
                     sortable
                   ></Column>
                   <Column field="description" header="Description" sortable></Column>
-                  <Column field="quantity" header="Quantity" sortable></Column>
+                  <Column
+                    field="quantity"
+                    header="Quantity"
+                    sortable
+                    bodyStyle={{ textAlign: 'center' }}
+                  ></Column>
                   <Column field="transactionNo" header="Transaction No" sortable></Column>
                   <Column field="transactionDate" header="Transaction Date" sortable></Column>
                   <Column
