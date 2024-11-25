@@ -19,7 +19,15 @@ import { createNotification } from "./Notification.js";
 export const getOrderWarehouse = async (req, res) => {
   try {
     const warehouseId = req.params.warehouseId;
-    const { page = 1, limit = 10, status, startDate, endDate, isReject, q } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      startDate,
+      endDate,
+      isReject,
+      q,
+    } = req.query;
     const offset = (page - 1) * limit;
 
     let whereCondition = { isApproval: 1 };
@@ -106,7 +114,13 @@ export const getOrderWarehouse = async (req, res) => {
                 {
                   model: Material,
                   required: false,
-                  attributes: ["id", "materialNo", "description", "uom", "price"],
+                  attributes: [
+                    "id",
+                    "materialNo",
+                    "description",
+                    "uom",
+                    "price",
+                  ],
                   where: { flag: 1 },
                 },
               ],
@@ -116,7 +130,17 @@ export const getOrderWarehouse = async (req, res) => {
         {
           model: User,
           where: { flag: 1 },
-          attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+          attributes: [
+            "id",
+            "username",
+            "name",
+            "position",
+            "img",
+            "noHandphone",
+            "email",
+            "createdAt",
+            "updatedAt",
+          ],
           include: [
             {
               model: Organization,
@@ -188,7 +212,17 @@ export const getDetailOrderWarehouse = async (req, res) => {
             {
               model: User,
               where: { flag: 1 },
-              attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+              attributes: [
+                "id",
+                "username",
+                "name",
+                "position",
+                "img",
+                "noHandphone",
+                "email",
+                "createdAt",
+                "updatedAt",
+              ],
               include: [
                 {
                   model: Organization,
@@ -297,7 +331,10 @@ export const processOrder = async (req, res) => {
       ],
     });
 
-    if (orderStatus.status === "waiting approval" || orderStatus.isApproval !== 1) {
+    if (
+      orderStatus.status === "waiting approval" ||
+      orderStatus.isApproval !== 1
+    ) {
       await transaction.rollback(); // Batalkan transaksi jika belum disetujui
       return res.status(401).json({ message: "Order must be approved" });
     }
@@ -328,7 +365,10 @@ export const processOrder = async (req, res) => {
           const price = order.Inventory.Material.price;
 
           // Update quantity dan price di DetailOrder
-          await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
+          await DetailOrder.update(
+            { quantity: quantityAfter, price: quantityAfter * price },
+            { where: { id: item.detailOrderId }, transaction }
+          );
 
           // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
           updatedOrders.push({
@@ -435,7 +475,9 @@ export const shopingOrder = async (req, res) => {
 
     if (respOrder.status !== "on process" || respOrder.isApproval !== 1) {
       await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
-      return res.status(401).json({ message: "Unauthorized, the order cannot be processed" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized, the order cannot be processed" });
     }
 
     let status;
@@ -449,7 +491,8 @@ export const shopingOrder = async (req, res) => {
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
         return res.status(401).json({
-          message: "Unauthorized, you are not warehouse member or warehouse staff",
+          message:
+            "Unauthorized, you are not warehouse member or warehouse staff",
         });
       }
     }
@@ -469,7 +512,10 @@ export const shopingOrder = async (req, res) => {
     await postOrderHistory(status, userId, orderId, { transaction });
 
     // update status order
-    const order = await Order.update({ status: status }, { where: { id: orderId }, transaction });
+    const order = await Order.update(
+      { status: status },
+      { where: { id: orderId }, transaction }
+    );
 
     // Commit transaksi setelah operasi berhasil
     await transaction.commit();
@@ -511,14 +557,16 @@ export const completeOrder = async (req, res) => {
     if (!allowedStatuses.includes(respOrder.status)) {
       await transaction.rollback(); // Batalkan transaksi jika status order tidak sesuai
       return res.status(401).json({
-        message: "Order cannot be processed, order status is not ready to deliver or ready to pickup",
+        message:
+          "Order cannot be processed, order status is not ready to deliver or ready to pickup",
       });
     }
 
     if (role) {
       if (role !== "warehouse member" && role !== "warehouse staff") {
         return res.status(401).json({
-          message: "Unauthorized, you are not warehouse member or warehouse staff",
+          message:
+            "Unauthorized, you are not warehouse member or warehouse staff",
         });
       }
     }
@@ -540,7 +588,10 @@ export const completeOrder = async (req, res) => {
     });
 
     // update status order
-    await Order.update({ status: "completed" }, { where: { id: orderId }, transaction });
+    await Order.update(
+      { status: "completed", deliveredAt: new Date() },
+      { where: { id: orderId }, transaction }
+    );
 
     // create notification
     const notification = {
@@ -613,7 +664,10 @@ export const rejectOrderWarehouse = async (req, res) => {
     }
 
     // Update isReject di tabel DetailOrder dengan remarks
-    await DetailOrder.update({ isReject: 1, remarks }, { where: { id: detailOrderId }, transaction });
+    await DetailOrder.update(
+      { isReject: 1, remarks },
+      { where: { id: detailOrderId }, transaction }
+    );
 
     // Create history reject di tabel LogApproval
     await LogApproval.create(
