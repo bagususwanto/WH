@@ -5,17 +5,7 @@ import {
   CCardBody,
   CCol,
   CRow,
-  CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CFormInput,
-  CFormLabel,
-  CFormCheck,
   CSpinner,
-  CFormSelect,
 } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
@@ -27,7 +17,6 @@ import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
 import { InputNumber } from 'primereact/inputnumber'
 import { Button } from 'primereact/button'
-import { Tag } from 'primereact/tag'
 import { format, parseISO } from 'date-fns'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
@@ -44,21 +33,14 @@ const MySwal = withReactContent(Swal)
 const GoodIssue = () => {
   const [goodIssue, setGoodIssue] = useState([])
   const [plant, setPlant] = useState([])
-  const [shop, setShop] = useState([])
   const [section, setSection] = useState([])
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
-  const [visible, setVisible] = useState(false)
-  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
-  const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
   const [sectionId, setSectionId] = useState()
   const [status, setStatus] = useState([])
   const [statusOrder, setStatusOrder] = useState()
-  const [loadingImport, setLoadingImport] = useState(false)
-  const [imported, setImported] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(null)
   const [dates, setDates] = useState([null, null])
   const [shouldFetch, setShouldFetch] = useState(false)
 
