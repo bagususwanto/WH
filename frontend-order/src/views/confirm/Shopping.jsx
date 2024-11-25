@@ -245,7 +245,7 @@ const Confirm = () => {
                     <strong>LINE:</strong> {Confirmwarehouse.User?.Organization.Line.lineName}
                   </div>
                   <div>
-                  <small className="fw-light" style={{ marginRight: '5px' }}>
+                    <small className="fw-light" style={{ marginRight: '5px' }}>
                       Request at
                     </small>
                     <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')} </small>
@@ -268,10 +268,10 @@ const Confirm = () => {
               <hr />
               <label className="fw-bold mb-2">Address Detail Confirmation</label>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', color: 'gray' }}>
                   <CIcon icon={cilHome} size="lg" />
                   <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
-                </div>
+                </div>  
                 {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                   <>
                     <CIcon icon={cilArrowBottom} size="lg" />
@@ -287,7 +287,7 @@ const Confirm = () => {
                   <hr />
                   <label className="fw-bold mb-2">Deadline Order</label>
                   <div>
-                  <CFormInput
+                    <CFormInput
                       type="text"
                       value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
                       readOnly
@@ -313,9 +313,8 @@ const Confirm = () => {
               <hr />
               <CFormTextarea
                 className="mt-3"
-                placeholder="Leave a message"
                 rows={3}
-                value={message}
+                value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />

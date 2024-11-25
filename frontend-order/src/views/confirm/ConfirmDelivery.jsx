@@ -249,7 +249,7 @@ const ApproveAll = () => {
                   className="me-3"
                   type="radio"
                   id="pickup"
-                  label={`${Confirmwarehouse.deliveryMethod}`}
+                  label={`${Confirmwarehouse.deliveryMethod.charAt(0).toUpperCase()}${Confirmwarehouse.deliveryMethod.slice(1)}`}
                   checked={!isPickup}
                   onChange={() => setIsPickup()}
                   disabled
@@ -303,9 +303,8 @@ const ApproveAll = () => {
               <hr />
               <CFormTextarea
                 className="mt-3"
-                placeholder="Leave a message"
                 rows={3}
-                value={Confirmwarehouse.remark}
+                value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
                 onChange={(e) => setMessage(e.target.value)}
                 disabled
               />

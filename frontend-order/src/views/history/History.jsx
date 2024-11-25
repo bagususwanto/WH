@@ -560,11 +560,7 @@ const History = () => {
               </CCard>
             </CRow>
           </CModalBody>
-          <CModalFooter>
-            <CButton color="secondary" onClick={() => setVisible(false)}>
-              Close
-            </CButton>
-          </CModalFooter>
+        
         </CModal>
       )}
     </>

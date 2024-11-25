@@ -436,7 +436,7 @@ const Confirm = () => {
               )}
               <hr />
               <label className="fw-bold mb-2">Payment</label>
-
+ 
               <CFormCheck
                 type="radio"
                 id="payment2"
