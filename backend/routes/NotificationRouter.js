@@ -5,12 +5,12 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 const router = express.Router();
 
 router.get(
-  "/notification",
+  "/notification/:warehouseId",
   checkRole(["super admin", "warehouse staff", "group head", "line head", "section head", "department head"]),
   getNotificationsByUserId
 );
 router.get(
-  "/notification-count",
+  "/notification-count/:warehouseId",
   checkRole(["super admin", "warehouse staff", "group head", "line head", "section head", "department head"]),
   getUnreadNotificationCount
 );

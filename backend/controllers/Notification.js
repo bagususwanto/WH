@@ -1,4 +1,6 @@
 import Notification from "../models/NotificationModel.js  ";
+import User from "../models/UserModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const createNotification = async (userIds, notification) => {
   const { title, description, category } = notification;
@@ -16,13 +18,30 @@ export const createNotification = async (userIds, notification) => {
 };
 
 export const getNotificationsByUserId = async (req, res) => {
-  const userId  = req.user.userId;
+  const userId = req.user.userId;
+  const warehouseId = req.params.warehouseId;
 
   try {
     // Mencari notifikasi berdasarkan userId
     const notifications = await Notification.findAll({
       where: { userId }, // Menggunakan kondisi untuk memfilter berdasarkan userId
       order: [["createdAt", "DESC"]], // Urutkan berdasarkan waktu pembuatan terbaru
+      include: [
+        {
+          model: User,
+          required: true,
+          attributes: ["id", "username"],
+          include: [
+            {
+              model: Warehouse,
+              as: "alternateWarehouse",
+              required: true,
+              attributes: ["id", "warehouseName"],
+              where: { id: warehouseId },
+            },
+          ],
+        },
+      ],
     });
 
     if (notifications.length === 0) {
@@ -37,7 +56,8 @@ export const getNotificationsByUserId = async (req, res) => {
 };
 
 export const getUnreadNotificationCount = async (req, res) => {
-  const userId  = req.user.userId;
+  const userId = req.user.userId;
+  const warehouseId = req.params.warehouseId;
 
   try {
     // Mencari jumlah notifikasi yang belum dibaca
@@ -46,6 +66,22 @@ export const getUnreadNotificationCount = async (req, res) => {
         userId,
         isRead: 0,
       },
+      include: [
+        {
+          model: User,
+          required: true,
+          attributes: ["id", "username"],
+          include: [
+            {
+              model: Warehouse,
+              as: "alternateWarehouse",
+              required: true,
+              attributes: ["id", "warehouseName"],
+              where: { id: warehouseId },
+            },
+          ],
+        },
+      ],
     });
 
     return res.status(200).json({ unreadCount });
