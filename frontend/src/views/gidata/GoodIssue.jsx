@@ -55,6 +55,7 @@ const GoodIssue = () => {
   const [plantId, setPlantId] = useState()
   const [sectionId, setSectionId] = useState()
   const [status, setStatus] = useState([])
+  const [statusOrder, setStatusOrder] = useState()
   const [loadingImport, setLoadingImport] = useState(false)
   const [imported, setImported] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
@@ -70,21 +71,25 @@ const GoodIssue = () => {
 
   const columns = [
     {
-      field: 'formattedUpdateBy',
-      header: 'Update By',
-      sortable: true,
-    },
-    {
-      field: 'formattedUpdateAt',
-      header: 'Update At',
-      sortable: true,
-    },
-    {
-      field: 'Address_Rack.Storage.Plant.plantName',
+      field: 'User.Organization.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
+    {
+      field: 'paymentMethod',
+      header: 'GI Method',
+      sortable: true,
+    },
+    {
+      field: 'User.username',
+      header: 'Ordered By',
+      sortable: true,
+    },
+    {
+      field: 'currentApprover',
+      header: 'Current Approver',
+      sortable: true,
+    },
   ]
 
   const [visibleColumns, setVisibleColumns] = useState([])
@@ -121,7 +126,12 @@ const GoodIssue = () => {
         matchMode: FilterMatchMode.EQUALS,
       },
     })
+
     setGlobalFilterValue('')
+    setPlantId(null)
+    setSectionId(null)
+    setStatusOrder(null)
+    setDates([null, null])
     setSelectedDate(null)
   }
 
@@ -137,8 +147,9 @@ const GoodIssue = () => {
   }, [filters, globalFilterValue, goodIssue])
 
   useEffect(() => {
+    if (!shouldFetch) return
     fetchGoodIssue()
-  }, [dates, plantId, sectionId])
+  }, [shouldFetch, dates, plantId, sectionId, statusOrder])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -164,25 +175,42 @@ const GoodIssue = () => {
         endDate = format(dates[1], 'yyyy-MM-dd')
       }
 
+      if (!startDate && !endDate && !plantId && !sectionId && !statusOrder) {
+        setGoodIssue([])
+        setLoading(false)
+        return
+      }
+
       const response = await getGoodIssue(
         startDate ? startDate : '',
         endDate ? endDate : '',
         plantId ? plantId : '',
         sectionId ? sectionId : '',
-        'waiting approval',
+        statusOrder ? statusOrder : '',
       )
-      // const dataWithFormattedFields = response.data.map((item) => {
-
-      //   return {
-      //     ...item,
-      //     formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-      //     formattedUpdateAt: item.updatedAt
-      //       ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-      //       : '',
-      //   }
-      // })
-      setGoodIssue(response.data)
-      console.log(response.data)
+      const dataWithFormattedFields = response.data.map((item) => {
+        const materialNo = item.Detail_Orders?.[0]?.Inventory?.Material?.materialNo || 'N/A'
+        const description = item.Detail_Orders?.[0]?.Inventory?.Material?.description || 'N/A'
+        const quantity = item.Detail_Orders?.[0]?.quantity
+        const transactionNo = item.transactionNumber ? item.transactionNumber : item.requestNumber
+        const currentApprover = item.Approvals[0]?.User.username
+        const transactionDate = format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss') || ''
+        return {
+          ...item,
+          materialNo,
+          description,
+          quantity,
+          transactionNo,
+          currentApprover,
+          transactionDate,
+          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+          // formattedUpdateAt: item.updatedAt
+          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          //   : '',
+        }
+      })
+      setGoodIssue(dataWithFormattedFields)
+      console.log(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching goodIssue:', error)
     } finally {
@@ -230,6 +258,7 @@ const GoodIssue = () => {
       const sectionOptions = response.map((section) => ({
         label: section.sectionName,
         value: section.sectionName,
+        id: section.id,
       }))
       setSection(sectionOptions)
     } catch (error) {
@@ -240,11 +269,13 @@ const GoodIssue = () => {
   const handleSectionChange = (e) => {
     const selectedSectionName = e.value
     const selectedSection = section.find((s) => s.value === selectedSectionName)
-    const sectionId = selectedSection?.id
-    setSectionId(sectionId)
+    const selectedSectionId = selectedSection?.id
+
+    setSectionId(selectedSectionId)
     let _filters = { ...filters }
     _filters['User.Organization.Section.sectionName'].value = e.value
     setFilters(_filters)
+    setShouldFetch(true)
   }
 
   const handleStatusChange = (e) => {
@@ -254,19 +285,21 @@ const GoodIssue = () => {
     let _filters = { ...filters }
     _filters['status'].value = e.value
     setFilters(_filters)
+    setShouldFetch(true)
   }
 
   const handlePlantChange = (e) => {
     const selectedPlantName = e.value
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
-    setPlantId(plantId)
 
+    setPlantId(plantId)
     getSectionByPlantId(plantId)
 
     let _filters = { ...filters }
     _filters['User.Organization.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
+    setShouldFetch(true)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -291,7 +324,7 @@ const GoodIssue = () => {
     if (filters['User.Organization.Section.sectionName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.User.Organization.Section.sectionName ===
+          item.User?.Organization?.Section?.sectionName ===
           filters['User.Organization.Section.sectionName'].value,
       )
     }
@@ -299,7 +332,7 @@ const GoodIssue = () => {
     if (filters['User.Organization.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.User.Organization.Plant.plantName ===
+          item.User?.Organization?.Plant?.plantName ===
           filters['User.Organization.Plant.plantName'].value,
       )
     }
@@ -332,19 +365,8 @@ const GoodIssue = () => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
         return {
-          'Material No': item.Inventory.Material.materialNo,
-          Description: item.Inventory.Material.description,
-          Address: item.Inventory.Address_Rack.addressRackName,
-          UoM: item.Inventory.Material.uom,
-          'Planning Incoming': item.planning,
-          'Actual Incoming': item.actual,
-          Discrepancy: item.discrepancy,
-          Date: item.Log_Import.importDate,
-          'Import By': item.Log_Import?.User?.username || '',
-          Plant: item.Inventory.Address_Rack.Storage.Plant.plantName,
-          Storage: item.Inventory.Address_Rack.Storage.storageName,
-          'Update By': item.Log_Entries[0]?.User?.username || '',
-          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+          'Material No': item.materialNo,
+          'Issue QTY': item.quantity,
         }
       })
 
@@ -454,6 +476,7 @@ const GoodIssue = () => {
                   }}
                   onChange={(date) => {
                     setDates(date)
+                    setShouldFetch(true)
                   }}
                   className="form-control mb-2"
                   placeholder="Select a date"
@@ -503,7 +526,7 @@ const GoodIssue = () => {
         </CCard>
 
         <CCard className="mb-3">
-          <CCardHeader>Incoming Table</CCardHeader>
+          <CCardHeader>Good Issue Transaction</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent /> // Render loading component when loading is true
@@ -545,42 +568,22 @@ const GoodIssue = () => {
                   header={header}
                 >
                   <Column
-                    field="Inventory.Material.materialNo"
+                    field="materialNo"
                     header="Material"
                     frozen={true}
                     alignFrozen="left"
                     sortable
                   ></Column>
+                  <Column field="description" header="Description" sortable></Column>
+                  <Column field="quantity" header="Quantity" sortable></Column>
+                  <Column field="transactionNo" header="Transaction No" sortable></Column>
+                  <Column field="transactionDate" header="Transaction Date" sortable></Column>
                   <Column
-                    field="Inventory.Material.description"
-                    header="Description"
-                    frozen={true}
-                    alignFrozen="left"
+                    field="User.Organization.Section.sectionName"
+                    header="Section"
+                    ß
                     sortable
                   ></Column>
-                  <Column
-                    field="Inventory.Address_Rack.addressRackName"
-                    header="Address"
-                    sortable
-                  ></Column>
-                  <Column field="Inventory.Material.uom" header="UoM" sortable></Column>
-                  <Column field="planning" header="Plan." sortable></Column>
-                  <Column
-                    field="actual"
-                    header="Act."
-                    editor={(options) => qtyActualEditor(options)}
-                    style={{ width: '5%' }}
-                    sortable
-                  ></Column>
-                  <Column
-                    field="discrepancy"
-                    header="Disc."
-                    // body={discrepancyBodyTemplate}
-                    bodyStyle={{ textAlign: 'center' }}
-                    sortable
-                  ></Column>
-                  <Column field="Log_Import.importDate" header="Date" sortable></Column>
-                  <Column field="Log_Import.User.username" header="Import By" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -592,14 +595,8 @@ const GoodIssue = () => {
                       bodyStyle={col.bodyStyle}
                     />
                   ))}
-                  <Column
-                    header="Action"
-                    rowEditor={true}
-                    headerStyle={{ width: '5%' }}
-                    bodyStyle={{ textAlign: 'center' }}
-                    frozen={true}
-                    alignFrozen="right"
-                  ></Column>
+                  <Column field="paymentNumber" header="GI number" sortable></Column>
+                  <Column field="status" header="Last Status" sortable></Column>
                 </DataTable>
               </>
             )}

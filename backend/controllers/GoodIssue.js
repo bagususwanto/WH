@@ -1,15 +1,8 @@
 import Material from "../models/MaterialModel.js";
-import Category from "../models/CategoryModel.js";
-import Supplier from "../models/SupplierModel.js";
-import Incoming from "../models/IncomingModel.js";
-import AddressRack from "../models/AddressRackModel.js";
-import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
-import LogImport from "../models/LogImportModel.js";
 import { Op } from "sequelize";
 import Inventory from "../models/InventoryModel.js";
-import LogEntry from "../models/LogEntryModel.js";
 import Order from "../models/OrderModel.js";
 import Approval from "../models/ApprovalModel.js";
 import Organization from "../models/OrganizationModel.js";
@@ -62,7 +55,7 @@ export const getGoodIssue = async (req, res) => {
             model: DetailOrder,
             where: { isReject: 0, isDelete: 0 },
             required: true,
-            attributes: ["id", "inventoryId"],
+            attributes: ["id", "inventoryId", "quantity"],
             include: [
               {
                 model: Inventory,
