@@ -40,7 +40,13 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: ["waiting approval", "waiting confirmation", "on process", "ready to pickup", "ready to deliver"],
+          [Op.in]: [
+            "waiting approval",
+            "waiting confirmation",
+            "on process",
+            "ready to pickup",
+            "ready to deliver",
+          ],
         },
       },
       include: [
@@ -55,7 +61,13 @@ export const checkStock = async (inventoryId, quantity) => {
 
     // Hitung total quantity dari semua DetailOrder yang terkait
     const totalOrderedQuantity = orders.reduce((sum, order) => {
-      return sum + order.DetailOrder.reduce((detailSum, detail) => detailSum + detail.quantity, 0);
+      return (
+        sum +
+        order.DetailOrder.reduce(
+          (detailSum, detail) => detailSum + detail.quantity,
+          0
+        )
+      );
     }, 0);
 
     // Hitung sisa stok yang ada di inventory sekarang - total order quantity yang masih proses
@@ -143,7 +155,11 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
   }
 
   // Jika user production dan role itu group head atau line head dan payment methods bukan GIC
-  if (isProduction == 1 && (role == "group head" || role == "line head") && paymentMethod != "GIC") {
+  if (
+    isProduction == 1 &&
+    (role == "group head" || role == "line head") &&
+    paymentMethod != "GIC"
+  ) {
     return true;
   }
 };
@@ -173,7 +189,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     let approval = [];
 
     // Variabel untuk mengecek apakah ada material dengan harga >= 20jt
-    const hasExpensiveMaterial = carts.some((cart) => cart.Inventory.Material.price >= 20000000);
+    const hasExpensiveMaterial = carts.some(
+      (cart) => cart.Inventory.Material.price >= 20000000
+    );
 
     // Helper function untuk mengambil roleIdApproval
     const getRoleApprovalId = async (condition) => {
@@ -187,7 +205,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
       if (!hasExpensiveMaterial) {
         if (user.Organization.lineId) {
           // Jika role group head
-          const roleIdApproval = await getRoleApprovalId({ lineId: user.Organization.lineId });
+          const roleIdApproval = await getRoleApprovalId({
+            lineId: user.Organization.lineId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -196,7 +216,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
 
             // create notification
-            const userIds = await getUserIdApproval({ lineId: user.Organization.lineId });
+            const userIds = await getUserIdApproval({
+              lineId: user.Organization.lineId,
+            });
 
             const notification = {
               title: "Request Approval",
@@ -209,7 +231,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           }
         } // Jika lineId tidak ada atau tidak relevan, cek sectionId
         else if (user.Organization.sectionId) {
-          const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
+          const roleIdApproval = await getRoleApprovalId({
+            sectionId: user.Organization.sectionId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -217,7 +241,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
               isApproval: 0,
             });
             // create notification
-            const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+            const userIds = await getUserIdApproval({
+              sectionId: user.Organization.sectionId,
+            });
             const notification = {
               title: "Request Approval",
               description: "Request Approval from Team Leader to Section Head",
@@ -229,7 +255,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           }
         } // Jika sectionId tidak ada, cek departmentId
         else if (user.Organization.departmentId) {
-          const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
+          const roleIdApproval = await getRoleApprovalId({
+            departmentId: user.Organization.departmentId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -237,10 +265,13 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
               isApproval: 0,
             });
             // create notification
-            const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+            const userIds = await getUserIdApproval({
+              departmentId: user.Organization.departmentId,
+            });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Department Head",
+              description:
+                "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -252,7 +283,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
         // Jika ada material dengan harga >= 20jt
         if (user.Organization.lineId) {
           // Jika role group head
-          const roleIdApproval = await getRoleApprovalId({ lineId: user.Organization.lineId });
+          const roleIdApproval = await getRoleApprovalId({
+            lineId: user.Organization.lineId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -260,7 +293,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
               isApproval: 0,
             });
             // create notification
-            const userIds = await getUserIdApproval({ lineId: user.Organization.lineId });
+            const userIds = await getUserIdApproval({
+              lineId: user.Organization.lineId,
+            });
             const notification = {
               title: "Request Approval",
               description: "Request Approval from Team Leader to Group Leader",
@@ -272,7 +307,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           }
         } // Jika lineId tidak ada atau tidak relevan, cek sectionId
         else if (user.Organization.sectionId) {
-          const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
+          const roleIdApproval = await getRoleApprovalId({
+            sectionId: user.Organization.sectionId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -280,7 +317,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
               isApproval: 0,
             });
             // create notification
-            const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+            const userIds = await getUserIdApproval({
+              sectionId: user.Organization.sectionId,
+            });
             const notification = {
               title: "Request Approval",
               description: "Request Approval from Team Leader to Section Head",
@@ -292,7 +331,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           }
         } // Jika sectionId tidak ada, cek departmentId
         else if (user.Organization.departmentId) {
-          const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
+          const roleIdApproval = await getRoleApprovalId({
+            departmentId: user.Organization.departmentId,
+          });
           if (roleIdApproval) {
             approval.push({
               currentRoleApprovalId: roleIdApproval,
@@ -300,10 +341,13 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
               isApproval: 0,
             });
             // create notification
-            const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+            const userIds = await getUserIdApproval({
+              departmentId: user.Organization.departmentId,
+            });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Department Head",
+              description:
+                "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -318,7 +362,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     if (user.Role.roleName == "line head" && hasExpensiveMaterial) {
       // Jika role line head dan harga >= 20jt, set role approval berdasarkan sectionId
       if (user.Organization.sectionId) {
-        const roleIdApproval = await getRoleApprovalId({ sectionId: user.Organization.sectionId });
+        const roleIdApproval = await getRoleApprovalId({
+          sectionId: user.Organization.sectionId,
+        });
         if (roleIdApproval) {
           approval.push({
             currentRoleApprovalId: roleIdApproval,
@@ -326,7 +372,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             isApproval: 0,
           });
           // create notification
-          const userIds = await getUserIdApproval({ sectionId: user.Organization.sectionId });
+          const userIds = await getUserIdApproval({
+            sectionId: user.Organization.sectionId,
+          });
           const notification = {
             title: "Request Approval",
             description: "Request Approval from Group Leader to Section Head",
@@ -338,7 +386,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
         }
       } // Jika sectionId tidak ada, cek departmentId
       else if (user.Organization.departmentId) {
-        const roleIdApproval = await getRoleApprovalId({ departmentId: user.Organization.departmentId });
+        const roleIdApproval = await getRoleApprovalId({
+          departmentId: user.Organization.departmentId,
+        });
         if (roleIdApproval) {
           approval.push({
             currentRoleApprovalId: roleIdApproval,
@@ -346,10 +396,13 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             isApproval: 0,
           });
           // create notification
-          const userIds = await getUserIdApproval({ departmentId: user.Organization.departmentId });
+          const userIds = await getUserIdApproval({
+            departmentId: user.Organization.departmentId,
+          });
           const notification = {
             title: "Request Approval",
-            description: "Request Approval from Group Leader to Department Head",
+            description:
+              "Request Approval from Group Leader to Department Head",
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -386,14 +439,14 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
 export const generateOrderNumber = async (isApproval) => {
   try {
     // Dapatkan tanggal hari ini dalam format YYYYMMDD
-    const today = new Date();
+    const today = new Date(new Date().getTime() - 8 * 60 * 60 * 1000);
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
     const formattedDate = `${year}${month}${day}`;
 
     // Tentukan prefix berdasarkan isApproval
-    const prefix = isApproval == 1 ? "TR" : "REQ";
+    const prefix = isApproval == 1 ? "TRS" : "REQ";
 
     // Cari sequence terbaru untuk hari ini
     const lastOrder = await Order.findOne({
@@ -411,7 +464,11 @@ export const generateOrderNumber = async (isApproval) => {
     if (lastOrder) {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
       const lastTransactionNumber =
-        isApproval == 1 && lastOrder ? lastOrder.transactionNumber : isApproval == 0 && lastOrder ? lastOrder.requestNumber : lastOrder;
+        isApproval == 1 && lastOrder
+          ? lastOrder.transactionNumber
+          : isApproval == 0 && lastOrder
+          ? lastOrder.requestNumber
+          : lastOrder;
 
       // Periksa apakah lastTransactionNumber valid
       if (lastTransactionNumber) {
@@ -558,7 +615,9 @@ export const checkout = async (req, res) => {
     const cartIds = req.body.cartIds;
 
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res.status(400).json({ message: "cartIds must be a non-empty array" });
+      return res
+        .status(400)
+        .json({ message: "cartIds must be a non-empty array" });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -637,7 +696,13 @@ export const createOrder = async (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
       }
     } else {
-      if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
+      if (
+        !cartIds ||
+        !orderTimeStr ||
+        !paymentNumber ||
+        !paymentMethod ||
+        !deliveryMethod
+      ) {
         return res.status(400).json({ message: "All fields are required" });
       }
     }
@@ -722,10 +787,17 @@ export const createOrder = async (req, res) => {
         userId: userId,
         requestNumber: leftTransactionNo == "RE" ? fullTransactionNo : null,
         transactionNumber: leftTransactionNo == "TR" ? fullTransactionNo : null,
-        totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
+        transactionDate: new Date(new Date().getTime() - 8 * 60 * 60 * 1000),
+        totalPrice: carts.reduce(
+          (acc, cart) => acc + cart.Inventory.Material.price * cart.quantity,
+          0
+        ),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: leftTransactionNo == "TR" ? "waiting confirmation" : "waiting approval",
+        status:
+          leftTransactionNo == "TR"
+            ? "waiting confirmation"
+            : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
@@ -744,7 +816,8 @@ export const createOrder = async (req, res) => {
         inventoryId: cart.inventoryId,
         quantity: cart.quantity,
         price: cart.Inventory.Material.price * cart.quantity,
-        isMoreThanCertainPrice: cart.Inventory.Material.price >= 20000000 ? 1 : 0,
+        isMoreThanCertainPrice:
+          cart.Inventory.Material.price >= 20000000 ? 1 : 0,
       })),
       { transaction: t } // Menambahkan transaksi
     );
@@ -782,7 +855,9 @@ export const createOrder = async (req, res) => {
 
     try {
       // Transaksi kedua untuk mencatat sejarah pesanan
-      await postOrderHistory("order created", userId, order.id, { transaction: t2 });
+      await postOrderHistory("order created", userId, order.id, {
+        transaction: t2,
+      });
 
       // Commit transaksi kedua
       await t2.commit();
@@ -790,7 +865,9 @@ export const createOrder = async (req, res) => {
       // Rollback transaksi kedua jika terjadi error
       await t2.rollback();
       console.log(error);
-      return res.status(500).json({ message: "Internal server error on create order history" });
+      return res
+        .status(500)
+        .json({ message: "Internal server error on create order history" });
     }
 
     // Jika semua validasi sukses
