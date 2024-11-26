@@ -81,9 +81,7 @@ const AppHeaderDropdown = () => {
   ) {
     shouldShowApproval = true
   }
-  if (roleName === 'super admin' ||
-     roleName === 'warehouse staff'
-  ) {
+  if (roleName === 'super admin' || roleName === 'warehouse staff') {
     shouldShowWarehouse = true
   }
 
@@ -95,9 +93,12 @@ const AppHeaderDropdown = () => {
         caret={false}
       >
         <CAvatar src={profile} size="md" />
-        <div className="ms-3 d-flex flex-column">
-          <span>{firstName}</span>
-          <span>{lastName}</span>
+        <div className="ms-2 d-flex flex-column">
+          <span style={{ fontSize: '0.7em' }}>Welcome,</span>
+          <span style={{ fontSize: '1em' }} >
+            {firstName}
+            {''} {lastName}
+          </span>
         </div>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">

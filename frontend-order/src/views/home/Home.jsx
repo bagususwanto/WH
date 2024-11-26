@@ -86,8 +86,7 @@ const Home = () => {
   const { getProductByCategory } = useProductService()
   const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, deleteWishlist, addWishlist, getMyorder, getOrderHistory } =
-    useOrderService()
+  const { getWishlist, deleteWishlist, addWishlist, getMyorder, getOrderHistory } =useOrderService()
   const { postCart, updateCart } = useCartService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
@@ -922,7 +921,7 @@ const Home = () => {
                         ? 'black' // Warna teks putih untuk kategori yang dipilih
                         : index === 0 &&
                             (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                          ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
+                          ? 'black' // Warna teks putih untuk kategori pertama jika dipilih
                           : 'black', // Warna teks default
                   }}
                 >
@@ -1158,7 +1157,7 @@ const Home = () => {
                     onClick={() => setQuantity((prev) => prev + 1)}
                     style={{
                       backgroundColor: 'white',
-                      color: '#219fee',
+                       color: '#219fee',
                       border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
                     }}
                   >

@@ -23,6 +23,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
+import useCartService from '../../services/CartService'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
@@ -48,6 +49,7 @@ const Wishlist = () => {
   const [cartCount, setCartCount] = useState(0)
   const [isAdjustMode, setIsAdjustMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
+  const { postCart, updateCart } = useCartService()
 
   const { warehouse, wishlist } = useContext(GlobalContext)
 
@@ -112,19 +114,74 @@ const Wishlist = () => {
     setQuantity(1)
   }
 
-  const handleAddToCart = (product, quantity) => {
-    const existingProduct = cart.find((item) => item.id === product.Material.id)
-    if (existingProduct) {
-      const updatedCart = cart.map((item) =>
-        item.id === product.Material.id ? { ...item, quantity: item.quantity + quantity } : item,
-      )
-      setCart(updatedCart)
-    } else {
-      setCart([...cart, { ...product, quantity }])
+  const handleAddToCart = async (product, quantity) => {
+    try {
+      // Cek inventoryId yang sesuai dari product
+      const inventoryId = product.Inventory ? product.Inventory.id : product.id
+
+      // Cari produk yang ada di cart berdasarkan inventoryId
+      const existingProduct = cart.find((item) => item.inventoryId === inventoryId)
+
+      if (existingProduct) {
+        // Jika produk ada di cart, update kuantitasnya
+        const updatedProduct = {
+          ...existingProduct,
+          quantity: existingProduct.quantity + quantity,
+        }
+
+        // Update cart menggunakan API updateCart
+        const updatedCartResponse = await updateCart(
+          {
+            inventoryId,
+            quantity: updatedProduct.quantity,
+          },
+          warehouse.id,
+        )
+
+        if (updatedCartResponse) {
+          // Update state cart dengan produk yang sudah diperbarui
+          setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
+        }
+      } else {
+        // Jika produk tidak ada di cart, tambahkan produk baru
+        const newCartItem = {
+          inventoryId,
+          quantity,
+        }
+
+        setCartCount(cartCount + quantity)
+
+        // Posting produk baru ke API menggunakan postCart
+        const addToCartResponse = await postCart(newCartItem, warehouse.id)
+
+        if (addToCartResponse) {
+          // Tambahkan produk baru ke state cart
+          setCart([
+            ...cart,
+            { ...newCartItem, Inventory: product.Inventory ? product.Inventory : product },
+          ])
+        }
+      }
+
+      setModalOrder(false)
+
+      MySwal.fire({
+        title: 'Success',
+        text: 'Product added to cart',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Cart',
+        cancelButtonText: 'Stay Here',
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/cart')
+        }
+      })
+    } catch (error) {
+      // Handle error
+      console.error('Failed to add to cart:', error)
     }
-    setCartCount(cartCount + quantity)
-    setModalOrder(false)
-    navigate('/cart') // Navigate to the cart page
   }
 
   // Toggle mode Adjust
@@ -294,29 +351,86 @@ const Wishlist = () => {
           <CModalBody>
             <CRow>
               <CCol md="4">
-                <CImage
-                  src={selectedProduct.Inventory.Material.img || 'https://via.placeholder.com/150'}
-                  alt={selectedProduct.Inventory.Material.description}
-                  fluid
-                  className="rounded"
-                />
+                {selectedProduct && (
+                  <CImage
+                    src={`${config.BACKEND_URL}${selectedProduct.Inventory ? selectedProduct.Inventory.Material.img : selectedProduct.Material.img}`}
+                    alt={
+                      selectedProduct.Inventory
+                        ? selectedProduct.Inventory.Material.description
+                        : selectedProduct.Material.description
+                    }
+                    fluid
+                    className="rounded"
+                  />
+                )}
               </CCol>
               <CCol md="8">
-                <strong>{selectedProduct.Inventory.Material.description}</strong>
-                <p>{selectedProduct.Inventory.Material.materialNo}</p>
+                <div>
+                  <label style={{ fontWeight: 'bold' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.description
+                      : selectedProduct.Material.description}
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 'lighter' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.materialNo
+                      : selectedProduct.Material.materialNo}
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.85rem' }}>
+                    Min Order:{' '}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.minOrder
+                      : selectedProduct.Material.minOrder}{' '}
+                    {''}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                  </label>
+                </div>
+
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
                     onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
                   >
                     -
                   </CButton>
-                  <span className="mx-3">
-                    {quantity} ({selectedProduct.Inventory.Material.uom})
-                  </span>
-                  <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
+                  <CFormInput
+                    type="text"
+                    value={quantity}
+                    className="w-25 text-center border-0"
+                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+                  />
+
+                  <CButton
+                    color="primary"
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                    style={{
+                      backgroundColor: 'white',
+                       color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
+                  >
                     +
                   </CButton>
+                  <span className="mx-3 fw-light">
+                    (
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                    )
+                  </span>
                 </div>
               </CCol>
             </CRow>

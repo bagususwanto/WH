@@ -339,7 +339,7 @@ const ApproveAll = () => {
           )}
           <hr />
 
-          <label className="fw-bold mb-2">GI Methode</label>
+          <label className="fw-bold mb-2">GI Method</label>
           {loading ? (
             <Skeleton height={20} width="80%" />
           ) : (

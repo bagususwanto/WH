@@ -890,7 +890,7 @@ console.log('bagus',notif)
                             ? 'black' // White text color for selected category
                             : index === 0 &&
                                 (!selectedCategory || selectedCategory.id === category[0].id)
-                              ? 'white' // White text for the first category if selected
+                              ? 'black' // White text for the first category if selected
                               : 'black', // Default black text color
                       }}
                     >
