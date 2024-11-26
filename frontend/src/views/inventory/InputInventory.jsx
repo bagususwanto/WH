@@ -5,7 +5,6 @@ import {
   CCardBody,
   CCol,
   CRow,
-  CFormTextarea,
   CTableRow,
   CTableHead,
   CTableHeaderCell,
@@ -22,13 +21,15 @@ import {
   CModal,
   CModalHeader,
   CModalBody,
+  CCollapse,
 } from '@coreui/react'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
 import { CIcon } from '@coreui/icons-react'
-import { cilPencil, cilQrCode, cilTrash, cilXCircle } from '@coreui/icons'
+import { cilPencil, cilQrCode, cilTrash } from '@coreui/icons'
 import { Scanner } from '@yudiel/react-qr-scanner'
+import Pagination from '../../components/Pagination'
 
 import useMasterDataService from '../../services/MasterDataService'
 import useManageStockService from '../../services/ManageStockService'
@@ -63,6 +64,16 @@ const InputInventory = () => {
   const [conversionUom, setConversionUom] = useState('')
   const [baseUom, setBaseUom] = useState('')
   const [conversionRate, setConversionRate] = useState(0)
+  const [visible, setVisible] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentItems =
+    filteredInventory.length > 0
+      ? filteredInventory.slice(indexOfFirstItem, indexOfLastItem)
+      : inventory.slice(indexOfFirstItem, indexOfLastItem)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -91,6 +102,17 @@ const InputInventory = () => {
     getStorage()
     getMaterialType()
   }, [])
+
+  useEffect(() => {
+    const inventoryData = filteredInventory.length > 0 ? filteredInventory : inventory
+    // Cari materialNo yang cocok antara currentItems dan items
+    const matches = inventoryData
+      .map((item) => item.Material?.materialNo)
+      .filter((materialNo) => items.some((i) => i.materialNo === materialNo))
+
+    // Perbarui state dengan daftar materialNo yang cocok
+    setMatchedMaterialNos(matches)
+  }, [items, selectedAddressCodeVal])
 
   const getPlant = async () => {
     try {
@@ -123,6 +145,7 @@ const InputInventory = () => {
     try {
       const response = await getInventory(id, type)
       setInventory(response.data)
+      setCurrentPage(1)
     } catch (error) {
       console.error(error)
     }
@@ -386,6 +409,8 @@ const InputInventory = () => {
     }
   }
 
+  const [matchedMaterialNos, setMatchedMaterialNos] = useState([])
+
   const handleAddInventory = () => {
     if (
       selectedMaterialNo &&
@@ -562,7 +587,6 @@ const InputInventory = () => {
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
-      setSelectedTypeMaterial(null)
       setQuantity('')
       setConversionUom('')
       setBaseUom('')
@@ -587,6 +611,7 @@ const InputInventory = () => {
       const inventoryByAddress = inventory.filter(
         (item) => item.Address_Rack.addressRackName.slice(0, 2) === selectedAddressCode.label,
       )
+      setCurrentPage(1)
       setFilteredInventory(inventoryByAddress) // Simpan data yang sudah difilter ke state
     } else {
       // Reset jika tidak ada address code yang dipilih
@@ -922,6 +947,70 @@ const InputInventory = () => {
                   </CButton>
                 </CCol>
               </CRow>
+              {/* Collapse content */}
+              <CButton color="secondary" className="mt-3" onClick={() => setVisible(!visible)}>
+                Show List
+              </CButton>
+              <CCollapse visible={visible}>
+                <CCard className="mt-3">
+                  <CCardBody>
+                    <CTable align="middle" responsive className="text-center">
+                      <CTableHead>
+                        <CTableRow>
+                          <CTableHeaderCell scope="col">#</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Material No</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Description</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Address</CTableHeaderCell>
+                        </CTableRow>
+                      </CTableHead>
+                      <CTableBody>
+                        {currentItems.length > 0 ? (
+                          currentItems.map((item, index) => {
+                            const isMatch = matchedMaterialNos.includes(item.Material?.materialNo)
+                            return (
+                              <CTableRow
+                                key={item.id}
+                                color={
+                                  isMatch // Jika cocok, gunakan warna "success"
+                                    ? 'success'
+                                    : 'transparent' // Jika tidak cocok, gunakan warna "primary"
+                                }
+                              >
+                                <CTableDataCell>{index + 1 + indexOfFirstItem}</CTableDataCell>
+                                <CTableDataCell>
+                                  {item.Material?.materialNo || 'N/A'}
+                                </CTableDataCell>
+                                <CTableDataCell>
+                                  {item.Material?.description || 'N/A'}
+                                </CTableDataCell>
+                                <CTableDataCell>
+                                  {item.Address_Rack?.addressRackName || 'N/A'}
+                                </CTableDataCell>
+                              </CTableRow>
+                            )
+                          })
+                        ) : (
+                          <CTableRow>
+                            <CTableDataCell colSpan={4}>No data available</CTableDataCell>
+                          </CTableRow>
+                        )}
+                      </CTableBody>
+                    </CTable>
+                    <div className="mt-3">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(
+                          filteredInventory.length > 0
+                            ? filteredInventory.length / itemsPerPage
+                            : inventory.length / itemsPerPage,
+                        )}
+                        onPageChange={(page) => setCurrentPage(page)}
+                      />
+                    </div>
+                  </CCardBody>
+                </CCard>
+              </CCollapse>
+
               <CRow className="mt-3">
                 {/* Modal untuk QR Scanner */}
                 <CModal visible={isQrScannerOpen} onClose={() => setIsQrScannerOpen(false)}>
