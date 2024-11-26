@@ -13,9 +13,9 @@ const useNotificationService = () => {
     throw new Error(message + error.message)
   }
 
-  const getNotification = async () => {
+  const getNotification = async (warehouseId) => {
     try {
-      const response = await axiosJWT.get(`/notification`, {
+      const response = await axiosJWT.get(`/notification/${warehouseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -27,9 +27,9 @@ const useNotificationService = () => {
     }
   }
 
-  const getNotificationCount = async () => {
+  const getNotificationCount = async (warehouseId) => {
     try {
-      const response = await axiosJWT.get(`/notification-count`, {
+      const response = await axiosJWT.get(`/notification-count/${warehouseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

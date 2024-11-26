@@ -388,8 +388,12 @@ const History = () => {
                           <CCol xs={4} className="d-flex justify-content-end">
                             <CButton
                               onClick={() => handleViewHistoryOrder(order)}
-                              color="primary"
                               size="sm"
+                              style={{
+                                backgroundColor: 'white',
+                                color: '#219fee',
+                                border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                              }}
                             >
                               View Detail Order
                             </CButton>
@@ -560,7 +564,6 @@ const History = () => {
               </CCard>
             </CRow>
           </CModalBody>
-        
         </CModal>
       )}
     </>

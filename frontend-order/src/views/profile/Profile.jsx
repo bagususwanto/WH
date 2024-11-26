@@ -37,17 +37,30 @@ import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
 import { cilEnvelopeOpen } from '@coreui/icons'
 import useMasterDataService from '../../services/MasterDataService'
+import useNotificationService from '../services/NotificationService'
 
 const Profile = () => {
   const { getMasterData } = useMasterDataService()
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
+  const [notifProfile, setnotifProfile] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
+  const { getNotification, getNotificationCount } = useNotificationService()
+  
   const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
 
-  const apiUser = 'user'
+  const apiUser = 'user-public'
+
+  const getNotifDesc = async () => {
+    try {
+      const response = await getNotification(warehouse.id)
+      setnotifProfile(response)
+    } catch (error) {
+      console.error('Error fetching notif:', error)
+    }
+  }
 
   const getusers = async () => {
     const response = await getMasterData(apiUser)
@@ -69,6 +82,18 @@ const Profile = () => {
     getusers()
   }, [])
 
+ 
+  useEffect(() => {
+    if (warehouse && warehouse.id) {
+    
+      getNotifDesc()
+      const interval = setInterval(() => {
+        getNotifCount() // Poll every 5 seconds
+      }, 5000)
+      return () => clearInterval(interval) // Clear interval on component unmount
+    }
+  }, [warehouse, cartCount])
+ 
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -99,18 +124,51 @@ const Profile = () => {
   }
 
   return (
-    <CTabs activeItemKey={1}>
+    <CTabs activeItemKey={'notifikasi'}>
       <CTabList variant="underline-border">
-        <CTab aria-controls="home-tab-pane" itemKey={1}>
+        <CTab aria-controls="home-tab-pane" itemKey={'notifikasi'}>
+          Notifikasi
+        </CTab>
+
+        <CTab aria-controls="home-tab-pane" itemKey={'profile'}>
           Profile
         </CTab>
 
-        <CTab aria-controls="profile-tab-pane" itemKey={2}>
+        <CTab aria-controls="profile-tab-pane" itemKey={'structure'}>
           Structure Approval
         </CTab>
       </CTabList>
       <CTabContent>
-        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={1}>
+        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'notifikasi'}>
+          <CContainer>
+            <CRow>
+              <label className="mb-2 fs-4 fw-bold">Your Notification</label>
+            </CRow>
+            <CRow>
+              <CCard>
+                <CAccordionHeader className="mt-2 fs-6">Transaction Info</CAccordionHeader>
+                <hr />
+                <CCardBody>
+                  {notifProfile.map((notif, index) => (
+                    <CRow>
+                      <CCol xs={1}>
+                        <CIcon icon={cilEnvelopeOpen} size="xl" />
+                      </CCol>
+                      <CCol xs={11}>
+                        <div>
+                          <div>Message for you</div>
+                          <div className="fw-light">{notif.description}</div>
+                        </div>
+                      </CCol>
+                    </CRow>
+                  ))}
+                  <hr />
+                </CCardBody>
+              </CCard>
+            </CRow>
+          </CContainer>
+        </CTabPanel>
+        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'profile'}>
           <CContainer>
             <CRow>
               <CCol xs={4}>
@@ -279,7 +337,7 @@ const Profile = () => {
           </CContainer>
         </CTabPanel>
 
-        <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={2}>
+        <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={'structure'}>
           <CContainer>
             <CRow>
               <CCol xs={5}>
@@ -394,44 +452,6 @@ const Profile = () => {
                           </CAccordion>
                         </CRow>
                       ))}
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              </CCol>
-              <CCol>
-                <CRow>
-                  <CCard>
-                    <CCardHeader>
-                      <label className="fw-bold fs-5"> Your Information</label>
-                    </CCardHeader>
-                    <CCardBody>
-                      <CRow>
-                        <CCol xs={1}>
-                          <CIcon icon={cilEnvelopeOpen} size="xl" />
-                        </CCol>
-                        <CCol xs={11}>
-                          <div>
-                            <div>Order Has Received</div>
-                            <div className="fw-light">
-                              Order sudah diterima, jangan lupa order kembali ya!
-                            </div>
-                          </div>
-                        </CCol>
-                      </CRow>
-                      <hr />
-                      <CRow>
-                        <CCol xs={1}>
-                          <CIcon icon={cilEnvelopeOpen} size="xl" />
-                        </CCol>
-                        <CCol xs={11}>
-                          <div>
-                            <div>Order Has Received</div>
-                            <div className="fw-light">
-                              Order sudah diterima, jangan lupa order kembali ya!
-                            </div>
-                          </div>
-                        </CCol>
-                      </CRow>
                     </CCardBody>
                   </CCard>
                 </CRow>

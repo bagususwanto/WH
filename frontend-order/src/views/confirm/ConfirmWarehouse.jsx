@@ -4,6 +4,8 @@ import '../../scss/home.scss'
 import { format, parseISO } from 'date-fns'
 import '../../scss/body_gray.scss'
 import '../../scss/modal_backdrop.scss'
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 import {
   CCard,
   CCardBody,
@@ -59,7 +61,6 @@ const Confirm = () => {
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
   const location = useLocation()
-
   const { getWarehouseConfirm, rejectWarehouseConfirm, postWarehouseConfirm } =
     useWarehouseService()
   const [currentPage, setCurrentPage] = useState(1)
@@ -69,8 +70,17 @@ const Confirm = () => {
   const MySwal = withReactContent(Swal)
   const navigate = useNavigate()
   const { warehouse } = useContext(GlobalContext)
+  const [loading, setLoading] = useState(true) // Add loading state
 
   const apiCategory = 'category'
+  useEffect(() => {
+    // Simulate data fetching or processing delay
+    const timeout = setTimeout(() => {
+      setLoading(false) // Set loading to false after fetching data
+    }, 1000)
+
+    return () => clearTimeout(timeout)
+  }, [])
   useEffect(() => {
     // Add a specific class to body
     document.body.classList.add('body-gray-background')
@@ -283,7 +293,12 @@ const Confirm = () => {
 
   const handleConfirmRejection = async () => {
     if (!rejectionReason) {
-      alert('Please enter a rejection reason')
+      Swal.fire({
+        title: 'Missing Information',
+        text: 'Please enter a rejection reason',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+      })
       return
     }
 
@@ -350,10 +365,16 @@ const Confirm = () => {
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
-                <CButton color="primary" onClick={handleApprove}>
-                  Confirm Now
-                </CButton>
+                <label className="fw-bold mb-2">
+                  {loading ? <Skeleton width={80} height={20} /> : `Total: ${totalQuantity} Item`}
+                </label>
+                {loading ? (
+                  <Skeleton width={100} height={35} />
+                ) : (
+                  <CButton color="primary" onClick={handleApprove}>
+                    Confirm Now
+                  </CButton>
+                )}
               </div>
             </CCardBody>
           </CCard>
@@ -361,251 +382,316 @@ const Confirm = () => {
           <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
             <CCardBody>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                <img
-                  src="path-to-user-photo.jpg"
-                  alt="User Profile"
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    marginRight: '16px',
-                  }}
-                />
+                {loading ? (
+                  <Skeleton circle={true} height={60} width={60} />
+                ) : (
+                  <img
+                    src="path-to-user-photo.jpg"
+                    alt="User Profile"
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      marginRight: '16px',
+                    }}
+                  />
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div>
-                    <strong>FROM:</strong> {Confirmwarehouse.User.name}
+                    <strong>FROM:</strong>{' '}
+                    {loading ? <Skeleton width={120} /> : Confirmwarehouse.User.name}
                   </div>
                   <div>
-                    <strong>LINE:</strong> {Confirmwarehouse.User.Organization.Line.lineName}
+                    <strong>LINE:</strong>{' '}
+                    {loading ? (
+                      <Skeleton width={120} />
+                    ) : (
+                      Confirmwarehouse.User.Organization.Line.lineName
+                    )}
                   </div>
                   <div>
                     <small className="fw-light" style={{ marginRight: '5px' }}>
                       Request at
                     </small>
-                    <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')} </small>
+                    {loading ? (
+                      <Skeleton width={80} />
+                    ) : (
+                      <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}</small>
+                    )}
                   </div>
                 </div>
               </div>
               {/* )} */}
               <label className="fw-bold mb-2">Select Delivery Type</label>
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <CFormCheck
-                  className="me-3"
-                  type="radio"
-                  id="pickup"
-                  label={`${Confirmwarehouse.deliveryMethod}`}
-                  checked={!isPickup}
-                  onChange={() => setIsPickup()}
-                  disabled
-                />
-              </div>
+              {loading ? (
+                <Skeleton width={150} height={20} />
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <CFormCheck
+                    className="me-3"
+                    type="radio"
+                    id="pickup"
+                    label={`${Confirmwarehouse.deliveryMethod.charAt(0).toUpperCase()}${Confirmwarehouse.deliveryMethod.slice(1)}`}
+                    checked={!isPickup}
+                    onChange={() => setIsPickup()}
+                    disabled
+                  />
+                </div>
+              )}
               <hr />
               <label className="fw-bold mb-2">Address Detail Confirmation</label>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                  <CIcon icon={cilHome} size="lg" />
-                  <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+                  {loading ? (
+                    <Skeleton circle={true} height={24} width={24} />
+                  ) : (
+                    <CIcon icon={cilHome} size="lg" />
+                  )}
+                  <label style={{ marginLeft: '8px' }}>
+                    {loading ? <Skeleton width={200} /> : 'Warehouse Issuing Plant'}
+                  </label>
                 </div>
-                {Confirmwarehouse.deliveryMethod !== 'pickup' && (
+
+                {loading ? (
                   <>
-                    <CIcon icon={cilArrowBottom} size="lg" />
+                    <Skeleton height={20} width={24} />
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
-                      <CIcon icon={cilLocationPin} size="lg" />
-                      <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                      <Skeleton circle={true} height={24} width={24} />
+                      <Skeleton width={200} style={{ marginLeft: '8px' }} />
                     </div>
                   </>
+                ) : (
+                  Confirmwarehouse.deliveryMethod !== 'pickup' && (
+                    <>
+                      <CIcon icon={cilArrowBottom} size="lg" />
+                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                        <CIcon icon={cilLocationPin} size="lg" />
+                        <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                      </div>
+                    </>
+                  )
                 )}
               </div>
-              {Confirmwarehouse.deliveryMethod !== 'pickup' && (
-                <>
-                  <hr />
-                  <label className="fw-bold mb-2">Deadline Order</label>
-                  <div>
-                    <CFormInput
-                      type="text"
-                      value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
-                      readOnly
-                      style={{
-                        backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
-                        color: '#888', // Warna teks abu-abu
-                        border: '1px solid #ccc', // Border abu-abu
-                      }}
-                    />
-                  </div>
-                </>
+
+              {loading ? (
+                <Skeleton height={20} width={150} />
+              ) : (
+                Confirmwarehouse.deliveryMethod !== 'pickup' && (
+                  <>
+                    <hr />
+                    <label className="fw-bold mb-2">Deadline Order</label>
+                    <div>
+                      <CFormInput
+                        type="text"
+                        value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
+                        readOnly
+                        style={{
+                          backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                          color: '#888', // Warna teks abu-abu
+                          border: '1px solid #ccc', // Border abu-abu
+                        }}
+                      />
+                    </div>
+                  </>
+                )
               )}
               <hr />
-              <label className="fw-bold mb-2">Payment</label>
- 
-              <CFormCheck
-                type="radio"
-                id="payment2"
-                label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
-                checked={iswbs}
-                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
-                disabled
-              />
+              <label className="fw-bold mb-2">GI Methode</label>
+              {loading ? (
+                <Skeleton width={250} height={20} />
+              ) : (
+                <CFormCheck
+                  type="radio"
+                  id="payment2"
+                  label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`}
+                  checked={false}
+                  disabled
+                />
+              )}
 
               <hr />
-              <CFormTextarea
-                className="mt-3"
-                rows={3}
-                value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
-                onChange={(e) => setMessage(e.target.value)}
-                disabled
-              />
+              {loading ? (
+                <Skeleton count={3} />
+              ) : (
+                <CFormTextarea
+                  className="mt-3"
+                  rows={3}
+                  value={Confirmwarehouse.remarks || 'No message'}
+                  disabled
+                />
+              )}
             </CCardBody>
           </CCard>
+
           <CButton
-            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`} // Add a class for when clicked
+            className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`}
             color="secondary"
             style={{
               position: 'fixed',
-              bottom: '20px', // Position the button 20px from the bottom
-              right: '20px', // Position the button 20px from the right
-              width: '55px', // Set a fixed width
-              height: '55px', // Set a fixed height (same as width for a perfect circle)
+              bottom: '20px',
+              right: '20px',
+              width: '55px',
+              height: '55px',
               border: '1px solid white',
               color: 'white',
-              borderRadius: '50%', // This ensures it's perfectly circular
-              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none', // Add a shadow when clicked
+              borderRadius: '50%',
+              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none',
             }}
             onClick={handleButtonClick}
           >
-            <CIcon icon={cilCart} size="lg" /> {/* Adjust the icon size with size="lg" */}
+            {loading ? (
+              <Skeleton circle={true} height={24} width={24} />
+            ) : (
+              <CIcon icon={cilCart} size="lg" />
+            )}
           </CButton>
         </CCol>
 
         <CCol xs={8}>
           <CRow className="g-2">
-            {Confirmwarehouse.Detail_Orders.map(
-              (
-                product,
-                index, // Change from productsData to currentProducts
-              ) => (
-                <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
-                  <CCardBody className="d-flex flex-column justify-content-between">
-                    <CRow className="align-items-center">
-                      <CCol xs="1">
-                        <CCardImage
-                          src={product.Inventory.Material.img}
-                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                        />
-                      </CCol>
-                      <CCol xs="6">
-                        <div>
-                          <label>{product.Inventory.Material.description}</label>
-                          <br />
-                          <label className="fw-bold">
-                            {product.Inventory.Address_Rack.addressRackName}
-                          </label>
-                        </div>
-                      </CCol>
-                      <CCol xs="3">
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <CButtonGroup role="group" aria-label="Basic outlined example">
-                            <CButton
-                              color="secondary"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDecreaseQuantity(product.id)}
-                            >
-                              -
-                            </CButton>
-                            <CFormInput
-                              type="text"
-                              value={quantities[product.id] || 1}
-                              aria-label="Number input"
-                              onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                              className="text-center" // Utility class for centering text
-                            />
-
-                            <CButton
-                              color="secondary"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleIncreaseQuantity(product.id)}
-                            >
-                              +
-                            </CButton>
-                          </CButtonGroup>
-                          <span className="px-2 fw-light">({product.Material?.uom || 'UOM'})</span>
-                        </div>
-                      </CCol>
-                      <CCol xs="2" className="d-flex justify-content-end align-items-center">
-                        {product.isReject == 1 ? (
-                          <CBadge color="danger">Rejected</CBadge> // Show rejection badge
-                        ) : (
-                          <CButton
-                            color="danger"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleModalCart(product)}
+            {loading
+              ? Array.from({ length: 3 }).map((_, index) => (
+                  <CCard className="h-80 rounded-45 bg-grey" key={index}>
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      <CRow className="align-items-center">
+                        <CCol xs="1">
+                          <Skeleton height={60} width={60} />
+                        </CCol>
+                        <CCol xs="6">
+                          <Skeleton count={2} />
+                        </CCol>
+                        <CCol xs="3">
+                          <Skeleton width={100} height={40} />
+                        </CCol>
+                        <CCol xs="2">
+                          <Skeleton width={80} height={30} />
+                        </CCol>
+                      </CRow>
+                    </CCardBody>
+                  </CCard>
+                ))
+              : Confirmwarehouse.Detail_Orders.map((product) => (
+                  <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      <CRow className="align-items-center">
+                        <CCol xs="1">
+                          <CCardImage
+                            src={product.Inventory.Material.img}
+                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                          />
+                        </CCol>
+                        <CCol xs="6">
+                          <div>
+                            <label>{product.Inventory.Material.description}</label>
+                            <br />
+                            <label className="fw-bold">
+                              {product.Inventory.Address_Rack.addressRackName}
+                            </label>
+                          </div>
+                        </CCol>
+                        <CCol xs="3">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
                           >
-                            Reject
-                          </CButton>
-                        )}
-                      </CCol>
-                    </CRow>
-                    <CRow>
-                      {/* modal */}
-                      {modalConfirm && selectedProduct && (
-                        <CModal
-                          visible={modalConfirm}
-                          onClose={() => setModalConfirm(false)}
-                     
-                        >
-                          <CModalHeader>
-                            <CModalTitle>Provide Rejection Reason</CModalTitle>
-                          </CModalHeader>
-                          <CModalBody>
-                            <CRow className="mb-2">
-                              <CCol md="4">
-                                <CImage
-                                  src={'https://via.placeholder.com/150'}
-                                  // alt={selectedProduct.Material.description}
-                                  fluid
-                                  className="rounded"
-                                />
-                              </CCol>
-                              <CCol md="8">
-                                <strong>{selectedProduct.Inventory.Material.description}</strong>
-                                <p> {selectedProduct.Inventory.Material.materialNo}</p>
-                                <div className="d-flex align-items-center"></div>
-                              </CCol>
-                            </CRow>
-                            <CFormInput
-                              type="text"
-                              placeholder="Enter rejection reason"
-                              value={rejectionReason}
-                              onChange={handleInputChange}
-                            />
-                          </CModalBody>
-                          <CModalFooter>
-                            <CButton color="danger" onClick={handleConfirmRejection}>
+                            <CButtonGroup role="group" aria-label="Basic outlined example">
+                              <CButton
+                                color="secondary"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDecreaseQuantity(product.id)}
+                              >
+                                -
+                              </CButton>
+                              <CFormInput
+                                type="text"
+                                value={quantities[product.id] || 1}
+                                aria-label="Number input"
+                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                                className="text-center" // Utility class for centering text
+                              />
+
+                              <CButton
+                                color="secondary"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleIncreaseQuantity(product.id)}
+                              >
+                                +
+                              </CButton>
+                            </CButtonGroup>
+                            <span className="px-2 fw-light">
+                              ({product.Material?.uom || 'UOM'})
+                            </span>
+                          </div>
+                        </CCol>
+                        <CCol xs="2" className="d-flex justify-content-end align-items-center">
+                          {product.isReject == 1 ? (
+                            <CBadge color="danger">Rejected</CBadge> // Show rejection badge
+                          ) : (
+                            <CButton
+                              color="danger"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleModalCart(product)}
+                            >
                               Reject
                             </CButton>
-                          </CModalFooter>
-                        </CModal>
+                          )}
+                        </CCol>
+                      </CRow>
+                      <CRow>
+                        {/* modal */}
+                        {modalConfirm && selectedProduct && (
+                          <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
+                            <CModalHeader>
+                              <CModalTitle>Provide Rejection Reason</CModalTitle>
+                            </CModalHeader>
+                            <CModalBody>
+                              <CRow className="mb-2">
+                                <CCol md="4">
+                                  <CImage
+                                    src={'https://via.placeholder.com/150'}
+                                    // alt={selectedProduct.Material.description}
+                                    fluid
+                                    className="rounded"
+                                  />
+                                </CCol>
+                                <CCol md="8">
+                                  <strong>{selectedProduct.Inventory.Material.description}</strong>
+                                  <p> {selectedProduct.Inventory.Material.materialNo}</p>
+                                  <div className="d-flex align-items-center"></div>
+                                </CCol>
+                              </CRow>
+                              <CFormInput
+                                type="text"
+                                placeholder="Enter rejection reason"
+                                value={rejectionReason}
+                                onChange={handleInputChange}
+                              />
+                            </CModalBody>
+                            <CModalFooter>
+                              <CButton color="danger" onClick={handleConfirmRejection}>
+                                Submit Reject
+                              </CButton>
+                            </CModalFooter>
+                          </CModal>
+                        )}
+                      </CRow>
+                      {/* Show the rejection reason under the product if rejected */}
+                      {product.rejected && (
+                        <div style={{ marginTop: '10px' }}>
+                          <label className="fw-bold">Rejection Reason:</label>
+                          <p>{product.rejectionReason}</p>
+                        </div>
                       )}
-                    </CRow>
-                    {/* Show the rejection reason under the product if rejected */}
-                    {product.rejected && (
-                      <div style={{ marginTop: '10px' }}>
-                        <label className="fw-bold">Rejection Reason:</label>
-                        <p>{product.rejectionReason}</p>
-                      </div>
-                    )}
-                  </CCardBody>
-                </CCard>
-              ),
-            )}
+                    </CCardBody>
+                  </CCard>
+                ))}
+            ,
           </CRow>
           <div className="d-flex justify-content-center mt-4">
             <CPagination>

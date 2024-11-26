@@ -293,12 +293,13 @@ const ApproveAll = () => {
 
             <CRow>
               {/* Left side: Search field */}
-              <CCol xs={8} sm={8} md={7} lg={5} className="py-2">
+              <CCol xs={8} sm={8} md={7} lg={5}>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
+                    marginBottom: '',
                   }}
                 >
                   <div
@@ -325,10 +326,13 @@ const ApproveAll = () => {
                       style={{ width: '100%', border: 'none', outline: 'none' }}
                     />
                   </div>
-                  <label style={{ fontSize: '0.5em ',marginLeft: '8px' }}> *Search by No Transaction & Name Recipent</label>
+                  <label style={{ fontSize: '0.5em ', marginLeft: '8px' }}>
+                    {' '}
+                    *Search by No Transaction & Name Recipent
+                  </label>
                 </div>
               </CCol>
-              <CCol xs={4} sm={4} md={5} lg={7} className="d-flex justify-content-end py-2">
+              <CCol xs={4} sm={4} md={5} lg={7} className="d-flex justify-content-end ">
                 <div
                   className="flatpickr-wrapper"
                   style={{ position: 'relative', width: '300px', height: '36px' }}
@@ -385,105 +389,119 @@ const ApproveAll = () => {
         {/* Container for product cards with scroll */}
 
         <CTabContent>
-          <CTabPanel className="p-1" aria-labelledby="Confirmation-tab-pane" itemKey={'waiting approval'}>
+          <CTabPanel
+            className="p-1"
+            aria-labelledby="Confirmation-tab-pane"
+            itemKey={'waiting approval'}
+          >
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-               
-                  <CRow className="g-1 mt-1">
-                    {isLoading ? (
-                      // Tampilkan Skeleton Loader
-                      <>
-                        {Array.from({ length: 5 }).map((_, idx) => (
-                          <div key={idx} style={{ marginBottom: '10px' }}>
-                            <Skeleton height={150} />
-                          </div>
-                        ))}
-                      </>
-                    ) : myApprovalData.length > 0 ? (
-                      // Data Approval
-                      myApprovalData.map((approval) => (
-                        <CCard className="h-78 mb-2" key={approval.id}>
-                          <CCardBody className="d-flex flex-column justify-content-between">
-                            <CRow className="align-items-center">
-                              {/* Order information */}
-                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                                <CCol>
-                                  <CIcon className="me-2" icon={cilUser} />
-                                  <label className="me-2 fs-6">
-                                    {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
-                                  </label>
-                                  <CBadge className="me-2"  color="warning">
-                                    {approval.status}
-                                  </CBadge>
-                                  <label className="me-2 fw-light">{approval.requestNumber}</label>
-                                </CCol>
-                                <label className="fw-bold fs-6">
-                                  Total: {approval.Detail_Orders.length}
-                                </label>
-                              </div>
-                            </CRow>
-                            <hr />
 
-                            {/* Product and user information */}
-                            <CRow>
-                              <CCol xs="1"></CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>From:</strong> {approval.User.name}
-                                  </div>
-                                  <div>
-                                    <strong>Role:</strong> {approval.User.position}
-                                  </div>
-                                  <div>
-                                    <strong>Section:</strong>{' '}
-                                    {approval.User.Organization.Section.sectionName}
-                                  </div>
-                                </div>
-                              </CCol>
-
-                              <CCol className="text-end">
-                                <label className="fw-bold fs-6 me-1">
-                                  Rp{' '}
-                                  {approval.Detail_Orders.reduce(
-                                    (total, order) => total + (order.Inventory.Material.price || 0),
-                                    0,
-                                  ).toLocaleString('id-ID')}
+                <CRow className="g-1 mt-1">
+                  {isLoading ? (
+                    // Tampilkan Skeleton Loader
+                    <>
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <div key={idx} style={{ marginBottom: '10px' }}>
+                          <Skeleton height={150} />
+                        </div>
+                      ))}
+                    </>
+                  ) : myApprovalData.length > 0 ? (
+                    // Data Approval
+                    myApprovalData.map((approval) => (
+                      <CCard className="h-78 mb-2" key={approval.id}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            {/* Order information */}
+                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                              <CCol>
+                                <CIcon className="me-2" icon={cilUser} />
+                                <label className="me-2 fs-6">
+                                  {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
                                 </label>
-                                <br />
-                                <label className="me-1">
-                                  <span className="fw-light">{approval.paymentMethod}:</span>{' '}
-                                  {approval.paymentNumber}
-                                </label>
-                              </CCol>
-                            </CRow>
-
-                            {/* View Detail button */}
-                            <CRow className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleViewHistoryOrder(approval)} // Pass the approval data when clicked
-                                  color="primary"
-                                  size="sm"
+                                <CBadge
+                                  className="me-2"
+                                  color="warning"
+                                  style={{ textTransform: 'uppercase' }}
                                 >
-                                  View Detail Approved
-                                </CButton>
+                                  {approval.status}
+                                </CBadge>
+
+                                <label className="me-2 fw-light">{approval.requestNumber}</label>
                               </CCol>
-                            </CRow>
-                          </CCardBody>
-                        </CCard>
-                      ))
-                    ) : (
-                      <p>No Approval available.</p>
-                    )}
-                  </CRow>
+                              <label className="fw-bold fs-6">
+                                Total: {approval.Detail_Orders.length}
+                              </label>
+                            </div>
+                          </CRow>
+                          <hr />
+
+                          {/* Product and user information */}
+                          <CRow>
+                            <CCol xs="1"></CCol>
+                            <CCol xs="4">
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div>
+                                  <strong>From:</strong> {approval.User.name}
+                                </div>
+                                <div>
+                                  <strong>Role:</strong> {approval.User.position}
+                                </div>
+                                <div>
+                                  <strong>Section:</strong>{' '}
+                                  {approval.User.Organization.Section.sectionName}
+                                </div>
+                              </div>
+                            </CCol>
+
+                            <CCol className="text-end">
+                              <label className="fw-bold fs-6 me-1">
+                                Rp{' '}
+                                {approval.Detail_Orders.reduce(
+                                  (total, order) => total + (order.Inventory.Material.price || 0),
+                                  0,
+                                ).toLocaleString('id-ID')}
+                              </label>
+                              <br />
+                              <label className="me-1">
+                                <span className="fw-light">{approval.paymentMethod}:</span>{' '}
+                                {approval.paymentNumber}
+                              </label>
+                            </CCol>
+                          </CRow>
+
+                          {/* View Detail button */}
+                          <CRow className="d-flex justify-content-end align-items-center">
+                            <CCol xs={4} className="d-flex justify-content-end">
+                              <CButton
+                                onClick={() => handleViewHistoryOrder(approval)} // Pass the approval data when clicked
+                                size="sm"
+                                style={{
+                                  backgroundColor: 'white',
+                                  color: '#219fee',
+                                  border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                                }}
+                              >
+                                View Detail Approved
+                              </CButton>
+                            </CCol>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))
+                  ) : (
+                    <p>No Approval available.</p>
+                  )}
+                </CRow>
+                <div className="d-flex justify-content-center mt-3">
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                   />
-              
+                </div>
               </CCard>
             </CRow>
           </CTabPanel>
@@ -492,108 +510,114 @@ const ApproveAll = () => {
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-                {console.log('coba data',myApprovalData)}
-                  <CRow className="g-1 mt-1">
-                    {isLoading ? (
-                      // Skeleton loading untuk kartu persetujuan
-                      Array(3)
-                        .fill(null)
-                        .map((_, index) => (
-                          <CCard className="h-78 mb-2" key={index}>
-                            <CCardBody>
-                              <Skeleton height={20} width="60%" />
-                              <Skeleton height={15} width="40%" />
-                              <Skeleton height={15} width="80%" />
-                              <hr />
-                              <Skeleton height={20} width="50%" />
-                              <Skeleton height={20} width="70%" />
-                            </CCardBody>
-                          </CCard>
-                        ))
-                       
-                    ) : myApprovalData.length > 0 ? (
-                      myApprovalData.map((approval) => (
-                        <CCard className="h-78 mb-2" key={approval.id}>
-                          <CCardBody className="d-flex flex-column justify-content-between">
-                            <CRow className="align-items-center">
-                              {/* Order information */}
-                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                                <CCol>
-                                  <CIcon className="me-2" icon={cilUser} />
-                                  <label className="me-2 fs-6">
-                                    {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
-                                  </label>
-                                  <CBadge className="me-2" size="sm" color="success">
-                                    {approval.status}
-                                  </CBadge>
-                                  <label className="me-2 fw-light">{approval.requestNumber}</label>
-                                </CCol>
-                                <label className="fw-bold fs-6">
-                                  Total: {approval.Detail_Orders.length}
-                                </label>
-                              </div>
-                            </CRow>
+                {console.log('coba data', myApprovalData)}
+                <CRow className="g-1 mt-1">
+                  {isLoading ? (
+                    // Skeleton loading untuk kartu persetujuan
+                    Array(3)
+                      .fill(null)
+                      .map((_, index) => (
+                        <CCard className="h-78 mb-2" key={index}>
+                          <CCardBody>
+                            <Skeleton height={20} width="60%" />
+                            <Skeleton height={15} width="40%" />
+                            <Skeleton height={15} width="80%" />
                             <hr />
-
-                            {/* Product and user information */}
-                            <CRow >
-                              <CCol xs="1">
-                                {userData.map((user) => (
-                                  <CCardImage
-                                    key={user.id}
-                                    src={user.img}
-                                    style={{ height: '100%', width: '100%' }}
-                                  />
-                                ))}
-                              </CCol>
-                              <CCol xs="4">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <div>
-                                    <strong>From:</strong> {approval.User.name}
-                                  </div>
-                                  <div>
-                                    <strong>Role:</strong> {approval.User.position}
-                                  </div>
-                                  <div>
-                                    <strong>Section:</strong>{' '}
-                                    {approval.User.Organization.Section.sectionName}
-                                  </div>
-                                </div>
-                              </CCol>
-
-                              <CCol className="text-end">
-                                <label className="fw-bold fs-6 me-1">
-                                  Rp {approval.totalPrice.toLocaleString('id-ID')}
-                                </label>
-                                <br />
-                                <label className="me-1">
-                                  <span className="fw-light">{approval.paymentMethod}:</span>{' '}
-                                  {approval.paymentNumber}
-                                </label>
-                              </CCol>
-                            </CRow>
-
-                            {/* View Detail button */}
-                            <CRow className="d-flex justify-content-end align-items-center">
-                              <CCol xs={4} className="d-flex justify-content-end">
-                                <CButton
-                                  onClick={() => handleApproveDetail(approval)} // Pass the approval data when clicked
-                                  color="primary"
-                                  size="sm"
-                                >
-                                  View Detail Approved
-                                </CButton>
-                              </CCol>
-                            </CRow>
+                            <Skeleton height={20} width="50%" />
+                            <Skeleton height={20} width="70%" />
                           </CCardBody>
                         </CCard>
                       ))
-                    ) : (
-                      // Skeleton Loader untuk kondisi kosong
-                     <label>order not found</label>
-                    )}
-                  </CRow>
-             
+                  ) : myApprovalData.length > 0 ? (
+                    myApprovalData.map((approval) => (
+                      <CCard className="h-78 mb-2" key={approval.id}>
+                        <CCardBody className="d-flex flex-column justify-content-between">
+                          <CRow className="align-items-center">
+                            {/* Order information */}
+                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                              <CCol>
+                                <CIcon className="me-2" icon={cilUser} />
+                                <label className="me-2 fs-6">
+                                  {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
+                                </label>
+                                <CBadge
+                                  className="me-2"
+                                  color="success"
+                                  style={{ textTransform: 'uppercase' }}
+                                >
+                                  {approval.status}
+                                </CBadge>
+                                <label className="me-2 fw-light">{approval.requestNumber}</label>
+                              </CCol>
+                              <label className="fw-bold fs-6">
+                                Total: {approval.Detail_Orders.length}
+                              </label>
+                            </div>
+                          </CRow>
+                          <hr />
+
+                          {/* Product and user information */}
+                          <CRow>
+                            <CCol xs="1">
+                              {userData.map((user) => (
+                                <CCardImage
+                                  key={user.id}
+                                  src={user.img}
+                                  style={{ height: '100%', width: '100%' }}
+                                />
+                              ))}
+                            </CCol>
+                            <CCol xs="4">
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div>
+                                  <strong>From:</strong> {approval.User.name}
+                                </div>
+                                <div>
+                                  <strong>Role:</strong> {approval.User.position}
+                                </div>
+                                <div>
+                                  <strong>Section:</strong>{' '}
+                                  {approval.User.Organization.Section.sectionName}
+                                </div>
+                              </div>
+                            </CCol>
+
+                            <CCol className="text-end">
+                              <label className="fw-bold fs-6 me-1">
+                                Rp {approval.totalPrice.toLocaleString('id-ID')}
+                              </label>
+                              <br />
+                              <label className="me-1">
+                                <span className="fw-light">{approval.paymentMethod}:</span>{' '}
+                                {approval.paymentNumber}
+                              </label>
+                            </CCol>
+                          </CRow>
+
+                          {/* View Detail button */}
+                          <CRow className="d-flex justify-content-end align-items-center">
+                            <CCol xs={4} className="d-flex justify-content-end">
+                              <CButton
+                                onClick={() => handleApproveDetail(approval)} // Pass the approval data when clicked
+                                size="sm"
+                                style={{
+                                  backgroundColor: 'white',
+                                  color: '#219fee',
+                                  border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                                }}
+                              >
+                                View Detail Approved
+                              </CButton>
+                            </CCol>
+                          </CRow>
+                        </CCardBody>
+                      </CCard>
+                    ))
+                  ) : (
+                    // Skeleton Loader untuk kondisi kosong
+                    <label>order not found</label>
+                  )}
+                </CRow>
               </CCard>
             </CRow>
             {console.log('111111', orderHistory)}
@@ -735,11 +759,13 @@ const ApproveAll = () => {
                 </CModalBody>
               </CModal>
             )}
-             <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
+            <div className="d-flex justify-content-center mt-3">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
           </CTabPanel>
         </CTabContent>
       </CTabs>

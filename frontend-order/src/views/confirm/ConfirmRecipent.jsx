@@ -293,7 +293,7 @@ const Confirm = () => {
                     </>
                   )}
                   <hr />
-                  <label className="fw-bold mb-2">Payment</label>
+                  <label className="fw-bold mb-2">GI Methode</label>
                   {verifiedCartItems.length > 0 && (
                     <>
                       <CFormCheck

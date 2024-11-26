@@ -7,6 +7,8 @@ import 'flatpickr/dist/flatpickr.css'
 import { format, parseISO } from 'date-fns'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import config from '../../utils/Config'
+
 import {
   CCard,
   CCardBody,
@@ -378,9 +380,10 @@ const Confirm = () => {
                         <strong>LINE:</strong> {Confirmapproval.User.Organization.Line.lineName}
                       </div>
                       <div>
-                        <small>
-                          Request at {format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')}
+                        <small className="fw-light" style={{ marginRight: '5px' }}>
+                          Request at
                         </small>
+                        <small>{format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')} </small>
                       </div>
                     </div>
                   </>
@@ -395,7 +398,7 @@ const Confirm = () => {
                   className="me-3"
                   type="radio"
                   id="pickup"
-                  label={`${Confirmapproval.deliveryMethod}`}
+                  label={`${Confirmapproval.deliveryMethod.charAt(0).toUpperCase()}${Confirmapproval.deliveryMethod.slice(1)}`}
                   checked={!isPickup}
                   onChange={() => setIsPickup()}
                   disabled
@@ -439,7 +442,7 @@ const Confirm = () => {
               )}
 
               <hr />
-              <label className="fw-bold mb-2">Payment</label>
+              <label className="fw-bold mb-2">GI Methode</label>
               {loading ? (
                 <Skeleton width="100%" height={20} />
               ) : (
@@ -460,9 +463,8 @@ const Confirm = () => {
               ) : (
                 <CFormTextarea
                   className="mt-3"
-                  placeholder="Leave a message"
                   rows={3}
-                  value={message}
+                  value={Confirmapproval.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
                   onChange={(e) => setMessage(e.target.value)}
                   disabled
                 />
@@ -491,130 +493,138 @@ const Confirm = () => {
         </CCol>
 
         <CCol xs={8}>
-      <CRow className="g-2">
-        {loading
-          ? Array.from({ length: 5 }).map((_, index) => (
-              <CCard className="h-80 rounded-45 bg-grey" key={index}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    <CCol xs="1">
-                      <Skeleton height="100%" width="100%" />
-                    </CCol>
-                    <CCol xs="6">
-                      <div>
-                        <Skeleton height={20} width="80%" />
-                        <Skeleton height={15} width="60%" style={{ marginTop: '5px' }} />
-                      </div>
-                    </CCol>
-                    <CCol xs="3">
-                      <Skeleton height={40} width="100%" />
-                    </CCol>
-                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                      <Skeleton circle height={20} width={20} />
-                    </CCol>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))
-          : Confirmapproval.Detail_Orders.map((product) => (
-              <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
-                <CCardBody className="d-flex flex-column justify-content-between">
-                  <CRow className="align-items-center">
-                    <CCol xs="1">
-                      <CCardImage
-                        src={product.Inventory.Material.img}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                      />
-                    </CCol>
-                    <CCol xs="6">
-                      <div>
-                        <label>{product.Inventory.Material.description}</label>
-                        <br />
-                        <label className="fw-bold fs-6">
-                          Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
-                        </label>
-                      </div>
-                    </CCol>
-                    <CCol xs="3">
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDecreaseQuantity(product.id)}
-                        >
-                          -
-                        </CButton>
-                        <CFormInput
-                          type="text"
-                          value={quantities[product.id] || 1}
-                          aria-label="Number input"
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        />
-                        <CButton
-                          color="secondary"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleIncreaseQuantity(product.id)}
-                        >
-                          +
-                        </CButton>
-                        <span className="fw-light">
-                          ({product.Inventory.Material?.uom || 'UOM'})
-                        </span>
-                      </div>
-                    </CCol>
-                    <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                      <CIcon
-                        icon={cilTrash}
-                        className="text-danger"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleDelete(product.id)}
-                      />
-                    </CCol>
-                  </CRow>
-                </CCardBody>
-              </CCard>
-            ))}
-      </CRow>
+          <CRow className="g-2">
+            {loading
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <CCard className="h-80 rounded-45 bg-grey" key={index}>
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      <CRow className="align-items-center">
+                        <CCol xs="1">
+                          <Skeleton height="100%" width="100%" />
+                        </CCol>
+                        <CCol xs="6">
+                          <div>
+                            <Skeleton height={20} width="80%" />
+                            <Skeleton height={15} width="60%" style={{ marginTop: '5px' }} />
+                          </div>
+                        </CCol>
+                        <CCol xs="3">
+                          <Skeleton height={40} width="100%" />
+                        </CCol>
+                        <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                          <Skeleton circle height={20} width={20} />
+                        </CCol>
+                      </CRow>
+                    </CCardBody>
+                  </CCard>
+                ))
+              : Confirmapproval.Detail_Orders.map((product) => (
+                  <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
+                    <CCardBody className="d-flex flex-column justify-content-between">
+                      <CRow className="align-items-center">
+                        <CCol xs="1">
+                          <CCardImage
+                            src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                            alt={product.Inventory.Material.description}
+                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                          />
+                        </CCol>
+                        <CCol xs="6">
+                          <div>
+                            <label>{product.Inventory.Material.description}</label>
+                            <br />
+                            <label className="fw-bold fs-6">
+                              Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
+                            </label>
+                          </div>
+                        </CCol>
+                        <CCol xs="3">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <CButton
+                              color="secondary"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDecreaseQuantity(product.id)}
+                            >
+                              -
+                            </CButton>
+                            <CFormInput
+                              type="text"
+                              value={quantities[product.id] || 1}
+                              onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                              style={{
+                                textAlign: 'center', // Pusatkan teks secara horizontal
+                                verticalAlign: 'middle', // Pusatkan teks secara vertikal
+                                height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
+                                border: 'none', // Hilangkan border
+                                outline: 'none', // Hilangkan garis biru/oranye saat fokus
+                              }}
+                            />
 
-      {/* Pagination */}
-      <div className="d-flex justify-content-center mt-4">
-        {loading ? (
-          <Skeleton height={30} width={200} />
-        ) : (
-          <CPagination>
-            <CPaginationItem
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-            >
-              Previous
-            </CPaginationItem>
-            {[...Array(totalPages)].map((_, index) => (
-              <CPaginationItem
-                key={index + 1}
-                active={index + 1 === currentPage}
-                onClick={() => handlePageChange(index + 1)}
-              >
-                {index + 1}
-              </CPaginationItem>
-            ))}
-            <CPaginationItem
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              Next
-            </CPaginationItem>
-          </CPagination>
-        )}
-      </div>
-    </CCol>
+                            <CButton
+                              color="secondary"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleIncreaseQuantity(product.id)}
+                            >
+                              +
+                            </CButton>
+                            <span className="fw-light px-2" >
+                              ({product.Inventory.Material?.uom || 'UOM'})
+                            </span>
+                          </div>
+                        </CCol>
+                        <CCol xs="1" className="d-flex justify-content-end align-items-center">
+                          <CIcon
+                            icon={cilTrash}
+                            className="text-danger"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleDelete(product.id)}
+                          />
+                        </CCol>
+                      </CRow>
+                    </CCardBody>
+                  </CCard>
+                ))}
+          </CRow>
+
+          {/* Pagination */}
+          <div className="d-flex justify-content-center mt-4">
+            {loading ? (
+              <Skeleton height={30} width={200} />
+            ) : (
+              <CPagination>
+                <CPaginationItem
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </CPaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <CPaginationItem
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </CPaginationItem>
+              </CPagination>
+            )}
+          </div>
+        </CCol>
       </CRow>
     </CContainer>
   )

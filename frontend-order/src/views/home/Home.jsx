@@ -909,14 +909,14 @@ const Home = () => {
                     margin: '7px',
                     backgroundColor:
                       selectedCategory && selectedCategory.id === category.id
-                        ? 'navy' // Warna navy jika kategori terpilih
+                        ? '#E4E0E1' // Warna navy jika kategori terpilih
                         : index === 0 &&
                             (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                          ? 'navy' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
+                          ? '#E4E0E1' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
                           : 'white', // Warna default putih
                     color:
                       selectedCategory && selectedCategory.id === category.id
-                        ? 'white' // Warna teks putih untuk kategori yang dipilih
+                        ? 'black' // Warna teks putih untuk kategori yang dipilih
                         : index === 0 &&
                             (!selectedCategory || selectedCategory.id === categoriesData[0].id)
                           ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
@@ -1068,7 +1068,14 @@ const Home = () => {
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
         <div className="text-center mt-4 mb-4">
-          <CButton color="secondary" onClick={handleLoadMore}>
+          <CButton
+            style={{
+              backgroundColor: 'white',
+              color: '#219fee',
+              border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+            }}
+            onClick={handleLoadMore}
+          >
             Load More
           </CButton>
         </div>
@@ -1095,25 +1102,63 @@ const Home = () => {
                 )}
               </CCol>
               <CCol md="8">
-                <strong>
-                  {selectedProduct.Inventory
-                    ? selectedProduct.Inventory.Material.description
-                    : selectedProduct.Material.description}
-                </strong>
-                <p>
-                  {selectedProduct.Inventory
-                    ? selectedProduct.Inventory.Material.materialNo
-                    : selectedProduct.Material.materialNo}
-                </p>
+                <div>
+                  <label style={{ fontWeight: 'bold' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.description
+                      : selectedProduct.Material.description}
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 'lighter' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.materialNo
+                      : selectedProduct.Material.materialNo}
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.85rem' }}>
+                    Min Order:{' '}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.minOrder
+                      : selectedProduct.Material.minOrder}{' '}
+                    {''}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                  </label>
+                </div>
+
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
                     onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
                   >
                     -
                   </CButton>
-                  <span className="mx-3">{quantity}</span>
-                  <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
+                  <CFormInput
+                    type="text"
+                    value={quantity}
+                    className="w-25 text-center border-0"
+                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+                  />
+
+                  <CButton
+                    color="primary"
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
+                  >
                     +
                   </CButton>
                   <span className="mx-3 fw-light">

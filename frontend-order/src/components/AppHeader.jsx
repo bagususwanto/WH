@@ -111,6 +111,41 @@ const AppHeader = () => {
   const apiWarehouseUser = 'warehouse-user'
   const apiCategory = 'category-public'
   const apiWarehouse = 'warehouse-public'
+  
+
+  useEffect(() => {
+    // Fetch notifications from API
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get('/api/notifications')
+        setNotifDesc(response.data) // Save notifications to state
+      } catch (error) {
+        console.error('Error fetching notifications', error)
+      }
+    }
+
+    fetchNotifications()
+  }, [])
+
+  const handleNotificationClick = async (notifId) => {
+    try {
+      // Update `isRead` ke backend
+      await axios.patch(`/api/notifications/${notifId}`, { isRead: 1 });
+  
+      // Update state lokal
+      setNotifDesc((prev) =>
+        prev.map((notif) =>
+          notif.id === notifId ? { ...notif, isRead: 1 } : notif
+        )
+      );
+  
+      // Arahkan ke layar `confirmall`
+      navigate("/confirmall");
+    } catch (error) {
+      console.error("Error updating notification status", error);
+    }
+  };
+  
 
   // Fetch products from API
   const getProducts = async () => {
@@ -178,7 +213,7 @@ const AppHeader = () => {
 
   const getNotifCount = async () => {
     try {
-      const response = await getNotificationCount()
+      const response = await getNotificationCount(warehouse.id)
       setNotifCount(response.unreadCount)
     } catch (error) {
       console.error('Error fetching notif:', error)
@@ -187,7 +222,7 @@ const AppHeader = () => {
 
   const getNotifDesc = async () => {
     try {
-      const response = await getNotification()
+      const response = await getNotification(warehouse.id)
       setNotifDesc(response)
     } catch (error) {
       console.error('Error fetching notif:', error)
@@ -479,7 +514,7 @@ const AppHeader = () => {
       <CContainer className="border-bottom pb-2 px-2" fluid>
         <CCol xs={6} sm={1} md={2} lg={2}>
           <a href="/#/home" className="d-flex align-items-center">
-          <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
+            <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
           </a>
         </CCol>
 
@@ -744,15 +779,15 @@ const AppHeader = () => {
                   position: 'sticky',
                   top: 0,
                   zIndex: 1,
-                  backgroundColor: 'inherit', // Warna latar belakang tetap sama
+                  backgroundColor: 'inherit',
                   padding: '10px',
-                  borderBottom: '1px solid #dee2e6', // Garis pemisah
+                  borderBottom: '1px solid #dee2e6',
                 }}
               >
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  Anda memiliki ({notifCount}) notifikasi
+                  Anda memiliki ({notifDesc?.filter((n) => n.isRead === 0).length}) notifikasi
                   <CLink
                     onClick={() => navigate('/profile')}
                     className="text-primary"
@@ -764,29 +799,31 @@ const AppHeader = () => {
               </CDropdownHeader>
               <div
                 style={{
-                  maxHeight: '300px', // Batas tinggi scroll
-                  overflowY: 'auto', // Scroll aktif hanya di sini
+                  maxHeight: '300px',
+                  overflowY: 'auto',
                 }}
               >
-                {notifDesc?.length > 0 ? (
-                  notifDesc.slice(0, 10).map(
-                    (
-                      notif,
-                      index, // Hanya ambil 10 item pertama
-                    ) => (
-                      <CDropdownItem key={index}>
-                        <CRow className="fw-light py-0 mb-0">
-                          <small>
-                            <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
-                          </small>
-                        </CRow>
-                        <CRow className="py-0 mb-1">
-                          <small>{notif.description}</small>
-                        </CRow>
-                        <hr className="mt-1 mb-1" />
-                      </CDropdownItem>
-                    ),
-                  )
+                {notifDesc.length > 0 ? (
+                  notifDesc.slice(0, 10).map((notif, index) => (
+                    <CDropdownItem
+                      key={index}
+                      onClick={() => handleNotificationClick(notif.id)} // Panggil handler
+                      style={{
+                        backgroundColor: notif.isRead === 0 ? 'grey' : 'white', // Latar biru untuk belum dibaca
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <CRow className="fw-light py-0 mb-0">
+                        <small>
+                          <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
+                        </small>
+                      </CRow>
+                      <CRow className="py-0 mb-1">
+                        <small>{notif.description}</small>
+                      </CRow>
+                      <hr className="mt-1 mb-1" />
+                    </CDropdownItem>
+                  ))
                 ) : (
                   <CDropdownItem>No notification</CDropdownItem>
                 )}
@@ -814,14 +851,14 @@ const AppHeader = () => {
                       style={{
                         backgroundColor:
                           selectedCategory && selectedCategory.id === cat.id
-                            ? 'navy' // Navy color if category is selected
+                            ? '#E4E0E1' // Navy color if category is selected
                             : index === 0 &&
                                 (!selectedCategory || selectedCategory.id === category[0].id)
-                              ? 'navy' // Navy for the first category if none selected or the first is selected
+                              ? '#E4E0E1' // Navy for the first category if none selected or the first is selected
                               : 'white', // Default white color
                         color:
                           selectedCategory && selectedCategory.id === cat.id
-                            ? 'white' // White text color for selected category
+                            ? 'black' // White text color for selected category
                             : index === 0 &&
                                 (!selectedCategory || selectedCategory.id === category[0].id)
                               ? 'white' // White text for the first category if selected

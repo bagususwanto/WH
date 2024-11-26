@@ -443,7 +443,11 @@ const ProductList = () => {
       )}
       {/* modal add to cart */}
       {selectedProduct && selectedProduct.Material && (
-        <CModal visible={modalOrder} onClose={handleCloseModalOrder}>
+        <CModal
+          visible={modalOrder}
+          onClose={handleCloseModalOrder}
+          size="md" // Ukuran lebih besar (lg atau xl)
+        >
           <CModalHeader>Add Item to Cart</CModalHeader>
           <CModalBody>
             <CRow>
@@ -458,17 +462,62 @@ const ProductList = () => {
                 )}
               </CCol>
               <CCol md="8">
-                <strong>{selectedProduct.Material.description}</strong>
-                <p> {selectedProduct.Material.materialNo}</p>
+                <div>
+                  <label style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.description
+                      : selectedProduct.Material.description}
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 'lighter' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.materialNo
+                      : selectedProduct.Material.materialNo}
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.85rem' }}>
+                    Min Order:{' '}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.minOrder
+                      : selectedProduct.Material.minOrder}{' '}
+                    {''}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                  </label>
+                </div>
+
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
                     onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
                   >
                     -
                   </CButton>
-                  <span className="mx-3">{quantity}</span>
-                  <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
+                  <CFormInput
+                    type="text"
+                    value={quantity}
+                    className="w-25 text-center border-0"
+                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+                  />
+                  <CButton
+                    color="primary"
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
+                  >
                     +
                   </CButton>
 
