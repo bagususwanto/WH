@@ -225,6 +225,7 @@ const Incoming = () => {
       const storageOptions = response.map((storage) => ({
         label: storage.storageName,
         value: storage.storageName,
+        id: storage.id,
       }))
       setStorage(storageOptions)
     } catch (error) {

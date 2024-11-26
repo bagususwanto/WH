@@ -1,18 +1,25 @@
 import express from "express";
-import { getUnreadNotificationCount, getNotificationsByUserId } from "../controllers/Notification.js";
-import { checkRole } from "../middleware/RoleMiddleware.js";
+import {
+  getUnreadNotificationCount,
+  getNotificationsByUserId,
+  markNotificationAsRead,
+  markAllNotificationAsRead,
+} from "../controllers/Notification.js";
+import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
 
 const router = express.Router();
 
-router.get(
-  "/notification",
-  checkRole(["super admin", "warehouse staff", "group head", "line head", "section head", "department head"]),
-  getNotificationsByUserId
+router.get("/notification/:warehouseId", getNotificationsByUserId);
+router.get("/notification-count/:warehouseId", getUnreadNotificationCount);
+router.post(
+  "/read-notification/:warehouseId/:notificationId",
+  checkUserWarehouse,
+  markNotificationAsRead
 );
-router.get(
-  "/notification-count",
-  checkRole(["super admin", "warehouse staff", "group head", "line head", "section head", "department head"]),
-  getUnreadNotificationCount
+router.post(
+  "/read-all-notification/:warehouseId",
+  checkUserWarehouse,
+  markAllNotificationAsRead
 );
 
 export default router;

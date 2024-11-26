@@ -571,7 +571,7 @@ const AppHeader = () => {
                   borderRadius: '4px',
                   backgroundColor: '#fff',
                   position: 'absolute',
-                  width: '500px',
+                  width: '100%',
                   marginTop: '5px',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                   zIndex: 10,

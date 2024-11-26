@@ -6,7 +6,15 @@ const router = express.Router();
 
 router.get(
   "/order-history/:orderId",
-  checkRole(["super admin", "group head", "line head", "section head", "department head"]),
+  checkRole([
+    "super admin",
+    "group head",
+    "line head",
+    "section head",
+    "department head",
+    "warehouse staff",
+    "warehouse member",
+  ]),
   getOrderHistory
 );
 

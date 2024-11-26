@@ -1,22 +1,5 @@
-import React, { useState, useEffect, Suspense } from 'react'
-import {
-  CCard,
-  CCardHeader,
-  CCardBody,
-  CCol,
-  CRow,
-  CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CFormInput,
-  CFormLabel,
-  CFormCheck,
-  CSpinner,
-  CFormSelect,
-} from '@coreui/react'
+import React, { useState, useEffect } from 'react'
+import { CCard, CCardHeader, CCardBody, CCol, CRow, CSpinner } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Dropdown } from 'primereact/dropdown'
@@ -27,7 +10,6 @@ import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
 import { InputNumber } from 'primereact/inputnumber'
 import { Button } from 'primereact/button'
-import { Tag } from 'primereact/tag'
 import { format, parseISO } from 'date-fns'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
@@ -41,23 +23,17 @@ import 'flatpickr/dist/flatpickr.min.css'
 
 const MySwal = withReactContent(Swal)
 
-const Incoming = () => {
+const GoodIssue = () => {
   const [goodIssue, setGoodIssue] = useState([])
   const [plant, setPlant] = useState([])
-  const [shop, setShop] = useState([])
-  const [storage, setStorage] = useState([])
+  const [section, setSection] = useState([])
   const [loading, setLoading] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
-  const [visible, setVisible] = useState(false)
-  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
-  const [radio, setRadio] = useState('plan')
   const [plantId, setPlantId] = useState()
   const [sectionId, setSectionId] = useState()
   const [status, setStatus] = useState([])
-  const [loadingImport, setLoadingImport] = useState(false)
-  const [imported, setImported] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [statusOrder, setStatusOrder] = useState()
   const [dates, setDates] = useState([null, null])
   const [shouldFetch, setShouldFetch] = useState(false)
 
@@ -70,21 +46,25 @@ const Incoming = () => {
 
   const columns = [
     {
-      field: 'formattedUpdateBy',
-      header: 'Update By',
-      sortable: true,
-    },
-    {
-      field: 'formattedUpdateAt',
-      header: 'Update At',
-      sortable: true,
-    },
-    {
-      field: 'Address_Rack.Storage.Plant.plantName',
+      field: 'User.Organization.Plant.plantName',
       header: 'Plant',
       sortable: true,
     },
-    { field: 'Address_Rack.Storage.storageName', header: 'Storage', sortable: true },
+    {
+      field: 'User.username',
+      header: 'Ordered By',
+      sortable: true,
+    },
+    {
+      field: 'currentApprover',
+      header: 'Current Approver',
+      sortable: true,
+    },
+    {
+      field: 'paymentMethod',
+      header: 'GI Method',
+      sortable: true,
+    },
   ]
 
   const [visibleColumns, setVisibleColumns] = useState([])
@@ -121,8 +101,12 @@ const Incoming = () => {
         matchMode: FilterMatchMode.EQUALS,
       },
     })
+
     setGlobalFilterValue('')
-    setSelectedDate(null)
+    setPlantId(null)
+    setSectionId(null)
+    setStatusOrder(null)
+    setDates([null, null])
   }
 
   useEffect(() => {
@@ -137,8 +121,9 @@ const Incoming = () => {
   }, [filters, globalFilterValue, goodIssue])
 
   useEffect(() => {
+    if (!shouldFetch) return
     fetchGoodIssue()
-  }, [])
+  }, [shouldFetch, dates, plantId, sectionId, statusOrder])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -164,25 +149,41 @@ const Incoming = () => {
         endDate = format(dates[1], 'yyyy-MM-dd')
       }
 
+      if (!startDate && !endDate && !plantId && !sectionId && !statusOrder) {
+        setGoodIssue([])
+        setLoading(false)
+        return
+      }
+
       const response = await getGoodIssue(
         startDate ? startDate : '',
         endDate ? endDate : '',
         plantId ? plantId : '',
         sectionId ? sectionId : '',
-        'waiting approval',
+        statusOrder ? statusOrder : '',
       )
-      // const dataWithFormattedFields = response.data.map((item) => {
-
-      //   return {
-      //     ...item,
-      //     formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-      //     formattedUpdateAt: item.updatedAt
-      //       ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-      //       : '',
-      //   }
-      // })
-      setGoodIssue(response.data)
-      console.log(response.data)
+      const dataWithFormattedFields = response.data.map((item) => {
+        const materialNo = item.Detail_Orders?.[0]?.Inventory?.Material?.materialNo || 'N/A'
+        const description = item.Detail_Orders?.[0]?.Inventory?.Material?.description || 'N/A'
+        const quantity = item.Detail_Orders?.[0]?.quantity
+        const transactionNo = item.transactionNumber ? item.transactionNumber : item.requestNumber
+        const currentApprover = item.Approvals[0]?.User.username
+        const transactionDate = format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss') || ''
+        return {
+          ...item,
+          materialNo,
+          description,
+          quantity,
+          transactionNo,
+          currentApprover,
+          transactionDate,
+          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+          // formattedUpdateAt: item.updatedAt
+          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          //   : '',
+        }
+      })
+      setGoodIssue(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching goodIssue:', error)
     } finally {
@@ -208,7 +209,10 @@ const Incoming = () => {
     try {
       const response = await getMasterData(apiStatus)
       const statusOptions = response.data.map((status) => ({
-        label: status.status,
+        label: status.status
+          .split(' ') // Pisahkan berdasarkan spasi
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Ubah huruf pertama jadi kapital dan sisanya kecil
+          .join(' '), // Gabungkan kembali menjadi string
         value: status.status,
         id: status.id,
       }))
@@ -227,8 +231,9 @@ const Incoming = () => {
       const sectionOptions = response.map((section) => ({
         label: section.sectionName,
         value: section.sectionName,
+        id: section.id,
       }))
-      setStorage(sectionOptions)
+      setSection(sectionOptions)
     } catch (error) {
       console.error('Error fetching storage by ID:', error)
     }
@@ -236,27 +241,38 @@ const Incoming = () => {
 
   const handleSectionChange = (e) => {
     const selectedSectionName = e.value
-    const selectedSection = storage.find((s) => s.value === selectedSectionName) // Cari objek storage berdasarkan storageName
-    const sectionId = selectedSection?.id // Dapatkan storage.id
-    setSectionId(sectionId)
-    // setShouldFetch(true)
-    // let _filters = { ...filters }
-    // _filters['Inventory.Address_Rack.Storage.storageName'].value = e.value
-    // setFilters(_filters)
+    const selectedSection = section.find((s) => s.value === selectedSectionName)
+    const selectedSectionId = selectedSection?.id
+
+    setSectionId(selectedSectionId)
+    let _filters = { ...filters }
+    _filters['User.Organization.Section.sectionName'].value = e.value
+    setFilters(_filters)
+    setShouldFetch(true)
+  }
+
+  const handleStatusChange = (e) => {
+    const selectedStatus = e.value
+
+    setStatusOrder(selectedStatus)
+    let _filters = { ...filters }
+    _filters['status'].value = e.value
+    setFilters(_filters)
+    setShouldFetch(true)
   }
 
   const handlePlantChange = (e) => {
     const selectedPlantName = e.value
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
-    setPlantId(plantId)
 
+    setPlantId(plantId)
     getSectionByPlantId(plantId)
-    // setShouldFetch(true)
 
     let _filters = { ...filters }
     _filters['User.Organization.Plant.plantName'].value = selectedPlantName
     setFilters(_filters)
+    setShouldFetch(true)
   }
 
   const onGlobalFilterChange = (e) => {
@@ -281,7 +297,7 @@ const Incoming = () => {
     if (filters['User.Organization.Section.sectionName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.User.Organization.Section.sectionName ===
+          item.User?.Organization?.Section?.sectionName ===
           filters['User.Organization.Section.sectionName'].value,
       )
     }
@@ -289,7 +305,7 @@ const Incoming = () => {
     if (filters['User.Organization.Plant.plantName'].value) {
       filteredData = filteredData.filter(
         (item) =>
-          item.User.Organization.Plant.plantName ===
+          item.User?.Organization?.Plant?.plantName ===
           filters['User.Organization.Plant.plantName'].value,
       )
     }
@@ -322,19 +338,8 @@ const Incoming = () => {
       // Mapping data untuk ekspor
       const mappedData = visibleData.map((item) => {
         return {
-          'Material No': item.Inventory.Material.materialNo,
-          Description: item.Inventory.Material.description,
-          Address: item.Inventory.Address_Rack.addressRackName,
-          UoM: item.Inventory.Material.uom,
-          'Planning Incoming': item.planning,
-          'Actual Incoming': item.actual,
-          Discrepancy: item.discrepancy,
-          Date: item.Log_Import.importDate,
-          'Import By': item.Log_Import?.User?.username || '',
-          Plant: item.Inventory.Address_Rack.Storage.Plant.plantName,
-          Storage: item.Inventory.Address_Rack.Storage.storageName,
-          'Update By': item.Log_Entries[0]?.User?.username || '',
-          'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+          'Material No': item.materialNo,
+          'Issue QTY': item.quantity,
         }
       })
 
@@ -346,30 +351,6 @@ const Incoming = () => {
       })
 
       saveAsExcelFile(excelBuffer, 'goodIssue')
-    })
-  }
-
-  const downloadTemplate = () => {
-    import('xlsx').then((xlsx) => {
-      // Mapping data untuk ekspor
-      const mappedData = [
-        {
-          materialNo: '',
-          addressRackName: '',
-          planning: '',
-          actual: '',
-          storageName: '',
-        },
-      ]
-
-      const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { goodIssue: worksheet }, SheetNames: ['goodIssue'] }
-      const excelBuffer = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
-      })
-
-      saveAsExcelFile(excelBuffer, 'template_goodIssue')
     })
   }
 
@@ -428,51 +409,6 @@ const Incoming = () => {
 
   const clearFilter = () => {
     initFilters()
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    setGoodIssueData((prevData) => ({
-      ...prevData,
-      file: file,
-    }))
-  }
-
-  const showModalUpload = () => {
-    setVisible(true)
-  }
-
-  const handleImport = async () => {
-    setLoadingImport(true)
-    try {
-      if (!plantId) {
-        MySwal.fire('Error', 'Plant is required, please select a dropdown plant.', 'error')
-        return
-      }
-
-      if (!goodIssueData.file) {
-        MySwal.fire('Error', 'Please select a file', 'error')
-        return
-      }
-
-      const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
-
-      if (radio === 'plan') {
-        await postIncomingPlan(apiIncomingPlan, warehouseId.id, goodIssueData)
-        MySwal.fire('Success', 'Data Incoming Plan Berhasil', 'success')
-      } else if (radio === 'actual') {
-        await postIncomingActual(apiIncomingActual, warehouseId.id, goodIssueData)
-        MySwal.fire('Success', 'Data Incoming Actual Berhasil', 'success')
-      }
-
-      setImported(true)
-      setShouldFetch(true)
-    } catch (error) {
-      console.error('Error during import:', error)
-    } finally {
-      setLoadingImport(false)
-      setVisible(false)
-    }
   }
 
   const LoadingComponent = () => (
@@ -539,7 +475,7 @@ const Incoming = () => {
               <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['User.Organization.Section.sectionName'].value}
-                  options={storage}
+                  options={section}
                   onChange={handleSectionChange}
                   placeholder="Select Section"
                   className="p-column-filter mb-2"
@@ -551,7 +487,7 @@ const Incoming = () => {
                 <Dropdown
                   value={filters['status'].value}
                   options={status}
-                  onChange={handleSectionChange}
+                  onChange={handleStatusChange}
                   placeholder="Select Status"
                   className="p-column-filter mb-2"
                   showClear
@@ -563,7 +499,7 @@ const Incoming = () => {
         </CCard>
 
         <CCard className="mb-3">
-          <CCardHeader>Incoming Table</CCardHeader>
+          <CCardHeader>Good Issue Transaction</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent /> // Render loading component when loading is true
@@ -579,24 +515,6 @@ const Incoming = () => {
                         severity="success"
                         className="rounded-5 me-2 mb-2"
                         onClick={exportExcel}
-                        data-pr-tooltip="XLS"
-                      />
-                      <Button
-                        type="button"
-                        label="Upload"
-                        icon="pi pi-file-import"
-                        severity="primary"
-                        className="rounded-5 me-2 mb-2"
-                        onClick={showModalUpload}
-                        data-pr-tooltip="XLS"
-                      />
-                      <Button
-                        type="button"
-                        label="Template"
-                        icon="pi pi-download"
-                        severity="primary"
-                        className="rounded-5 mb-2"
-                        onClick={downloadTemplate}
                         data-pr-tooltip="XLS"
                       />
                     </div>
@@ -623,42 +541,27 @@ const Incoming = () => {
                   header={header}
                 >
                   <Column
-                    field="Inventory.Material.materialNo"
+                    field="materialNo"
                     header="Material"
                     frozen={true}
                     alignFrozen="left"
                     sortable
                   ></Column>
+                  <Column field="description" header="Description" sortable></Column>
                   <Column
-                    field="Inventory.Material.description"
-                    header="Description"
-                    frozen={true}
-                    alignFrozen="left"
+                    field="quantity"
+                    header="Quantity"
                     sortable
-                  ></Column>
-                  <Column
-                    field="Inventory.Address_Rack.addressRackName"
-                    header="Address"
-                    sortable
-                  ></Column>
-                  <Column field="Inventory.Material.uom" header="UoM" sortable></Column>
-                  <Column field="planning" header="Plan." sortable></Column>
-                  <Column
-                    field="actual"
-                    header="Act."
-                    editor={(options) => qtyActualEditor(options)}
-                    style={{ width: '5%' }}
-                    sortable
-                  ></Column>
-                  <Column
-                    field="discrepancy"
-                    header="Disc."
-                    // body={discrepancyBodyTemplate}
                     bodyStyle={{ textAlign: 'center' }}
+                  ></Column>
+                  <Column field="transactionNo" header="Transaction No" sortable></Column>
+                  <Column field="transactionDate" header="Transaction Date" sortable></Column>
+                  <Column
+                    field="User.Organization.Section.sectionName"
+                    header="Section"
+                    ß
                     sortable
                   ></Column>
-                  <Column field="Log_Import.importDate" header="Date" sortable></Column>
-                  <Column field="Log_Import.User.username" header="Import By" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -670,104 +573,16 @@ const Incoming = () => {
                       bodyStyle={col.bodyStyle}
                     />
                   ))}
-                  <Column
-                    header="Action"
-                    rowEditor={true}
-                    headerStyle={{ width: '5%' }}
-                    bodyStyle={{ textAlign: 'center' }}
-                    frozen={true}
-                    alignFrozen="right"
-                  ></Column>
+                  <Column field="paymentNumber" header="GI number" sortable></Column>
+                  <Column field="status" header="Last Status" sortable></Column>
                 </DataTable>
               </>
             )}
           </CCardBody>
         </CCard>
       </CCol>
-
-      <CModal visible={visible} onClose={() => setVisible(false)}>
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Upload Incoming</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <div className="mb-3">
-            <CFormSelect
-              label="Plant"
-              aria-label="Select Plant"
-              options={[
-                'Select Plant',
-                ...plant.map((plant) => ({ label: plant.label, value: plant.id })),
-              ]}
-              value={plantId}
-              onChange={(e) => setPlantId(e.target.value)}
-            />
-          </div>
-          <CFormLabel>Date</CFormLabel>
-          <div className="mb-3">
-            <Flatpickr
-              value={date}
-              options={{
-                dateFormat: 'Y-m-d',
-                maxDate: new Date(),
-                allowInput: true,
-              }}
-              onChange={(date) => setDate(date)}
-              className="form-control"
-              placeholder="Select a date"
-            />
-          </div>
-          <div className="mb-3">
-            <CFormInput
-              onChange={handleFileChange} // Handle perubahan file
-              type="file"
-              label="Excel File"
-              accept=".xlsx" // Hanya menerima file Excel
-            />
-          </div>
-          <div className="mb-3 d-flex justify-content-center">
-            <CFormCheck
-              type="radio"
-              name="flexRadioDefault"
-              id="flexRadioDefault1"
-              label="Incoming Plan"
-              defaultChecked={radio === 'plan'}
-              inline
-              onChange={() => setRadio('plan')}
-            />
-            <CFormCheck
-              type="radio"
-              name="flexRadioDefault"
-              id="flexRadioDefault2"
-              label="Incoming Actual"
-              defaultChecked={radio === 'actual'}
-              inline
-              onChange={() => setRadio('actual')}
-            />
-          </div>
-        </CModalBody>
-        <CModalFooter>
-          <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
-          >
-            <CButton color="primary" onClick={() => handleImport()}>
-              {loadingImport ? (
-                <>
-                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
-                  Importing...
-                </>
-              ) : (
-                'Import'
-              )}
-            </CButton>
-          </Suspense>
-        </CModalFooter>
-      </CModal>
     </CRow>
   )
 }
 
-export default Incoming
+export default GoodIssue
