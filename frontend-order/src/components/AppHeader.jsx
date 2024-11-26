@@ -76,7 +76,8 @@ const AppHeader = () => {
   const { getMasterData } = useMasterDataService()
   const { getProduct, getAllProduct } = useProductService()
   const { getCartCount, getCart } = useCartService()
-  const { getNotification, getNotificationCount } = useNotificationService()
+  const { getNotification, getNotificationCount, postNotification, postAllNotification } =
+    useNotificationService()
   const [searchQuery, setSearchQuery] = useState('')
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [searchHistory, setSearchHistory] = useState([])
@@ -111,7 +112,6 @@ const AppHeader = () => {
   const apiWarehouseUser = 'warehouse-user'
   const apiCategory = 'category-public'
   const apiWarehouse = 'warehouse-public'
-  
 
   useEffect(() => {
     // Fetch notifications from API
@@ -126,26 +126,6 @@ const AppHeader = () => {
 
     fetchNotifications()
   }, [])
-
-  const handleNotificationClick = async (notifId) => {
-    try {
-      // Update `isRead` ke backend
-      await axios.patch(`/api/notifications/${notifId}`, { isRead: 1 });
-  
-      // Update state lokal
-      setNotifDesc((prev) =>
-        prev.map((notif) =>
-          notif.id === notifId ? { ...notif, isRead: 1 } : notif
-        )
-      );
-  
-      // Arahkan ke layar `confirmall`
-      navigate("/confirmall");
-    } catch (error) {
-      console.error("Error updating notification status", error);
-    }
-  };
-  
 
   // Fetch products from API
   const getProducts = async () => {
@@ -462,7 +442,52 @@ const AppHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+  const handleLoadMore = async () => {
+    try {
+      // Tandai semua notifikasi sebagai sudah dibaca
+      await postAllNotification(warehouse.id)
 
+      // Hapus notifikasi dari App Header
+      setNotifDesc([])
+
+      // Arahkan pengguna ke halaman profil
+      navigate('/profile')
+    } catch (error) {
+      console.error('Error handling load more:', error)
+    }
+  }
+
+  const handleNotifselect = async (notif) => {
+    try {
+      // Tandai notifikasi sebagai sudah dibaca
+      await postNotification(warehouse.id, notif.id)
+
+      // Perbarui state lokal untuk menandai notifikasi sebagai dibaca
+      setNotifDesc((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: 1 } : n)))
+console.log('bagus',notif)
+      // Arahkan ke layar sesuai dengan judul notifikasi
+    
+    
+      switch (notif.title) {
+        case 'Request Order':
+          navigate('/confirmall')
+          break
+        case 'Request Approval':
+          navigate('/approveall')
+          break
+        case 'Order Completed':
+          navigate('/history')
+          break
+        default:
+          console.warn('Unknown notification title:', notif.title)
+          break
+      }
+    } catch (error) {
+      console.error('Error handling notification selection:', error)
+    }
+  }
+
+  console.log('ada', warehouse)
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -788,13 +813,6 @@ const AppHeader = () => {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   Anda memiliki ({notifDesc?.filter((n) => n.isRead === 0).length}) notifikasi
-                  <CLink
-                    onClick={() => navigate('/profile')}
-                    className="text-primary"
-                    style={{ cursor: 'pointer', textDecoration: 'none' }}
-                  >
-                    View all
-                  </CLink>
                 </div>
               </CDropdownHeader>
               <div
@@ -804,18 +822,18 @@ const AppHeader = () => {
                 }}
               >
                 {notifDesc.length > 0 ? (
-                  notifDesc.slice(0, 10).map((notif, index) => (
+                  notifDesc.slice(0, 6).map((notif, index) => (
                     <CDropdownItem
                       key={index}
-                      onClick={() => handleNotificationClick(notif.id)} // Panggil handler
+                      onClick={() => handleNotifselect(notif)} // Mengirim objek notif sebagai parameter
                       style={{
-                        backgroundColor: notif.isRead === 0 ? 'grey' : 'white', // Latar biru untuk belum dibaca
+                        backgroundColor: notif.isRead === 0 ? '#E4E0E1' : 'white', // Latar biru untuk belum dibaca
                         cursor: 'pointer',
                       }}
                     >
                       <CRow className="fw-light py-0 mb-0">
                         <small>
-                          <CIcon icon={cilEnvelopeClosed} size="sm" /> Message for you
+                          <CIcon icon={cilEnvelopeClosed} size="sm" /> {notif.title}
                         </small>
                       </CRow>
                       <CRow className="py-0 mb-1">
@@ -828,6 +846,17 @@ const AppHeader = () => {
                   <CDropdownItem>No notification</CDropdownItem>
                 )}
               </div>
+              <CDropdownHeader>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  <CLink
+                    onClick={handleLoadMore}
+                    className="text-primary"
+                    style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    Load More
+                  </CLink>
+                </div>
+              </CDropdownHeader>
             </CDropdownMenu>
           </CDropdown>
         </CHeaderNav>

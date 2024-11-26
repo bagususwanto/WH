@@ -41,9 +41,37 @@ const useNotificationService = () => {
     }
   }
 
+  const postNotification = async (warehouseId, postId) => {
+    try {
+      const response = await axiosJWT.post(`/read-notification/${warehouseId}/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
+  
+  const postAllNotification = async (warehouseId) => {
+    try {
+      const response = await axiosJWT.post(`/read-all-notification/${warehouseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
+
   return {
     getNotification,
     getNotificationCount,
+    postNotification,
+    postAllNotification
   }
 }
 

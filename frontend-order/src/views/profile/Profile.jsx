@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CCard,
@@ -37,7 +37,8 @@ import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
 import { cilEnvelopeOpen } from '@coreui/icons'
 import useMasterDataService from '../../services/MasterDataService'
-import useNotificationService from '../services/NotificationService'
+import useNotificationService from '../../services/NotificationService'
+import { GlobalContext } from '../../context/GlobalProvider'
 
 const Profile = () => {
   const { getMasterData } = useMasterDataService()
@@ -47,9 +48,10 @@ const Profile = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
   const { getNotification, getNotificationCount } = useNotificationService()
-  
+  const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
+  const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
 
   const apiUser = 'user-public'
 
@@ -82,10 +84,8 @@ const Profile = () => {
     getusers()
   }, [])
 
- 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-    
       getNotifDesc()
       const interval = setInterval(() => {
         getNotifCount() // Poll every 5 seconds
@@ -93,7 +93,7 @@ const Profile = () => {
       return () => clearInterval(interval) // Clear interval on component unmount
     }
   }, [warehouse, cartCount])
- 
+
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -122,6 +122,9 @@ const Profile = () => {
   const toggleModalPassword = () => {
     setModalPassVisible(!modalPassVisible)
   }
+  const loadMore = () => {
+    setVisibleNotifCount((prevCount) => prevCount + 7) // Menambah 7 notifikasi lagi
+  }
 
   return (
     <CTabs activeItemKey={'notifikasi'}>
@@ -147,27 +150,37 @@ const Profile = () => {
             <CRow>
               <CCard>
                 <CAccordionHeader className="mt-2 fs-6">Transaction Info</CAccordionHeader>
-                <hr />
-                <CCardBody>
-                  {notifProfile.map((notif, index) => (
-                    <CRow>
-                      <CCol xs={1}>
-                        <CIcon icon={cilEnvelopeOpen} size="xl" />
+                <hr className="my-1" />
+                {notifProfile.slice(0, visibleNotifCount).map((notif, index) => (
+                  <CCardBody key={index} className="p-1">
+                    <CRow className="align-items-center mb-1">
+                      <CCol xs={1} className="d-flex justify-content-center">
+                        <CIcon icon={cilEnvelopeOpen} size="lg" />
                       </CCol>
                       <CCol xs={11}>
                         <div>
-                          <div>Message for you</div>
-                          <div className="fw-light">{notif.description}</div>
+                          <div className="mb-0 fw-light text-muted">Message for you</div>
+                          <div>{notif.description}</div>
                         </div>
                       </CCol>
                     </CRow>
-                  ))}
-                  <hr />
-                </CCardBody>
+                    {index < visibleNotifCount - 1 && index < notifProfile.length - 1 && (
+                      <hr className="my-1" />
+                    )}
+                  </CCardBody>
+                ))}
               </CCard>
+              {visibleNotifCount < notifProfile.length && (
+                <div className="text-center my-3">
+                  <CButton color="primary" onClick={loadMore}>
+                    Load More
+                  </CButton>
+                </div>
+              )}
             </CRow>
           </CContainer>
         </CTabPanel>
+
         <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'profile'}>
           <CContainer>
             <CRow>

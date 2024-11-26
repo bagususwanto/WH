@@ -218,13 +218,12 @@ const History = () => {
   return (
     <>
       <CRow>
-        <CCard style={{ border: 'none' }}>
-          <CCardBody>
+      
             <h3 className="fw-bold fs-4 ">YOUR HISTORY</h3>
 
             <CRow className="mt-1 ">
               {/* Left side: Search field */}
-              <CCol xs={6} sm={6} md={3} lg={3} className="py-2">
+              <CCol xs={6} sm={6} md={3} lg={3} className="py-1">
                 <div
                   style={{
                     display: 'flex',
@@ -250,7 +249,7 @@ const History = () => {
                   />
                 </div>
               </CCol>
-              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-2">
+              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-1">
                 <div
                   className="flatpickr-wrapper"
                   style={{ position: 'relative', width: '300px', height: '36px' }}
@@ -284,11 +283,10 @@ const History = () => {
                 </div>
               </CCol>
             </CRow>
-          </CCardBody>
-        </CCard>
+          
       </CRow>
 
-      <CTabs activeItemKey={activeTab}>
+      <CTabs activeItemKey={activeTab} className='mt-1' >
         <CTabList variant="pills">
           {tabs.map((tab) => (
             <CTab key={tab.key} itemKey={tab.key} onClick={() => handleTabChange(tab.key)}>
