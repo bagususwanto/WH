@@ -23,6 +23,10 @@ const Order = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    transactionDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
     totalPrice: {
       type: DataTypes.DECIMAL,
       allowNull: false,
