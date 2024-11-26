@@ -1,12 +1,5 @@
-import React, { useState, useEffect, Suspense } from 'react'
-import {
-  CCard,
-  CCardHeader,
-  CCardBody,
-  CCol,
-  CRow,
-  CSpinner,
-} from '@coreui/react'
+import React, { useState, useEffect } from 'react'
+import { CCard, CCardHeader, CCardBody, CCol, CRow, CSpinner } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Dropdown } from 'primereact/dropdown'
@@ -114,7 +107,6 @@ const GoodIssue = () => {
     setSectionId(null)
     setStatusOrder(null)
     setDates([null, null])
-    setSelectedDate(null)
   }
 
   useEffect(() => {
