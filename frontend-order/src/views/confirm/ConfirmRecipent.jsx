@@ -142,13 +142,13 @@ const Confirm = () => {
 
       const paymentNumber = iswbs
         ? verifiedCartItems[0].User.Organization.Section
-          ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber
+          ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber
           : '' // WBS number
         : verifiedCartItems[0].User.Organization.Section
-          ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber
+          ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber
           : '' // GIC number
 
-      const paymentMethod = iswbs ? 'WBS' : 'GIC' // Determine payment method
+      const paymentMethod = iswbs ? 'GIC' : 'WBS' // Determine payment method
       const deliveryMethod = isPickup ? 'pickup' : 'otodoke' // Delivery method
 
       // Validate order details
@@ -300,15 +300,15 @@ const Confirm = () => {
                         type="radio"
                         id="payment1"
                         label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : ''}`}
-                        checked={iswbs}
-                        onChange={() => setIswbs(true)}
+                        checked={!iswbs}
+                        onChange={() => setIswbs(false)}
                       />
                       <CFormCheck
                         type="radio"
                         id="payment2"
                         label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber : ''}`}
-                        checked={!iswbs}
-                        onChange={() => setIswbs(false)}
+                        checked={iswbs}
+                        onChange={() => setIswbs(true)}
                       />
                     </>
                   )}

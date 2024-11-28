@@ -381,7 +381,9 @@ const Confirm = () => {
                         <small className="fw-light" style={{ marginRight: '5px' }}>
                           Request at
                         </small>
-                        <small>{format(parseISO(Confirmapproval.createdAt), 'dd/MM/yyyy')} </small>
+                        <small>
+                          {format(parseISO(Confirmapproval.transactionDate), 'dd/MM/yyyy')}{' '}
+                        </small>
                       </div>
                     </div>
                   </>
@@ -573,18 +575,28 @@ const Confirm = () => {
                             >
                               +
                             </CButton>
-                            <span className="fw-light px-2" >
-                              ({product.Inventory.Material?.uom || 'UOM'})
-                            </span>
                           </div>
                         </CCol>
-                        <CCol xs="1" className="d-flex justify-content-end align-items-center">
-                          <CIcon
-                            icon={cilTrash}
-                            className="text-danger"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleDelete(product.id)}
-                          />
+
+                        <CCol xs="2" className="d-flex justify-content-end align-items-center">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
+                            }}
+                          >
+                            <span style={{ fontSize: '0.9em' }}>
+                              ({product.Inventory.Material?.uom || 'UOM'})
+                            </span>
+                            <CIcon
+                              icon={cilTrash}
+                              className="text-danger"
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => handleDelete(product.id)}
+                            />
+                          </div>
                         </CCol>
                       </CRow>
                     </CCardBody>
