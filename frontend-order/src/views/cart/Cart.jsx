@@ -330,8 +330,8 @@ const Cart = () => {
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                             alt={product.Inventory.Material.description}
                             style={{
-                              width: '100%', // Ensure it takes the full width
-                              height: '150px', // Fixed height for uniformity
+                              width: '90%', // Ensure it takes the full width
+                              height: '100px', // Fixed height for uniformity
                               objectFit: 'contain', // Keep the aspect ratio
                             }}
                           />
@@ -344,7 +344,9 @@ const Cart = () => {
                               {product.Inventory.Material.description}
                             </label>
                             <br />
-                            <label>{product.Inventory.Material.materialNo}</label>
+                            <label style={{fontSize:"0.9em"}} className='fw-light'>{product.Inventory.Material.materialNo}</label>
+                            <br />
+                            <label style={{fontSize:"0.8em"}} >Min Order: {product.Inventory.Material.minOrder}{product.Inventory.Material.uom}</label>
                           </div>
                         </CCol>
 

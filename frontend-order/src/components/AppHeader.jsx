@@ -89,6 +89,7 @@ const AppHeader = () => {
   const [category, setCategory] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [notifDesc, setNotifDesc] = useState([])
+  const [hoveredCategory, setHoveredCategory] = useState(null)
 
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
@@ -513,7 +514,7 @@ const AppHeader = () => {
         </CCol>
 
         <CCol xs={12} sm={1} md={1} lg={1}>
-          <CButton onClick={handleToggleCategories}>Category</CButton>
+        <CButton color="primary" variant="ghost" onClick={handleToggleCategories}>Category</CButton>
         </CCol>
 
         {/* Search bar tetap */}
@@ -836,24 +837,32 @@ const AppHeader = () => {
               <CRow>
                 {category.map((cat, index) => (
                   <CCol xs="auto" key={cat.id}>
-                    <CButton
+                   <CButton
                       className="text-start"
                       onClick={() => handleCategoryHeadClick(cat.id)}
+                      onMouseEnter={() => setHoveredCategory(cat.id)}
+                      onMouseLeave={() => setHoveredCategory(null)}
                       style={{
                         backgroundColor:
                           selectedCategory && selectedCategory.id === cat.id
-                            ? '#E4E0E1' // Navy color if category is selected
-                            : index === 0 &&
-                                (!selectedCategory || selectedCategory.id === category[0].id)
-                              ? '#E4E0E1' // Navy for the first category if none selected or the first is selected
-                              : 'white', // Default white color
+                            ? '#E4E0E1' // Warna navy jika kategori terpilih
+                            : hoveredCategory === cat.id
+                              ? '#E4E0E1' // Warna saat hover
+                              : index === 0 &&
+                                  (!selectedCategory ||
+                                    selectedCategory.id === category[0].id)
+                                ? '#E4E0E1' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
+                                : 'white', // Warna default putih
                         color:
                           selectedCategory && selectedCategory.id === cat.id
-                            ? 'black' // White text color for selected category
-                            : index === 0 &&
-                                (!selectedCategory || selectedCategory.id === category[0].id)
-                              ? 'black' // White text for the first category if selected
-                              : 'black', // Default black text color
+                            ? 'black' // Warna teks hitam untuk kategori yang dipilih
+                            : hoveredCategory === cat.id
+                              ? 'black' // Warna teks saat hover
+                              : index === 0 &&
+                                  (!selectedCategory ||
+                                    selectedCategory.id === category[0].id)
+                                ? 'black' // Warna teks hitam untuk kategori pertama jika dipilih
+                                : 'black', // Warna teks default
                       }}
                     >
                       <CIcon icon={iconMap[cat.categoryName] || cilFolder} className="me-2" />
