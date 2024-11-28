@@ -48,7 +48,13 @@ const getOrganizationCondition = (user, role) => {
   }
 };
 
-const findRoleAndOrders = async (roleName, organizationField, organizationId, warehouseId, options) => {
+const findRoleAndOrders = async (
+  roleName,
+  organizationField,
+  organizationId,
+  warehouseId,
+  options
+) => {
   const role = await Role.findOne({ where: { roleName, flag: 1 } });
 
   const { q, startDate, endDate, limit, offset, approved } = options;
@@ -101,7 +107,14 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
             {
               model: Material,
               required: false,
-              attributes: ["id", "materialNo", "description", "uom", "price", "img"],
+              attributes: [
+                "id",
+                "materialNo",
+                "description",
+                "uom",
+                "price",
+                "img",
+              ],
               where: { flag: 1 },
             },
           ],
@@ -111,7 +124,17 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
     {
       model: User,
       required: true,
-      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+      attributes: [
+        "id",
+        "username",
+        "name",
+        "position",
+        "img",
+        "noHandphone",
+        "email",
+        "createdAt",
+        "updatedAt",
+      ],
       include: [
         {
           model: Organization,
@@ -184,14 +207,20 @@ export const getOrderApproval = async (req, res) => {
   if (!condition) return res.status(400).json({ message: "Invalid role" });
 
   try {
-    const orders = await findRoleAndOrders(role, condition.organizationField, condition.organizationId, warehouseId, {
-      q,
-      startDate,
-      endDate,
-      limit,
-      offset,
-      approved: req.query.approved,
-    });
+    const orders = await findRoleAndOrders(
+      role,
+      condition.organizationField,
+      condition.organizationId,
+      warehouseId,
+      {
+        q,
+        startDate,
+        endDate,
+        limit,
+        offset,
+        approved: req.query.approved,
+      }
+    );
 
     if (orders.orders.length === 0) {
       return res.status(404).json({ message: "No orders found" });
@@ -235,7 +264,17 @@ export const getDetailOrderApproval = async (req, res) => {
         {
           model: User,
           required: true,
-          attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+          attributes: [
+            "id",
+            "username",
+            "name",
+            "position",
+            "img",
+            "noHandphone",
+            "email",
+            "createdAt",
+            "updatedAt",
+          ],
           include: [
             {
               model: Warehouse,
@@ -300,11 +339,16 @@ const isAuthorizedApproval = async (orderId, userId) => {
         return true;
       }
     } else if (order.User.Role.roleName === "line head") {
-      if (order.User.Organization.sectionId == userApproval.Organization.sectionId) {
+      if (
+        order.User.Organization.sectionId == userApproval.Organization.sectionId
+      ) {
         return true;
       }
     } else if (order.User.Role.roleName === "section head") {
-      if (order.User.Organization.departmentId == userApproval.Organization.departmentId) {
+      if (
+        order.User.Organization.departmentId ==
+        userApproval.Organization.departmentId
+      ) {
         return true;
       }
     }
@@ -420,7 +464,14 @@ export const approveOrder = async (req, res) => {
             {
               model: Material,
               where: { flag: 1 },
-              attributes: ["id", "materialNo", "description", "uom", "price", "minOrder"],
+              attributes: [
+                "id",
+                "materialNo",
+                "description",
+                "uom",
+                "price",
+                "minOrder",
+              ],
             },
           ],
         },
@@ -446,15 +497,16 @@ export const approveOrder = async (req, res) => {
           // Validasi jika quantity kurang dari minOrder
           if (quantityAfter < order.Inventory.Material.minOrder) {
             await transaction.rollback();
-            return res
-              .status(400)
-              .json({
-                message: `Quantity the material ${order.Inventory.Material.materialNo} must be at least ${order.Inventory.Material.minOrder}`,
-              });
+            return res.status(400).json({
+              message: `Quantity the material ${order.Inventory.Material.materialNo} must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
+            });
           }
 
           // Update quantity dan price di DetailOrder
-          await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
+          await DetailOrder.update(
+            { quantity: quantityAfter, price: quantityAfter * price },
+            { where: { id: item.detailOrderId }, transaction }
+          );
 
           // Menyimpan detail order yang di-update
           updatedOrders.push({
@@ -546,7 +598,11 @@ export const approveOrder = async (req, res) => {
       if ((await isCertainPrice(orderId)) == 1) {
         await Order.update(
           {
-            currentRoleApprovalId: await setCurrentRoleApprovalId(userId, orderId, transaction),
+            currentRoleApprovalId: await setCurrentRoleApprovalId(
+              userId,
+              orderId,
+              transaction
+            ),
             isLastApproval: 1,
             totalPrice: totalPrice,
           },
@@ -599,7 +655,10 @@ export const rejectOrder = async (req, res) => {
     }
 
     // Update isReject di tabel DetailOrder
-    await DetailOrder.update({ isReject: 1 }, { where: { id: detailOrderId }, transaction });
+    await DetailOrder.update(
+      { isReject: 1 },
+      { where: { id: detailOrderId }, transaction }
+    );
 
     // Create history reject di tabel LogApproval
     await LogApproval.create(
@@ -667,7 +726,10 @@ export const deleteOrderItem = async (req, res) => {
     }
 
     // Update isDelete di tabel DetailOrder
-    await DetailOrder.update({ isDelete: 1 }, { where: { id: detailOrderId }, transaction });
+    await DetailOrder.update(
+      { isDelete: 1 },
+      { where: { id: detailOrderId }, transaction }
+    );
 
     // Create history delete di tabel LogApproval
     await LogApproval.create(
