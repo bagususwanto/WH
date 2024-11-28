@@ -40,13 +40,7 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: [
-            "waiting approval",
-            "waiting confirmation",
-            "on process",
-            "ready to pickup",
-            "ready to deliver",
-          ],
+          [Op.in]: ["waiting approval", "waiting confirmation", "on process", "ready to pickup", "ready to deliver"],
         },
       },
       include: [
@@ -61,13 +55,7 @@ export const checkStock = async (inventoryId, quantity) => {
 
     // Hitung total quantity dari semua DetailOrder yang terkait
     const totalOrderedQuantity = orders.reduce((sum, order) => {
-      return (
-        sum +
-        order.DetailOrder.reduce(
-          (detailSum, detail) => detailSum + detail.quantity,
-          0
-        )
-      );
+      return sum + order.DetailOrder.reduce((detailSum, detail) => detailSum + detail.quantity, 0);
     }, 0);
 
     // Hitung sisa stok yang ada di inventory sekarang - total order quantity yang masih proses
@@ -155,11 +143,7 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
   }
 
   // Jika user production dan role itu group head atau line head dan payment methods bukan GIC
-  if (
-    isProduction == 1 &&
-    (role == "group head" || role == "line head") &&
-    paymentMethod != "GIC"
-  ) {
+  if (isProduction == 1 && (role == "group head" || role == "line head") && paymentMethod != "GIC") {
     return true;
   }
 };
@@ -189,9 +173,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     let approval = [];
 
     // Variabel untuk mengecek apakah ada material dengan harga >= 20jt
-    const hasExpensiveMaterial = carts.some(
-      (cart) => cart.Inventory.Material.price >= 20000000
-    );
+    const hasExpensiveMaterial = carts.some((cart) => cart.Inventory.Material.price >= 20000000);
 
     // Helper function untuk mengambil roleIdApproval
     const getRoleApprovalId = async (condition) => {
@@ -270,8 +252,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description:
-                "Request Approval from Team Leader to Department Head",
+              description: "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -346,8 +327,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description:
-                "Request Approval from Team Leader to Department Head",
+              description: "Request Approval from Team Leader to Department Head",
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -401,8 +381,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           });
           const notification = {
             title: "Request Approval",
-            description:
-              "Request Approval from Group Leader to Department Head",
+            description: "Request Approval from Group Leader to Department Head",
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -464,11 +443,7 @@ export const generateOrderNumber = async (isApproval) => {
     if (lastOrder) {
       // Ambil sequence number dari transaksi terakhir dan tambahkan 1
       const lastTransactionNumber =
-        isApproval == 1 && lastOrder
-          ? lastOrder.transactionNumber
-          : isApproval == 0 && lastOrder
-          ? lastOrder.requestNumber
-          : lastOrder;
+        isApproval == 1 && lastOrder ? lastOrder.transactionNumber : isApproval == 0 && lastOrder ? lastOrder.requestNumber : lastOrder;
 
       // Periksa apakah lastTransactionNumber valid
       if (lastTransactionNumber) {
@@ -615,18 +590,14 @@ export const checkout = async (req, res) => {
     const cartIds = req.body.cartIds;
 
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "cartIds must be a non-empty array" });
+      return res.status(400).json({ message: "cartIds must be a non-empty array" });
     }
 
     // Validasi minimum order quantity
     const minimumOrderQuantity = await isMinimumOrderQuantity(cartIds);
 
     if (!minimumOrderQuantity) {
-      return res
-        .status(400)
-        .json({ message: "Minimum order quantity not met" });
+      return res.status(400).json({ message: "Minimum order quantity not met" });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -675,11 +646,20 @@ const isMinimumOrderQuantity = async (cartIds) => {
     ],
   });
 
-  carts.map((cart) => {
+  // Validasi jika ada data yang tidak memenuhi syarat
+  for (const cart of carts) {
+    // Pastikan semua properti yang dibutuhkan ada
+    if (!cart.Inventory || !cart.Inventory.Material) {
+      return false;
+    }
+
+    // Periksa apakah jumlah tidak memenuhi syarat
     if (cart.quantity < cart.Inventory.Material.minOrder) {
       return false;
     }
-  });
+  }
+
+  // Semua item memenuhi syarat
   return true;
 };
 
@@ -705,13 +685,7 @@ export const createOrder = async (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
       }
     } else {
-      if (
-        !cartIds ||
-        !orderTimeStr ||
-        !paymentNumber ||
-        !paymentMethod ||
-        !deliveryMethod
-      ) {
+      if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
         return res.status(400).json({ message: "All fields are required" });
       }
     }
@@ -797,16 +771,10 @@ export const createOrder = async (req, res) => {
         requestNumber: leftTransactionNo == "RE" ? fullTransactionNo : null,
         transactionNumber: leftTransactionNo == "TR" ? fullTransactionNo : null,
         transactionDate: new Date(new Date().getTime() - 8 * 60 * 60 * 1000),
-        totalPrice: carts.reduce(
-          (acc, cart) => acc + cart.Inventory.Material.price * cart.quantity,
-          0
-        ),
+        totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status:
-          leftTransactionNo == "TR"
-            ? "waiting confirmation"
-            : "waiting approval",
+        status: leftTransactionNo == "TR" ? "waiting confirmation" : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
@@ -825,8 +793,7 @@ export const createOrder = async (req, res) => {
         inventoryId: cart.inventoryId,
         quantity: cart.quantity,
         price: cart.Inventory.Material.price * cart.quantity,
-        isMoreThanCertainPrice:
-          cart.Inventory.Material.price >= 20000000 ? 1 : 0,
+        isMoreThanCertainPrice: cart.Inventory.Material.price >= 20000000 ? 1 : 0,
       })),
       { transaction: t } // Menambahkan transaksi
     );
@@ -874,9 +841,7 @@ export const createOrder = async (req, res) => {
       // Rollback transaksi kedua jika terjadi error
       await t2.rollback();
       console.log(error);
-      return res
-        .status(500)
-        .json({ message: "Internal server error on create order history" });
+      return res.status(500).json({ message: "Internal server error on create order history" });
     }
 
     // Jika semua validasi sukses

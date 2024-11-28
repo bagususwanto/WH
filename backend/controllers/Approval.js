@@ -420,7 +420,7 @@ export const approveOrder = async (req, res) => {
             {
               model: Material,
               where: { flag: 1 },
-              attributes: ["id", "materialNo", "description", "uom", "price"],
+              attributes: ["id", "materialNo", "description", "uom", "price", "minOrder"],
             },
           ],
         },
@@ -442,6 +442,16 @@ export const approveOrder = async (req, res) => {
           const quantityBefore = order.quantity;
           const quantityAfter = item.quantity;
           const price = order.Inventory.Material.price;
+
+          // Validasi jika quantity kurang dari minOrder
+          if (quantityAfter < order.Inventory.Material.minOrder) {
+            await transaction.rollback();
+            return res
+              .status(400)
+              .json({
+                message: `Quantity the material ${order.Inventory.Material.materialNo} must be at least ${order.Inventory.Material.minOrder}`,
+              });
+          }
 
           // Update quantity dan price di DetailOrder
           await DetailOrder.update({ quantity: quantityAfter, price: quantityAfter * price }, { where: { id: item.detailOrderId }, transaction });
