@@ -40,7 +40,13 @@ export const checkStock = async (inventoryId, quantity) => {
     const orders = await Order.findOne({
       where: {
         status: {
-          [Op.in]: ["waiting approval", "waiting confirmation", "on process", "ready to pickup", "ready to deliver"],
+          [Op.in]: [
+            "waiting approval",
+            "waiting confirmation",
+            "on process",
+            "ready to pickup",
+            "ready to deliver",
+          ],
         },
       },
       include: [
@@ -55,7 +61,13 @@ export const checkStock = async (inventoryId, quantity) => {
 
     // Hitung total quantity dari semua DetailOrder yang terkait
     const totalOrderedQuantity = orders.reduce((sum, order) => {
-      return sum + order.DetailOrder.reduce((detailSum, detail) => detailSum + detail.quantity, 0);
+      return (
+        sum +
+        order.DetailOrder.reduce(
+          (detailSum, detail) => detailSum + detail.quantity,
+          0
+        )
+      );
     }, 0);
 
     // Hitung sisa stok yang ada di inventory sekarang - total order quantity yang masih proses
@@ -143,7 +155,11 @@ const isPaymentValid = (isProduction, role, paymentMethod) => {
   }
 
   // Jika user production dan role itu group head atau line head dan payment methods bukan GIC
-  if (isProduction == 1 && (role == "group head" || role == "line head") && paymentMethod != "GIC") {
+  if (
+    isProduction == 1 &&
+    (role == "group head" || role == "line head") &&
+    paymentMethod != "GIC"
+  ) {
     return true;
   }
 };
@@ -173,7 +189,9 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     let approval = [];
 
     // Variabel untuk mengecek apakah ada material dengan harga >= 20jt
-    const hasExpensiveMaterial = carts.some((cart) => cart.Inventory.Material.price >= 20000000);
+    const hasExpensiveMaterial = carts.some(
+      (cart) => cart.Inventory.Material.price >= 20000000
+    );
 
     // Helper function untuk mengambil roleIdApproval
     const getRoleApprovalId = async (condition) => {
@@ -204,7 +222,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
 
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Group Leader",
+              description: `Request Approval from Team Leader to Group Leader with Transaction Number 
+              ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -228,7 +247,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Section Head",
+              description: `Request Approval from Team Leader to Section Head with Transaction Number 
+              ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -252,7 +272,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Department Head",
+              description: `Request Approval from Team Leader to Department Head with Transaction Number 
+              ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -279,7 +300,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Group Leader",
+              description: `Request Approval from Team Leader to Group Leader with Transaction Number 
+              ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -303,7 +325,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Section Head",
+              description: `Request Approval from Team Leader to Section Head with Transaction Number 
+              ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -327,7 +350,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             });
             const notification = {
               title: "Request Approval",
-              description: "Request Approval from Team Leader to Department Head",
+              description: `Request Approval from Team Leader to Department Head with Transaction Number 
+                ${generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -357,7 +381,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           });
           const notification = {
             title: "Request Approval",
-            description: "Request Approval from Group Leader to Section Head",
+            description: `Request Approval from Group Leader to Section Head with Transaction Number 
+            ${generateOrderNumber(0)}`,
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -381,7 +406,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           });
           const notification = {
             title: "Request Approval",
-            description: "Request Approval from Group Leader to Department Head",
+            description: `Request Approval from Group Leader to Department Head with Transaction Number 
+              ${generateOrderNumber(0)}`,
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -402,7 +428,8 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     const userIds = await getUserIdWarehouse({ warehouseId: warehouseId });
     const notification = {
       title: "Request Order",
-      description: "Request Order to Warehouse",
+      description: `Request Order to Warehouse with Transaction Number 
+      ${generateOrderNumber(1)}`,
       category: "approval",
     };
     await createNotification(userIds, notification, transaction);
@@ -431,7 +458,9 @@ export const generateOrderNumber = async (isApproval) => {
     const lastOrder = await Order.findOne({
       where: {
         transactionDate: formattedDate,
-        ...(isApproval == 1 ? { transactionNumber: { [Op.not]: null } } : { requestNumber: { [Op.not]: null } }),
+        ...(isApproval == 1
+          ? { transactionNumber: { [Op.not]: null } }
+          : { requestNumber: { [Op.not]: null } }),
       },
       order: [["createdAt", "DESC"]],
     });
@@ -439,7 +468,8 @@ export const generateOrderNumber = async (isApproval) => {
     // Tentukan sequence number berdasarkan transaksi terakhir
     let sequenceNumber = 1;
     if (lastOrder) {
-      const lastTransactionNumber = isApproval == 1 ? lastOrder.transactionNumber : lastOrder.requestNumber;
+      const lastTransactionNumber =
+        isApproval == 1 ? lastOrder.transactionNumber : lastOrder.requestNumber;
       if (lastTransactionNumber) {
         const lastSequence = parseInt(lastTransactionNumber.slice(-4), 10); // Ambil 4 digit terakhir sebagai sequence
         sequenceNumber = isNaN(lastSequence) ? 1 : lastSequence + 1;
@@ -580,14 +610,18 @@ export const checkout = async (req, res) => {
     const cartIds = req.body.cartIds;
 
     if (!Array.isArray(cartIds) || cartIds.length === 0) {
-      return res.status(400).json({ message: "cartIds must be a non-empty array" });
+      return res
+        .status(400)
+        .json({ message: "cartIds must be a non-empty array" });
     }
 
     // Validasi minimum order quantity
     const minimumOrderQuantity = await isMinimumOrderQuantity(cartIds);
 
     if (!minimumOrderQuantity) {
-      return res.status(400).json({ message: "Minimum order quantity not met" });
+      return res
+        .status(400)
+        .json({ message: "Minimum order quantity not met" });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -675,7 +709,13 @@ export const createOrder = async (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
       }
     } else {
-      if (!cartIds || !orderTimeStr || !paymentNumber || !paymentMethod || !deliveryMethod) {
+      if (
+        !cartIds ||
+        !orderTimeStr ||
+        !paymentNumber ||
+        !paymentMethod ||
+        !deliveryMethod
+      ) {
         return res.status(400).json({ message: "All fields are required" });
       }
     }
@@ -761,10 +801,16 @@ export const createOrder = async (req, res) => {
         requestNumber: leftTransactionNo == "RE" ? fullTransactionNo : null,
         transactionNumber: leftTransactionNo == "TR" ? fullTransactionNo : null,
         transactionDate: new Date(new Date().getTime() - 8 * 60 * 60 * 1000),
-        totalPrice: carts.reduce((acc, cart) => acc + cart.Inventory.Material.price * cart.quantity, 0),
+        totalPrice: carts.reduce(
+          (acc, cart) => acc + cart.Inventory.Material.price * cart.quantity,
+          0
+        ),
         paymentNumber: paymentNumber,
         paymentMethod: paymentMethod,
-        status: leftTransactionNo == "TR" ? "waiting confirmation" : "waiting approval",
+        status:
+          leftTransactionNo == "TR"
+            ? "waiting confirmation"
+            : "waiting approval",
         scheduleDelivery: orderTimeStr,
         deliveryMethod: deliveryMethod,
         remarks: remarks,
@@ -783,7 +829,8 @@ export const createOrder = async (req, res) => {
         inventoryId: cart.inventoryId,
         quantity: cart.quantity,
         price: cart.Inventory.Material.price * cart.quantity,
-        isMoreThanCertainPrice: cart.Inventory.Material.price >= 20000000 ? 1 : 0,
+        isMoreThanCertainPrice:
+          cart.Inventory.Material.price >= 20000000 ? 1 : 0,
       })),
       { transaction: t } // Menambahkan transaksi
     );
@@ -831,7 +878,9 @@ export const createOrder = async (req, res) => {
       // Rollback transaksi kedua jika terjadi error
       await t2.rollback();
       console.log(error);
-      return res.status(500).json({ message: "Internal server error on create order history" });
+      return res
+        .status(500)
+        .json({ message: "Internal server error on create order history" });
     }
 
     // Jika semua validasi sukses

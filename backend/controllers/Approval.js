@@ -374,7 +374,11 @@ export const isLastApproval = async (orderId) => {
   }
 };
 
-export const setCurrentRoleApprovalId = async (userId, transaction) => {
+export const setCurrentRoleApprovalId = async (
+  userId,
+  orderId,
+  transaction
+) => {
   try {
     // Ambil userApproval beserta organisasi dan role
     const userApproval = await User.findOne({
@@ -396,6 +400,12 @@ export const setCurrentRoleApprovalId = async (userId, transaction) => {
       return false;
     }
 
+    // Ambil transaction number
+    const order = await Order.findOne({
+      where: { id: orderId },
+      attributes: ["transactionNumber", "requestNumber"],
+    });
+
     // Helper function untuk mengambil roleIdApproval
     const getRoleApprovalId = async (condition) => {
       return await User.findOne({ where: { ...condition, flag: 1 } });
@@ -411,7 +421,11 @@ export const setCurrentRoleApprovalId = async (userId, transaction) => {
       });
       const notification = {
         title: "Request Approval",
-        description: "Request Approval from Group Leader to Section Head",
+        description: `Request Approval from Group Leader to Section Head with Transaction Number ${
+          order.transactionNumber
+            ? order.transactionNumber
+            : order.requestNumber
+        }`,
         category: "approval",
       };
       await createNotification(userIds, notification, transaction);
@@ -428,7 +442,11 @@ export const setCurrentRoleApprovalId = async (userId, transaction) => {
       });
       const notification = {
         title: "Request Approval",
-        description: "Request Approval from Section Head to Department Head",
+        description: `Request Approval from Section Head to Department Head with Transaction Number ${
+          order.transactionNumber
+            ? order.transactionNumber
+            : order.requestNumber
+        }`,
         category: "approval",
       };
       await createNotification(userIds, notification, transaction);
@@ -568,7 +586,7 @@ export const approveOrder = async (req, res) => {
     }, 0);
 
     if (isLast == 1) {
-      await Order.update(
+      const orderUpdate = await Order.update(
         {
           isApproval: 1,
           transactionNumber: await generateOrderNumber(1),
@@ -581,7 +599,7 @@ export const approveOrder = async (req, res) => {
       const userIds = await getUserIdWarehouse({ warehouseId: warehouseId });
       const notification = {
         title: "Request Order",
-        description: "Request Order to Warehouse",
+        description: `Request Order to Warehouse with Transaction Number ${orderUpdate.transactionNumber}`,
         category: "approval",
       };
       await createNotification(userIds, notification, transaction);
