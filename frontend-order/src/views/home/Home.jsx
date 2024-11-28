@@ -86,7 +86,8 @@ const Home = () => {
   const { getProductByCategory } = useProductService()
   const { getCategory } = useProductService()
   const { getMasterData } = useMasterDataService()
-  const { getWishlist, deleteWishlist, addWishlist, getMyorder, getOrderHistory } =useOrderService()
+  const { getWishlist, deleteWishlist, addWishlist, getMyorder, getOrderHistory } =
+    useOrderService()
   const { postCart, updateCart } = useCartService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
@@ -1070,14 +1071,7 @@ const Home = () => {
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
         <div className="text-center mt-4 mb-4">
-          <CButton
-            style={{
-              backgroundColor: 'white',
-              color: '#219fee',
-              border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
-            }}
-            onClick={handleLoadMore}
-          >
+          <CButton color="primary" variant="outline" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
@@ -1157,7 +1151,7 @@ const Home = () => {
                     onClick={() => setQuantity((prev) => prev + 1)}
                     style={{
                       backgroundColor: 'white',
-                       color: '#219fee',
+                      color: '#219fee',
                       border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
                     }}
                   >

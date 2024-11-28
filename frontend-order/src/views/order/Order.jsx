@@ -436,7 +436,7 @@ const ProductList = () => {
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
         <div className="text-center mt-4 mb-4">
-          <CButton color="secondary" onClick={handleLoadMore}>
+          <CButton color="primary" variant="outline" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>
