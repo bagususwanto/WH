@@ -105,7 +105,7 @@ const Home = () => {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [visible, setVisible] = useState(false)
   const [hoveredCategory, setHoveredCategory] = useState(null)
-
+  const [hoveredItemId, setHoveredItemId] = useState(null);
   const { warehouse, wishlist, setWishlist, cart, setCart, cartCount, setCartCount } =
     useContext(GlobalContext)
 
@@ -1057,14 +1057,22 @@ const Home = () => {
                               outline: 'none', // Menghapus outline pada focus button
                             }}
                           >
-                            <AiFillHeart
-                              style={{
-                                color: isInWishlistProduct(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                                stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
-                                strokeWidth: '15px', // Tebal garis luar
-                              }}
-                              size={20} // Ukuran ikon
-                            />
+                             <AiFillHeart
+                            onMouseEnter={() => setHoveredItemId(product.id)} // Simpan ID item saat di-hover
+                            onMouseLeave={() => setHoveredItemId(null)} // Hapus hover ID saat kursor meninggalkan
+                            style={{
+                              color:
+                                hoveredItemId === product.id && !isInWishlist(product.id)
+                                  ? 'red' // Warna merah saat di-hover
+                                  : isInWishlist(product.id)
+                                    ? 'red' // Warna merah jika sudah ada di wishlist
+                                    : 'white', // Warna default putih
+                              stroke: 'black', // Garis luar hitam
+                              strokeWidth: '15px', // Tebal garis luar
+                              cursor: 'pointer', // Menunjukkan bahwa ikon bisa diklik
+                            }}
+                            size={20} // Ukuran ikon
+                          />
                           </CButton>
                         </CCol>
                       </div>
