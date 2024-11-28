@@ -201,11 +201,11 @@ const AppHeader = () => {
       getCarts()
       getAllProducts()
       getNotifDesc()
-      // const interval = setInterval(() => {
-      //   getNotifCount() // Poll every 5 seconds
-      // }, 5000)
+      const interval = setInterval(() => {
+        getNotifCount() // Poll every 5 seconds
+      }, 5000)
 
-      // return () => clearInterval(interval) // Clear interval on component unmount
+      return () => clearInterval(interval) // Clear interval on component unmount
     }
   }, [warehouse, cartCount])
 
