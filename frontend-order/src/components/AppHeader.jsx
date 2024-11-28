@@ -70,7 +70,6 @@ import logo from 'src/assets/brand/TWIIS-NEW.png'
 
 const AppHeader = () => {
   const [modalVisible, setModalVisible] = useState(false)
-  const [productsData, setProductsData] = useState([])
   const [allProductsData, setAllProductsData] = useState([])
   const [warehouseData, setWarehouseData] = useState([])
   const { getMasterData } = useMasterDataService()
@@ -83,14 +82,9 @@ const AppHeader = () => {
   const [searchHistory, setSearchHistory] = useState([])
   const [showRecentSearches, setShowRecentSearches] = useState(false) // For controlling recent searches visibility
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dispatch = useDispatch()
-  const sidebarShow = useSelector((state) => state.sidebarShow)
   const navigate = useNavigate()
   const [notifCount, setNotifCount] = useState(0)
   const [showCategories, setShowCategories] = useState(false)
-  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false)
-  const [temporaryWarehouse, setTemporaryWarehouse] = useState('')
-  const [visible, setVisible] = useState(false)
   const [warehouseId, setWarehouseId] = useState(0)
   const [category, setCategory] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -113,29 +107,15 @@ const AppHeader = () => {
   const apiCategory = 'category-public'
   const apiWarehouse = 'warehouse-public'
 
-  useEffect(() => {
-    // Fetch notifications from API
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get('/api/notifications')
-        setNotifDesc(response.data) // Save notifications to state
-      } catch (error) {
-        console.error('Error fetching notifications', error)
-      }
-    }
-
-    fetchNotifications()
-  }, [])
-
   // Fetch products from API
-  const getProducts = async () => {
-    try {
-      const response = await getProduct(warehouse.id)
-      setProductsData(response.data) // Assuming response.data is an array of products
-    } catch (error) {
-      console.error('Failed to fetch products:', error) // Log any errors
-    }
-  }
+  // const getProducts = async () => {
+  //   try {
+  //     const response = await getProduct(warehouse.id)
+  //     setProductsData(response.data) // Assuming response.data is an array of products
+  //   } catch (error) {
+  //     console.error('Failed to fetch products:', error) // Log any errors
+  //   }
+  // }
 
   const getAllProducts = async () => {
     try {
@@ -217,15 +197,15 @@ const AppHeader = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      getProducts()
+      // getProducts()
       getCarts()
       getAllProducts()
       getNotifDesc()
-      const interval = setInterval(() => {
-        getNotifCount() // Poll every 5 seconds
-      }, 5000)
+      // const interval = setInterval(() => {
+      //   getNotifCount() // Poll every 5 seconds
+      // }, 5000)
 
-      return () => clearInterval(interval) // Clear interval on component unmount
+      // return () => clearInterval(interval) // Clear interval on component unmount
     }
   }, [warehouse, cartCount])
 
@@ -398,21 +378,6 @@ const AppHeader = () => {
   const handleShowModal = () => setModalVisible(true)
   const handleCloseModal = () => setModalVisible(false)
 
-  // Show and close confirmation modal
-  const handleShowConfirmationModal = () => setConfirmationModalVisible(true)
-  const handleCloseConfirmationModal = () => setConfirmationModalVisible(false)
-
-  // Handle warehouse selection (temporary state before confirmation)
-  const handleSelectWarehouse = (warehouse) => {
-    setTemporaryWarehouse(warehouse) // Set the warehouse to be confirmed
-  }
-
-  // Save changes and update selectedWarehouse
-  const handleSaveChanges = () => {
-    setSelectedWarehouse(temporaryWarehouse) // Confirm and set the new warehouse
-    setConfirmationModalVisible(false) // Close confirmation modal
-    setModalVisible(false)
-  }
   const handleToggleCategories = () => {
     setShowCategories(!showCategories)
   }
@@ -464,10 +429,8 @@ const AppHeader = () => {
 
       // Perbarui state lokal untuk menandai notifikasi sebagai dibaca
       setNotifDesc((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: 1 } : n)))
-console.log('bagus',notif)
       // Arahkan ke layar sesuai dengan judul notifikasi
-    
-    
+
       switch (notif.title) {
         case 'Request Order':
           navigate('/confirmall')
@@ -487,7 +450,6 @@ console.log('bagus',notif)
     }
   }
 
-  console.log('ada', warehouse)
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -498,7 +460,7 @@ console.log('bagus',notif)
             style={{ transition: 'color 0.3s', color: '#333', marginRight: '5px' }}
           />
           <b className="me-2" style={{ fontSize: '0.85rem' }}>
-            {warehouse.warehouseName}
+            {warehouse?.warehouseName}
           </b>
           <CLink
             color="primary"
@@ -812,7 +774,7 @@ console.log('bagus',notif)
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  Anda memiliki ({notifDesc?.filter((n) => n.isRead === 0).length}) notifikasi
+                  Anda memiliki ({notifCount}) notifikasi
                 </div>
               </CDropdownHeader>
               <div
@@ -890,7 +852,7 @@ console.log('bagus',notif)
                             ? 'black' // White text color for selected category
                             : index === 0 &&
                                 (!selectedCategory || selectedCategory.id === category[0].id)
-                              ? 'white' // White text for the first category if selected
+                              ? 'black' // White text for the first category if selected
                               : 'black', // Default black text color
                       }}
                     >

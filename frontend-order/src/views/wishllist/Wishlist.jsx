@@ -15,45 +15,29 @@ import {
   CModalFooter,
   CModalHeader,
   CImage,
-  CNavLink,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
-import useManageStockService from '../../services/ProductService'
-import useMasterDataService from '../../services/MasterDataService'
+import useCartService from '../../services/CartService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
-import { AiFillHeart } from 'react-icons/ai'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import config from '../../utils/Config'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
-  const { getMasterData } = useMasterDataService()
   const { getWishlist, clearWishlist } = useOrderService()
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
-  const [allVisible, setAllVisible] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [cart, setCart] = useState([])
-  const [cartCount, setCartCount] = useState(0)
   const [isAdjustMode, setIsAdjustMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
+  const { postCart, updateCart } = useCartService()
 
-  const { warehouse, wishlist } = useContext(GlobalContext)
+  const { warehouse, cart, setCart, cartCount, setCartCount } = useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
-  const apiCategory = 'category-public'
   const navigate = useNavigate()
 
   const getFavorite = async () => {
@@ -65,42 +49,11 @@ const Wishlist = () => {
     }
   }
 
-  const getCategories = async () => {
-    const response = await getMasterData(apiCategory)
-    setCategoriesData(response.data)
-  }
-
   useEffect(() => {
     if (warehouse && warehouse.id) {
       getFavorite()
     }
-    getCategories()
   }, [warehouse])
-
-  // const calculateStockStatus = (product) => {
-  //   const { quantityActualCheck } = product
-  //   const { minStock, maxStock } = product.Material
-  //   if (quantityActualCheck == null) return 'Out of Stock'
-  //   if (quantityActualCheck > maxStock) return 'In Stock'
-  //   if (quantityActualCheck <= minStock) return 'Low Stock'
-  //   return 'Out of Stock'
-  // }
-
-  const filteredProducts = productsData.filter((product) =>
-    product.Material.description.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  const handleToggleWishlist = (productId) => {
-    const updatedWishlist = new Set(wishlist)
-    updatedWishlist.has(productId)
-      ? updatedWishlist.delete(productId)
-      : updatedWishlist.add(productId)
-    setWishlist(updatedWishlist)
-  }
-
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.id === productId)
-  }
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -112,19 +65,75 @@ const Wishlist = () => {
     setQuantity(1)
   }
 
-  const handleAddToCart = (product, quantity) => {
-    const existingProduct = cart.find((item) => item.id === product.Material.id)
-    if (existingProduct) {
-      const updatedCart = cart.map((item) =>
-        item.id === product.Material.id ? { ...item, quantity: item.quantity + quantity } : item,
-      )
-      setCart(updatedCart)
-    } else {
-      setCart([...cart, { ...product, quantity }])
+  const handleAddToCart = async (product, quantity) => {
+    try {
+      // Cek inventoryId yang sesuai dari product
+      const inventoryId = product.Inventory ? product.Inventory.id : product.id
+      console.log('cart', cart)
+
+      // Cari produk yang ada di cart berdasarkan inventoryId
+      const existingProduct = cart.find((item) => item.inventoryId === inventoryId)
+
+      if (existingProduct) {
+        // Jika produk ada di cart, update kuantitasnya
+        const updatedProduct = {
+          ...existingProduct,
+          quantity: existingProduct.quantity + quantity,
+        }
+
+        // Update cart menggunakan API updateCart
+        const updatedCartResponse = await updateCart(
+          {
+            inventoryId,
+            quantity: updatedProduct.quantity,
+          },
+          warehouse.id,
+        )
+
+        if (updatedCartResponse) {
+          // Update state cart dengan produk yang sudah diperbarui
+          setCart(cart.map((item) => (item.id === updatedProduct.id ? updatedProduct : item)))
+        }
+      } else {
+        // Jika produk tidak ada di cart, tambahkan produk baru
+        const newCartItem = {
+          inventoryId,
+          quantity,
+        }
+
+        setCartCount(cartCount + quantity)
+
+        // Posting produk baru ke API menggunakan postCart
+        const addToCartResponse = await postCart(newCartItem, warehouse.id)
+
+        if (addToCartResponse) {
+          // Tambahkan produk baru ke state cart
+          setCart([
+            ...cart,
+            { ...newCartItem, Inventory: product.Inventory ? product.Inventory : product },
+          ])
+        }
+      }
+
+      setModalOrder(false)
+
+      MySwal.fire({
+        title: 'Success',
+        text: 'Product added to cart',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Cart',
+        cancelButtonText: 'Stay Here',
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/cart')
+        }
+      })
+    } catch (error) {
+      // Handle error
+      console.error('Failed to add to cart:', error)
     }
-    setCartCount(cartCount + quantity)
-    setModalOrder(false)
-    navigate('/cart') // Navigate to the cart page
   }
 
   // Toggle mode Adjust
@@ -294,29 +303,86 @@ const Wishlist = () => {
           <CModalBody>
             <CRow>
               <CCol md="4">
-                <CImage
-                  src={selectedProduct.Inventory.Material.img || 'https://via.placeholder.com/150'}
-                  alt={selectedProduct.Inventory.Material.description}
-                  fluid
-                  className="rounded"
-                />
+                {selectedProduct && (
+                  <CImage
+                    src={`${config.BACKEND_URL}${selectedProduct.Inventory ? selectedProduct.Inventory.Material.img : selectedProduct.Material.img}`}
+                    alt={
+                      selectedProduct.Inventory
+                        ? selectedProduct.Inventory.Material.description
+                        : selectedProduct.Material.description
+                    }
+                    fluid
+                    className="rounded"
+                  />
+                )}
               </CCol>
               <CCol md="8">
-                <strong>{selectedProduct.Inventory.Material.description}</strong>
-                <p>{selectedProduct.Inventory.Material.materialNo}</p>
+                <div>
+                  <label style={{ fontWeight: 'bold' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.description
+                      : selectedProduct.Material.description}
+                  </label>
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 'lighter' }}>
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.materialNo
+                      : selectedProduct.Material.materialNo}
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.85rem' }}>
+                    Min Order:{' '}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.minOrder
+                      : selectedProduct.Material.minOrder}{' '}
+                    {''}
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                  </label>
+                </div>
+
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
                     onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
                   >
                     -
                   </CButton>
-                  <span className="mx-3">
-                    {quantity} ({selectedProduct.Inventory.Material.uom})
-                  </span>
-                  <CButton color="primary" onClick={() => setQuantity((prev) => prev + 1)}>
+                  <CFormInput
+                    type="text"
+                    value={quantity}
+                    className="w-25 text-center border-0"
+                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+                  />
+
+                  <CButton
+                    color="primary"
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                    style={{
+                      backgroundColor: 'white',
+                      color: '#219fee',
+                      border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                    }}
+                  >
                     +
                   </CButton>
+                  <span className="mx-3 fw-light">
+                    (
+                    {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
+                    )
+                  </span>
                 </div>
               </CCol>
             </CRow>

@@ -44,16 +44,22 @@ const App = () => {
           </div>
         }
       >
-        <GlobalProvider>
-          <Routes>
-            <Route exact path="/login" name="Login Page" element={<Login />} />
-            <Route exact path="/logout" name="Login Page" element={<Logout />} />
-            {/* <Route exact path="/register" name="Register Page" element={<Register />} /> */}
-            <Route exact path="/404" name="Page 404" element={<Page404 />} />
-            <Route exact path="/500" name="Page 500" element={<Page500 />} />
-            <Route path="*" name="Home" element={<DefaultLayout />} />
-          </Routes>
-        </GlobalProvider>
+        <Routes>
+          <Route exact path="/login" name="Login Page" element={<Login />} />
+          <Route exact path="/logout" name="Login Page" element={<Logout />} />
+          {/* <Route exact path="/register" name="Register Page" element={<Register />} /> */}
+          <Route exact path="/404" name="Page 404" element={<Page404 />} />
+          <Route exact path="/500" name="Page 500" element={<Page500 />} />
+          <Route
+            path="*"
+            name="Home"
+            element={
+              <GlobalProvider>
+                <DefaultLayout />
+              </GlobalProvider>
+            }
+          />
+        </Routes>
       </Suspense>
     </HashRouter>
   )

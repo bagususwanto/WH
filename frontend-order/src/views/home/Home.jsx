@@ -922,7 +922,7 @@ const Home = () => {
                         ? 'black' // Warna teks putih untuk kategori yang dipilih
                         : index === 0 &&
                             (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                          ? 'white' // Warna teks putih untuk kategori pertama jika dipilih
+                          ? 'black' // Warna teks putih untuk kategori pertama jika dipilih
                           : 'black', // Warna teks default
                   }}
                 >
@@ -1071,14 +1071,7 @@ const Home = () => {
       {/* {visibleCount < products.length && ( */}
       {hasMore && (
         <div className="text-center mt-4 mb-4">
-          <CButton
-            style={{
-              backgroundColor: 'white',
-              color: '#219fee',
-              border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
-            }}
-            onClick={handleLoadMore}
-          >
+          <CButton color="primary" variant="outline" onClick={handleLoadMore}>
             Load More
           </CButton>
         </div>

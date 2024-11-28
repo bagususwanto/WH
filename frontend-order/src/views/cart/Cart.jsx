@@ -2,42 +2,12 @@ import React, { useEffect, useState, useContext } from 'react'
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton from 'react-loading-skeleton'
 import { useNavigate } from 'react-router-dom'
-import AppFooter from '../../components/AppFooter' // Import your AppFooter
 import '../../scss/home.scss'
 import '../../scss/stickyfooter.scss'
 import config from '../../utils/Config'
-import {
-  CCard,
-  CCardBody,
-  CCardImage,
-  CCardTitle,
-  CButton,
-  CRow,
-  CCol,
-  CFormInput,
-  CFormCheck,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-} from '@coreui/react'
+import { CCard, CCardBody, CCardImage, CButton, CRow, CCol } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {
-  cilBatteryEmpty,
-  cilDeaf,
-  cilFax,
-  cilFolder,
-  cilHome,
-  cilInbox,
-  cilKeyboard,
-  cilUser,
-  cilCart,
-  cilHeart,
-  cilArrowRight,
-  cilArrowLeft,
-  cilTrash,
-} from '@coreui/icons'
+import { cilTrash } from '@coreui/icons'
 import useManageStockService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
 import useCartService from '../../services/CartService'
@@ -50,13 +20,9 @@ import withReactContent from 'sweetalert2-react-content'
 
 const Cart = () => {
   const [cartData, setCartData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
-  const { getMasterData } = useMasterDataService()
   const { checkout } = useOrderService()
   const [debouncedQuantities, setDebouncedQuantities] = useState({})
   const { getCart, postCart, updateCart, deleteCart } = useCartService()
-  const [selectAll, setSelectAll] = useState(false) // New state for "Confirm All"
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
@@ -70,8 +36,6 @@ const Cart = () => {
   const { warehouse, setCart, setCartCount } = useContext(GlobalContext)
 
   const navigate = useNavigate()
-
-  const apiCategory = 'category'
 
   const getCarts = async () => {
     try {
@@ -199,16 +163,16 @@ const Cart = () => {
   }
 
   // Total harga produk
-  useEffect(() => {
-    const newTotal = cartData.reduce((acc, product) => {
-      if (checkedItems[product.id]) {
-        const quantity = quantities[product.id] || product.quantity
-        return acc + product.Inventory.Material.price * quantity
-      }
-      return acc
-    }, 0)
-    setTotalAmount(newTotal)
-  }, [checkedItems, quantities, cartData])
+  // useEffect(() => {
+  //   const newTotal = cartData.reduce((acc, product) => {
+  //     if (checkedItems[product.id]) {
+  //       const quantity = quantities[product.id] || product.quantity
+  //       return acc + product.Inventory.Material.price * quantity
+  //     }
+  //     return acc
+  //   }, 0)
+  //   setTotalAmount(newTotal)
+  // }, [checkedItems, quantities, cartData])
 
   // const handleIncreaseQuantity = (productId) => {
   //   setQuantities((prevQuantities) => ({
@@ -366,9 +330,9 @@ const Cart = () => {
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                             alt={product.Inventory.Material.description}
                             style={{
-                              height: '82px', // Fixed height for image
-                              width: '48%', // Make image take the full width of the column
-                              objectFit: 'cover', // Ensure the image scales to fill the space without distorting (may crop)
+                              width: '100%', // Ensure it takes the full width
+                              height: '150px', // Fixed height for uniformity
+                              objectFit: 'contain', // Keep the aspect ratio
                             }}
                           />
                         </CCol>
