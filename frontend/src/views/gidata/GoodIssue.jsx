@@ -343,10 +343,10 @@ const GoodIssue = () => {
           'Issue QTY': item.quantity,
           'Transaction No': item.transactionNo,
           'Transaction Date': item.transactionDate,
-          Section: item.sectionName,
-          Plant: item.plantName?.plantName,
-          'Ordered By': item.User?.username,
-          'GI Method': item.paymentMethod?.paymentMethod,
+          Section: item.User.Organization.Section.sectionName,
+          Plant: item.User.Organization.Plant.plantName,
+          'Ordered By': item.User.username,
+          'GI Method': item.paymentMethod,
           'GI Number': item.paymentNumber,
         }
       })

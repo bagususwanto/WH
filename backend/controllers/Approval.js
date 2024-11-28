@@ -62,13 +62,13 @@ const findRoleAndOrders = async (roleName, organizationField, organizationId, wa
     whereCondition = {};
   }
 
-  // Jika ada rentang tanggal, tambahkan kondisi filter berdasarkan createdAt
+  // Jika ada rentang tanggal, tambahkan kondisi filter berdasarkan transactionDate
   if (startDate && endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999); // Set end date ke akhir hari
 
-    whereCondition.createdAt = {
+    whereCondition.transactionDate = {
       [Op.between]: [start, end],
     };
   }

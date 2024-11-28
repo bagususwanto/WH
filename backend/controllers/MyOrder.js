@@ -14,7 +14,15 @@ export const getMyOrder = async (req, res) => {
     const warehouseId = req.params.warehouseId;
     const userId = req.user.userId;
 
-    const { page = 1, limit = 10, status, startDate, endDate, q, isReject } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      startDate,
+      endDate,
+      q,
+      isReject,
+    } = req.query;
     const offset = (page - 1) * limit;
 
     // Buat kondisi where yang dinamis
@@ -30,7 +38,7 @@ export const getMyOrder = async (req, res) => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      whereCondition.createdAt = {
+      whereCondition.transactionDate = {
         [Op.between]: [start, end],
       };
     }
@@ -39,7 +47,11 @@ export const getMyOrder = async (req, res) => {
       whereCondition[Op.or] = [
         { transactionNumber: { [Op.like]: `%${q}%` } },
         { requestNumber: { [Op.like]: `%${q}%` } },
-        { "$Detail_Orders.Inventory.Material.description$": { [Op.like]: `%${q}%` } },
+        {
+          "$Detail_Orders.Inventory.Material.description$": {
+            [Op.like]: `%${q}%`,
+          },
+        },
       ];
     }
 

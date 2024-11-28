@@ -37,13 +37,13 @@ export const getOrderWarehouse = async (req, res) => {
       whereCondition.status = status;
     }
 
-    // Jika ada rentang tanggal, tambahkan kondisi untuk filter berdasarkan createdAt
+    // Jika ada rentang tanggal, tambahkan kondisi untuk filter berdasarkan transactionDate
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Set end date ke akhir hari (23:59:59)
 
-      whereCondition.createdAt = {
+      whereCondition.transactionDate = {
         [Op.between]: [start, end],
       };
     }
