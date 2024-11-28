@@ -278,7 +278,7 @@ const Confirm = () => {
                       <hr />
                       <label className="fw-bold mb-2">Schedule Otodoke</label>
                       <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                        <option value="" class="fw-light">
+                        <option value="" className="fw-light">
                           Select Cycle
                         </option>
                         {verifiedCartItems.length > 0 &&
@@ -384,20 +384,20 @@ const Confirm = () => {
                     >
                       <CRow className="align-items-start" style={{ height: '100%' }}>
                         {/* Image Column */}
-                        <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                        <CCol xs="3" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
                             alt={data.Inventory.Material.description}
                             style={{
-                              height: '75px',
-                              objectFit: 'cover',
-                              width: '60%',
+                              width: '100%', // Ensure it takes the full width
+                              height: '150px', // Fixed height for uniformity
+                              objectFit: 'contain', // Keep the aspect ratio
                             }}
                           />
                         </CCol>
 
                         {/* Description Column */}
-                        <CCol xs="9" className="d-flex flex-column justify-content-start">
+                        <CCol xs="8" className="d-flex flex-column justify-content-start">
                           <div>
                             <label className="fw-bold">{data.Inventory.Material.description}</label>
                             <br />
