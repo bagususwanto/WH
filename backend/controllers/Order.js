@@ -620,6 +620,15 @@ export const checkout = async (req, res) => {
         .json({ message: "cartIds must be a non-empty array" });
     }
 
+    // Validasi minimum order quantity
+    const minimumOrderQuantity = await isMinimumOrderQuantity(cartIds);
+
+    if (!minimumOrderQuantity) {
+      return res
+        .status(400)
+        .json({ message: "Minimum order quantity not met" });
+    }
+
     // const stockStatus = await isStockAvailable(cartIds);
 
     // if (!stockStatus.isAvailable) {
