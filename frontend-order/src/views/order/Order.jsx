@@ -52,7 +52,7 @@ const ProductList = () => {
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-
+  const [hoveredItemId, setHoveredItemId] = useState(null);
   const location = useLocation() // Ambil informasi
   const { warehouse, wishlist, setWishlist, cartCount, setCartCount, cart, setCart } =
     useContext(GlobalContext)
@@ -415,10 +415,18 @@ const ProductList = () => {
                           }}
                         >
                           <AiFillHeart
+                            onMouseEnter={() => setHoveredItemId(product.id)} // Simpan ID item saat di-hover
+                            onMouseLeave={() => setHoveredItemId(null)} // Hapus hover ID saat kursor meninggalkan
                             style={{
-                              color: isInWishlist(product.id) ? 'red' : 'white', // Ubah warna ikon sesuai status wishlist
-                              stroke: 'black', // Menambahkan efek garis luar (outline) hitam pada ikon
+                              color:
+                                hoveredItemId === product.id && !isInWishlist(product.id)
+                                  ? 'red' // Warna merah saat di-hover
+                                  : isInWishlist(product.id)
+                                    ? 'red' // Warna merah jika sudah ada di wishlist
+                                    : 'white', // Warna default putih
+                              stroke: 'black', // Garis luar hitam
                               strokeWidth: '15px', // Tebal garis luar
+                              cursor: 'pointer', // Menunjukkan bahwa ikon bisa diklik
                             }}
                             size={20} // Ukuran ikon
                           />
@@ -527,7 +535,7 @@ const ProductList = () => {
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary"  onClick={() => handleAddToCart(selectedProduct, quantity)}>
+            <CButton color="primary" onClick={() => handleAddToCart(selectedProduct, quantity)}>
               Add to Cart
             </CButton>
           </CModalFooter>
