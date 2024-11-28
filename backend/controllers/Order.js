@@ -223,7 +223,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Group Leader with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -248,7 +248,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Section Head with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -273,7 +273,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Department Head with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -301,7 +301,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Group Leader with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -326,7 +326,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Section Head with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -351,7 +351,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
             const notification = {
               title: "Request Approval",
               description: `Request Approval from Team Leader to Department Head with Transaction Number 
-                ${generateOrderNumber(0)}`,
+                ${await generateOrderNumber(0)}`,
               category: "approval",
             };
             await createNotification(userIds, notification, transaction);
@@ -382,7 +382,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           const notification = {
             title: "Request Approval",
             description: `Request Approval from Group Leader to Section Head with Transaction Number 
-            ${generateOrderNumber(0)}`,
+            ${await generateOrderNumber(0)}`,
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -407,7 +407,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
           const notification = {
             title: "Request Approval",
             description: `Request Approval from Group Leader to Department Head with Transaction Number 
-              ${generateOrderNumber(0)}`,
+              ${await generateOrderNumber(0)}`,
             category: "approval",
           };
           await createNotification(userIds, notification, transaction);
@@ -429,7 +429,7 @@ export const setApproval = async (userId, carts, warehouseId, transaction) => {
     const notification = {
       title: "Request Order",
       description: `Request Order to Warehouse with Transaction Number 
-      ${generateOrderNumber(1)}`,
+      ${await generateOrderNumber(1)}`,
       category: "approval",
     };
     await createNotification(userIds, notification, transaction);
