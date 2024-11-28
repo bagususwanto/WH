@@ -15,47 +15,29 @@ import {
   CModalFooter,
   CModalHeader,
   CImage,
-  CNavLink,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
 import useCartService from '../../services/CartService'
-import useManageStockService from '../../services/ProductService'
-import useMasterDataService from '../../services/MasterDataService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
-import { AiFillHeart } from 'react-icons/ai'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import config from '../../utils/Config'
 
 const Wishlist = () => {
   const [productsData, setProductsData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
-  const { getInventory } = useManageStockService()
-  const { getMasterData } = useMasterDataService()
   const { getWishlist, clearWishlist } = useOrderService()
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
-  const [allVisible, setAllVisible] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [cart, setCart] = useState([])
-  const [cartCount, setCartCount] = useState(0)
   const [isAdjustMode, setIsAdjustMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
   const { postCart, updateCart } = useCartService()
 
-  const { warehouse, wishlist } = useContext(GlobalContext)
+  const { warehouse, cart, setCart, cartCount, setCartCount } = useContext(GlobalContext)
 
   const MySwal = withReactContent(Swal)
 
-  const apiCategory = 'category-public'
   const navigate = useNavigate()
 
   const getFavorite = async () => {
@@ -67,42 +49,11 @@ const Wishlist = () => {
     }
   }
 
-  const getCategories = async () => {
-    const response = await getMasterData(apiCategory)
-    setCategoriesData(response.data)
-  }
-
   useEffect(() => {
     if (warehouse && warehouse.id) {
       getFavorite()
     }
-    getCategories()
   }, [warehouse])
-
-  // const calculateStockStatus = (product) => {
-  //   const { quantityActualCheck } = product
-  //   const { minStock, maxStock } = product.Material
-  //   if (quantityActualCheck == null) return 'Out of Stock'
-  //   if (quantityActualCheck > maxStock) return 'In Stock'
-  //   if (quantityActualCheck <= minStock) return 'Low Stock'
-  //   return 'Out of Stock'
-  // }
-
-  const filteredProducts = productsData.filter((product) =>
-    product.Material.description.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  const handleToggleWishlist = (productId) => {
-    const updatedWishlist = new Set(wishlist)
-    updatedWishlist.has(productId)
-      ? updatedWishlist.delete(productId)
-      : updatedWishlist.add(productId)
-    setWishlist(updatedWishlist)
-  }
-
-  const isInWishlist = (productId) => {
-    return wishlist.some((item) => item.id === productId)
-  }
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -118,6 +69,7 @@ const Wishlist = () => {
     try {
       // Cek inventoryId yang sesuai dari product
       const inventoryId = product.Inventory ? product.Inventory.id : product.id
+      console.log('cart', cart)
 
       // Cari produk yang ada di cart berdasarkan inventoryId
       const existingProduct = cart.find((item) => item.inventoryId === inventoryId)
@@ -418,7 +370,7 @@ const Wishlist = () => {
                     onClick={() => setQuantity((prev) => prev + 1)}
                     style={{
                       backgroundColor: 'white',
-                       color: '#219fee',
+                      color: '#219fee',
                       border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
                     }}
                   >
