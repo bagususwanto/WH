@@ -208,23 +208,24 @@ const ApproveAll = () => {
 
   const getSeverity = (status) => {
     switch (status) {
-      case 'Waiting':
-        return 'gray'
-
-      case 'On Process':
+      case 'waiting approval':
         return 'warning'
-
-      case 'Delivery':
-        return 'secondary'
-
-      case 'Pickup':
-        return 'blue'
-
-      case 'Completed':
+      case 'waiting confirmation':
+        return 'warning'
+      case 'on process':
+        return 'warning'
+      case 'approved':
         return 'success'
-
-      case 'Rejected':
+      case 'ready to deliver':
+        return 'secondary'
+      case 'ready to pickup':
+        return 'secondary'
+      case 'completed':
+        return 'success'
+      case 'rejected':
         return 'danger'
+      default:
+        return 'primary'
     }
   }
 
@@ -423,13 +424,17 @@ const ApproveAll = () => {
                                 </label>
                                 <CBadge
                                   className="me-2"
-                                  color="warning"
+                                  color={getSeverity(approval.status)}
                                   style={{ textTransform: 'uppercase' }}
                                 >
                                   {approval.status}
                                 </CBadge>
 
-                                <label className="me-2 fw-light">{approval.requestNumber}</label>
+                                <label className="me-2 fw-light">
+                                  {approval.transactionNumber
+                                    ? approval.transactionNumber
+                                    : approval.requestNumber}
+                                </label>
                               </CCol>
                               <label className="fw-bold fs-6">
                                 Total: {approval.Detail_Orders.length}
@@ -542,12 +547,16 @@ const ApproveAll = () => {
                                 </label>
                                 <CBadge
                                   className="me-2"
-                                  color="success"
+                                  color={getSeverity(approval.status)}
                                   style={{ textTransform: 'uppercase' }}
                                 >
                                   {approval.status}
                                 </CBadge>
-                                <label className="me-2 fw-light">{approval.requestNumber}</label>
+                                <label className="me-2 fw-light">
+                                  {approval.transactionNumber
+                                    ? approval.transactionNumber
+                                    : approval.requestNumber}
+                                </label>
                               </CCol>
                               <label className="fw-bold fs-6">
                                 Total: {approval.Detail_Orders.length}
@@ -637,7 +646,11 @@ const ApproveAll = () => {
                             <label className="me-2 fs-6">
                               {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                             </label>
-                            <CBadge className="me-2" size="md" color="success">
+                            <CBadge
+                              className="me-2"
+                              size="md"
+                              color={getSeverity(selectedProduct.status)}
+                            >
                               {selectedProduct.status?.toUpperCase()}
                             </CBadge>
                             <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
