@@ -168,7 +168,7 @@ const GoodIssue = () => {
         const quantity = item.Detail_Orders?.[0]?.quantity
         const transactionNo = item.transactionNumber ? item.transactionNumber : item.requestNumber
         const currentApprover = item.Approvals[0]?.User.username
-        const transactionDate = format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss') || ''
+        const transactionDate = format(parseISO(item.transactionDate), 'yyyy-MM-dd HH:mm:ss') || ''
         return {
           ...item,
           materialNo,
