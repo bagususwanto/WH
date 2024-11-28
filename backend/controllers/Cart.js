@@ -72,6 +72,23 @@ export const addToCart = async (req, res) => {
       ],
     });
 
+    // Validasi jika quantity kurang dari min. Order
+    const inventory = await Inventory.findOne({
+      where: { id: inventoryId },
+      include: [
+        {
+          model: Material,
+          attributes: ["minOrder"],
+          where: { flag: 1 },
+        },
+      ],
+    });
+    if (quantity < inventory.Material.minOrder) {
+      return res.status(400).json({
+        message: `Quantity cannot be less than ${inventory.Material.minOrder}`,
+      });
+    }
+
     if (cartItem) {
       // Jika sudah ada, tambahkan quantity
       cartItem.quantity += quantity;
