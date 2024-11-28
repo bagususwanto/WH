@@ -419,7 +419,7 @@ const ApproveAll = () => {
                               <CCol>
                                 <CIcon className="me-2" icon={cilUser} />
                                 <label className="me-2 fs-6">
-                                  {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
+                                  {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
                                 </label>
                                 <CBadge
                                   className="me-2"
@@ -538,7 +538,7 @@ const ApproveAll = () => {
                               <CCol>
                                 <CIcon className="me-2" icon={cilUser} />
                                 <label className="me-2 fs-6">
-                                  {format(parseISO(approval.createdAt), 'dd/MM/yyyy')}
+                                  {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
                                 </label>
                                 <CBadge
                                   className="me-2"
@@ -635,7 +635,7 @@ const ApproveAll = () => {
                           <CCol>
                             <CIcon className="me-2" icon={cilCart} />
                             <label className="me-2 fs-6">
-                              {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                              {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                             </label>
                             <CBadge className="me-2" size="md" color="success">
                               {selectedProduct.status?.toUpperCase()}

@@ -330,7 +330,7 @@ const History = () => {
                           <CCol>
                             <CIcon className="me-2" icon={cilCart} />
                             <label className="me-2 fs-6">
-                              {format(parseISO(order.createdAt), 'dd/MM/yyyy')}
+                              {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
                             </label>
                             <CBadge
                               className="me-2"
@@ -434,7 +434,7 @@ const History = () => {
                     <CCol>
                       <CIcon className="me-2" icon={cilCart} />
                       <label className="me-2 fs-6">
-                        {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                        {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                       </label>
                       <CBadge
                         className="me-2"

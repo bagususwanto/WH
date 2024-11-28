@@ -104,6 +104,7 @@ const Home = () => {
   const [orderHistory, setOrderHistory] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [visible, setVisible] = useState(false)
+  const [hoveredCategory, setHoveredCategory] = useState(null)
 
   const { warehouse, wishlist, setWishlist, cart, setCart, cartCount, setCartCount } =
     useContext(GlobalContext)
@@ -905,6 +906,8 @@ const Home = () => {
               >
                 <CCard
                   onClick={() => handleCategoryClick(category)}
+                  onMouseEnter={() => setHoveredCategory(category.id)}
+                  onMouseLeave={() => setHoveredCategory(null)}
                   style={{
                     cursor: 'pointer',
                     width: '100%',
@@ -913,17 +916,21 @@ const Home = () => {
                     backgroundColor:
                       selectedCategory && selectedCategory.id === category.id
                         ? '#E4E0E1' // Warna navy jika kategori terpilih
-                        : index === 0 &&
-                            (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                          ? '#E4E0E1' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
-                          : 'white', // Warna default putih
+                        : hoveredCategory === category.id
+                          ? '#E4E0E1' // Warna saat hover
+                          : index === 0 &&
+                              (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                            ? '#E4E0E1' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
+                            : 'white', // Warna default putih
                     color:
                       selectedCategory && selectedCategory.id === category.id
-                        ? 'black' // Warna teks putih untuk kategori yang dipilih
-                        : index === 0 &&
-                            (!selectedCategory || selectedCategory.id === categoriesData[0].id)
-                          ? 'black' // Warna teks putih untuk kategori pertama jika dipilih
-                          : 'black', // Warna teks default
+                        ? 'black' // Warna teks hitam untuk kategori yang dipilih
+                        : hoveredCategory === category.id
+                          ? 'black' // Warna teks saat hover
+                          : index === 0 &&
+                              (!selectedCategory || selectedCategory.id === categoriesData[0].id)
+                            ? 'black' // Warna teks hitam untuk kategori pertama jika dipilih
+                            : 'black', // Warna teks default
                   }}
                 >
                   <CCardBody style={{ display: 'flex', alignItems: 'center' }}>
@@ -1169,7 +1176,11 @@ const Home = () => {
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary" onClick={() => handleAddToCart(selectedProduct, quantity)}>
+            <CButton
+              color="primary"
+              variant="outline"
+              onClick={() => handleAddToCart(selectedProduct, quantity)}
+            >
               Add to Cart
             </CButton>
           </CModalFooter>
