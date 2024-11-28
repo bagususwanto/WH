@@ -113,20 +113,6 @@ const AppHeader = () => {
   const apiCategory = 'category-public'
   const apiWarehouse = 'warehouse-public'
 
-  useEffect(() => {
-    // Fetch notifications from API
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get('/api/notifications')
-        setNotifDesc(response.data) // Save notifications to state
-      } catch (error) {
-        console.error('Error fetching notifications', error)
-      }
-    }
-
-    fetchNotifications()
-  }, [])
-
   // Fetch products from API
   const getProducts = async () => {
     try {
@@ -464,10 +450,9 @@ const AppHeader = () => {
 
       // Perbarui state lokal untuk menandai notifikasi sebagai dibaca
       setNotifDesc((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: 1 } : n)))
-console.log('bagus',notif)
+      console.log('bagus', notif)
       // Arahkan ke layar sesuai dengan judul notifikasi
-    
-    
+
       switch (notif.title) {
         case 'Request Order':
           navigate('/confirmall')
@@ -812,7 +797,7 @@ console.log('bagus',notif)
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  Anda memiliki ({notifDesc?.filter((n) => n.isRead === 0).length}) notifikasi
+                  Anda memiliki ({notifCount}) notifikasi
                 </div>
               </CDropdownHeader>
               <div
