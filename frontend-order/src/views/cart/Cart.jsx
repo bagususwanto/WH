@@ -346,7 +346,7 @@ const Cart = () => {
                             <br />
                             <label style={{fontSize:"0.9em"}} className='fw-light'>{product.Inventory.Material.materialNo}</label>
                             <br />
-                            <label style={{fontSize:"0.8em"}} >Min Order: {product.Inventory.Material.minOrder}{product.Inventory.Material.uom}</label>
+                            <label style={{fontSize:"0.8em"}} >Min Order: {product.Inventory.Material.minOrder} {product.Inventory.Material.uom}</label>
                           </div>
                         </CCol>
 

@@ -218,75 +218,73 @@ const History = () => {
   return (
     <>
       <CRow>
-      
-            <h3 className="fw-bold fs-4 ">YOUR HISTORY</h3>
+        <h3 className="fw-bold fs-4 ">YOUR HISTORY</h3>
 
-            <CRow className="mt-1 ">
-              {/* Left side: Search field */}
-              <CCol xs={6} sm={6} md={3} lg={3} className="py-1">
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    padding: '4px 8px',
-                  }}
-                >
-                  {/* CoreUI Search Icon */}
-                  <CIcon
-                    icon={cilSearch}
-                    style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
-                  />
+        <CRow className="mt-1 ">
+          {/* Left side: Search field */}
+          <CCol xs={6} sm={6} md={3} lg={3} className="py-1">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                padding: '4px 8px',
+              }}
+            >
+              {/* CoreUI Search Icon */}
+              <CIcon
+                icon={cilSearch}
+                style={{ marginRight: '8px', color: '#888', fontSize: '1.2em' }}
+              />
 
-                  <InputText
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
-                    onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
-                    placeholder="Search"
-                    style={{ width: '100%', border: 'none', outline: 'none' }}
-                  />
-                </div>
-              </CCol>
-              <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-1">
-                <div
-                  className="flatpickr-wrapper"
-                  style={{ position: 'relative', width: '300px', height: '36px' }}
-                >
-                  <CIcon
-                    icon={cilCalendar}
-                    size="lg"
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '10px',
-                      transform: 'translateY(-50%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                  <Flatpickr
-                    value={dates}
-                    onChange={(selectedDates) => setDates(selectedDates)}
-                    options={{
-                      mode: 'range',
-                      dateFormat: 'Y-m-d',
-                      allowInput: true,
-                    }}
-                    className="form-control"
-                    placeholder="Select a date"
-                    style={{
-                      paddingLeft: '40px', // Beri ruang untuk ikon
-                      height: '100%',
-                    }}
-                  />
-                </div>
-              </CCol>
-            </CRow>
-          
+              <InputText
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Hanya mengupdate state
+                onKeyDown={handleKeyDown} // Tambahkan handler untuk event enter
+                placeholder="Search"
+                style={{ width: '100%', border: 'none', outline: 'none' }}
+              />
+            </div>
+          </CCol>
+          <CCol xs={6} sm={6} md={9} lg={9} className="d-flex justify-content-end py-1">
+            <div
+              className="flatpickr-wrapper"
+              style={{ position: 'relative', width: '300px', height: '36px' }}
+            >
+              <CIcon
+                icon={cilCalendar}
+                size="lg"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '10px',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <Flatpickr
+                value={dates}
+                onChange={(selectedDates) => setDates(selectedDates)}
+                options={{
+                  mode: 'range',
+                  dateFormat: 'Y-m-d',
+                  allowInput: true,
+                }}
+                className="form-control"
+                placeholder="Select a date"
+                style={{
+                  paddingLeft: '40px', // Beri ruang untuk ikon
+                  height: '100%',
+                }}
+              />
+            </div>
+          </CCol>
+        </CRow>
       </CRow>
 
-      <CTabs activeItemKey={activeTab} className='mt-1' >
+      <CTabs activeItemKey={activeTab} className="mt-1">
         <CTabList variant="pills">
           {tabs.map((tab) => (
             <CTab key={tab.key} itemKey={tab.key} onClick={() => handleTabChange(tab.key)}>
@@ -385,13 +383,11 @@ const History = () => {
                         <CRow className="d-flex justify-content-end align-items-center">
                           <CCol xs={4} className="d-flex justify-content-end">
                             <CButton
+                              color="secondary"
+                              variant="outline"
                               onClick={() => handleViewHistoryOrder(order)}
                               size="sm"
-                              style={{
-                                backgroundColor: 'white',
-                                color: '#219fee',
-                                border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
-                              }}
+                            
                             >
                               View Detail Order
                             </CButton>

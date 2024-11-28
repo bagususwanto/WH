@@ -384,13 +384,12 @@ const Confirm = () => {
                     >
                       <CRow className="align-items-start" style={{ height: '100%' }}>
                         {/* Image Column */}
-                        <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                        <CCol xs="1" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
                             alt={data.Inventory.Material.description}
                             style={{
-                              width: '80%', // Ensure it takes the full width
-                              height: '70px', // Fixed height for uniformity
+                              width: '100%', // Ensure it takes the full width
                               objectFit: 'contain', // Keep the aspect ratio
                             }}
                           />
@@ -408,7 +407,7 @@ const Confirm = () => {
                         </CCol>
 
                         {/* Quantity Column */}
-                        <CCol xs="1" className="d-flex justify-content-start align-items-center">
+                        <CCol xs="3" className="d-flex justify-content-start align-items-center">
                           <label>{`${data.quantity} ${data.Inventory.Material.uom}`}</label>
                         </CCol>
                       </CRow>
