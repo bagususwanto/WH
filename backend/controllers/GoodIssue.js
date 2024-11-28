@@ -16,7 +16,7 @@ export const getGoodIssue = async (req, res) => {
     const limit = 1000;
     let batch;
 
-    let whereCondition = {};
+    let whereCondition = { status: "completed" };
     let whereConditionPlant = { flag: 1 };
     let whereConditionSection = { flag: 1 };
 
@@ -30,16 +30,16 @@ export const getGoodIssue = async (req, res) => {
       whereConditionSection.id = sectionId;
     }
 
-    if (status) {
-      whereCondition.status = status;
-    }
+    // if (status) {
+    //   whereCondition.status = status;
+    // }
 
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      whereCondition.createdAt = {
+      whereCondition.transactionDate = {
         [Op.between]: [start, end],
       };
     }

@@ -55,11 +55,11 @@ const GoodIssue = () => {
       header: 'Ordered By',
       sortable: true,
     },
-    {
-      field: 'currentApprover',
-      header: 'Current Approver',
-      sortable: true,
-    },
+    // {
+    //   field: 'currentApprover',
+    //   header: 'Current Approver',
+    //   sortable: true,
+    // },
     {
       field: 'paymentMethod',
       header: 'GI Method',
@@ -168,7 +168,7 @@ const GoodIssue = () => {
         const quantity = item.Detail_Orders?.[0]?.quantity
         const transactionNo = item.transactionNumber ? item.transactionNumber : item.requestNumber
         const currentApprover = item.Approvals[0]?.User.username
-        const transactionDate = format(parseISO(item.transactionDate), 'yyyy-MM-dd HH:mm:ss') || ''
+        const transactionDate = format(parseISO(item.transactionDate), 'yyyy-MM-dd') || ''
         return {
           ...item,
           materialNo,
@@ -339,7 +339,15 @@ const GoodIssue = () => {
       const mappedData = visibleData.map((item) => {
         return {
           'Material No': item.materialNo,
+          Description: item.description,
           'Issue QTY': item.quantity,
+          'Transaction No': item.transactionNo,
+          'Transaction Date': item.transactionDate,
+          Section: item.sectionName,
+          Plant: item.plantName?.plantName,
+          'Ordered By': item.User?.username,
+          'GI Method': item.paymentMethod?.paymentMethod,
+          'GI Number': item.paymentNumber,
         }
       })
 
@@ -438,7 +446,7 @@ const GoodIssue = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Flatpickr
                   value={dates}
                   options={{
@@ -461,7 +469,7 @@ const GoodIssue = () => {
                   }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Dropdown
                   value={filters['User.Organization.Plant.plantName'].value}
                   options={plant}
@@ -472,7 +480,7 @@ const GoodIssue = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={3}>
+              <CCol xs={12} sm={6} md={4}>
                 <Dropdown
                   value={filters['User.Organization.Section.sectionName'].value}
                   options={section}
@@ -483,7 +491,7 @@ const GoodIssue = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={3}>
+              {/* <CCol xs={12} sm={6} md={3}>
                 <Dropdown
                   value={filters['status'].value}
                   options={status}
@@ -493,7 +501,7 @@ const GoodIssue = () => {
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
-              </CCol>
+              </CCol> */}
             </CRow>
           </CCardBody>
         </CCard>
@@ -574,7 +582,7 @@ const GoodIssue = () => {
                     />
                   ))}
                   <Column field="paymentNumber" header="GI number" sortable></Column>
-                  <Column field="status" header="Last Status" sortable></Column>
+                  {/* <Column field="status" header="Last Status" sortable></Column> */}
                 </DataTable>
               </>
             )}
