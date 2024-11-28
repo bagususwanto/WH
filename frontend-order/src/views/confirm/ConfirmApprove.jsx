@@ -195,7 +195,6 @@ const Confirm = () => {
             Swal.fire('Deleted!', 'Delete success.', 'success')
           } catch (error) {
             console.error('Error deleting item approval:', error)
-            MySwal.fire('Error!', 'There was an error deleting your item.', 'error')
           }
         }
       } else {
@@ -250,7 +249,6 @@ const Confirm = () => {
           }
         } catch (error) {
           console.error('Error in approval:', error)
-          Swal.fire('Error', 'There was an error approving the order.', 'error')
         }
       }
     })
