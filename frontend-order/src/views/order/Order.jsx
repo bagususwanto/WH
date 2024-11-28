@@ -527,7 +527,7 @@ const ProductList = () => {
             </CRow>
           </CModalBody>
           <CModalFooter>
-            <CButton color="primary" onClick={() => handleAddToCart(selectedProduct, quantity)}>
+            <CButton color="primary" variant="outline" onClick={() => handleAddToCart(selectedProduct, quantity)}>
               Add to Cart
             </CButton>
           </CModalFooter>

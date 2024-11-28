@@ -403,7 +403,7 @@ const ApproveAll = () => {
                           <CCol>
                             <CIcon className="me-2" icon={getTabIcon(product.status)} />
                             <label className="me-2 fs-6">
-                              {format(parseISO(product.createdAt), 'dd/MM/yyyy')}
+                              {format(parseISO(product.transactionDate), 'dd/MM/yyyy')}
                             </label>
                             <CBadge className="me-2" color={getSeverity(product.status)}>
                               {product.isReject === 1 ? 'REJECTED' : product.status.toUpperCase()}
@@ -506,7 +506,7 @@ const ApproveAll = () => {
                             <CCol>
                               <CIcon className="me-2" icon={cilCart} />
                               <label className="me-2 fs-6">
-                                {format(parseISO(selectedProduct.createdAt), 'dd/MM/yyyy')}
+                                {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                               </label>
                               <CBadge className="me-2" size="md" color="success">
                                 {selectedProduct.status?.toUpperCase()}
