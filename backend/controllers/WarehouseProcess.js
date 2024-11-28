@@ -372,10 +372,11 @@ export const processOrder = async (req, res) => {
           const price = order.Inventory.Material.price;
 
           // Validasi jika quantity kurang dari min order
-          if (quantityAfter < order.minOrder) {
+          if (quantityAfter < order.Inventory.Material.minOrder) {
             await transaction.rollback();
             return res.status(400).json({
-              message: `Quantity the material ${order.Inventory.Material.materialNo} must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
+              message: `Quantity the material ${order.Inventory.Material.materialNo}
+               must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
             });
           }
 
