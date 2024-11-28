@@ -24,7 +24,7 @@ const Order = db.define(
       allowNull: true,
     },
     transactionDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     totalPrice: {
