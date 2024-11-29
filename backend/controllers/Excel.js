@@ -10,6 +10,9 @@ import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import Storage from "../models/StorageModel.js";
+import MaterialStorage from "../models/MaterialStorageModel.js";
+import { typeMaterial, mrpTypeData, baseUom } from "./HarcodedData.js";
+import Packaging from "../models/PackagingModel.js";
 
 const BATCH_SIZE = 500; // Set batch size sesuai kebutuhan
 
@@ -634,6 +637,25 @@ export const getCategoryIdByCategoryName = async (categoryName) => {
   }
 };
 
+export const getStorageIdByName = async (storageName) => {
+  try {
+    const storage = await Storage.findOne({
+      where: { storageName, flag: 1 },
+      attributes: ["id"],
+    });
+
+    if (!storage) {
+      console.warn(`Storage ${storageName} not found`);
+      return null;
+    }
+
+    return storage.id;
+  } catch (error) {
+    console.error(error.message);
+    return null; // Return null in case of an error
+  }
+};
+
 export const getSupplierIdBySupplierName = async (
   SupplierName,
   logImportId
@@ -677,6 +699,7 @@ const validateHeaderMaterial = (header) => {
     "unitPackaging",
     "category",
     "supplier",
+    "storageName",
   ];
   return header.every(
     (value, index) =>
@@ -721,6 +744,48 @@ const upsertSuppliers = async (supplierNames, logImportId, transaction) => {
   }
 
   return supplierIds; // Return a map of supplier names to their IDs
+};
+
+const checkMaterialStorage = async (materialId, storageId, logImportId) => {
+  const materialStorage = await MaterialStorage.findOne({
+    where: { materialId, storageId, flag: 1 },
+  });
+  if (materialStorage) {
+    await materialStorage.update({
+      storageId: storageId,
+      materialId: existingMaterial.id,
+      logImportId: logImportId,
+    });
+  } else {
+    await MaterialStorage.create({
+      storageId: storageId,
+      materialId: existingMaterial.id,
+      logImportId: logImportId,
+    });
+  }
+};
+
+const checkPackaging = async (packaging, unitPackaging, logImportId) => {
+  const existingPackaging = await Packaging.findOne({
+    where: { packaging, unitPackaging, flag: 1 },
+  });
+
+  let packagingId;
+  if (existingPackaging) {
+    packagingId = await existingPackaging.update({
+      packaging: packaging,
+      unitPackaging: unitPackaging,
+      logImportId: logImportId,
+    });
+  } else {
+    packagingId = await Packaging.create({
+      packaging: packaging,
+      unitPackaging: unitPackaging,
+      logImportId: logImportId,
+    });
+  }
+
+  return packagingId;
 };
 
 export const uploadMasterMaterial = async (req, res) => {
@@ -810,12 +875,49 @@ export const uploadMasterMaterial = async (req, res) => {
           const unitPackaging = row[11];
           const category = row[12];
           const supplier = row[13];
+          const storageName = row[14];
 
           const existingMaterial = materialMap.get(materialNo);
           const categoryId = await getCategoryIdByCategoryName(category);
+          const storageId = await getStorageIdByName(storageName);
 
           if (!categoryId)
             throw new Error(`Category: ${category} does not exist`);
+
+          if (!storageId)
+            throw new Error(`Storage: ${storageName} does not exist`);
+
+          // Check and update Material Storage
+          await checkMaterialStorage(
+            existingMaterial.id,
+            storageId,
+            logImportId
+          );
+
+          // Check and update Packaging
+          const packagingRes = await checkPackaging(
+            packaging,
+            unitPackaging,
+            logImportId
+          );
+
+          // Check type material
+          const typeMaterialData = typeMaterial.map((item) => item.type);
+          if (!typeMaterialData.includes(typeMat)) {
+            throw new Error(`Type Material: ${typeMat} does not exist`);
+          }
+
+          // Check MRPTYPE
+          const mrp = mrpTypeData.map((item) => item.type);
+          if (!mrp.includes(mrpType)) {
+            throw new Error(`MRP Type: ${mrpType} does not exist`);
+          }
+
+          // Check UOM
+          const uoms = baseUom.map((item) => item.uom);
+          if (!uoms.includes(uom)) {
+            throw new Error(`UOM: ${uom} does not exist`);
+          }
 
           if (
             !materialNo ||
@@ -824,7 +926,8 @@ export const uploadMasterMaterial = async (req, res) => {
             !typeMat ||
             !mrpType ||
             !img ||
-            !category
+            !category ||
+            !storageName
           ) {
             throw new Error(
               `Invalid data in row ${materialNo}, ${description}`
@@ -860,8 +963,7 @@ export const uploadMasterMaterial = async (req, res) => {
                 maxStock: maxStock,
                 img: img,
                 minOrder: minOrder,
-                packaging: packaging,
-                unitPackaging: unitPackaging,
+                packagingId: packagingRes.id,
                 categoryId,
                 supplierId,
                 logImportId,
@@ -880,8 +982,7 @@ export const uploadMasterMaterial = async (req, res) => {
               maxStock: maxStock,
               img: img,
               minOrder: minOrder,
-              packaging: packaging,
-              unitPackaging: unitPackaging,
+              packagingId: packagingRes.id,
               categoryId,
               supplierId,
               logImportId,

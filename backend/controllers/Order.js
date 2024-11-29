@@ -88,10 +88,15 @@ export const checkStock = async (inventoryId, quantity) => {
 // Handle schedule delivery
 const isLateDelivery = (orderTimeStr) => {
   if (orderTimeStr === null) return false;
+
   const [orderHour, orderMinute] = orderTimeStr.split(":").map(Number);
   const currentTime = new Date();
   const orderTime = new Date(currentTime);
   orderTime.setHours(orderHour, orderMinute, 0);
+
+  // Kurangi 1.5 jam dari waktu order
+  orderTime.setHours(orderTime.getHours() - 1);
+  orderTime.setMinutes(orderTime.getMinutes() - 30);
 
   return orderTime < currentTime; // Mengembalikan true jika terlambat
 };
@@ -748,7 +753,12 @@ export const createOrder = async (req, res) => {
 
     // Jika waktu pengiriman tidak valid
     if (isLateDelivery(orderTimeStr)) {
-      return res.status(400).json({ message: "Delivery time not valid" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "The delivery schedule has been missed, please select a new schedule or pickup method",
+        });
     }
 
     // Pemanggilan fungsi isStockAvailable

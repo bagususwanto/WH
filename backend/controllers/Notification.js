@@ -45,9 +45,7 @@ export const getNotificationsByUserId = async (req, res) => {
     });
 
     if (notifications.length === 0) {
-      return res
-        .status(201)
-        .json({ message: "No notifications found for this user." });
+      return res.status(201).json({ message: "No notifications found for this user." });
     }
 
     return res.status(200).json(notifications); // Kirim respon dengan data notifikasi
@@ -86,12 +84,14 @@ export const getUnreadNotificationCount = async (req, res) => {
       ],
     });
 
+    if (unreadCount === 0) {
+      return res.status(201).json({ message: "No unread notifications found for this user." });
+    }
+
     return res.status(200).json({ unreadCount });
   } catch (error) {
     console.error("Error fetching unread notification count:", error);
-    return res
-      .status(500)
-      .json({ message: "Error fetching unread notification count" });
+    return res.status(500).json({ message: "Error fetching unread notification count" });
   }
 };
 
@@ -116,9 +116,7 @@ export const markNotificationAsRead = async (req, res) => {
     return res.status(200).json({ message: "Notification marked as read" });
   } catch (error) {
     console.error("Error marking notification as read:", error);
-    return res
-      .status(500)
-      .json({ message: "Error marking notification as read" });
+    return res.status(500).json({ message: "Error marking notification as read" });
   }
 };
 
@@ -130,9 +128,7 @@ export const markAllNotificationAsRead = async (req, res) => {
     const notifications = await Notification.findAll({ where: { userId } });
 
     if (notifications.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No notifications found for this user." });
+      return res.status(404).json({ message: "No notifications found for this user." });
     }
 
     // Mengubah status isRead menjadi true untuk semua notifikasi
@@ -143,13 +139,9 @@ export const markAllNotificationAsRead = async (req, res) => {
     // Simpan perubahan ke database
     await Promise.all(notifications.map((notification) => notification.save()));
 
-    return res
-      .status(200)
-      .json({ message: "All notifications marked as read" });
+    return res.status(200).json({ message: "All notifications marked as read" });
   } catch (error) {
     console.error("Error marking all notifications as read:", error);
-    return res
-      .status(500)
-      .json({ message: "Error marking all notifications as read" });
+    return res.status(500).json({ message: "Error marking all notifications as read" });
   }
 };

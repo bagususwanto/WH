@@ -3,6 +3,7 @@ import db from "../utils/Database.js";
 // master berdiri sendiri
 import Category from "./CategoryModel.js";
 import Supplier from "./SupplierModel.js";
+import Packaging from "./PackagingModel.js";
 import Role from "./RoleModel.js";
 import Warehouse from "./WarehouseModel.js";
 import Division from "./DivisionModel.js";
@@ -25,6 +26,7 @@ import Storage from "./StorageModel.js";
 import Material from "./MaterialModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
+import MaterialStorage from "./MaterialStorageModel.js";
 import AddressRack from "./AddressRackModel.js";
 
 // transaksi
