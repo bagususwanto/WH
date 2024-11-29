@@ -755,7 +755,10 @@ export const createOrder = async (req, res) => {
     if (isLateDelivery(orderTimeStr)) {
       return res
         .status(400)
-        .json({ message: "The delivery schedule has been missed" });
+        .json({
+          message:
+            "The delivery schedule has been missed, please select a new schedule or pickup method",
+        });
     }
 
     // Pemanggilan fungsi isStockAvailable
