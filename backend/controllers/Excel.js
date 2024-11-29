@@ -769,19 +769,23 @@ const checkPackaging = async (packaging, unitPackaging, logImportId) => {
   const existingPackaging = await Packaging.findOne({
     where: { packaging, unitPackaging, flag: 1 },
   });
+
+  let packagingId;
   if (existingPackaging) {
-    await existingPackaging.update({
+    packagingId = await existingPackaging.update({
       packaging: packaging,
       unitPackaging: unitPackaging,
       logImportId: logImportId,
     });
   } else {
-    await Packaging.create({
+    packagingId = await Packaging.create({
       packaging: packaging,
       unitPackaging: unitPackaging,
       logImportId: logImportId,
     });
   }
+
+  return packagingId;
 };
 
 export const uploadMasterMaterial = async (req, res) => {
@@ -891,7 +895,11 @@ export const uploadMasterMaterial = async (req, res) => {
           );
 
           // Check and update Packaging
-          await checkPackaging(packaging, unitPackaging, logImportId);
+          const packagingRes = await checkPackaging(
+            packaging,
+            unitPackaging,
+            logImportId
+          );
 
           // Check type material
           const typeMaterialData = typeMaterial.map((item) => item.type);
@@ -955,8 +963,7 @@ export const uploadMasterMaterial = async (req, res) => {
                 maxStock: maxStock,
                 img: img,
                 minOrder: minOrder,
-                packaging: packaging,
-                unitPackaging: unitPackaging,
+                packagingId: packagingRes.id,
                 categoryId,
                 supplierId,
                 logImportId,
@@ -975,8 +982,7 @@ export const uploadMasterMaterial = async (req, res) => {
               maxStock: maxStock,
               img: img,
               minOrder: minOrder,
-              packaging: packaging,
-              unitPackaging: unitPackaging,
+              packagingId: packagingRes.id,
               categoryId,
               supplierId,
               logImportId,
