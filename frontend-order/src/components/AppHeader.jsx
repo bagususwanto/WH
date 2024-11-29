@@ -380,7 +380,7 @@ const AppHeader = () => {
   const handleCloseModal = () => setModalVisible(false)
 
   const handleToggleCategories = () => {
-    setShowCategories(!showCategories)
+    setShowCategories((prev) => !prev)
   }
 
   const handleSaveLocation = () => {
@@ -514,7 +514,20 @@ const AppHeader = () => {
         </CCol>
 
         <CCol xs={12} sm={1} md={1} lg={1}>
-        <CButton color="primary" variant="ghost" onClick={handleToggleCategories}>Category</CButton>
+          <CButton
+            onClick={handleToggleCategories}
+            style={{
+              backgroundColor: showCategories ? '#E4E0E1' : '', // Ubah warna saat aktif/nonaktif
+            }}
+            onMouseEnter={(e) => {
+              if (!showCategories) e.currentTarget.style.backgroundColor = '#E4E0E1'
+            }}
+            onMouseLeave={(e) => {
+              if (!showCategories) e.currentTarget.style.backgroundColor = ''
+            }}
+          >
+            Category
+          </CButton>
         </CCol>
 
         {/* Search bar tetap */}
@@ -837,7 +850,7 @@ const AppHeader = () => {
               <CRow>
                 {category.map((cat, index) => (
                   <CCol xs="auto" key={cat.id}>
-                   <CButton
+                    <CButton
                       className="text-start"
                       onClick={() => handleCategoryHeadClick(cat.id)}
                       onMouseEnter={() => setHoveredCategory(cat.id)}
@@ -849,8 +862,7 @@ const AppHeader = () => {
                             : hoveredCategory === cat.id
                               ? '#E4E0E1' // Warna saat hover
                               : index === 0 &&
-                                  (!selectedCategory ||
-                                    selectedCategory.id === category[0].id)
+                                  (!selectedCategory || selectedCategory.id === category[0].id)
                                 ? '#E4E0E1' // Warna navy untuk kategori pertama jika belum ada yang dipilih atau kategori pertama dipilih
                                 : 'white', // Warna default putih
                         color:
@@ -859,8 +871,7 @@ const AppHeader = () => {
                             : hoveredCategory === cat.id
                               ? 'black' // Warna teks saat hover
                               : index === 0 &&
-                                  (!selectedCategory ||
-                                    selectedCategory.id === category[0].id)
+                                  (!selectedCategory || selectedCategory.id === category[0].id)
                                 ? 'black' // Warna teks hitam untuk kategori pertama jika dipilih
                                 : 'black', // Warna teks default
                       }}
