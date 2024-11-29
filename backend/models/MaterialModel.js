@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import Supplier from "./SupplierModel.js";
 import Category from "./CategoryModel.js";
+import Packaging from "./PackagingModel.js";
 import LogImport from "./LogImportModel.js";
 
 const { DataTypes } = Sequelize;
@@ -49,13 +50,13 @@ const Material = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    packaging: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    unitPackaging: {
+    packagingId: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: Packaging,
+        key: "id",
+      },
     },
     categoryId: {
       type: DataTypes.INTEGER,
@@ -98,7 +99,16 @@ Material.belongsTo(Category, { foreignKey: "categoryId" });
 Supplier.hasMany(Material, { foreignKey: "supplierId" });
 Material.belongsTo(Supplier, { foreignKey: "supplierId" });
 
-LogImport.hasMany(Material, { foreignKey: "logImportId", onDelete: "NO ACTION" });
-Material.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+Packaging.hasMany(Material, { foreignKey: "packagingId" });
+Material.belongsTo(Packaging, { foreignKey: "packagingId" });
+
+LogImport.hasMany(Material, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
+Material.belongsTo(LogImport, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
 
 export default Material;

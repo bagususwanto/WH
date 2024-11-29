@@ -32,6 +32,7 @@ import Select from 'react-select'
 import { format, parseISO } from 'date-fns'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
+import { Dropdown } from 'primereact/dropdown'
 
 const MySwal = withReactContent(swal)
 
@@ -42,6 +43,8 @@ const Material = () => {
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
+  const [plant, setPlant] = useState([])
+  const [plantId, setPlantId] = useState()
   const [currentMaterial, setCurrentMaterial] = useState({
     id: '',
     materialNo: '',
@@ -75,6 +78,7 @@ const Material = () => {
     global: { value: null },
   })
 
+  const apiPlant = 'plant-public'
   const apiMaterial = 'material'
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
@@ -85,6 +89,7 @@ const Material = () => {
     getMaterial()
     getSupplier()
     getCategory()
+    getPlant()
   }, [])
 
   useEffect(() => {
@@ -119,6 +124,20 @@ const Material = () => {
       ...provided,
       color: 'Black',
     }),
+  }
+
+  const getPlant = async () => {
+    try {
+      const response = await getMasterData(apiPlant)
+      const plantOptions = response.data.map((plant) => ({
+        label: plant.plantName,
+        value: plant.plantName,
+        id: plant.id,
+      }))
+      setPlant(plantOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
   }
 
   const getCategory = async () => {
@@ -409,6 +428,7 @@ const Material = () => {
           unitPackaging: '',
           category: '',
           supplier: '',
+          storageName: '',
         },
       ]
 
@@ -488,9 +508,87 @@ const Material = () => {
     setModalUpload(true)
   }
 
+  const clearFilter = () => {
+    initFilters()
+  }
+
+  const getStorageByPlantId = async (id) => {
+    if (!id) {
+      return
+    }
+    try {
+      const response = await getMasterDataById(apiSection, id)
+      const storageOptions = response.map((storage) => ({
+        label: storage.storageName,
+        value: storage.storageName,
+        id: storage.id,
+      }))
+      setstorage(storageOptions)
+    } catch (error) {
+      console.error('Error fetching storage by ID:', error)
+    }
+  }
+
+  const handlePlantChange = (e) => {
+    const selectedPlantName = e.value
+    const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
+    const plantId = selectedPlant?.id // Dapatkan plant.id
+
+    setPlantId(plantId)
+    getStorageByPlantId(plantId)
+
+    let _filters = { ...filters }
+    _filters['User.Organization.Plant.plantName'].value = selectedPlantName
+    setFilters(_filters)
+    setShouldFetch(true)
+  }
+
   return (
     <CRow>
-      <CCol xs={12}>
+      <CCol>
+        <CCard className="mb-3">
+          <CCardHeader>Filter</CCardHeader>
+          <CCardBody>
+            <CRow>
+              <CCol xs={12} sm={6} md={4}>
+                <Button
+                  type="button"
+                  icon="pi pi-filter-slash"
+                  label="Clear Filter"
+                  outlined
+                  onClick={clearFilter}
+                  className="mb-2"
+                  style={{ borderRadius: '5px' }}
+                />
+              </CCol>
+            </CRow>
+            {/* <CRow>
+              <CCol xs={12} sm={6} md={4}>
+                <Dropdown
+                  value={''}
+                  options={plant}
+                  onChange={handlePlantChange}
+                  placeholder="Select Plant"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={4}>
+                <Dropdown
+                  value={filters['User.Organization.Section.sectionName'].value}
+                  options={section}
+                  onChange={handleSectionChange}
+                  placeholder="Select Section"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+            </CRow> */}
+          </CCardBody>
+        </CCard>
+
         <CCard>
           <CCardHeader>Master Data Material</CCardHeader>
           <CCardBody>
