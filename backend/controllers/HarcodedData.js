@@ -1012,6 +1012,22 @@ export const baseUom = [
     id: 240,
     uom: "ZPC",
   },
+  {
+    id: 241,
+    uom: "M",
+  },
+  {
+    id: 242,
+    uom: "CM",
+  },
+  {
+    id: 243,
+    uom: "MTR",
+  },
+  {
+    id: 244,
+    uom: "TB",
+  },
 ];
 
 export const getTypeMaterialData = async (req, res) => {
