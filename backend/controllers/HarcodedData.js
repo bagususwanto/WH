@@ -49,6 +49,10 @@ export const mrpTypeData = [
     id: 3,
     type: "OTH",
   },
+  {
+    id: 4,
+    type: "MRP",
+  },
 ];
 
 export const baseUom = [
