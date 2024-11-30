@@ -107,6 +107,7 @@ const GoodIssue = () => {
     setSectionId(null)
     setStatusOrder(null)
     setDates([null, null])
+    setGoodIssue([])
   }
 
   useEffect(() => {
