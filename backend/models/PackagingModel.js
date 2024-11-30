@@ -12,7 +12,7 @@ const Packaging = db.define(
       allowNull: false,
     },
     unitPackaging: {
-      type: DataTypes.DECIMAL,
+      type: DataTypes.FLOAT,
       allowNull: false,
     },
     logImportId: {
@@ -34,7 +34,7 @@ const Packaging = db.define(
   }
 );
 
-LogImport.hasMany(Packaging, { foreignKey: "logImportId" });
-Packaging.belongsTo(LogImport, { foreignKey: "logImportId" });
+LogImport.hasMany(Packaging, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+Packaging.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
 
 export default Packaging;
