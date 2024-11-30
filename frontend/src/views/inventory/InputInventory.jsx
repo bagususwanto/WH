@@ -141,9 +141,9 @@ const InputInventory = () => {
     }
   }
 
-  const getInventories = async (id, type) => {
+  const getInventories = async (storageId, type) => {
     try {
-      const response = await getInventory(id, type)
+      const response = await getInventory(plantId, storageId, type)
       setInventory(response.data)
       setCurrentPage(1)
     } catch (error) {

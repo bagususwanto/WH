@@ -1,22 +1,81 @@
 import Material from "../models/MaterialModel.js";
 import Category from "../models/CategoryModel.js";
 import Supplier from "../models/SupplierModel.js";
+import Packaging from "../models/PackagingModel.js";
+import Plant from "../models/PlantModel.js";
+import Storage from "../models/StorageModel.js";
 
 export const getMaterial = async (req, res) => {
   try {
-    const response = await Material.findAll({
-      where: { flag: 1 },
-      include: [
-        {
-          model: Category,
-          where: { flag: 1 },
-        },
-        {
-          model: Supplier,
-          where: { flag: 1 },
-        },
-      ],
-    });
+    let response = [];
+    let offset = 0;
+    const limit = 1000;
+    let batch;
+    const { storageId, plantId, type } = req.query;
+
+    let whereCondition = { flag: 1 };
+    let whereConditionStorage = { flag: 1 };
+    let whereConditionPlant = { flag: 1 };
+
+    if (type) {
+      whereCondition.type = type;
+    }
+
+    if (storageId) {
+      whereConditionStorage.id = storageId;
+    }
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    do {
+      // Fetch a batch of 1000 records
+      batch = await Material.findAll({
+        limit,
+        offset,
+        where: whereCondition,
+        subQuery: false,
+        include: [
+          {
+            model: Packaging,
+            required: false,
+            where: { flag: 1 },
+          },
+          {
+            model: Category,
+            where: { flag: 1 },
+          },
+          {
+            model: Supplier,
+            required: false,
+            where: { flag: 1 },
+          },
+          {
+            model: Storage,
+            where: whereConditionStorage,
+            required: true,
+            include: [
+              {
+                model: Plant,
+                where: whereConditionPlant,
+                required: true,
+              },
+            ],
+          },
+        ],
+      });
+
+      // Add the batch to the response array
+      response = response.concat(batch);
+
+      // Update offset for the next batch
+      offset += limit;
+    } while (batch.length === limit); // Continue fetching until we get less than 1000 records
+
+    if (!response || response.length === 0) {
+      return res.status(404).json({ message: "Materials not found" });
+    }
 
     res.status(200).json(response);
   } catch (error) {

@@ -19,12 +19,28 @@ const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 export const getInventory = async (req, res) => {
-  const storageId = req.params.storageId;
-  const type = req.query.type;
   const limit = 1000; // Tentukan jumlah data per batch
   let offset = 0;
   let hasMoreData = true;
   let allData = []; // Variabel untuk menyimpan semua data
+
+  const { storageId, plantId, type } = req.query;
+
+  let whereCondition = { flag: 1 };
+  let whereConditionStorage = { flag: 1 };
+  let whereConditionPlant = { flag: 1 };
+
+  if (type) {
+    whereCondition.type = type;
+  }
+
+  if (storageId) {
+    whereConditionStorage.id = storageId;
+  }
+
+  if (plantId) {
+    whereConditionPlant.id = plantId;
+  }
 
   try {
     while (hasMoreData) {
@@ -41,7 +57,7 @@ export const getInventory = async (req, res) => {
               "type",
               "packagingId",
             ],
-            where: { flag: 1, type: type },
+            where: whereCondition,
             include: [
               {
                 model: Packaging,
@@ -57,12 +73,12 @@ export const getInventory = async (req, res) => {
               {
                 model: Storage,
                 attributes: ["id", "storageName"],
-                where: { flag: 1, id: storageId },
+                where: whereConditionStorage,
                 include: [
                   {
                     model: Plant,
                     attributes: ["id", "plantName"],
-                    where: { flag: 1 },
+                    where: whereConditionPlant,
                   },
                 ],
               },

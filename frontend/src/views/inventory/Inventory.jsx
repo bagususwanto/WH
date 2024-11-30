@@ -43,10 +43,13 @@ const Inventory = () => {
   const [modalInventory, setModalInventory] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
   const [plantId, setPlantId] = useState()
+  const [storageId, setStorageId] = useState()
+  const [shouldFetch, setShouldFetch] = useState(false)
   const [plantName, setPlantName] = useState()
   const [typeMaterial, setTypeMaterial] = useState()
+  const [type, setType] = useState()
   const [remarks, setRemarks] = useState('') // State to store remarks entered in CModal
-  const { getAllInventory, updateInventoryById, executeInventory } = useManageStockService()
+  const { getInventory, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
 
   const apiPlant = 'plant-public'
@@ -128,10 +131,10 @@ const Inventory = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
     'Material.type': { value: null, matchMode: FilterMatchMode.EQUALS },
-    // 'Address_Rack.Storage.shopName': {
-    //   value: null,
-    //   matchMode: FilterMatchMode.EQUALS,
-    // },
+    'Address_Rack.Storage.storageName': {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
   })
 
   const initFilters = () => {
@@ -151,6 +154,10 @@ const Inventory = () => {
       },
     })
     setGlobalFilterValue('')
+    setPlantId(null)
+    setStorageId(null)
+    setType(null)
+    setInventory([])
   }
 
   useEffect(() => {
@@ -164,6 +171,11 @@ const Inventory = () => {
   useEffect(() => {
     applyFilters()
   }, [filters, globalFilterValue, inventory])
+
+  useEffect(() => {
+    if (!shouldFetch) return
+    fetchInventory()
+  }, [shouldFetch, plantId, type, storageId])
 
   const getSeverity = (status) => {
     switch (status) {
@@ -181,7 +193,16 @@ const Inventory = () => {
   const fetchInventory = async () => {
     setLoading(true)
     try {
-      const response = await getAllInventory()
+      if (!plantId && !storageId && !type) {
+        setInventory([])
+        setLoading(false)
+        return
+      }
+      const response = await getInventory(
+        plantId ? plantId : '',
+        storageId ? storageId : '',
+        type ? type : '',
+      )
       const dataWithFormattedFields = response.data.map((item) => {
         // Evaluasi untuk menentukan status inventory
         const evaluation =
@@ -211,42 +232,42 @@ const Inventory = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchInventory = async () => {
-      setLoading(true)
-      try {
-        const response = await getAllInventory()
-        const dataWithFormattedFields = response.data.map((item) => {
-          // Evaluasi untuk menentukan status inventory
-          const evaluation =
-            item.quantityActual < item.Material.minStock
-              ? 'minim'
-              : item.quantityActual > item.Material.minStock
-                ? 'over'
-                : 'ok'
+  // useEffect(() => {
+  //   const fetchInventory = async () => {
+  //     setLoading(true)
+  //     try {
+  //       const response = await getAllInventory()
+  //       const dataWithFormattedFields = response.data.map((item) => {
+  //         // Evaluasi untuk menentukan status inventory
+  //         const evaluation =
+  //           item.quantityActual < item.Material.minStock
+  //             ? 'minim'
+  //             : item.quantityActual > item.Material.minStock
+  //               ? 'over'
+  //               : 'ok'
 
-          const discrepancy = item.quantityActual - item.quantitySistem
+  //         const discrepancy = item.quantityActual - item.quantitySistem
 
-          return {
-            ...item,
-            discrepancy,
-            evaluation, // Tambahkan evaluasi ke item yang dikembalikan
-            formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-            formattedUpdateAt: item.updatedAt
-              ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-              : '',
-          }
-        })
-        setInventory(dataWithFormattedFields)
-      } catch (error) {
-        console.error('Error fetching inventory:', error)
-      } finally {
-        setLoading(false) // Set loading to false after data is fetched
-      }
-    }
+  //         return {
+  //           ...item,
+  //           discrepancy,
+  //           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
+  //           formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+  //           formattedUpdateAt: item.updatedAt
+  //             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+  //             : '',
+  //         }
+  //       })
+  //       setInventory(dataWithFormattedFields)
+  //     } catch (error) {
+  //       console.error('Error fetching inventory:', error)
+  //     } finally {
+  //       setLoading(false) // Set loading to false after data is fetched
+  //     }
+  //   }
 
-    fetchInventory()
-  }, [])
+  //   fetchInventory()
+  // }, [])
 
   const getPlant = async () => {
     try {
@@ -265,7 +286,6 @@ const Inventory = () => {
   const getTypeMaterial = async () => {
     try {
       const response = await getMasterData(apiTypeMaterial)
-      console.log(response)
 
       const typeMaterialOptions = response.data.map((tm) => ({
         label: tm.type,
@@ -304,6 +324,7 @@ const Inventory = () => {
       const storageOptions = response.map((storage) => ({
         label: storage.storageName,
         value: storage.storageName,
+        id: storage.id,
       }))
       setStorage(storageOptions)
     } catch (error) {
@@ -312,14 +333,22 @@ const Inventory = () => {
   }
 
   const handleStorageChange = (e) => {
-    const value = e.value
+    const selectedStorageName = e.value
+    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
+    const storageId = selectedStorage?.id // Dapatkan storage.id
+    console.log('Storage ID:', storageId)
+
+    setStorageId(storageId)
+    setShouldFetch(true)
     let _filters = { ...filters }
-    _filters['Address_Rack.Storage.storageName'].value = value
+    _filters['Address_Rack.Storage.storageName'].value = e.value
     setFilters(_filters)
   }
 
   const handleTypeChange = (e) => {
     const value = e.value
+    setType(value)
+    setShouldFetch(true)
     let _filters = { ...filters }
     _filters['Material.type'].value = value
     setFilters(_filters)
@@ -343,7 +372,7 @@ const Inventory = () => {
     const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
     setPlantId(plantId)
-
+    setShouldFetch(true)
     getStorageByPlantId(plantId)
 
     let _filters = { ...filters }

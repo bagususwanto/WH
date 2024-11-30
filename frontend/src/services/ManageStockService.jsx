@@ -13,13 +13,16 @@ const useManageStockService = () => {
     throw new Error(message + error.message)
   }
 
-  const getInventory = async (storageId, type) => {
+  const getInventory = async (plantId, storageId, type) => {
     try {
-      const response = await axiosJWT.get(`/inventory/${storageId}?type=${type}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axiosJWT.get(
+        `/inventory?plantId=${plantId}&storageId=${storageId}&type=${type}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       return response
     } catch (error) {
       handleError(error, 'Error fetching inventory:')

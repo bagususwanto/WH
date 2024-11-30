@@ -129,7 +129,10 @@ const Incoming = () => {
       },
     })
     setGlobalFilterValue('')
+    setPlantId(null)
+    setStorageId(null)
     setSelectedDate(null)
+    setIncoming([])
   }
 
   useEffect(() => {
@@ -170,6 +173,12 @@ const Incoming = () => {
     try {
       let startDate
       let endDate
+
+      if (!startDate && !endDate && !plantId && !storageId) {
+        setIncoming([])
+        setLoading(false)
+        return
+      }
 
       if (dates[0] && dates[1]) {
         startDate = format(dates[0], 'yyyy-MM-dd')

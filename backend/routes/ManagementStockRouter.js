@@ -5,7 +5,7 @@ import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
 
 const router = express.Router();
 
-router.get("/inventory/:storageId", checkRole(["super admin", "warehouse member"]), getInventory);
+router.get("/inventory", checkRole(["super admin", "warehouse member"]), getInventory);
 router.put("/inventory/:id/:warehouseId", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, updateInventory);
 router.put("/incoming/:id/:warehouseId", checkRole(["super admin", "warehouse member"]), checkUserWarehouse, updateIncoming);
 router.get("/inventory-execute/:plantId/:warehouseId", checkRole(["super admin", "warehouse member"]), executeInventory);

@@ -5,6 +5,7 @@ import { Button } from 'primereact/button'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
+import { FilterMatchMode } from 'primereact/api'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
@@ -44,7 +45,12 @@ const Material = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
   const [plant, setPlant] = useState([])
+  const [storage, setStorage] = useState([])
+  const [type, setType] = useState()
+  const [typeOptions, setTypeOptions] = useState([])
+  const [storageId, setStorageId] = useState()
   const [plantId, setPlantId] = useState()
+  const [shouldFetch, setShouldFetch] = useState(false)
   const [currentMaterial, setCurrentMaterial] = useState({
     id: '',
     materialNo: '',
@@ -57,7 +63,7 @@ const Material = () => {
     minStock: '',
     maxStock: '',
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
   const [modalUpload, setModalUpload] = useState(false)
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
@@ -69,35 +75,51 @@ const Material = () => {
 
   const {
     getMasterData,
+    getMasterDataById,
     deleteMasterDataById,
     updateMasterDataById,
     postMasterData,
     uploadMasterData,
   } = useMasterDataService()
+
   const [filters, setFilters] = useState({
-    global: { value: null },
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+
+    plant: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+
+    storage: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+
+    type: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
   })
 
   const apiPlant = 'plant-public'
-  const apiMaterial = 'material'
+  const apiStorage = 'storage-plant'
+  const apiMaterial = `material?plantId=${plantId ? plantId : ''}&storageId=${storageId ? storageId : ''}&type=${type ? type : ''}`
+  const apiTypeMaterial = 'material-type'
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
   const apiCategory = 'category'
   const apiUpload = 'upload-master-material'
 
   useEffect(() => {
-    getMaterial()
-    getSupplier()
-    getCategory()
+    setLoading(false)
     getPlant()
+    getMaterialType()
   }, [])
 
   useEffect(() => {
-    if (imported) {
-      getMaterial()
-      setImported(false) // Reset state
-    }
-  }, [imported])
+    if (!shouldFetch) return
+    getMaterial()
+  }, [plantId, storageId, type, shouldFetch])
 
   const customStyles = {
     control: (provided) => ({
@@ -140,6 +162,20 @@ const Material = () => {
     }
   }
 
+  const getMaterialType = async () => {
+    try {
+      const response = await getMasterData(apiTypeMaterial)
+      const typeOptions = response.data.map((type) => ({
+        label: type.type,
+        value: type.type,
+        id: type.id,
+      }))
+      setTypeOptions(typeOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
   const getCategory = async () => {
     try {
       const response = await getMasterData(apiCategory)
@@ -159,25 +195,34 @@ const Material = () => {
   }
 
   const getMaterial = async () => {
+    setLoading(true)
     try {
+      if (!plantId && !storageId && !type) {
+        setMaterials([])
+        setLoading(false)
+        return
+      }
+
       const response = await getMasterData(apiMaterial)
       const dataWithFormattedFields = response.data.map((item) => {
+        const plant = item.Storages[0]?.Plant?.plantName
+        const storage = item.Storages[0]?.storageName
         return {
           ...item,
-          formatedPrice: item.price
-            ? `Rp. ${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.00`
-            : '',
-          formattedCreatedAt: item.createdAt
-            ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
-            : '',
-          formattedUpdatedAt: item.updatedAt
-            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-            : '',
+          plant,
+          storage,
+          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+          // formattedUpdateAt: item.updatedAt
+          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          //   : '',
         }
       })
       setMaterials(dataWithFormattedFields)
+      console.log(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching Material:', error)
+      console.error('Error fetching incoming:', error)
+    } finally {
+      setLoading(false) // Set loading to false after data is fetched
     }
   }
 
@@ -508,6 +553,32 @@ const Material = () => {
     setModalUpload(true)
   }
 
+  const initFilters = () => {
+    setFilters({
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+
+      plant: {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+
+      storage: {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+
+      type: {
+        value: null,
+        matchMode: FilterMatchMode.EQUALS,
+      },
+    })
+    setGlobalFilterValue('')
+    setPlantId(null)
+    setStorageId(null)
+    setType(null)
+    setMaterials([])
+  }
+
   const clearFilter = () => {
     initFilters()
   }
@@ -517,13 +588,13 @@ const Material = () => {
       return
     }
     try {
-      const response = await getMasterDataById(apiSection, id)
+      const response = await getMasterDataById(apiStorage, id)
       const storageOptions = response.map((storage) => ({
         label: storage.storageName,
         value: storage.storageName,
         id: storage.id,
       }))
-      setstorage(storageOptions)
+      setStorage(storageOptions)
     } catch (error) {
       console.error('Error fetching storage by ID:', error)
     }
@@ -538,10 +609,37 @@ const Material = () => {
     getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['User.Organization.Plant.plantName'].value = selectedPlantName
+    _filters['plant'].value = selectedPlantName
     setFilters(_filters)
     setShouldFetch(true)
   }
+
+  const handleStorageChange = (e) => {
+    const selectedStorageName = e.value
+    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
+    const storageId = selectedStorage?.id // Dapatkan storage.id
+    setStorageId(storageId)
+    setShouldFetch(true)
+    let _filters = { ...filters }
+    _filters['storage'].value = e.value
+    setFilters(_filters)
+  }
+
+  const handleTypeChange = (e) => {
+    const selectedTypeName = e.value
+    setType(selectedTypeName)
+    setShouldFetch(true)
+    let _filters = { ...filters }
+    _filters['type'].value = e.value
+    setFilters(_filters)
+  }
+
+  const LoadingComponent = () => (
+    <div className="text-center">
+      <CSpinner color="primary" />
+      <p>Loading material data...</p>
+    </div>
+  )
 
   return (
     <CRow>
@@ -562,10 +660,10 @@ const Material = () => {
                 />
               </CCol>
             </CRow>
-            {/* <CRow>
+            <CRow>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={''}
+                  value={filters['plant'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -576,117 +674,134 @@ const Material = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['User.Organization.Section.sectionName'].value}
-                  options={section}
-                  onChange={handleSectionChange}
-                  placeholder="Select Section"
+                  value={filters['storage'].value}
+                  options={storage}
+                  onChange={handleStorageChange}
+                  placeholder="Select Storage"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-            </CRow> */}
+              <CCol xs={12} sm={6} md={4}>
+                <Dropdown
+                  value={filters['type'].value}
+                  options={typeOptions}
+                  onChange={handleTypeChange}
+                  placeholder="Select Type"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
 
         <CCard>
           <CCardHeader>Master Data Material</CCardHeader>
           <CCardBody>
-            <CRow className="mb-2">
-              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
-                <div className="d-flex flex-wrap justify-content-start">
-                  <Button
-                    type="button"
-                    label="Add"
-                    icon="pi pi-plus"
-                    severity="primary"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={handleAddMaterial}
-                    data-pr-tooltip="XLS"
+            {loading ? (
+              <LoadingComponent />
+            ) : (
+              <>
+                <CRow className="mb-2">
+                  <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
+                    <div className="d-flex flex-wrap justify-content-start">
+                      <Button
+                        type="button"
+                        label="Add"
+                        icon="pi pi-plus"
+                        severity="primary"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={handleAddMaterial}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Upload"
+                        icon="pi pi-file-import"
+                        severity="primary"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={showModalUpload}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Excel"
+                        icon="pi pi-file-excel"
+                        severity="success"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={exportExcel}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Template"
+                        icon="pi pi-download"
+                        severity="success"
+                        className="rounded-5 mb-2"
+                        onClick={downloadTemplate}
+                        data-pr-tooltip="XLS"
+                      />
+                    </div>
+                  </CCol>
+                  <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
+                  </CCol>
+                </CRow>
+                <DataTable
+                  value={filteredMaterials}
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[10, 25, 50]}
+                  tableStyle={{ minWidth: '30rem' }}
+                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  scrollable
+                  globalFilter={filters.global.value} // Aplikasikan filter global di sini
+                >
+                  <Column
+                    field="id"
+                    header="No"
+                    body={(data, options) => options.rowIndex + 1}
+                    frozen
+                    alignFrozen="left"
                   />
-                  <Button
-                    type="button"
-                    label="Excel"
-                    icon="pi pi-file-excel"
-                    severity="success"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={exportExcel}
-                    data-pr-tooltip="XLS"
+                  <Column
+                    field="materialNo"
+                    header="No Material"
+                    style={{ width: '25%' }}
+                    frozen
+                    alignFrozen="left"
                   />
-                  <Button
-                    type="button"
-                    label="Upload"
-                    icon="pi pi-file-import"
-                    severity="primary"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={showModalUpload}
-                    data-pr-tooltip="XLS"
+                  <Column
+                    field="description"
+                    header="Description"
+                    style={{ width: '25%' }}
+                    frozen
+                    alignFrozen="left"
                   />
-                  <Button
-                    type="button"
-                    label="Template"
-                    icon="pi pi-download"
-                    severity="primary"
-                    className="rounded-5 mb-2"
-                    onClick={downloadTemplate}
-                    data-pr-tooltip="XLS"
+                  <Column field="uom" header="UOM" style={{ width: '25%' }} />
+                  <Column field="formatedPrice" header="Price" style={{ width: '25%' }} />
+                  <Column field="type" header="Type" style={{ width: '25%' }} />
+                  <Column
+                    header="Category"
+                    body={(rowData) => (rowData.Category ? rowData.Category.categoryName : '')}
+                    style={{ width: '25%' }}
                   />
-                </div>
-              </CCol>
-              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
-                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
-              </CCol>
-            </CRow>
-            <DataTable
-              value={filteredMaterials}
-              paginator
-              rows={10}
-              rowsPerPageOptions={[10, 25, 50]}
-              tableStyle={{ minWidth: '30rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              scrollable
-              globalFilter={filters.global.value} // Aplikasikan filter global di sini
-            >
-              <Column
-                field="id"
-                header="No"
-                body={(data, options) => options.rowIndex + 1}
-                frozen
-                alignFrozen="left"
-              />
-              <Column
-                field="materialNo"
-                header="No Material"
-                style={{ width: '25%' }}
-                frozen
-                alignFrozen="left"
-              />
-              <Column
-                field="description"
-                header="Description"
-                style={{ width: '25%' }}
-                frozen
-                alignFrozen="left"
-              />
-              <Column field="uom" header="UOM" style={{ width: '25%' }} />
-              <Column field="formatedPrice" header="Price" style={{ width: '25%' }} />
-              <Column field="type" header="Type" style={{ width: '25%' }} />
-              <Column
-                header="Category"
-                body={(rowData) => (rowData.Category ? rowData.Category.categoryName : '')}
-                style={{ width: '25%' }}
-              />
-              <Column
-                header="Supplier"
-                body={(rowData) => (rowData.Supplier ? rowData.Supplier.supplierName : '')}
-                style={{ width: '25%' }}
-              />
-              <Column field="minStock" header="Min Stock" style={{ width: '25%' }} />
-              <Column field="maxStock" header="Max stock" style={{ width: '25%' }} />
-              <Column field="formattedCreatedAt" header="Created At" style={{ width: '25%' }} />
-              <Column field="formattedUpdatedAt" header="Updated At" style={{ width: '25%' }} />
-              <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
-            </DataTable>
+                  <Column
+                    header="Supplier"
+                    body={(rowData) => (rowData.Supplier ? rowData.Supplier.supplierName : '')}
+                    style={{ width: '25%' }}
+                  />
+                  <Column field="minStock" header="Min Stock" style={{ width: '25%' }} />
+                  <Column field="maxStock" header="Max stock" style={{ width: '25%' }} />
+                  <Column field="formattedCreatedAt" header="Created At" style={{ width: '25%' }} />
+                  <Column field="formattedUpdatedAt" header="Updated At" style={{ width: '25%' }} />
+                  <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
+                </DataTable>
+              </>
+            )}
           </CCardBody>
         </CCard>
       </CCol>

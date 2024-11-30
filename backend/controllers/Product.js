@@ -243,20 +243,24 @@ export const getAllProduct = async (req, res) => {
         include: [
           {
             model: Material,
+            attributes: ["id", "materialNo", "description"],
             where: {
               flag: 1,
             },
           },
           {
             model: AddressRack,
+            attributes: ["id"],
             where: { flag: 1 },
             include: [
               {
                 model: Storage,
+                attributes: ["id"],
                 where: { flag: 1 },
                 include: [
                   {
                     model: Plant,
+                    attributes: ["id"],
                     where: { warehouseId: warehouseId, flag: 1 },
                   },
                 ],
