@@ -30,8 +30,7 @@ const Supplier = db.define(
   }
 );
 
-LogImport.hasMany(Supplier, { foreignKey: "logImportId" });
-Supplier.belongsTo(LogImport, { foreignKey: "logImportId" });
-
+LogImport.hasMany(Supplier, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+Supplier.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
 
 export default Supplier;

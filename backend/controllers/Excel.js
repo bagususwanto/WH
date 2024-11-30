@@ -14,7 +14,7 @@ import MaterialStorage from "../models/MaterialStorageModel.js";
 import { typeMaterial, mrpTypeData, baseUom } from "./HarcodedData.js";
 import Packaging from "../models/PackagingModel.js";
 
-const BATCH_SIZE = 500; // Set batch size sesuai kebutuhan
+const BATCH_SIZE = 1000; // Set batch size sesuai kebutuhan
 
 export const cancelIncomingPlan = async (req, res) => {
   const transaction = await db.transaction();
@@ -753,39 +753,46 @@ const checkMaterialStorage = async (materialId, storageId, logImportId) => {
   if (materialStorage) {
     await materialStorage.update({
       storageId: storageId,
-      materialId: existingMaterial.id,
+      materialId: materialId,
       logImportId: logImportId,
     });
   } else {
     await MaterialStorage.create({
       storageId: storageId,
-      materialId: existingMaterial.id,
+      materialId: materialId,
       logImportId: logImportId,
     });
   }
 };
 
 const checkPackaging = async (packaging, unitPackaging, logImportId) => {
-  const existingPackaging = await Packaging.findOne({
-    where: { packaging, unitPackaging, flag: 1 },
-  });
-
-  let packagingId;
-  if (existingPackaging) {
-    packagingId = await existingPackaging.update({
-      packaging: packaging,
-      unitPackaging: unitPackaging,
-      logImportId: logImportId,
-    });
-  } else {
-    packagingId = await Packaging.create({
-      packaging: packaging,
-      unitPackaging: unitPackaging,
-      logImportId: logImportId,
-    });
+  if (!packaging || !unitPackaging) {
+    return null;
   }
 
-  return packagingId;
+  try {
+    const [packagingRecord, created] = await Packaging.findOrCreate({
+      where: { packaging, unitPackaging, flag: 1 },
+      defaults: {
+        logImportId,
+      },
+    });
+
+    // if (!created) {
+    //   console.log(
+    //     `Packaging with ${packaging} and ${unitPackaging} already exists.`
+    //   );
+    // } else {
+    //   console.log(
+    //     `Created new packaging with ${packaging} and ${unitPackaging}.`
+    //   );
+    // }
+
+    return packagingRecord.id;
+  } catch (error) {
+    console.error(`Error in checkPackaging: ${error.message}`);
+    throw new Error("Failed to process packaging data.");
+  }
 };
 
 export const uploadMasterMaterial = async (req, res) => {
@@ -821,9 +828,10 @@ export const uploadMasterMaterial = async (req, res) => {
         fileName: req.file.originalname,
         userId: req.user.userId,
         importDate: req.body.importDate,
-      },
-      { transaction }
+      }
+      // { transaction }
     );
+
     const logImportId = logImport.id;
 
     let materialMap;
@@ -858,121 +866,102 @@ export const uploadMasterMaterial = async (req, res) => {
       transaction
     );
 
-    const processBatch = async (batch) => {
-      const updatePromises = batch.map(async (row) => {
-        try {
-          const materialNo = row[0];
-          const description = row[1];
-          const uom = row[2];
-          const price = row[3];
-          const typeMat = row[4];
-          const mrpType = row[5];
-          const minStock = row[6];
-          const maxStock = row[7];
-          const img = row[8];
-          const minOrder = row[9];
-          const packaging = row[10];
-          const unitPackaging = row[11];
-          const category = row[12];
-          const supplier = row[13];
-          const storageName = row[14];
+    // Process each row directly
+    for (const row of rows) {
+      try {
+        const materialNo = row[0];
+        const description = row[1];
+        const uom = row[2];
+        const price = row[3];
+        const typeMat = row[4];
+        const mrpType = row[5];
+        const minStock = row[6];
+        const maxStock = row[7];
+        const img = row[8];
+        const minOrder = row[9];
+        const packaging = row[10];
+        const unitPackaging = row[11];
+        const category = row[12];
+        const supplier = row[13];
+        const storageName = row[14];
 
-          const existingMaterial = materialMap.get(materialNo);
-          const categoryId = await getCategoryIdByCategoryName(category);
-          const storageId = await getStorageIdByName(storageName);
+        const existingMaterial = materialMap.get(materialNo);
+        const categoryId = await getCategoryIdByCategoryName(category);
+        const storageId = await getStorageIdByName(storageName);
 
-          if (!categoryId)
-            throw new Error(`Category: ${category} does not exist`);
+        if (!categoryId)
+          throw new Error(`Category: ${category} does not exist`);
 
-          if (!storageId)
-            throw new Error(`Storage: ${storageName} does not exist`);
+        if (!storageId)
+          throw new Error(`Storage: ${storageName} does not exist`);
 
-          // Check and update Material Storage
+        // Check and update Material Storage
+        if (existingMaterial) {
           await checkMaterialStorage(
             existingMaterial.id,
             storageId,
             logImportId
           );
+        }
 
-          // Check and update Packaging
-          const packagingRes = await checkPackaging(
-            packaging,
-            unitPackaging,
-            logImportId
+        // Check and update Packaging
+        const packagingRes = await checkPackaging(
+          packaging,
+          unitPackaging,
+          logImportId
+        );
+
+        // Check type material
+        const typeMaterialData = typeMaterial.map((item) => item.type);
+        if (!typeMaterialData.includes(typeMat)) {
+          throw new Error(`Type Material: ${typeMat} does not exist`);
+        }
+
+        // Check MRPTYPE
+        const mrp = mrpTypeData.map((item) => item.type);
+        if (!mrp.includes(mrpType)) {
+          throw new Error(`MRP Type: ${mrpType} does not exist`);
+        }
+
+        // Check UOM
+        const uoms = baseUom.map((item) => item.uom);
+        if (!uoms.includes(uom)) {
+          throw new Error(`UOM: ${uom} does not exist`);
+        }
+
+        if (
+          !materialNo ||
+          !description ||
+          !uom ||
+          !typeMat ||
+          !mrpType ||
+          !img ||
+          !category ||
+          !storageName
+        ) {
+          throw new Error(`Invalid data in row ${materialNo}, ${description}`);
+        }
+
+        if (
+          typeof price !== "number" ||
+          typeof minStock !== "number" ||
+          typeof maxStock !== "number" ||
+          typeof minOrder !== "number"
+        ) {
+          throw new Error(
+            `Data must be number in row ${materialNo}, ${description}`
           );
+        }
 
-          // Check type material
-          const typeMaterialData = typeMaterial.map((item) => item.type);
-          if (!typeMaterialData.includes(typeMat)) {
-            throw new Error(`Type Material: ${typeMat} does not exist`);
-          }
+        if (!supplier || supplier == 0)
+          throw new Error(`Supplier ${supplier} not found`);
 
-          // Check MRPTYPE
-          const mrp = mrpTypeData.map((item) => item.type);
-          if (!mrp.includes(mrpType)) {
-            throw new Error(`MRP Type: ${mrpType} does not exist`);
-          }
+        const supplierName = supplier.trim().toUpperCase();
+        const supplierId = supplierMap.get(supplierName);
 
-          // Check UOM
-          const uoms = baseUom.map((item) => item.uom);
-          if (!uoms.includes(uom)) {
-            throw new Error(`UOM: ${uom} does not exist`);
-          }
-
-          if (
-            !materialNo ||
-            !description ||
-            !uom ||
-            !typeMat ||
-            !mrpType ||
-            !img ||
-            !category ||
-            !storageName
-          ) {
-            throw new Error(
-              `Invalid data in row ${materialNo}, ${description}`
-            );
-          }
-
-          if (
-            typeof price !== "number" ||
-            typeof minStock !== "number" ||
-            typeof maxStock !== "number" ||
-            typeof minOrder !== "number"
-          ) {
-            throw new Error(
-              `Data must be number in row ${materialNo}, ${description}`
-            );
-          }
-
-          if (!supplier || supplier == 0)
-            throw new Error(`Supplier ${supplier} not found`);
-
-          const supplierName = supplier.trim().toUpperCase();
-          const supplierId = supplierMap.get(supplierName);
-
-          if (existingMaterial) {
-            return existingMaterial.update(
-              {
-                description: description,
-                uom: uom,
-                price: price,
-                type: typeMat,
-                mrpType: mrpType,
-                minStock: minStock,
-                maxStock: maxStock,
-                img: img,
-                minOrder: minOrder,
-                packagingId: packagingRes.id,
-                categoryId,
-                supplierId,
-                logImportId,
-              },
-              { transaction }
-            );
-          } else {
-            newMaterials.push({
-              materialNo: materialNo,
+        if (existingMaterial) {
+          await existingMaterial.update(
+            {
               description: description,
               uom: uom,
               price: price,
@@ -982,30 +971,62 @@ export const uploadMasterMaterial = async (req, res) => {
               maxStock: maxStock,
               img: img,
               minOrder: minOrder,
-              packagingId: packagingRes.id,
+              packagingId: packagingRes,
               categoryId,
               supplierId,
               logImportId,
-            });
-          }
-        } catch (error) {
-          console.error(
-            `Error processing row with materialNo ${row[0]}: ${error.message}`
+            },
+            { transaction }
           );
-          throw error;
+        } else {
+          newMaterials.push({
+            materialNo: materialNo,
+            description: description,
+            uom: uom,
+            price: price,
+            type: typeMat,
+            mrpType: mrpType,
+            minStock: minStock,
+            maxStock: maxStock,
+            img: img,
+            minOrder: minOrder,
+            packagingId: packagingRes,
+            categoryId,
+            supplierId,
+            logImportId,
+            storageId,
+          });
         }
-      });
-
-      await Promise.all(updatePromises);
-    };
-
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE);
-      await processBatch(batch);
+      } catch (error) {
+        console.error(
+          `Error processing row with materialNo ${row[0]}: ${error.message}`
+        );
+        throw error;
+      }
     }
 
     if (newMaterials.length > 0) {
-      await Material.bulkCreate(newMaterials, { transaction });
+      // Bulk create materials
+      const createdMaterials = await Material.bulkCreate(newMaterials, {
+        transaction,
+        returning: true,
+      });
+
+      // Ambil ID dari createdMaterials
+      const materialIds = createdMaterials.map(
+        (material) => material.dataValues.id
+      );
+      const storageIds = newMaterials.map((material) => material.storageId);
+
+      // Siapkan data untuk Material_Storage
+      const materialStorageData = materialIds.map((materialId, index) => ({
+        materialId,
+        storageId: storageIds[index],
+        logImportId,
+      }));
+
+      // Insert ke tabel Material_Storage
+      await MaterialStorage.bulkCreate(materialStorageData, { transaction });
     }
 
     await transaction.commit();

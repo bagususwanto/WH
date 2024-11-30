@@ -53,4 +53,13 @@ Material.belongsToMany(Storage, {
   foreignKey: "materialId",
 });
 
+LogImport.hasMany(MaterialStorage, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
+MaterialStorage.belongsTo(LogImport, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
+
 export default MaterialStorage;
