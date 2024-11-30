@@ -120,6 +120,7 @@ export const getOrderWarehouse = async (req, res) => {
                     "description",
                     "uom",
                     "price",
+                    "img",
                   ],
                   where: { flag: 1 },
                 },
