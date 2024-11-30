@@ -6,6 +6,7 @@ import '../../scss/body_gray.scss'
 import '../../scss/modal_backdrop.scss'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -416,7 +417,9 @@ const Confirm = () => {
                     {loading ? (
                       <Skeleton width={80} />
                     ) : (
-                      <small>{format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}</small>
+                      <small>
+                        {format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}
+                      </small>
                     )}
                   </div>
                 </div>
@@ -574,13 +577,13 @@ const Confirm = () => {
                   <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
-                        <CCol xs="1">
+                        <CCol xs={2} sm={1} md={1}>
                           <CCardImage
-                            src={product.Inventory.Material.img}
+                            src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
-                        <CCol xs="6">
+                        <CCol xs={5} sm={5} md={5}>
                           <div>
                             <label>{product.Inventory.Material.description}</label>
                             <br />
@@ -589,7 +592,7 @@ const Confirm = () => {
                             </label>
                           </div>
                         </CCol>
-                        <CCol xs="3">
+                        <CCol xs={3} sm={3} md={3}>
                           <div
                             style={{
                               display: 'flex',
@@ -612,6 +615,13 @@ const Confirm = () => {
                                 aria-label="Number input"
                                 onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                                 className="text-center" // Utility class for centering text
+                                style={{
+                                  textAlign: 'center', // Pusatkan teks secara horizontal
+                                  verticalAlign: 'middle', // Pusatkan teks secara vertikal
+                                  height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
+                                  border: 'none', // Hilangkan border
+                                  outline: 'none', // Hilangkan garis biru/oranye saat fokus
+                                }}
                               />
 
                               <CButton
@@ -623,24 +633,55 @@ const Confirm = () => {
                                 +
                               </CButton>
                             </CButtonGroup>
-                            <span className="px-2 fw-light">
-                              ({product.Material?.uom || 'UOM'})
-                            </span>
                           </div>
                         </CCol>
-                        <CCol xs="2" className="d-flex justify-content-end align-items-center">
-                          {product.isReject == 1 ? (
-                            <CBadge color="danger">Rejected</CBadge> // Show rejection badge
-                          ) : (
-                            <CButton
-                              color="danger"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleModalCart(product)}
+                        <CCol xs={2} sm={3} md={3} className="d-flex align-items-center">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
+                            }}
+                          >
+                            {/* UOM di pojok kiri */}
+                            <span
+                              className="fw-light"
+                              style={{
+                                fontSize: '0.9em',
+                                textAlign: 'left',
+                                flex: '1',
+                              }}
                             >
-                              Reject
-                            </CButton>
-                          )}
+                              ({product.Material?.uom || 'UOM'})
+                            </span>
+
+                            {/* Badge Reject di pojok kanan */}
+                            {product.isReject == 1 ? (
+                              <CBadge
+                                color="danger"
+                                className="ms-auto"
+                                style={{
+                                  fontSize: '0.75em',
+                                  padding: '5px 10px',
+                                  borderRadius: '12px',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                Rejected
+                              </CBadge>
+                            ) : (
+                              <CButton
+                                color="danger"
+                                variant="outline"
+                                size="sm"
+                                className="ms-auto"
+                                onClick={() => handleModalCart(product)}
+                              >
+                                Reject
+                              </CButton>
+                            )}
+                          </div>
                         </CCol>
                       </CRow>
                       <CRow>
