@@ -520,14 +520,14 @@ const Confirm = () => {
                   <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
-                        <CCol xs="1">
+                        <CCol xs={1} sm={2} md={2}>
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                             alt={product.Inventory.Material.description}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                            style={{ height: '120%', width: '120%' }}
                           />
                         </CCol>
-                        <CCol xs="6">
+                        <CCol xs={6} sm={5} md={5}>
                           <div>
                             <label>{product.Inventory.Material.description}</label>
                             <br />
@@ -536,7 +536,7 @@ const Confirm = () => {
                             </label>
                           </div>
                         </CCol>
-                        <CCol xs="3">
+                        <CCol xs={3} sm={3} md={3}>
                           <div
                             style={{
                               display: 'flex',
@@ -576,7 +576,7 @@ const Confirm = () => {
                           </div>
                         </CCol>
 
-                        <CCol xs="2" className="d-flex justify-content-end align-items-center">
+                        <CCol xs={2} sm={2} md={2} className="d-flex justify-content-end align-items-center">
                           <div
                             style={{
                               display: 'flex',

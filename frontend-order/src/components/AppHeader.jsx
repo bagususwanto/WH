@@ -761,7 +761,7 @@ const AppHeader = () => {
             </CDropdownMenu>
           </CDropdown>
 
-          <CDropdown variant="nav-item">
+          <CDropdown variant="nav-item" autoClose={false}>
             <CDropdownToggle
               className="px-3 py-0 pe-0 d-flex align-items-center position-relative"
               caret={false}
@@ -783,8 +783,8 @@ const AppHeader = () => {
               placement="bottom-end"
               style={{
                 position: 'relative',
-                width: '400px', // Menambah lebar dropdown
-                minWidth: '400px', // Pastikan dropdown tidak lebih kecil dari ini
+                width: '400px',
+                minWidth: '400px',
               }}
             >
               <CDropdownHeader
@@ -814,12 +814,12 @@ const AppHeader = () => {
                   notifDesc.slice(0, 6).map((notif, index) => (
                     <CDropdownItem
                       key={index}
-                      onClick={() => handleNotifselect(notif)} // Mengirim objek notif sebagai parameter
+                      onClick={() => handleNotifselect(notif)}
                       style={{
-                        backgroundColor: notif.isRead === 0 ? '#E4E0E1' : 'white', // Latar biru untuk belum dibaca
+                        backgroundColor: notif.isRead === 0 ? '#E4E0E1' : 'white',
                         cursor: 'pointer',
-                        wordWrap: 'break-word', // Bungkus kata jika terlalu panjang
-                        whiteSpace: 'normal', // Paksa teks agar tidak dalam satu baris
+                        wordWrap: 'break-word',
+                        whiteSpace: 'normal',
                       }}
                     >
                       <CRow className="fw-light py-0 mb-0">
@@ -844,7 +844,10 @@ const AppHeader = () => {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <CLink
-                    onClick={handlemark}
+                    onClick={(e) => {
+                      e.preventDefault() // Mencegah default close pada dropdown
+                      handlemark() // Menjalankan fungsi untuk menandai semua notifikasi sebagai telah dibaca
+                    }}
                     className="text-primary"
                     style={{ cursor: 'pointer', textDecoration: 'none' }}
                   >
