@@ -140,18 +140,16 @@ const Confirm = () => {
   const currentProducts = productsData.slice(indexOfFirstItem, indexOfLastItem)
   const totalPages = Math.ceil(productsData.length / itemsPerPage)
 
-  useEffect(() => {
-    const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
-      // Ensure that the product is checked
-      const quantity = quantities[product.id] || 1
-      const price = product.Inventory.Material?.price || 0
-      acc += price * quantity
-      return acc
-    }, 0)
+ useEffect(() => {
+  // Hitung ulang total harga berdasarkan kuantitas terbaru
+  const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
+    const quantity = quantities[product.id] || 1;
+    const price = product.Inventory.Material?.price || 0;
+    return acc + price * quantity;
+  }, 0);
 
-    setTotalAmount(newTotal)
-  }, [Confirmapproval])
-  console.log('total', totalAmount)
+  setTotalAmount(newTotal);
+}, [Confirmapproval, quantities]); // Tambahkan 'quantities' ke dependencies
   //useeffect quantity
   useEffect(() => {
     // Map the quantities from the API response (Confirmapproval.Detail_Orders)

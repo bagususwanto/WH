@@ -265,7 +265,7 @@ const ApproveAll = () => {
                       Request at
                     </small>
                     <small>
-                      {format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}
+                      {format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}
                     </small>
                   </div>
                 </div>

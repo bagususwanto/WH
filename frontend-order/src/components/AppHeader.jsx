@@ -772,7 +772,11 @@ const AppHeader = () => {
             <CDropdownMenu
               className="pt-0"
               placement="bottom-end"
-              style={{ width: '460px', position: 'relative' }} // Atur lebar atau sesuaikan sesuai kebutuhan
+              style={{
+                position: 'relative',
+                width: '400px', // Menambah lebar dropdown
+                minWidth: '400px', // Pastikan dropdown tidak lebih kecil dari ini
+              }}
             >
               <CDropdownHeader
                 className="bg-body-secondary fw-semibold"
@@ -793,7 +797,7 @@ const AppHeader = () => {
               </CDropdownHeader>
               <div
                 style={{
-                  maxHeight: '300px',
+                  maxHeight: '500px',
                   overflowY: 'auto',
                 }}
               >
@@ -805,15 +809,19 @@ const AppHeader = () => {
                       style={{
                         backgroundColor: notif.isRead === 0 ? '#E4E0E1' : 'white', // Latar biru untuk belum dibaca
                         cursor: 'pointer',
+                        wordWrap: 'break-word', // Bungkus kata jika terlalu panjang
+                        whiteSpace: 'normal', // Paksa teks agar tidak dalam satu baris
                       }}
                     >
                       <CRow className="fw-light py-0 mb-0">
-                        <small>
+                        <label style={{ fontSize: '0.75em', whiteSpace: 'normal' }}>
                           <CIcon icon={cilEnvelopeClosed} size="sm" /> {notif.title}
-                        </small>
+                        </label>
                       </CRow>
                       <CRow className="py-0 mb-1">
-                        <small>{notif.description}</small>
+                        <label style={{ fontSize: '0.85em', whiteSpace: 'normal' }}>
+                          {notif.description}
+                        </label>
                       </CRow>
                       <hr className="mt-1 mb-1" />
                     </CDropdownItem>

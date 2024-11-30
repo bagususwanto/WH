@@ -278,7 +278,7 @@ const Confirm = () => {
                     {loading ? (
                       <Skeleton width={80} />
                     ) : (
-                      <small>{format(parseISO(Confirmwarehouse.createdAt), 'dd/MM/yyyy')}</small>
+                      <small>{format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}</small>
                     )}
                   </div>
                 </div>
