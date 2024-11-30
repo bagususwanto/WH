@@ -451,6 +451,15 @@ const AppHeader = () => {
     }
   }
 
+  const handlemark = () => {
+    const updatedNotifs = notifDesc.map((notif) => ({
+      ...notif,
+      isRead: 1,
+    }))
+    setNotifDesc(updatedNotifs)
+    setNotifCount(0) // Semua notifikasi sudah terbaca
+  }
+
   return (
     <CHeader position="sticky" className="mb-4 p-0">
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
@@ -831,7 +840,16 @@ const AppHeader = () => {
                 )}
               </div>
               <CDropdownHeader>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <CLink
+                    onClick={handlemark}
+                    className="text-primary"
+                    style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    Mark as Read
+                  </CLink>
                   <CLink
                     onClick={handleLoadMore}
                     className="text-primary"
