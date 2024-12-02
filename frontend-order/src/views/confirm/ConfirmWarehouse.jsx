@@ -507,7 +507,7 @@ const Confirm = () => {
                   type="radio"
                   id="payment2"
                   label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`}
-                  checked={false}
+                  checked={true}
                   disabled
                 />
               )}

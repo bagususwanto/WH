@@ -6,6 +6,7 @@ import Select from 'react-select'
 import '../../scss/body_gray.scss'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -278,7 +279,9 @@ const Confirm = () => {
                     {loading ? (
                       <Skeleton width={80} />
                     ) : (
-                      <small>{format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}</small>
+                      <small>
+                        {format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}
+                      </small>
                     )}
                   </div>
                 </div>
@@ -361,28 +364,28 @@ const Confirm = () => {
               {loading ? (
                 <Skeleton width={250} height={20} />
               ) : (
-              <CFormCheck
-                type="radio"
-                id="payment2"
-                label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
-                checked={iswbs}
-                onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
-                disabled
-              />
-            )}
+                <CFormCheck
+                  type="radio"
+                  id="payment2"
+                  label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
+                  checked={iswbs}
+                  onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
+                  disabled
+                />
+              )}
 
               <hr />
               {loading ? (
                 <Skeleton count={3} />
               ) : (
-              <CFormTextarea
-                className="mt-3"
-                rows={3}
-                value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
-                onChange={(e) => setMessage(e.target.value)}
-                disabled
-              />
-            )}
+                <CFormTextarea
+                  className="mt-3"
+                  rows={3}
+                  value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled
+                />
+              )}
             </CCardBody>
           </CCard>
         </CCol>
@@ -435,7 +438,7 @@ const Confirm = () => {
                     <CRow className="align-items-center">
                       <CCol xs="1">
                         <CCardImage
-                          src={'https://via.placeholder.com/150'}
+                          src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                           style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
                       </CCol>

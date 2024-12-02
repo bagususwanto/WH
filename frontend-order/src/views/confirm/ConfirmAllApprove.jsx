@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns'
 import useVerify from '../../hooks/UseVerify'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -669,7 +670,7 @@ const ApproveAll = () => {
                           <CRow className="align-items-center mb-2" key={index}>
                             <CCol xs="1">
                               <CCardImage
-                                src={detail.Inventory.Material.img}
+                                src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
                                 style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
                               />
                             </CCol>
