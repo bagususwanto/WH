@@ -50,7 +50,7 @@ import { verifyToken } from "./middleware/VerifyToken.js";
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
-const host = process.env.DB_SERVER_LOCAL || "localhost";
+const host = process.env.DB_SERVER || "localhost";
 
 // Mengambil path direktori saat ini dan menghilangkan duplicate C:
 let __dirname = path.dirname(new URL(import.meta.url).pathname);
