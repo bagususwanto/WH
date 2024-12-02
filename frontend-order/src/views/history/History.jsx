@@ -39,6 +39,9 @@ import {
   cilTruck,
   cilWalk,
   cilCircle,
+  cilApplications,
+  cilPlaylistAdd,
+  cilBan
 } from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
@@ -214,6 +217,28 @@ const History = () => {
     setCurrentPage(page)
     getMyorders(page)
   }
+  const getTabIcon = (status) => {
+    switch (status) {
+      case 'all':
+        return  cilApplications // Icon kertas
+        case 'waiting approval':
+          return cilPlaylistAdd // Icon kertas
+     
+      case 'waiting confirmation':
+        return cilClipboard // Icon kertas
+      case 'on process':
+        return cilCart // Icon keranjang
+      case 'ready to deliver':
+      case 'ready to pickup':
+        return cilTruck // Icon truck
+      case 'completed':
+        return cilCheckCircle // Icon ceklis
+      case 'rejected':
+        return cilBan // Icon silang
+      default:
+        return cilClipboard // Default icon
+    }
+  }
 
   return (
     <>
@@ -326,7 +351,7 @@ const History = () => {
                       <CRow className="align-items-center">
                         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                           <CCol>
-                            <CIcon className="me-2" icon={cilCart} />
+                          <CIcon className="me-2" icon={getTabIcon(order.status)} />
                             <label className="me-2 fs-6">
                               {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
                             </label>
@@ -358,14 +383,14 @@ const History = () => {
                             )}
                           </CCol>
 
-                          <CCol xs="8">
+                          <CCol xs="7">
                             {order.Detail_Orders.length === 1 ? (
                               <label>
                                 {order.Detail_Orders[0]?.Inventory?.Material?.description}
                               </label>
                             ) : (
                               <label>
-                                {order.Detail_Orders[0]?.Inventory?.Material?.description}...
+                                {order.Detail_Orders[0]?.Inventory?.Material?.description}..
                               </label>
                             )}
                             <br />
@@ -373,10 +398,9 @@ const History = () => {
                               Total: {order.Detail_Orders.length} Item
                             </label>
                           </CCol>
-                          <CCol xs="3" className="text-end">
-                            <label>{order.paymentMethod}</label>
-                            <br />
-                            <span className="fw-bold">{order.paymentNumber}</span>
+                          <CCol xs="4" className="text-end" style={{fontSize:'0.95em'}}>
+                            <label>{order.paymentMethod} :</label>
+                            <span className="fw-bold"> {order.paymentNumber}</span>
                           </CCol>
                         </CRow>
 

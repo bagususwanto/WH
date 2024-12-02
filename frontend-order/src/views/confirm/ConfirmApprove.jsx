@@ -523,17 +523,19 @@ const Confirm = () => {
                         <CCol xs={2} sm={2} md={1}>
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-                            alt={product.Inventory.Material.description}
+               
                             style={{ height: '130%', width: '130%' }}
                           />
                         </CCol>
-                        <CCol xs={6} sm={5} md={5}>
+                        <CCol xs={6} sm={5} md={6}>
                           <div>
-                            <label>{product.Inventory.Material.description}</label>
+                            <label style={{fontSize:'0.95em'}}>{product.Inventory.Material.description}</label>
                             <br />
-                            <label className="fw-bold fs-6">
+                            <label style={{fontSize:'0.9em'}} className="fw-bold ">
                               Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
                             </label>
+                            <br />
+                            <label style={{fontSize:"0.75em"}} >Min Order: {product.Inventory.Material.minOrder} {product.Inventory.Material.uom}</label>
                           </div>
                         </CCol>
                         <CCol xs={3} sm={3} md={3} >

@@ -90,7 +90,7 @@ const AppHeader = () => {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [notifDesc, setNotifDesc] = useState([])
   const [hoveredCategory, setHoveredCategory] = useState(null)
-
+  const [markAsReadLocally, setMarkAsReadLocally] = useState(false)
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
 
@@ -451,13 +451,24 @@ const AppHeader = () => {
     }
   }
 
-  const handlemark = () => {
-    const updatedNotifs = notifDesc.map((notif) => ({
-      ...notif,
-      isRead: 1,
-    }))
-    setNotifDesc(updatedNotifs)
-    setNotifCount(0) // Semua notifikasi sudah terbaca
+  const handlemark = async () => {
+    if (notifDesc.length > 0) {
+      // Perbarui state lokal untuk memberikan pengalaman UX yang cepat
+      const updatedNotifs = notifDesc.map((notif) => ({
+        ...notif,
+        isRead: 1,
+      }))
+      setNotifDesc(updatedNotifs)
+      setNotifCount(0) // Set local count to 0
+
+      try {
+        // Sinkronkan dengan server menggunakan fungsi dari `useNotificationService`
+        const response = await postAllNotification(warehouse.id) // Pass warehouse.id
+        console.log('All notifications marked as read:', response)
+      } catch (error) {
+        console.error('Error marking notifications as read on server:', error)
+      }
+    }
   }
 
   return (

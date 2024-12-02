@@ -108,7 +108,6 @@ const ApproveAll = () => {
     return () => clearTimeout(timeout)
   }, [])
 
-
   const getSeverity = (status) => {
     switch (status) {
       case 'waiting confirmation':
@@ -140,7 +139,7 @@ const ApproveAll = () => {
     try {
       if (warehouse && warehouse.id) {
         let response
-        if (activeTab == 'rejected') {
+        if (activeTab == 'Rejected') {
           response = await getWarehouseConfirm({
             id: warehouse.id,
             page: page,
@@ -149,6 +148,7 @@ const ApproveAll = () => {
             endDate: endDate,
             q: searchQuery,
           })
+          console.log('masuk if')
         } else {
           response = await getWarehouseConfirm({
             id: warehouse.id,
@@ -158,6 +158,7 @@ const ApproveAll = () => {
             endDate: endDate,
             q: searchQuery,
           })
+          console.log('masuk else')
         }
         if (!response?.data?.data) {
           console.error('No confirm found')
@@ -208,6 +209,14 @@ const ApproveAll = () => {
   }
 
   const handleTabChange = (newStatus) => {
+    // let status
+    // if (newStatus == 'Rejected') {
+    //   status = ''
+    // } else {
+    //   status = newStatus
+    // }
+    console.log('status', newStatus)
+
     setActiveTab(newStatus)
     setProductsData([])
     setCurrentPage(1)
@@ -294,7 +303,7 @@ const ApproveAll = () => {
         return cilClipboard // Default icon
     }
   }
-
+  console.log('productsData', productsData)
   return (
     <>
       <CRow className="mt-0">
@@ -405,9 +414,19 @@ const ApproveAll = () => {
                             <label className="me-2 fs-6">
                               {format(parseISO(product.transactionDate), 'dd/MM/yyyy')}
                             </label>
-                            <CBadge className="me-2" color={getSeverity(product.status)}>
-                              {product.isReject === 1 ? 'REJECTED' : product.status.toUpperCase()}
+                            <CBadge
+                              className="me-2"
+                              color={getSeverity(
+                                product.Detail_Orders[0].isReject == 1
+                                  ? 'rejected'
+                                  : product.status,
+                              )}
+                            >
+                              {product.Detail_Orders[0].isReject == 1
+                                ? 'REJECTED'
+                                : product.status.toUpperCase()}
                             </CBadge>
+
                             <label className="me-2 fw-light">
                               {product.transactionNumber
                                 ? `${product.transactionNumber}`
@@ -508,8 +527,17 @@ const ApproveAll = () => {
                               <label className="me-2 fs-6">
                                 {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                               </label>
-                              <CBadge className="me-2" size="md" color="success">
-                                {selectedProduct.status?.toUpperCase()}
+                              <CBadge
+                                className="me-2"
+                                color={getSeverity(
+                                  selectedProduct.Detail_Orders[0].isReject == 1
+                                    ? 'rejected'
+                                    : selectedProduct.status,
+                                )}
+                              >
+                                {selectedProduct.Detail_Orders[0].isReject == 1
+                                  ? 'REJECTED'
+                                  : selectedProduct.status.toUpperCase()}
                               </CBadge>
                               <label className="me-2 fw-light">
                                 {selectedProduct.requestNumber}

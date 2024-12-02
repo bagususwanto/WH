@@ -259,8 +259,9 @@ const Cart = () => {
             /> */}
             <CButton
               color="danger"
+              variant="outline"
               onClick={handleDeleteAll}
-              className="btn-sm p-1 mb-1 text-white" // CoreUI class names
+              className="btn-sm p-1 mb-2  " // CoreUI class names
             >
               Delete All
             </CButton>
@@ -320,15 +321,15 @@ const Cart = () => {
                 ))
               : // Render actual cart data when loading is false
                 cartData.map((product, index) => (
-                  <CCard className="h-70" key={index}>
+                  <CCard className="h-65" key={index}>
                     {/* Fixed card height */}
                     <CCardBody className="d-flex flex-column justify-content-between">
-                      <CRow className="align-items-center" style={{ height: '90%' }}>
+                      <CRow className="align-items-center" style={{ height: '80%' }}>
                         {/* Image Column */}
                         <CCol xs="2" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-                            alt={product.Inventory.Material.description}
+
                             style={{
                               width: '90%', // Ensure it takes the full width
                               height: '100px', // Fixed height for uniformity

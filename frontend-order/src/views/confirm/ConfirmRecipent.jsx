@@ -387,7 +387,7 @@ const Confirm = () => {
                         <CCol xs="1" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
-                            alt={data.Inventory.Material.description}
+
                             style={{
                               width: '100%', // Ensure it takes the full width
                               objectFit: 'contain', // Keep the aspect ratio
@@ -396,7 +396,7 @@ const Confirm = () => {
                         </CCol>
 
                         {/* Description Column */}
-                        <CCol xs="8" className="d-flex flex-column justify-content-start">
+                        <CCol xs="9" className="d-flex flex-column justify-content-start">
                           <div>
                             <label className="fw-bold">{data.Inventory.Material.description}</label>
                             <br />
@@ -407,7 +407,7 @@ const Confirm = () => {
                         </CCol>
 
                         {/* Quantity Column */}
-                        <CCol xs="3" className="d-flex justify-content-start align-items-center">
+                        <CCol xs="2" className="d-flex justify-content-start align-items-center">
                           <label>{`${data.quantity} ${data.Inventory.Material.uom}`}</label>
                         </CCol>
                       </CRow>
