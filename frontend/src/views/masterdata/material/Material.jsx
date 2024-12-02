@@ -119,7 +119,7 @@ const Material = () => {
   useEffect(() => {
     if (!shouldFetch) return
     getMaterial()
-  }, [plantId, storageId, type, shouldFetch])
+  }, [plantId, storageId, type, shouldFetch, imported])
 
   const customStyles = {
     control: (provided) => ({
@@ -525,6 +525,7 @@ const Material = () => {
       MySwal.fire('Success', 'File uploaded successfully', 'success')
 
       setImported(true)
+      setShouldFetch(true)
     } catch (error) {
       console.error('Error during import:', error)
     } finally {
