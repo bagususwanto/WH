@@ -108,6 +108,7 @@ const checkActualImport = async (importDate) => {
   return false;
 };
 
+// Fungsi untuk mendapatkan materialId berdasarkan MaterialNo
 export const getMaterialIdByMaterialNo = async (materialNo) => {
   try {
     const material = await Material.findOne({
@@ -215,20 +216,27 @@ export const getInventoryIdByMaterialIdAndAddressId = async (
       where: { materialId },
     });
 
+    if (!inventory) {
+      // Jika inventory tidak ditemukan, buat data baru
+      const newInventory = await Inventory.create({ materialId, addressId });
+      return newInventory.id;
+    }
+
+    // Jika materialId ditemukan dan addressId berbeda, perbarui addressId
     if (
       inventory.materialId === materialId &&
       inventory.addressId !== addressId
     ) {
-      // Jika materialId ditemukan dan addressId berbeda, perbarui addressId
       await inventory.update({ addressId });
       return inventory.id;
-    } else if (
+    }
+
+    // Jika materialId ditemukan dan addressId sama, kembalikan id yang sudah ada
+    if (
       inventory.materialId === materialId &&
       inventory.addressId === addressId
     ) {
-      // Jika materialId ditemukan dan addressId sama, buat data baru
-      const newInventory = await Inventory.create({ materialId, addressId });
-      return newInventory.id;
+      return inventory.id;
     }
   } catch (error) {
     console.error(error.message);
@@ -237,15 +245,15 @@ export const getInventoryIdByMaterialIdAndAddressId = async (
 };
 
 const checkMaterialNo = async (materialNo) => {
+  if (!materialNo) {
+    throw new Error("Material number is invalid or missing.");
+  }
+
   const existingMaterial = await Material.findOne({
     where: { materialNo, flag: 1 },
   });
 
-  if (!existingMaterial) {
-    return false;
-  }
-
-  return true;
+  return !!existingMaterial; // Mengembalikan true/false langsung
 };
 
 const checkAddressRackName = async (
@@ -400,45 +408,63 @@ export const uploadIncomingPlan = async (req, res) => {
         throw new Error(`Invalid data in row with Material No: ${materialNo}`);
       }
 
+      if (!row[0]) {
+        throw new Error("Material number is missing or invalid.");
+      }
+
+      // Cek apakah material ada
       const materialNoExists = await checkMaterialNo(row[0]);
       if (!materialNoExists) {
         throw new Error(`Material No: ${row[0]} does not exist`);
       }
 
+      // Cek apakah storage name ada
       const storageExists = await checkStorageName(row[4]);
       if (!storageExists) {
         throw new Error(`Storage Name: ${row[4]} does not exist`);
       }
 
+      // Cek apakah address rack ada
       await checkAddressRackName(row[1], row[4], logImportId);
 
+      // Mendapatkan materialId dengan MaterialNo
       const materialId = await getMaterialIdByMaterialNo(
         removeWhitespace(row[0])
       );
+      if (!materialId) {
+        throw new Error(`Material with MaterialNo ${row[0]} not found`);
+      }
+
+      // Mendapatkan addressId
       const addressId = await getAddressIdByAddressName(
         removeWhitespace(row[1]),
         row[4],
         logImportId
       );
+
+      // Mendapatkan inventoryId
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(
         materialId,
         addressId
       );
 
+      // Menambahkan ke incomingPlan
       incomingPlan.push({
         inventoryId,
         planning: row[2],
         logImportId,
       });
 
+      // Jika jumlah data sudah mencapai batas batch size, simpan data
       if (incomingPlan.length === BATCH_SIZE) {
         await Incoming.bulkCreate(incomingPlan, {
           transaction: mainTransaction,
         });
-        incomingPlan.length = 0;
+        incomingPlan.length = 0; // Reset array
       }
     }
 
+    // Simpan data yang tersisa jika ada
     if (incomingPlan.length > 0) {
       await Incoming.bulkCreate(incomingPlan, { transaction: mainTransaction });
     }
@@ -450,11 +476,13 @@ export const uploadIncomingPlan = async (req, res) => {
       message: `Uploaded the file successfully: ${req.file.originalname}`,
     });
   } catch (error) {
+    // Rollback transaksi jika terjadi error
     if (logImportTransaction) await logImportTransaction.rollback();
     if (mainTransaction) await mainTransaction.rollback();
+
     console.error("File processing error:", error);
     res.status(500).send({
-      message: `Could not process the file: ${req.file?.originalname}. ${error}`,
+      message: `Could not process the file: ${req.file?.originalname}. ${error.message}`,
     });
   }
 };
