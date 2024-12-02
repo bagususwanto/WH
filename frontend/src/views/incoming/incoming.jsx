@@ -153,7 +153,7 @@ const Incoming = () => {
       return
     }
     fetchIncoming()
-  }, [imported, dates, plantId, storageId, shouldFetch])
+  }, [imported, dates, plantId, storageId, shouldFetch, imported])
 
   const getSeverity = (status) => {
     switch (status) {

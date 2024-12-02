@@ -11,6 +11,12 @@ yarn.lock
 # production
 /build
 
+# firebase
+.firebase
+
+# config
+/src/utils/Config.js
+
 # misc
 .eslintcache
 .DS_Store

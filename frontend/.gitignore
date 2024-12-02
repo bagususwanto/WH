@@ -9,10 +9,13 @@ yarn.lock
 /coverage
 
 # firebase
-/.firebase
+.firebase
 
 # production
 /build
+
+# config
+/src/utils/Config.js
 
 # misc
 .eslintcache
