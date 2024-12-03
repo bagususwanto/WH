@@ -6,6 +6,7 @@ import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
 import { FilterMatchMode } from 'primereact/api'
+import { MultiSelect } from 'primereact/multiselect'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
@@ -72,6 +73,7 @@ const Material = () => {
     file: null,
   })
   const [imported, setImported] = useState(false)
+  const [visibleColumns, setVisibleColumns] = useState([])
 
   const {
     getMasterData,
@@ -148,6 +150,32 @@ const Material = () => {
     }),
   }
 
+  const columns = [
+    {
+      field: 'formattedPrice',
+      header: 'Price',
+      sortable: true,
+    },
+    { field: 'mrpType', header: 'MRP Type', sortable: true },
+    { field: 'minStock', header: 'Min. Stock', sortable: true },
+    { field: 'maxStock', header: 'Max. Stock', sortable: true },
+    { field: 'minOrder', header: 'Min. Order', sortable: true },
+    { field: 'Packaging.packaging', header: 'Packaging', sortable: true },
+    { field: 'Packaging.unitPackaging', header: 'Unit Packaging', sortable: true },
+    { field: 'Supplier.supplierName', header: 'Supplier', sortable: true },
+    { field: 'storages', header: 'Storages', sortable: true },
+    { field: 'plant', header: 'Plant', sortable: true },
+  ]
+
+  const onColumnToggle = (event) => {
+    let selectedColumns = event.value
+    let orderedSelectedColumns = columns.filter((col) =>
+      selectedColumns.some((sCol) => sCol.field === col.field),
+    )
+
+    setVisibleColumns(orderedSelectedColumns)
+  }
+
   const getPlant = async () => {
     try {
       const response = await getMasterData(apiPlant)
@@ -206,11 +234,15 @@ const Material = () => {
       const response = await getMasterData(apiMaterial)
       const dataWithFormattedFields = response.data.map((item) => {
         const plant = item.Storages[0]?.Plant?.plantName
-        const storage = item.Storages[0]?.storageName
+        const storages = item.Storages.map((storage) => storage.storageName).join(', ')
+        const formatedPrice = item.price
+          ? 'Rp. ' + item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+          : null
         return {
           ...item,
           plant,
-          storage,
+          storages,
+          formatedPrice,
           // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
           // formattedUpdateAt: item.updatedAt
           //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
@@ -218,7 +250,6 @@ const Material = () => {
         }
       })
       setMaterials(dataWithFormattedFields)
-      console.log(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching incoming:', error)
     } finally {
@@ -385,6 +416,19 @@ const Material = () => {
       </div>
     )
   }
+
+  const header = () => (
+    <MultiSelect
+      value={visibleColumns}
+      options={columns}
+      optionLabel="header"
+      onChange={onColumnToggle}
+      className="w-full sm:w-20rem mb-2 mt-2"
+      display="chip"
+      placeholder="Show Hiden Columns"
+      style={{ borderRadius: '5px' }}
+    />
+  )
 
   const selectCategory = category.map((cat) => ({
     value: cat.id,
@@ -760,9 +804,9 @@ const Material = () => {
                   className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
+                  header={header}
                 >
                   <Column
-                    field="id"
                     header="No"
                     body={(data, options) => options.rowIndex + 1}
                     frozen
@@ -770,35 +814,30 @@ const Material = () => {
                   />
                   <Column
                     field="materialNo"
-                    header="No Material"
+                    header="Material No"
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
                   />
-                  <Column
-                    field="description"
-                    header="Description"
-                    style={{ width: '25%' }}
-                    frozen
-                    alignFrozen="left"
-                  />
-                  <Column field="uom" header="UOM" style={{ width: '25%' }} />
-                  <Column field="formatedPrice" header="Price" style={{ width: '25%' }} />
+                  <Column field="description" header="Description" style={{ width: '25%' }} />
+                  <Column field="uom" header="UoM" style={{ width: '25%' }} />
                   <Column field="type" header="Type" style={{ width: '25%' }} />
                   <Column
                     header="Category"
-                    body={(rowData) => (rowData.Category ? rowData.Category.categoryName : '')}
+                    field="Category.categoryName"
                     style={{ width: '25%' }}
                   />
-                  <Column
-                    header="Supplier"
-                    body={(rowData) => (rowData.Supplier ? rowData.Supplier.supplierName : '')}
-                    style={{ width: '25%' }}
-                  />
-                  <Column field="minStock" header="Min Stock" style={{ width: '25%' }} />
-                  <Column field="maxStock" header="Max stock" style={{ width: '25%' }} />
-                  <Column field="formattedCreatedAt" header="Created At" style={{ width: '25%' }} />
-                  <Column field="formattedUpdatedAt" header="Updated At" style={{ width: '25%' }} />
+                  {visibleColumns.map((col, index) => (
+                    <Column
+                      key={index}
+                      field={col.field}
+                      header={col.header}
+                      body={col.body}
+                      sortable={col.sortable}
+                      headerStyle={col.headerStyle}
+                      bodyStyle={col.bodyStyle}
+                    />
+                  ))}
                   <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
                 </DataTable>
               </>

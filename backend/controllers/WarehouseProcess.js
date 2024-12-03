@@ -121,6 +121,7 @@ export const getOrderWarehouse = async (req, res) => {
                     "uom",
                     "price",
                     "img",
+                    "minOrder",
                   ],
                   where: { flag: 1 },
                 },
