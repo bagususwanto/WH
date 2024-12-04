@@ -723,8 +723,8 @@ const ApproveAll = () => {
                                 {/* Tanggal dan waktu */}
                                 <label
                                   style={{
-                                    marginRight: '7px',
-                                    fontSize: '0.95rem',
+                                    marginRight: '15px',
+                                    fontSize: '0.8rem',
                                     color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
                                   }}
                                 >
@@ -756,12 +756,16 @@ const ApproveAll = () => {
                                 <label
                                   style={{
                                     marginLeft: '8px',
-                                    fontSize: '0.95rem',
+                                    fontSize: '0.91rem',
                                     textTransform: 'capitalize',
                                     color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                                   }}
                                 >
-                                  {item.status}
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label> By : {item.User.name}</label>
+                                    <label>{item.status}</label>
+                                    <label> Remark : {item.remarks}</label>
+                                  </div>
                                 </label>
                               </div>
                             </div>

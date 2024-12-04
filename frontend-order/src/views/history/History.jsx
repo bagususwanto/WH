@@ -533,13 +533,13 @@ const History = () => {
                           {/* Tanggal dan waktu */}
                           <label
                             style={{
-                              marginRight: '7px',
-                              fontSize: '0.95rem',
+                              marginRight: '15px',
+                              fontSize: '0.8rem',
                               color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
                             }}
                           >
                             {format(parseISO(item.createdAt), 'dd MMM yyyy')}
-                            {', '}
+                            {' ,'}
                             {format(parseISO(item.createdAt), 'HH:mm')}
                           </label>
 
@@ -566,16 +566,16 @@ const History = () => {
                           <label
                             style={{
                               marginLeft: '8px',
-                              fontSize: '0.95rem',
+                              fontSize: '0.91rem',
                               textTransform: 'capitalize',
                               color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                             }}
                           >
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              
-                              <label style={{ marginBottom: '8px' }}>{item.status}</label>
+                              <label> By : {item.User.name}</label>
+                              <label>{item.status}</label>
                               <label> Remark : {item.remarks}</label>
-                            </div>    
+                            </div>
                           </label>
                         </div>
                       </div>

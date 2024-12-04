@@ -487,7 +487,7 @@ const ConfirmApp = () => {
                     <label style={{ marginLeft: '8px' }}>
                       {' '}
                       {
-                        Confirmapproval.Detail_Orders[0].Inventory.Material.Storages.Plant.Warehouse.warehouseName
+                        Confirmapproval.Detail_Orders[0].Inventory.Material.Storages[0].Plant.Warehouse.warehouseName
                       }
                     </label>
                   </div>

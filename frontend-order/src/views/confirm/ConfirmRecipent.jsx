@@ -28,6 +28,7 @@ import {
   CModalFooter,
   CButtonGroup,
   CImage,
+  CSpinner 
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -62,7 +63,10 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
-  const [loading, setLoading] = useState(true) // Add loading state
+
+  const [loading, setLoading] = useState(false); // To control the loading overlay
+
+  
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
     if (!acc.includes(product.inventoryId)) {
@@ -110,33 +114,36 @@ const Confirm = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        order() // Call the order function directly
+        order(); // Call the order function directly
       }
-    })
-  }
+    });
+  };
 
   const order = async () => {
+    setLoading(true); // Show loading screen
     try {
-      const cartIds = verifiedCartItems.map((item) => item.id)
+      const cartIds = verifiedCartItems.map((item) => item.id);
 
       if (cartIds.length === 0) {
+        setLoading(false);
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
           text: 'No items to order. Please add items to the cart before proceeding.',
-        })
+        });
       }
 
-      const orderTime = deadline
+      const orderTime = deadline;
 
       // Validate if "Otodoke" is selected
       if (!isPickup) {
-        if (orderTime == null) {
+        if (!orderTime) {
+          setLoading(false);
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please Select Cycle.',
-          })
+          });
         }
       }
 
@@ -148,25 +155,27 @@ const Confirm = () => {
           ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber
           : '' // GIC number
 
-      const paymentMethod = iswbs ? 'GIC' : 'WBS' // Determine payment method
-      const deliveryMethod = isPickup ? 'pickup' : 'otodoke' // Delivery method
+      const paymentMethod = iswbs ? 'GIC' : 'WBS'; // Determine payment method
+      const deliveryMethod = isPickup ? 'pickup' : 'otodoke'; // Delivery method
 
       // Validate order details
       if (!isPickup) {
         if (!orderTime || !paymentNumber || !paymentMethod || !deliveryMethod) {
+          setLoading(false);
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please ensure all order details are filled out before proceeding.',
-          })
+          });
         }
       } else {
         if (!paymentNumber || !paymentMethod || !deliveryMethod) {
+          setLoading(false);
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please ensure all order details are filled out before proceeding.',
-          })
+          });
         }
       }
 
@@ -180,16 +189,23 @@ const Confirm = () => {
           remarks: message,
         },
         warehouse.id,
-      )
+      );
 
-      setCart([])
-      setCartCount(0)
+      setCart([]);
+      setCartCount(0);
 
-      navigate('/history') // Navigate to history page after successful order
+      navigate('/history'); // Navigate to history page after successful order
     } catch (error) {
-      console.error('Error creating order:', error)
+      console.error('Error creating order:', error);
+      MySwal.fire({
+        icon: 'error',
+        title: 'Order Error',
+        text: 'Something went wrong. Please try again later.',
+      });
+    } finally {
+      setLoading(false); // Hide loading screen
     }
-  }
+  };
 
   useEffect(() => {
     // Reset deadline if verifiedCartItems change
@@ -201,6 +217,25 @@ const Confirm = () => {
   const totalItems = currentProducts.length
 
   return (
+    <>
+{loading && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999,
+    }}
+  >
+    <CSpinner color="light" style={{ width: '3rem', height: '3rem' }} />
+  </div>
+)}
     <CContainer>
       <CRow>
         <CCol xs={4}>
@@ -447,7 +482,9 @@ const Confirm = () => {
         </CCol>
       </CRow>
     </CContainer>
+    </>
   )
+
 }
 
 export default Confirm
