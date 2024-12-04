@@ -439,7 +439,12 @@ const Confirm = () => {
                     <CIcon icon={cilHome} size="lg" />
                   )}
                   <label style={{ marginLeft: '8px' }}>
-                    {loading ? <Skeleton width={200} /> : 'Warehouse Issuing Plant'}
+                    {loading ? (
+                      <Skeleton width={200} />
+                    ) : (
+                      Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                        .Warehouse.warehouseName
+                    )}
                   </label>
                 </div>
 
@@ -457,7 +462,10 @@ const Confirm = () => {
                       <CIcon icon={cilArrowBottom} size="lg" />
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
-                        <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                        <label style={{ marginLeft: '8px' }}>
+                          {' '}
+                          {Confirmwarehouse.User.Organization.Line.lineName}
+                        </label>
                       </div>
                     </>
                   )
