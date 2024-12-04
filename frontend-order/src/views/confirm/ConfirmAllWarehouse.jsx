@@ -284,7 +284,7 @@ const ApproveAll = () => {
     { key: 'Ready to Pickup', label: 'Ready to Pickup' },
     { key: 'Completed', label: 'Completed' },
     { key: 'Rejected', label: 'Rejected' },
-    { key: 'Red Post', label: 'Red Post' },
+
   ]
 
   const getTabIcon = (status) => {
@@ -300,8 +300,7 @@ const ApproveAll = () => {
         return cilCheckCircle // Icon ceklis
       case 'rejected':
         return cilBan // Icon silang
-        case 'red post':
-          return cilBan // Icon silang
+      
       default:
         return cilClipboard // Default icon
     }
