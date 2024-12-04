@@ -53,7 +53,12 @@ const Confirm = () => {
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
   const location = useLocation()
-  const { getWarehouseConfirm, postWarehouseConfirm, postWarehouseShopping,rejectWarehouseConfirm } = useWarehouseService()
+  const {
+    getWarehouseConfirm,
+    postWarehouseConfirm,
+    postWarehouseShopping,
+    rejectWarehouseConfirm,
+  } = useWarehouseService()
   const savedConfirmWarehouse = JSON.parse(localStorage.getItem('shoppingWarehouse')) || {}
   const [Confirmwarehouse, setConfirmwarehouse] = useState(savedConfirmWarehouse)
   const [quantities, setQuantities] = useState({})
@@ -67,7 +72,6 @@ const Confirm = () => {
   const [selectedItems, setSelectedItems] = useState([]) // Harus array
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [rejectionReason, setRejectionReason] = useState('')
-
 
   const [loading, setLoading] = useState(true) // Add loading state
   useEffect(() => {
@@ -236,140 +240,139 @@ const Confirm = () => {
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
       // Cari produk berdasarkan productId
-      const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId);
+      const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId)
 
       // Pastikan produk ditemukan
       if (!product) {
-        console.error(`Product with ID ${productId} not found`);
-        return prevQuantities; // Jika produk tidak ditemukan, kembalikan state sebelumnya
+        console.error(`Product with ID ${productId} not found`)
+        return prevQuantities // Jika produk tidak ditemukan, kembalikan state sebelumnya
       }
 
-      const maxQuantity = product.quantity; // Batas maksimum
-      const currentQuantity = prevQuantities[productId] || 1; // Kuantitas saat ini, default ke 1 jika tidak ada
+      const maxQuantity = product.quantity // Batas maksimum
+      const currentQuantity = prevQuantities[productId] || 1 // Kuantitas saat ini, default ke 1 jika tidak ada
 
       // Periksa apakah kuantitas saat ini masih di bawah batas maksimum
       if (currentQuantity < maxQuantity) {
         return {
           ...prevQuantities,
           [productId]: currentQuantity + 1, // Tambah 1 ke kuantitas saat ini
-        };
+        }
       }
 
       // Jika sudah mencapai batas maksimum, tetap return state sebelumnya
-      return prevQuantities;
-    });
-  };
+      return prevQuantities
+    })
+  }
 
-  console.log('Confirmwarehouse.Detail_Orders:', Confirmwarehouse.Detail_Orders);
+  console.log('Confirmwarehouse.Detail_Orders:', Confirmwarehouse.Detail_Orders)
 
   // ... (Lanjutkan kode lainnya)
 
-
-const handleDecreaseQuantity = (productId) => {
-  setQuantities((prevQuantities) => ({
-    ...prevQuantities,
-    [productId]: Math.max(
-      (prevQuantities[productId] ||
-        Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId).quantity) - 1,
-      1
-    ),
-  }));
-};
-
-const handleQuantityChange = (productId, value) => {
-  const newQuantity = parseInt(value, 10); // Parsing input sebagai angka
-  const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId);
-
-  // Pastikan produk ditemukan
-  if (!product) {
-    console.error(`Product with ID ${productId} not found`);
-    return;
-  }
-
-  const maxQuantity = product.quantity; // Batas maksimum
-
-  // Periksa apakah nilai yang dimasukkan valid dan tidak melebihi batas
-  if (!isNaN(newQuantity) && newQuantity >= 1 && newQuantity <= maxQuantity) {
+  const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [productId]: newQuantity, // Set nilai baru
-    }));
-  } else {
-    console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`);
-  }
-};
-
-const handleInputChange = (e) => {
-  setRejectionReason(e.target.value)
-}
-
-const handleModalCart = (product) => {
-  setSelectedProduct(product)
-  setModalConfirm(true) // Tampilkan modal
-}
-const handleConfirmRejection = async () => {
-  if (!rejectionReason) {
-    Swal.fire({
-      title: 'Missing Information',
-      text: 'Please enter a rejection reason',
-      icon: 'warning',
-      confirmButtonText: 'OK',
-    })
-    return
+      [productId]: Math.max(
+        (prevQuantities[productId] ||
+          Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId).quantity) - 1,
+        1,
+      ),
+    }))
   }
 
-  try {
-    const result = await MySwal.fire({
-      title: 'Are you sure?',
-      text: 'You are about to reject this order.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, reject it!',
-      cancelButtonText: 'No, cancel!',
-      reverseButtons: true,
-    })
+  const handleQuantityChange = (productId, value) => {
+    const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
+    const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId)
 
-    if (result.isConfirmed) {
-      try {
-        const data = {
-          remarks: rejectionReason,
-        }
-        console.log('warehouse', warehouse)
-        console.log('selectedProduct', selectedProduct)
-        console.log('dataaa', data)
-        const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
-        // Update Confirmapproval state by removing the deleted item
-        const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
-          (order) => order.id !== selectedProduct.id,
-        )
-
-        // Set the new state with updated Detail_Orders
-        setConfirmwarehouse((prevConfirmwarehouse) => ({
-          ...prevConfirmwarehouse,
-          Detail_Orders: updatedDetailOrders,
-        }))
-
-        // Handle success
-        MySwal.fire(
-          'Rejected!',
-          'The order has been rejected.,sudah masuk tab untuk item rejected',
-          'success',
-        )
-
-        // Optionally update the UI here
-        setModalConfirm(false) // Tutup modal
-        setRejectionReason('') // Reset alasan penolakan
-      } catch (error) {
-        console.error('Error in rejection API call:', error)
-        MySwal.fire('Error!', 'An unexpected error occurred.', 'error')
-      }
+    // Pastikan produk ditemukan
+    if (!product) {
+      console.error(`Product with ID ${productId} not found`)
+      return
     }
-  } catch (error) {
-    console.error('Error confirming rejection:', error)
+
+    const maxQuantity = product.quantity // Batas maksimum
+
+    // Periksa apakah nilai yang dimasukkan valid dan tidak melebihi batas
+    if (!isNaN(newQuantity) && newQuantity >= 1 && newQuantity <= maxQuantity) {
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [productId]: newQuantity, // Set nilai baru
+      }))
+    } else {
+      console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`)
+    }
   }
-}
+
+  const handleInputChange = (e) => {
+    setRejectionReason(e.target.value)
+  }
+
+  const handleModalCart = (product) => {
+    setSelectedProduct(product)
+    setModalConfirm(true) // Tampilkan modal
+  }
+  const handleConfirmRejection = async () => {
+    if (!rejectionReason) {
+      Swal.fire({
+        title: 'Missing Information',
+        text: 'Please enter a rejection reason',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+      })
+      return
+    }
+
+    try {
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to reject this order.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, reject it!',
+        cancelButtonText: 'No, cancel!',
+        reverseButtons: true,
+      })
+
+      if (result.isConfirmed) {
+        try {
+          const data = {
+            remarks: rejectionReason,
+          }
+          console.log('warehouse', warehouse)
+          console.log('selectedProduct', selectedProduct)
+          console.log('dataaa', data)
+          const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
+          // Update Confirmapproval state by removing the deleted item
+          const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
+            (order) => order.id !== selectedProduct.id,
+          )
+
+          // Set the new state with updated Detail_Orders
+          setConfirmwarehouse((prevConfirmwarehouse) => ({
+            ...prevConfirmwarehouse,
+            Detail_Orders: updatedDetailOrders,
+          }))
+
+          // Handle success
+          MySwal.fire(
+            'Rejected!',
+            'The order has been rejected.,sudah masuk tab untuk item rejected',
+            'success',
+          )
+
+          // Optionally update the UI here
+          setModalConfirm(false) // Tutup modal
+          setRejectionReason('') // Reset alasan penolakan
+        } catch (error) {
+          console.error('Error in rejection API call:', error)
+          MySwal.fire('Error!', 'An unexpected error occurred.', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('Error confirming rejection:', error)
+    }
+  }
   return (
     <CContainer>
       <CRow className="mt-1">
@@ -462,7 +465,12 @@ const handleConfirmRejection = async () => {
                     <CIcon icon={cilHome} size="lg" />
                   )}
                   <label style={{ marginLeft: '8px' }}>
-                    {loading ? <Skeleton width={200} /> : 'Warehouse Issuing Plant'}
+                    {loading ? (
+                      <Skeleton width={200} />
+                    ) : (
+                      Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                        .Warehouse.warehouseName
+                    )}
                   </label>
                 </div>
 
@@ -480,7 +488,12 @@ const handleConfirmRejection = async () => {
                       <CIcon icon={cilArrowBottom} size="lg" />
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
-                        <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                        <label style={{ marginLeft: '8px' }}>
+                          {
+                            Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                              .Warehouse.warehouseName
+                          }
+                        </label>
                       </div>
                     </>
                   )
@@ -548,7 +561,7 @@ const handleConfirmRejection = async () => {
           {/* Address Code Form */}
 
           <CRow className="g-2">
-          <CFormLabel htmlFor="address" style={{ fontSize: '0.8rem', marginBottom: '0rem' }}>
+            <CFormLabel htmlFor="address" style={{ fontSize: '0.8rem', marginBottom: '0rem' }}>
               Address Code
             </CFormLabel>
             <Select
@@ -581,168 +594,164 @@ const handleConfirmRejection = async () => {
                   key={product.id}
                   className="d-flex flex-column justify-content-between"
                   onClick={() => handleCardClick(product)}
-               
                 >
                   <CCardBody>
-                  <CRow className="align-items-center">
-                        <CCol xs={2} sm={1} md={1}>
-                          <CCardImage
-                            src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-                            style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs={5} sm={5} md={5}>
-                          <div style={{ lineHeight: '1.5' }}>
-                            <label style={{ fontSize: '0.9em' }}>
-                              {product.Inventory.Material.description}
-                            </label>
-                            <label
-                              style={{ fontSize: '0.7em', fontWeight: 'bold', display: 'block' }}
+                    <CRow className="align-items-center">
+                      <CCol xs={2} sm={1} md={1}>
+                        <CCardImage
+                          src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                          style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                        />
+                      </CCol>
+                      <CCol xs={5} sm={5} md={5}>
+                        <div style={{ lineHeight: '1.5' }}>
+                          <label style={{ fontSize: '0.9em' }}>
+                            {product.Inventory.Material.description}
+                          </label>
+                          <label
+                            style={{ fontSize: '0.7em', fontWeight: 'bold', display: 'block' }}
+                          >
+                            {product.Inventory.Address_Rack.addressRackName}
+                          </label>
+                          <label style={{ fontSize: '0.65em', display: 'block' }}>
+                            Min Order: {product.Inventory.Material.minOrder}{' '}
+                            {product.Inventory.Material.uom}
+                          </label>
+                        </div>
+                      </CCol>
+                      <CCol xs={3} sm={3} md={3}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <CButtonGroup role="group" aria-label="Basic outlined example">
+                            <CButton
+                              color="secondary"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDecreaseQuantity(product.id)}
                             >
-                              {product.Inventory.Address_Rack.addressRackName}
-                            </label>
-                            <label style={{ fontSize: '0.65em', display: 'block' }}>
-                              Min Order: {product.Inventory.Material.minOrder}{' '}
-                              {product.Inventory.Material.uom}
-                            </label>
-                          </div>
-                        </CCol>
-                        <CCol xs={3} sm={3} md={3}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <CButtonGroup role="group" aria-label="Basic outlined example">
-                              <CButton
-                                color="secondary"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDecreaseQuantity(product.id)}
-                              
-                              >
-                                -
-                              </CButton>
-                              <CFormInput
-                                type="text"
-                                value={quantities[product.id] || 1}
-                                aria-label="Number input"
-                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                                className="text-center" // Utility class for centering text
-                                style={{
-                                  textAlign: 'center', // Pusatkan teks secara horizontal
-                                  verticalAlign: 'middle', // Pusatkan teks secara vertikal
-                                  height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
-                                  border: 'none', // Hilangkan border
-                                  outline: 'none', // Hilangkan garis biru/oranye saat fokus
-                                }}
-
-                              />
-
-                              <CButton
-                                color="secondary"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleIncreaseQuantity(product.id)}
-                                disable
-                                
-                              >
-                                +
-                              </CButton>
-                            </CButtonGroup>
-                          </div>
-                        </CCol>
-                        <CCol xs={2} sm={3} md={3} className="d-flex align-items-center">
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            {/* UOM di pojok kiri */}
-                            <span
-                              className="fw-light"
+                              -
+                            </CButton>
+                            <CFormInput
+                              type="text"
+                              value={quantities[product.id] || 1}
+                              aria-label="Number input"
+                              onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                              className="text-center" // Utility class for centering text
                               style={{
-                                fontSize: '0.8em',
-                                textAlign: 'left',
-                                flex: '1',
+                                textAlign: 'center', // Pusatkan teks secara horizontal
+                                verticalAlign: 'middle', // Pusatkan teks secara vertikal
+                                height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
+                                border: 'none', // Hilangkan border
+                                outline: 'none', // Hilangkan garis biru/oranye saat fokus
+                              }}
+                            />
+
+                            <CButton
+                              color="secondary"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleIncreaseQuantity(product.id)}
+                              disable
+                            >
+                              +
+                            </CButton>
+                          </CButtonGroup>
+                        </div>
+                      </CCol>
+                      <CCol xs={2} sm={3} md={3} className="d-flex align-items-center">
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                        >
+                          {/* UOM di pojok kiri */}
+                          <span
+                            className="fw-light"
+                            style={{
+                              fontSize: '0.8em',
+                              textAlign: 'left',
+                              flex: '1',
+                            }}
+                          >
+                            ({product.Material?.uom || 'UOM'})
+                          </span>
+
+                          {/* Badge Reject di pojok kanan */}
+                          {product.isReject == 1 ? (
+                            <CBadge
+                              color="danger"
+                              className="ms-auto"
+                              style={{
+                                fontSize: '0.6em',
+                                padding: '5px 10px',
+                                borderRadius: '12px',
+                                whiteSpace: 'nowrap',
                               }}
                             >
-                              ({product.Material?.uom || 'UOM'})
-                            </span>
+                              Rejected
+                            </CBadge>
+                          ) : (
+                            <CButton
+                              color="danger"
+                              variant="outline"
+                              size="sm"
+                              className="ms-auto"
+                              onClick={() => handleModalCart(product)}
+                            >
+                              Red Post
+                            </CButton>
+                          )}
+                        </div>
+                      </CCol>
+                    </CRow>
+                    <CRow>
+                      {/* modal */}
+                      {modalConfirm && selectedProduct && (
+                        <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
+                          <CModalHeader>
+                            <CModalTitle>Provide Rejection Reason</CModalTitle>
+                          </CModalHeader>
+                          <CModalBody>
+                            <CRow className="mb-2">
+                              <CCol md="4">
+                                <CImage
+                                  src={'https://via.placeholder.com/150'}
+                                  // alt={selectedProduct.Material.description}
+                                  fluid
+                                  className="rounded"
+                                />
+                              </CCol>
+                              <CCol md="8">
+                                <strong>{selectedProduct.Inventory.Material.description}</strong>
+                                <p style={{ fontSize: '0.8em' }}>
+                                  {selectedProduct.Inventory.Address_Rack.addressRackName}
+                                </p>
+                              </CCol>
+                            </CRow>
+                            <CFormInput
+                              type="text"
+                              placeholder="Enter rejection reason"
+                              value={rejectionReason}
+                              onChange={handleInputChange}
+                            />
+                          </CModalBody>
+                          <CModalFooter>
+                            <CButton color="danger" onClick={handleConfirmRejection}>
+                              Submit Reject
+                            </CButton>
+                          </CModalFooter>
+                        </CModal>
+                      )}
+                    </CRow>
 
-                            {/* Badge Reject di pojok kanan */}
-                            {product.isReject == 1 ? (
-                              <CBadge
-                                color="danger"
-                                className="ms-auto"
-                                style={{
-                                  fontSize: '0.6em',
-                                  padding: '5px 10px',
-                                  borderRadius: '12px',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                Rejected
-                              </CBadge>
-                            ) : (
-                              <CButton
-                                color="danger"
-                                variant="outline"
-                                size="sm"
-                                className="ms-auto"
-                                onClick={() => handleModalCart(product)}
-                              >
-                             Red Post
-                              </CButton>
-                            )}
-                          </div>
-                        </CCol>
-                      </CRow>
-                      <CRow>
-                        {/* modal */}
-                        {modalConfirm && selectedProduct && (
-                          <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
-                            <CModalHeader>
-                              <CModalTitle>Provide Rejection Reason</CModalTitle>
-                            </CModalHeader>
-                            <CModalBody>
-                              <CRow className="mb-2">
-                                <CCol md="4">
-                                  <CImage
-                                    src={'https://via.placeholder.com/150'}
-                                    // alt={selectedProduct.Material.description}
-                                    fluid
-                                    className="rounded"
-                                  />
-                                </CCol>
-                                <CCol md="8">
-                                  <strong>{selectedProduct.Inventory.Material.description}</strong>
-                                  <p style={{ fontSize: '0.8em' }}>
-                                    {selectedProduct.Inventory.Address_Rack.addressRackName}
-                                  </p>
-                                </CCol>
-                              </CRow>
-                              <CFormInput
-                                type="text"
-                                placeholder="Enter rejection reason"
-                                value={rejectionReason}
-                                onChange={handleInputChange}
-                              />
-                            </CModalBody>
-                            <CModalFooter>
-                              <CButton color="danger" onClick={handleConfirmRejection}>
-                                Submit Reject
-                              </CButton>
-                            </CModalFooter>
-                          </CModal>
-                        )}
-                      </CRow>
-                     
                     {/* Show the rejection reason under the product if rejected */}
                     {product.rejected && (
                       <div style={{ marginTop: '10px' }}>
