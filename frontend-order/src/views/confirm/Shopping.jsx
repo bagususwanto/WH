@@ -108,7 +108,6 @@ const Confirm = () => {
       setIsPickup(false)
     }
   }, [savedConfirmWarehouse])
-  console.log('initial', savedConfirmWarehouse)
 
   // Simpan perubahan Confirmwarehouse ke localStorage
   useEffect(() => {
@@ -229,13 +228,11 @@ const Confirm = () => {
           }
         } catch (error) {
           console.error('Error in approval:', error)
-          Swal.fire('Error', 'There was an error Confirm the order.', 'error')
         }
       }
     })
   }
-  console.log('confirm', Confirmwarehouse)
-  console.log('saved', savedConfirmWarehouse)
+
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
@@ -244,7 +241,6 @@ const Confirm = () => {
 
       // Pastikan produk ditemukan
       if (!product) {
-        console.error(`Product with ID ${productId} not found`)
         return prevQuantities // Jika produk tidak ditemukan, kembalikan state sebelumnya
       }
 
@@ -264,7 +260,6 @@ const Confirm = () => {
     })
   }
 
-  console.log('Confirmwarehouse.Detail_Orders:', Confirmwarehouse.Detail_Orders)
 
   // ... (Lanjutkan kode lainnya)
 
@@ -339,9 +334,7 @@ const Confirm = () => {
           const data = {
             remarks: rejectionReason,
           }
-          console.log('warehouse', warehouse)
-          console.log('selectedProduct', selectedProduct)
-          console.log('dataaa', data)
+        
           const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
           // Update Confirmapproval state by removing the deleted item
           const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
@@ -366,7 +359,6 @@ const Confirm = () => {
           setRejectionReason('') // Reset alasan penolakan
         } catch (error) {
           console.error('Error in rejection API call:', error)
-          MySwal.fire('Error!', 'An unexpected error occurred.', 'error')
         }
       }
     } catch (error) {
