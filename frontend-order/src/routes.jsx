@@ -29,8 +29,8 @@ const routes = [
   { path: '/approveall', name: 'AprroveAll', element: ApproveAll },
   { path: '/approveall/approve-confirm', name: 'ConfirmApp', element: ConfirmApp },
   { path: '/confirmall', name: 'ConfirmAll', element: ConfirmAll },
-  { path: '/confirmall/confirmWh', name: 'ConfirmWer', element: ConfirmWer },
-  { path: '/confirmall/confirmDelivWh', name: 'ConfirmDel', element: ConfirmDel },
+  { path: '/confirmall/confirm-order', name: 'ConfirmWer', element: ConfirmWer },
+  { path: '/confirmall/delivery-pickupconfirm', name: 'ConfirmDel', element: ConfirmDel },
   { path: '/confirmall/shopping', name: 'Shopping', element: Shopping },
   { path: '/confirmrecipent', name: 'ConfirmRec', element: ConfirmRec },
 ]

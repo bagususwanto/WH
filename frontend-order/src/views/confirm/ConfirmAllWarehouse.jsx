@@ -246,28 +246,28 @@ const ApproveAll = () => {
     setSelectedProduct(initialConfirmWarehouse)
     setVisible(true)
     localStorage.setItem('confirmWarehouse', JSON.stringify(initialConfirmWarehouse))
-    navigate('/confirmwer', { state: { initialConfirmWarehouse } })
+    navigate('/confirmall/confirm-order', { state: { initialConfirmWarehouse } })
   }
 
   const handleOnProcess = (product) => {
     setSelectedProduct(product)
     setVisible(true)
     localStorage.setItem('shoppingWarehouse', JSON.stringify(product))
-    navigate('/shopping', { state: { product } })
+    navigate('/confirmall/shopping', { state: { product } })
   }
 
   const handleReadyToDeliver = (product) => {
     setSelectedProduct(product)
     setVisible(true)
     localStorage.setItem('CompleteWarehouse', JSON.stringify(product))
-    navigate('/confirmdel', { state: { product } })
+    navigate('/confirmall/delivery-pickupconfirm', { state: { product } })
   }
 
   const handleReadyToPickup = (product) => {
     setSelectedProduct(product)
     localStorage.setItem('CompleteWarehouse', JSON.stringify(product))
     setVisible(true)
-    navigate('/confirmdel', { state: { product } })
+    navigate('/confirmall/delivery-pickupconfirm', { state: { product } })
   }
 
   // Fallback for unknown statuses
