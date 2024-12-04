@@ -490,8 +490,7 @@ const Confirm = () => {
                         <CIcon icon={cilLocationPin} size="lg" />
                         <label style={{ marginLeft: '8px' }}>
                           {
-                            Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
-                              .Warehouse.warehouseName
+                            Confirmwarehouse.User.Organization.Line.lineName
                           }
                         </label>
                       </div>
