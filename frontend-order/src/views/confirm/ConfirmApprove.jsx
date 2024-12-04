@@ -484,14 +484,20 @@ const Confirm = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <CIcon icon={cilHome} size="lg" />
-                    <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+                    <label style={{ marginLeft: '8px' }}>
+                      {' '}
+                      {
+                        Confirmapproval.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                          .Warehouse.warehouseName
+                      }
+                    </label>
                   </div>
                   {Confirmapproval.deliveryMethod !== 'pickup' && (
                     <>
                       <CIcon icon={cilArrowBottom} size="lg" />
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
-                        <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                        <label style={{ marginLeft: '8px' }}>{Confirmwarehouse.User.Organization.Line.lineName}</label>
                       </div>
                     </>
                   )}

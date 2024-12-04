@@ -304,14 +304,23 @@ const ApproveAll = () => {
                   <>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <CIcon icon={cilHome} size="lg" />
-                      <label style={{ marginLeft: '8px' }}>Warehouse Issuing Plant</label>
+                      <label style={{ marginLeft: '8px' }}>
+                        {' '}
+                        {
+                          Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                            .Warehouse.warehouseName
+                        }
+                      </label>
                     </div>
                     {Confirmwarehouse.deliveryMethod !== 'pickup' && (
                       <>
                         <CIcon icon={cilArrowBottom} size="lg" />
                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
                           <CIcon icon={cilLocationPin} size="lg" />
-                          <label style={{ marginLeft: '8px' }}>ASSY PLANT 1 KARAWANG</label>
+                          <label style={{ marginLeft: '8px' }}>
+                            {' '}
+                            {Confirmwarehouse.User.Organization.Line.lineName}
+                          </label>
                         </div>
                       </>
                     )}
@@ -448,14 +457,14 @@ const ApproveAll = () => {
                               alignItems: 'center',
                             }}
                           >
-                           <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <label style={{ fontSize: '0.9rem', marginRight: '0.3rem' }}>
-                              {product.quantity}
-                            </label>
-                            <label style={{ fontSize: '0.9rem' }} className="fw-light">
-                              {product.Inventory.Material.uom}
-                            </label>
-                          </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <label style={{ fontSize: '0.9rem', marginRight: '0.3rem' }}>
+                                {product.quantity}
+                              </label>
+                              <label style={{ fontSize: '0.9rem' }} className="fw-light">
+                                {product.Inventory.Material.uom}
+                              </label>
+                            </div>
                           </div>
                         </CCol>
                       </CRow>
