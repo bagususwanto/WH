@@ -135,7 +135,7 @@ const Material = () => {
 
   const columns = [
     {
-      field: 'formattedPrice',
+      field: 'formatedPrice',
       header: 'Price',
       sortable: true,
     },

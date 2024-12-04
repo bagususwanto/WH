@@ -740,7 +740,7 @@ export const rejectOrderWarehouse = async (req, res) => {
       { transaction }
     );
 
-    const status = `rejected by warehouse for item: ${order.Inventory.Material.description}`;
+    const status = `rejected by warehouse: ${order.Inventory.Material.description}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, remarks, { transaction });
@@ -748,7 +748,7 @@ export const rejectOrderWarehouse = async (req, res) => {
     // Create notification
     const notification = {
       title: "Item Rejected",
-      description: `Rejected by warehouse for item: ${order.Inventory.Material.description}, remarks: ${remarks}`,
+      description: `Rejected by warehouse: ${order.Inventory.Material.description}, remarks: ${remarks}`,
       category: "approval",
     };
 

@@ -722,7 +722,7 @@ export const rejectOrder = async (req, res) => {
       { transaction }
     );
 
-    const status = `rejected ${role} for item ${order.Inventory.Material.description}, remarks: ${remarks}`;
+    const status = `rejected ${role}: ${order.Inventory.Material.description}, remarks: ${remarks}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, remarks, { transaction });
@@ -795,7 +795,7 @@ export const deleteOrderItem = async (req, res) => {
       { transaction }
     );
 
-    const status = `deleted by ${role} for item: ${order.Inventory.Material.description}`;
+    const status = `deleted by ${role}: ${order.Inventory.Material.description}`;
 
     // Create history order
     await postOrderHistory(status, userId, orderId, remarks, { transaction });
@@ -803,7 +803,7 @@ export const deleteOrderItem = async (req, res) => {
     // Create notification
     const notification = {
       title: "Deleted Item",
-      description: `Deleted by ${role} for item: ${order.Inventory.Material.description}, remarks: ${remarks}`,
+      description: `Deleted by ${role}: ${order.Inventory.Material.description}, remarks: ${remarks}`,
       category: "approval",
     };
 
