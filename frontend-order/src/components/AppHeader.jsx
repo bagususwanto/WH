@@ -96,6 +96,7 @@ const AppHeader = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const modalRef = useRef(null) // Ref untuk modal dropdown
   const [modalCloseTimer, setModalCloseTimer] = useState(null)
+  const [dropdownNotif, setDropdownNotif] = useState(false)
 
   const iconMap = {
     'Office Supp.': cilPencil,
@@ -417,29 +418,26 @@ const AppHeader = () => {
   const handleLoadMore = async () => {
     try {
       // Tandai semua notifikasi sebagai sudah dibaca
-      await postAllNotification(warehouse.id);
-  
+      await postAllNotification(warehouse.id)
+
       // Perbarui state notifikasi menjadi sudah dibaca (isRead: 1)
-      setNotifDesc((prevNotifDesc) =>
-        prevNotifDesc.map((notif) => ({ ...notif, isRead: 1 }))
-      );
-  
+      setNotifDesc((prevNotifDesc) => prevNotifDesc.map((notif) => ({ ...notif, isRead: 1 })))
+
       // Memuat lebih banyak notifikasi dari server dan menambahkannya ke state
-      const moreNotifications = await loadMoreNotifications();
-      setNotifDesc((prevNotifDesc) => [...prevNotifDesc, ...moreNotifications]);
-  
+      const moreNotifications = await loadMoreNotifications()
+      setNotifDesc((prevNotifDesc) => [...prevNotifDesc, ...moreNotifications])
+
       // Arahkan pengguna ke halaman profil
-      navigate('/profile');
-  
+      navigate('/profile')
+
       // Tutup dropdown setelah memuat lebih banyak notifikasi
       if (modalRef.current) {
-        modalRef.current.classList.remove('show'); // Menutup dropdown
+        modalRef.current.classList.remove('show') // Menutup dropdown
       }
     } catch (error) {
-      console.error('Error handling load more:', error);
+      console.error('Error handling load more:', error)
     }
-  };
-  
+  }
 
   const handleNotifselect = async (notif) => {
     try {
@@ -470,8 +468,6 @@ const AppHeader = () => {
   }
 
   const handleMarkAllAsRead = async () => {
-    e.stopPropagation() // Cegah event bubble agar dropdown tidak auto-close
-    e.preventDefault() // Mencegah tindakan bawaan jika perlu
     if (notifDesc.length > 0) {
       const updatedNotifs = notifDesc.map((notif) => ({
         ...notif,
@@ -479,7 +475,6 @@ const AppHeader = () => {
       }))
       setNotifDesc(updatedNotifs)
       setNotifCount(0) // Update notifCount setelah semua notifikasi dibaca
-
       try {
         await postAllNotification(warehouse.id) // Sinkronkan dengan server
         setIsModalOpen(true) // Menutup dropdown setelah Mark All As Read
@@ -696,10 +691,10 @@ const AppHeader = () => {
           {/* Konten keranjang dan notifikasi */}
           <CDropdown variant="nav-item">
             <CDropdownToggle
-              className="py-0 pe-0 d-flex align-items-center position-relative"
+              className="py-0 pe-0 d-flex align-items-center position-relative me-3"
               caret={false}
             >
-              <CIcon icon={cilCart} size="lg" className="me-3" />
+              <CIcon icon={cilCart} size="lg" />
               {cartCount > 0 && (
                 <CBadge
                   color="danger"
@@ -790,12 +785,14 @@ const AppHeader = () => {
             </CDropdownMenu>
           </CDropdown>
 
-          <CDropdown variant="nav-item" autoClose={false}>
+          <CDropdown variant="nav-item" autoClose={'outside'}>
             <CDropdownToggle
-              className="px-3 py-0 pe-0 d-flex align-items-center position-relative"
+              className="d-flex align-items-center position-relative"
               caret={false}
+              onMouseEnter={() => setDropdownNotif(false)} // Nonaktifkan autoClose saat mouse di ikon
+              onMouseLeave={() => setDropdownNotif(true)} // Aktifkan autoClose saat mouse meninggalkan ikon
             >
-              <CIcon icon={cilBell} size="lg" className="me-5" />
+              <CIcon icon={cilBell} size="lg" />
               {notifCount > 0 && (
                 <CBadge
                   color="danger"
@@ -816,6 +813,8 @@ const AppHeader = () => {
                 minWidth: '400px',
               }}
               ref={modalRef} // Menghubungkan ref dengan dropdown
+              onMouseEnter={() => setDropdownNotif(false)} // Nonaktifkan autoClose saat mouse di dropdown
+              onMouseLeave={() => setDropdownNotif(true)} // Aktifkan autoClose saat mouse keluar dropdown
             >
               <CDropdownHeader
                 className="bg-body-secondary fw-semibold"
@@ -867,7 +866,7 @@ const AppHeader = () => {
                     </CDropdownItem>
                   ))
                 ) : (
-                  <div> // Pesan jika tidak ada notifikasi</div>
+                  <div>No notifications</div>
                 )}
               </div>
 
@@ -876,7 +875,7 @@ const AppHeader = () => {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <CLink
-                    onClick={(e) => handleMarkAllAsRead(e)} // Panggil dengan event
+                    onClick={handleMarkAllAsRead} // Panggil dengan event
                     className="text-primary"
                     style={{ cursor: 'pointer', textDecoration: 'none' }}
                   >
