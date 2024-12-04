@@ -386,7 +386,7 @@ const handleConfirmRejection = async () => {
                   <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
                 )}
                 <CButton color="primary" onClick={handleApprove} disabled={loading}>
-                  {loading ? <Skeleton width={100} /> : 'Delivery Now'}
+                  {loading ? <Skeleton width={100} /> : 'Deliver Now'}
                 </CButton>
               </div>
             </CCardBody>

@@ -15,6 +15,8 @@ import { Op } from "sequelize";
 import { postOrderHistory } from "./OrderHistory.js";
 import db from "../utils/Database.js";
 import { createNotification } from "./Notification.js";
+import Plant from "../models/PlantModel.js";
+import Storage from "../models/StorageModel.js";
 
 export const getOrderWarehouse = async (req, res) => {
   try {
@@ -67,23 +69,42 @@ export const getOrderWarehouse = async (req, res) => {
       include: [
         {
           model: DetailOrder,
+          attributes: ["id"],
           where: whereCondition2,
-        },
-        {
-          model: User,
           include: [
             {
-              model: Organization,
-              required: false,
+              model: Inventory,
+              attributes: ["id"],
               include: [
-                { model: Line, required: false, where: { flag: 1 } },
-                { model: Section, required: false, where: { flag: 1 } },
+                {
+                  model: AddressRack,
+                  attributes: ["id"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      attributes: ["id"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id"],
+                          where: { flag: 1 },
+                          include: [
+                            {
+                              model: Warehouse,
+                              required: true,
+                              attributes: ["id"],
+                              where: { flag: 1, id: warehouseId },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
               ],
-            },
-            {
-              model: Warehouse,
-              as: "alternateWarehouse",
-              where: { id: warehouseId },
             },
           ],
         },
@@ -107,9 +128,31 @@ export const getOrderWarehouse = async (req, res) => {
               include: [
                 {
                   model: AddressRack,
-                  required: false,
                   attributes: ["id", "addressRackName"],
                   where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      attributes: ["id", "storageName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id", "plantName"],
+                          where: { flag: 1 },
+                          include: [
+                            {
+                              model: Warehouse,
+                              required: true,
+                              attributes: ["id", "warehouseName"],
+                              where: { flag: 1, id: warehouseId },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   model: Material,
@@ -160,12 +203,12 @@ export const getOrderWarehouse = async (req, res) => {
                 },
               ],
             },
-            {
-              model: Warehouse,
-              as: "alternateWarehouse",
-              required: true,
-              where: { id: warehouseId },
-            },
+            // {
+            //   model: Warehouse,
+            //   as: "alternateWarehouse",
+            //   required: true,
+            //   where: { id: warehouseId },
+            // },
           ],
         },
       ],
