@@ -16,6 +16,8 @@ import { createNotification } from "./Notification.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Line from "../models/LineModel.js";
 import Section from "../models/SectionModel.js";
+import Storage from "../models/StorageModel.js";
+import Plant from "../models/PlantModel.js";
 
 // Helper function untuk mengambil userIdApproval
 export const getUserIdApproval = async (condition) => {
@@ -96,14 +98,8 @@ const findRoleAndOrders = async (
       include: [
         {
           model: Inventory,
-          attributes: ["id", "addressId", "materialId"],
+          attributes: ["id", "materialId"],
           include: [
-            {
-              model: AddressRack,
-              required: false,
-              attributes: ["id", "addressRackName"],
-              where: { flag: 1 },
-            },
             {
               model: Material,
               required: false,
@@ -117,6 +113,30 @@ const findRoleAndOrders = async (
                 "minOrder",
               ],
               where: { flag: 1 },
+              include: [
+                {
+                  model: Storage,
+                  required: false,
+                  attributes: ["id", "storageName"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Plant,
+                      required: false,
+                      attributes: ["id", "plantName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Warehouse,
+                          required: false,
+                          attributes: ["id", "warehouseName"],
+                          where: { flag: 1, id: warehouseId },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -153,12 +173,12 @@ const findRoleAndOrders = async (
             },
           ],
         },
-        {
-          model: Warehouse,
-          as: "alternateWarehouse",
-          required: true,
-          where: { id: warehouseId },
-        },
+        // {
+        //   model: Warehouse,
+        //   as: "alternateWarehouse",
+        //   required: true,
+        //   where: { id: warehouseId },
+        // },
       ],
     },
   ];

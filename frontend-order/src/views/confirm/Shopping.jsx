@@ -233,7 +233,6 @@ const Confirm = () => {
     })
   }
 
-
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
       // Cari produk berdasarkan productId
@@ -259,7 +258,6 @@ const Confirm = () => {
       return prevQuantities
     })
   }
-
 
   // ... (Lanjutkan kode lainnya)
 
@@ -334,7 +332,7 @@ const Confirm = () => {
           const data = {
             remarks: rejectionReason,
           }
-        
+
           const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
           // Update Confirmapproval state by removing the deleted item
           const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
@@ -481,9 +479,7 @@ const Confirm = () => {
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
                         <label style={{ marginLeft: '8px' }}>
-                          {
-                            Confirmwarehouse.User.Organization.Line.lineName
-                          }
+                          {Confirmwarehouse.User.Organization.Line.lineName}
                         </label>
                       </div>
                     </>
@@ -697,7 +693,7 @@ const Confirm = () => {
                               className="ms-auto"
                               onClick={() => handleModalCart(product)}
                             >
-                              Red Post
+                              Reject
                             </CButton>
                           )}
                         </div>
