@@ -224,7 +224,7 @@ const ApproveAll = () => {
                 >
                   <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
                   <CButton color="primary" onClick={handleApprove}>
-                    Confirm Now
+                    Complete Now
                   </CButton>
                 </div>
               )}
