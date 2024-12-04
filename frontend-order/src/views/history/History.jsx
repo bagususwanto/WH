@@ -41,7 +41,7 @@ import {
   cilCircle,
   cilApplications,
   cilPlaylistAdd,
-  cilBan
+  cilBan,
 } from '@coreui/icons'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
@@ -220,10 +220,10 @@ const History = () => {
   const getTabIcon = (status) => {
     switch (status) {
       case 'all':
-        return  cilApplications // Icon kertas
-        case 'waiting approval':
-          return cilPlaylistAdd // Icon kertas
-     
+        return cilApplications // Icon kertas
+      case 'waiting approval':
+        return cilPlaylistAdd // Icon kertas
+
       case 'waiting confirmation':
         return cilClipboard // Icon kertas
       case 'on process':
@@ -351,7 +351,7 @@ const History = () => {
                       <CRow className="align-items-center">
                         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                           <CCol>
-                          <CIcon className="me-2" icon={getTabIcon(order.status)} />
+                            <CIcon className="me-2" icon={getTabIcon(order.status)} />
                             <label className="me-2 fs-6">
                               {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
                             </label>
@@ -398,7 +398,7 @@ const History = () => {
                               Total: {order.Detail_Orders.length} Item
                             </label>
                           </CCol>
-                          <CCol xs="4" className="text-end" style={{fontSize:'0.95em'}}>
+                          <CCol xs="4" className="text-end" style={{ fontSize: '0.95em' }}>
                             <label>{order.paymentMethod} :</label>
                             <span className="fw-bold"> {order.paymentNumber}</span>
                           </CCol>
@@ -411,7 +411,6 @@ const History = () => {
                               variant="outline"
                               onClick={() => handleViewHistoryOrder(order)}
                               size="sm"
-                            
                             >
                               View Detail Order
                             </CButton>
@@ -572,7 +571,10 @@ const History = () => {
                               color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                             }}
                           >
-                            {item.status}  
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <label style={{ marginBottom: '8px' }}>{item.status}</label>
+                              <label>{item.remarks}</label>
+                            </div>
                           </label>
                         </div>
                       </div>
