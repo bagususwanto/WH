@@ -77,7 +77,7 @@ const iconMap = {
   Tools: cilKeyboard,
 }
 
-const Confirm = () => {
+const ConfirmApp = () => {
   const [productsData, setProductsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
@@ -487,8 +487,7 @@ const Confirm = () => {
                     <label style={{ marginLeft: '8px' }}>
                       {' '}
                       {
-                        Confirmapproval.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
-                          .Warehouse.warehouseName
+                        Confirmapproval.Detail_Orders[0].Inventory.Material.Storages[0].Plant.Warehouse.warehouseName
                       }
                     </label>
                   </div>
@@ -773,4 +772,4 @@ const Confirm = () => {
   )
 }
 
-export default Confirm
+export default ConfirmApp

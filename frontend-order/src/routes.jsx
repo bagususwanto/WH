@@ -22,18 +22,17 @@ const routes = [
   { path: '/wishlist', name: 'Wishlist', element: Wishlist },
   { path: '/profile', name: 'Profile', element: Profile },
   { path: '/history', name: 'History', element: History },
-
   { path: '/order', name: 'Order', element: Order },
   { path: '/order/:warehouseId', name: 'Order', element: Order },
   { path: '/order/category/:categoryId', name: 'Order', element: Order },
   { path: '/cart', name: 'Cart', element: Cart },
   { path: '/approveall', name: 'AprroveAll', element: ApproveAll },
+  { path: '/approveall/approvalConfirm', name: 'ConfirmApp', element: ConfirmApp },
   { path: '/confirmall', name: 'ConfirmAll', element: ConfirmAll },
-  { path: '/confirmwer', name: 'ConfirmWer', element: ConfirmWer },
-  { path: '/confirmapp', name: 'ConfirmApp', element: ConfirmApp },
-  { path: '/confirmrec', name: 'ConfirmRec', element: ConfirmRec },
-  { path: '/confirmdel', name: 'ConfirmDel', element: ConfirmDel },
-  { path: '/shopping', name: 'Shopping', element: Shopping},
+  { path: '/confirmall/confirmWh', name: 'ConfirmWer', element: ConfirmWer },
+  { path: '/confirmall/confirmDelivWh', name: 'ConfirmDel', element: ConfirmDel },
+  { path: '/confirmall/shopping', name: 'Shopping', element: Shopping },
+  { path: '/confirmrecipent', name: 'ConfirmRec', element: ConfirmRec },
 ]
 
 export default routes
