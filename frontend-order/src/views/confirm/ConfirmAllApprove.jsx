@@ -245,7 +245,7 @@ const ApproveAll = () => {
   const handleViewHistoryOrder = (initialConfirmApproval) => {
     setSelectedProduct(initialConfirmApproval)
     setVisible(true)
-    navigate('/approveall/approvalConfirm', { state: { initialConfirmApproval } })
+    navigate('/approveall/approve-confirm', { state: { initialConfirmApproval } })
   }
 
   // Function to filter through productsData

@@ -53,7 +53,7 @@ const Cart = () => {
       const cartIds = cartData.map((item) => item.id)
       const response = await checkout({ cartIds: cartIds }, warehouse.id)
 
-      navigate('/confirmrec', { state: { verifiedCartItems: response.data } })
+      navigate('/confirmrecipent', { state: { verifiedCartItems: response.data } })
     } catch (error) {
       console.error('Error fetching cart:', error)
     }

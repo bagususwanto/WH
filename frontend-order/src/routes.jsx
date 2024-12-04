@@ -27,7 +27,7 @@ const routes = [
   { path: '/order/category/:categoryId', name: 'Order', element: Order },
   { path: '/cart', name: 'Cart', element: Cart },
   { path: '/approveall', name: 'AprroveAll', element: ApproveAll },
-  { path: '/approveall/approvalConfirm', name: 'ConfirmApp', element: ConfirmApp },
+  { path: '/approveall/approve-confirm', name: 'ConfirmApp', element: ConfirmApp },
   { path: '/confirmall', name: 'ConfirmAll', element: ConfirmAll },
   { path: '/confirmall/confirmWh', name: 'ConfirmWer', element: ConfirmWer },
   { path: '/confirmall/confirmDelivWh', name: 'ConfirmDel', element: ConfirmDel },
