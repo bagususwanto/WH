@@ -572,7 +572,7 @@ const History = () => {
                               color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                             }}
                           >
-                            {item.status}
+                            {item.status}  
                           </label>
                         </div>
                       </div>

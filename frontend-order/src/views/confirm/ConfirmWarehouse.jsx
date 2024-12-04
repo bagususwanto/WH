@@ -275,18 +275,6 @@ const Confirm = () => {
     setRejectionReason(e.target.value)
   }
 
-  useEffect(() => {
-    if (modalConfirm) {
-      document.body.classList.add('blurred') // Tambahkan kelas blur ketika modal dibuka
-    } else {
-      document.body.classList.remove('blurred') // Hapus kelas blur ketika modal ditutup
-    }
-    // Cleanup to avoid issues on unmount
-    return () => {
-      document.body.classList.remove('blurred')
-    }
-  }, [modalConfirm])
-
   const handleModalCart = (product) => {
     setSelectedProduct(product)
     setModalConfirm(true) // Tampilkan modal
@@ -620,30 +608,30 @@ const Confirm = () => {
                           </div>
                         </CCol>
                         <CCol xs={3} sm={3} md={2}>
-                        {product.isReject == 1 ? (
-                              <CBadge
-                                color="danger"
-                                className="ms-auto"
-                                style={{
-                                  fontSize: '0.6em',
-                                  padding: '5px 10px',
-                                  borderRadius: '12px',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                Rejected
-                              </CBadge>
-                            ) : (
-                              <CButton
-                                color="danger"
-                                variant="outline"
-                                size="sm"
-                                className="ms-auto"
-                                onClick={() => handleModalCart(product)}
-                              >
-                                Reject
-                              </CButton>
-                            )}
+                          {product.isReject == 1 ? (
+                            <CBadge
+                              color="danger"
+                              className="ms-auto"
+                              style={{
+                                fontSize: '0.6em',
+                                padding: '5px 10px',
+                                borderRadius: '12px',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              Rejected
+                            </CBadge>
+                          ) : (
+                            <CButton
+                              color="danger"
+                              variant="outline"
+                              size="sm"
+                              className="ms-auto"
+                              onClick={() => handleModalCart(product)}
+                            >
+                              Reject
+                            </CButton>
+                          )}
                         </CCol>
                       </CRow>
                       <CRow>

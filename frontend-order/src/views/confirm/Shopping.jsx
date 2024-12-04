@@ -65,6 +65,9 @@ const Confirm = () => {
   const [selectedCardIndexes, setSelectedCardIndexes] = useState([]) // Store multiple selected card indexes
   const apiCategory = 'category'
   const [selectedItems, setSelectedItems] = useState([]) // Harus array
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [rejectionReason, setRejectionReason] = useState('')
+
 
   const [loading, setLoading] = useState(true) // Add loading state
   useEffect(() => {
@@ -296,7 +299,77 @@ const handleQuantityChange = (productId, value) => {
   }
 };
 
+const handleInputChange = (e) => {
+  setRejectionReason(e.target.value)
+}
 
+const handleModalCart = (product) => {
+  setSelectedProduct(product)
+  setModalConfirm(true) // Tampilkan modal
+}
+const handleConfirmRejection = async () => {
+  if (!rejectionReason) {
+    Swal.fire({
+      title: 'Missing Information',
+      text: 'Please enter a rejection reason',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+    })
+    return
+  }
+
+  try {
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to reject this order.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reject it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true,
+    })
+
+    if (result.isConfirmed) {
+      try {
+        const data = {
+          remarks: rejectionReason,
+        }
+        console.log('warehouse', warehouse)
+        console.log('selectedProduct', selectedProduct)
+        console.log('dataaa', data)
+        const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
+        // Update Confirmapproval state by removing the deleted item
+        const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
+          (order) => order.id !== selectedProduct.id,
+        )
+
+        // Set the new state with updated Detail_Orders
+        setConfirmwarehouse((prevConfirmwarehouse) => ({
+          ...prevConfirmwarehouse,
+          Detail_Orders: updatedDetailOrders,
+        }))
+
+        // Handle success
+        MySwal.fire(
+          'Rejected!',
+          'The order has been rejected.,sudah masuk tab untuk item rejected',
+          'success',
+        )
+
+        // Optionally update the UI here
+        setModalConfirm(false) // Tutup modal
+        setRejectionReason('') // Reset alasan penolakan
+      } catch (error) {
+        console.error('Error in rejection API call:', error)
+        MySwal.fire('Error!', 'An unexpected error occurred.', 'error')
+      }
+    }
+  } catch (error) {
+    console.error('Error confirming rejection:', error)
+  }
+}
   return (
     <CContainer>
       <CRow className="mt-1">
@@ -573,6 +646,7 @@ const handleQuantityChange = (productId, value) => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleIncreaseQuantity(product.id)}
+                                disable
                                 
                               >
                                 +
@@ -623,11 +697,50 @@ const handleQuantityChange = (productId, value) => {
                                 className="ms-auto"
                                 onClick={() => handleModalCart(product)}
                               >
-                             RedPost
+                             Red Post
                               </CButton>
                             )}
                           </div>
                         </CCol>
+                      </CRow>
+                      <CRow>
+                        {/* modal */}
+                        {modalConfirm && selectedProduct && (
+                          <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
+                            <CModalHeader>
+                              <CModalTitle>Provide Rejection Reason</CModalTitle>
+                            </CModalHeader>
+                            <CModalBody>
+                              <CRow className="mb-2">
+                                <CCol md="4">
+                                  <CImage
+                                    src={'https://via.placeholder.com/150'}
+                                    // alt={selectedProduct.Material.description}
+                                    fluid
+                                    className="rounded"
+                                  />
+                                </CCol>
+                                <CCol md="8">
+                                  <strong>{selectedProduct.Inventory.Material.description}</strong>
+                                  <p style={{ fontSize: '0.8em' }}>
+                                    {selectedProduct.Inventory.Address_Rack.addressRackName}
+                                  </p>
+                                </CCol>
+                              </CRow>
+                              <CFormInput
+                                type="text"
+                                placeholder="Enter rejection reason"
+                                value={rejectionReason}
+                                onChange={handleInputChange}
+                              />
+                            </CModalBody>
+                            <CModalFooter>
+                              <CButton color="danger" onClick={handleConfirmRejection}>
+                                Submit Reject
+                              </CButton>
+                            </CModalFooter>
+                          </CModal>
+                        )}
                       </CRow>
                      
                     {/* Show the rejection reason under the product if rejected */}

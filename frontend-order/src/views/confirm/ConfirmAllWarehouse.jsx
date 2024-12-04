@@ -278,12 +278,13 @@ const ApproveAll = () => {
   }
 
   const tabs = [
-    { key: 'Waiting Confirmation', label: 'Waiting Confirmation' },
+    { key: 'Waiting Confirmation', label: 'Confirmation' },
     { key: 'On Process', label: 'Shopping' },
     { key: 'Ready to Deliver', label: 'Ready to Delivery' },
     { key: 'Ready to Pickup', label: 'Ready to Pickup' },
     { key: 'Completed', label: 'Completed' },
     { key: 'Rejected', label: 'Rejected' },
+    { key: 'Red Post', label: 'Red Post' },
   ]
 
   const getTabIcon = (status) => {
@@ -299,6 +300,8 @@ const ApproveAll = () => {
         return cilCheckCircle // Icon ceklis
       case 'rejected':
         return cilBan // Icon silang
+        case 'red post':
+          return cilBan // Icon silang
       default:
         return cilClipboard // Default icon
     }
@@ -410,6 +413,7 @@ const ApproveAll = () => {
                       <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
                         <CRow className="align-items-center">
                           <CCol>
+                          <CIcon className="me-2" icon={getTabIcon(product.status)} />
                             <label className="me-2 fs-6">
                               {format(parseISO(product.transactionDate), 'dd/MM/yyyy')}
                             </label>
