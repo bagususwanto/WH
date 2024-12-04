@@ -577,7 +577,7 @@ export const approveOrder = async (req, res) => {
       { transaction }
     );
 
-    await postOrderHistory(status, userId, orderId, { transaction });
+    await postOrderHistory(status, userId, orderId, null, { transaction });
 
     const isLast = await isLastApproval(orderId);
 
@@ -649,10 +649,23 @@ export const rejectOrder = async (req, res) => {
     const detailOrderId = req.params.detailOrderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
+    const remarks = req.body.remarks;
 
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
       include: [
+        {
+          model: Inventory,
+          attributes: ["id"],
+          include: [
+            {
+              model: Material,
+              attributes: ["description"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
         {
           model: Order,
         },
@@ -689,10 +702,10 @@ export const rejectOrder = async (req, res) => {
       { transaction }
     );
 
-    const status = `rejected ${role}`;
+    const status = `rejected ${role} for item ${order.Inventory.Material.description}, remarks: ${remarks}`;
 
     // Create history order
-    await postOrderHistory(status, userId, orderId, { transaction });
+    await postOrderHistory(status, userId, orderId, remarks, { transaction });
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 
@@ -714,6 +727,8 @@ export const deleteOrderItem = async (req, res) => {
   try {
     const detailOrderId = req.params.detailOrderId;
     const userId = req.user.userId;
+    const role = req.user.roleName;
+    const remarks = req.body.remarks;
 
     const order = await DetailOrder.findOne({
       where: { id: detailOrderId },
@@ -759,6 +774,22 @@ export const deleteOrderItem = async (req, res) => {
       },
       { transaction }
     );
+
+    const status = `deleted by ${role} for item: ${order.Inventory.Material.description}`;
+
+    // Create history order
+    await postOrderHistory(status, userId, orderId, remarks, { transaction });
+
+    // Create notification
+    const notification = {
+      title: "Deleted Item",
+      description: `Deleted by ${role} for item: ${order.Inventory.Material.description}, remarks: ${remarks}`,
+      category: "approval",
+    };
+
+    await createNotification([order.Order.userId], notification, {
+      transaction,
+    });
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 

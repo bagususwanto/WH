@@ -878,7 +878,7 @@ export const createOrder = async (req, res) => {
 
     try {
       // Transaksi kedua untuk mencatat sejarah pesanan
-      await postOrderHistory("order created", userId, order.id, {
+      await postOrderHistory("order created", userId, order.id, null, {
         transaction: t2,
       });
 

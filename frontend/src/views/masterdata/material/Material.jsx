@@ -35,6 +35,7 @@ import { format, parseISO } from 'date-fns'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import { Dropdown } from 'primereact/dropdown'
+import config from '../../../utils/Config'
 
 const MySwal = withReactContent(swal)
 
@@ -74,6 +75,7 @@ const Material = () => {
   })
   const [imported, setImported] = useState(false)
   const [visibleColumns, setVisibleColumns] = useState([])
+  const [isClearable, setIsClearable] = useState(true)
 
   const {
     getMasterData,
@@ -126,27 +128,8 @@ const Material = () => {
   const customStyles = {
     control: (provided) => ({
       ...provided,
-      backgroundColor: 'White',
-      borderColor: 'black',
-      color: 'White',
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: 'White',
-      color: 'black',
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? '#e0e0e0' : 'white',
-      color: 'black',
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: 'black',
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: 'Black',
+      height: '38px', // Sesuaikan dengan tinggi CFormInput
+      minHeight: '38px', // Hindari auto-resize
     }),
   }
 
@@ -686,6 +669,10 @@ const Material = () => {
     </div>
   )
 
+  const imageBodyTemplate = (rowData) => {
+    return <img src={`${config.IMG_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
+  }
+
   return (
     <CRow>
       <CCol>
@@ -813,6 +800,13 @@ const Material = () => {
                     alignFrozen="left"
                   />
                   <Column
+                    header="Image"
+                    body={imageBodyTemplate}
+                    style={{ width: '25%' }}
+                    frozen
+                    alignFrozen="left"
+                  />
+                  <Column
                     field="materialNo"
                     header="Material No"
                     style={{ width: '25%' }}
@@ -846,66 +840,68 @@ const Material = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={modal} onClose={() => setModal(false)}>
+      <CModal backdrop="static" size="lg" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
-            <CFormInput
-              label="Material No"
-              className="mb-2"
-              value={currentMaterial.materialNo}
-              onChange={(e) =>
-                setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })
-              }
-            />
-            <CFormInput
-              label="Description"
-              className="mb-2"
-              value={currentMaterial.description}
-              onChange={(e) =>
-                setCurrentMaterial({ ...currentMaterial, description: e.target.value })
-              }
-            />
-            <CFormInput
-              label="UOM"
-              className="mb-2"
-              value={currentMaterial.uom}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
-            />
-            <CFormInput
-              label="Price"
-              className="mb-2"
-              type="number"
-              value={currentMaterial.price}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, price: e.target.value })}
-            />
-            <label className="form-label">Supplier</label>
-            <Select
-              className="mb-2"
-              value={selectedSupplierOption}
-              onChange={handleSupplierChange}
-              options={selectSupplier}
-              styles={customStyles}
-              placeholder="Select Supplier"
-            />
-
-            <label className="form-label">Category</label>
-            <Select
-              className="mb-2"
-              value={selectedCategoryOption}
-              onChange={handleCategoryChange}
-              options={selectCategory}
-              styles={customStyles}
-              placeholder="Select Category"
-            />
-            <CFormInput
-              label="Type"
-              className="mb-2"
-              value={currentMaterial.type}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
-            />
+            <CRow>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Material No"
+                  value={currentMaterial.materialNo}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })
+                  }
+                />
+              </CCol>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Description"
+                  value={currentMaterial.description}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, description: e.target.value })
+                  }
+                />
+              </CCol>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="UOM"
+                  value={currentMaterial.uom}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
+                />
+              </CCol>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Type"
+                  value={currentMaterial.type}
+                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
+                />
+              </CCol>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  isClearable={isClearable}
+                  // options={categoryOptions}
+                  id="category"
+                  onChange={handlePlantChange}
+                  styles={customStyles}
+                  // value={selectedPlantVal}
+                />
+              </CCol>
+              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Price"
+                  type="number"
+                  value={currentMaterial.price}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, price: e.target.value })
+                  }
+                />
+              </CCol>
+            </CRow>
             <CFormInput
               label="Min Stock"
               className="mb-2"

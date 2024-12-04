@@ -1,7 +1,7 @@
 import OrderHistory from "../models/OrderHistoryModel.js";
 import User from "../models/UserModel.js";
 
-export const postOrderHistory = async (status, userId, orderId) => {
+export const postOrderHistory = async (status, userId, orderId, remarks) => {
   try {
     const icon = getIconByStatus(status);
 
@@ -10,6 +10,7 @@ export const postOrderHistory = async (status, userId, orderId) => {
       icon: icon,
       userId: userId,
       orderId: orderId,
+      remarks: remarks,
     });
 
     return true;

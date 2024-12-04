@@ -441,7 +441,7 @@ export const processOrder = async (req, res) => {
     );
 
     // Buat riwayat order
-    await postOrderHistory(status, userId, orderId, { transaction });
+    await postOrderHistory(status, userId, orderId, null, { transaction });
 
     // Hitung totalPrice dari updatedOrders
     const totalPrice = updatedOrders.reduce((total, detailOrder) => {
@@ -527,7 +527,7 @@ export const shopingOrder = async (req, res) => {
     );
 
     // Create order history
-    await postOrderHistory(status, userId, orderId, { transaction });
+    await postOrderHistory(status, userId, orderId, null, { transaction });
 
     // update status order
     const order = await Order.update(
@@ -601,7 +601,7 @@ export const completeOrder = async (req, res) => {
     );
 
     // Create order history
-    await postOrderHistory("your items received", userId, orderId, {
+    await postOrderHistory("your items received", userId, orderId, null, {
       transaction,
     });
 
@@ -697,10 +697,21 @@ export const rejectOrderWarehouse = async (req, res) => {
       { transaction }
     );
 
-    const status = `rejected warehouse for items: ${order.Inventory.Material.description}`;
+    const status = `rejected by warehouse for item: ${order.Inventory.Material.description}`;
 
     // Create history order
-    await postOrderHistory(status, userId, orderId, { transaction });
+    await postOrderHistory(status, userId, orderId, remarks, { transaction });
+
+    // Create notification
+    const notification = {
+      title: "Item Rejected",
+      description: `Rejected by warehouse for item: ${order.Inventory.Material.description}, remarks: ${remarks}`,
+      category: "approval",
+    };
+
+    await createNotification([order.Order.userId], notification, {
+      transaction,
+    });
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 

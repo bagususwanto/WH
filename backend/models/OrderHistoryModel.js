@@ -28,6 +28,10 @@ const OrderHistory = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    remarks: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: false,
