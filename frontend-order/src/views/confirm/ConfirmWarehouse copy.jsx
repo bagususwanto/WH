@@ -588,7 +588,7 @@ const Confirm = () => {
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
-                        <CCol xs={5} sm={5} md={6}>
+                        <CCol xs={5} sm={5} md={5}>
                           <div style={{ lineHeight: '1.5' }}>
                             <label style={{ fontSize: '0.9em' }}>
                               {product.Inventory.Material.description}
@@ -598,6 +598,10 @@ const Confirm = () => {
                             >
                               {product.Inventory.Address_Rack.addressRackName}
                             </label>
+                            <label style={{ fontSize: '0.65em', display: 'block' }}>
+                              Min Order: {product.Inventory.Material.minOrder}{' '}
+                              {product.Inventory.Material.uom}
+                            </label>
                           </div>
                         </CCol>
                         <CCol xs={3} sm={3} md={3}>
@@ -606,21 +610,66 @@ const Confirm = () => {
                               display: 'flex',
                               justifyContent: 'center',
                               alignItems: 'center',
-                              fontSize: '0.8em',
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <label style={{ fontSize: '0.9rem', marginRight: '0.3rem' }}>
-                                {product.quantity}
-                              </label>
-                              <label style={{ fontSize: '0.9rem' }} className="fw-light">
-                                {product.Inventory.Material.uom}
-                              </label>
-                            </div>
+                            <CButtonGroup role="group" aria-label="Basic outlined example">
+                              <CButton
+                                color="secondary"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDecreaseQuantity(product.id)}
+                              >
+                                -
+                              </CButton>
+                              <CFormInput
+                                type="text"
+                                value={quantities[product.id] || 1}
+                                aria-label="Number input"
+                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                                className="text-center" // Utility class for centering text
+                                style={{
+                                  textAlign: 'center', // Pusatkan teks secara horizontal
+                                  verticalAlign: 'middle', // Pusatkan teks secara vertikal
+                                  height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
+                                  border: 'none', // Hilangkan border
+                                  outline: 'none', // Hilangkan garis biru/oranye saat fokus
+                                }}
+                              />
+
+                              <CButton
+                                color="secondary"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleIncreaseQuantity(product.id)}
+                              >
+                                +
+                              </CButton>
+                            </CButtonGroup>
                           </div>
                         </CCol>
-                        <CCol xs={3} sm={3} md={2}>
-                        {product.isReject == 1 ? (
+                        <CCol xs={2} sm={3} md={3} className="d-flex align-items-center">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
+                            }}
+                          >
+                            {/* UOM di pojok kiri */}
+                            <span
+                              className="fw-light"
+                              style={{
+                                fontSize: '0.8em',
+                                textAlign: 'left',
+                                flex: '1',
+                              }}
+                            >
+                              ({product.Material?.uom || 'UOM'})
+                            </span>
+
+                            {/* Badge Reject di pojok kanan */}
+                            {product.isReject == 1 ? (
                               <CBadge
                                 color="danger"
                                 className="ms-auto"
@@ -644,6 +693,7 @@ const Confirm = () => {
                                 Reject
                               </CButton>
                             )}
+                          </div>
                         </CCol>
                       </CRow>
                       <CRow>

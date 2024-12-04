@@ -93,6 +93,9 @@ const AppHeader = () => {
   const [markAsReadLocally, setMarkAsReadLocally] = useState(false)
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const dropdownRef = useRef(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const modalRef = useRef(null) // Ref untuk modal dropdown
+  const [modalCloseTimer, setModalCloseTimer] = useState(null)
 
   const iconMap = {
     'Office Supp.': cilPencil,
@@ -393,35 +396,50 @@ const AppHeader = () => {
     }
   }
 
-  const handleClickOutside = (e) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-      setShowRecentSearches(false) // Tutup dropdown jika klik di luar
+  const loadMoreNotifications = async () => {
+    try {
+      // Lakukan panggilan API untuk memuat lebih banyak notifikasi
+      const response = await fetch(`/api/notifications?limit=5&offset=${notifDesc.length}`)
+      if (!response.ok) {
+        throw new Error('Failed to load more notifications')
+      }
+
+      const data = await response.json()
+
+      // Mengembalikan data notifikasi
+      return data.notifications || []
+    } catch (error) {
+      console.error('Error loading more notifications:', error)
+      return []
     }
   }
 
-  useEffect(() => {
-    // Tambahkan event listener saat komponen di-mount
-    document.addEventListener('mousedown', handleClickOutside)
-
-    // Hapus event listener saat komponen di-unmount
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
   const handleLoadMore = async () => {
     try {
       // Tandai semua notifikasi sebagai sudah dibaca
-      await postAllNotification(warehouse.id)
-
-      // Hapus notifikasi dari App Header
-      setNotifDesc([])
-
+      await postAllNotification(warehouse.id);
+  
+      // Perbarui state notifikasi menjadi sudah dibaca (isRead: 1)
+      setNotifDesc((prevNotifDesc) =>
+        prevNotifDesc.map((notif) => ({ ...notif, isRead: 1 }))
+      );
+  
+      // Memuat lebih banyak notifikasi dari server dan menambahkannya ke state
+      const moreNotifications = await loadMoreNotifications();
+      setNotifDesc((prevNotifDesc) => [...prevNotifDesc, ...moreNotifications]);
+  
       // Arahkan pengguna ke halaman profil
-      navigate('/profile')
+      navigate('/profile');
+  
+      // Tutup dropdown setelah memuat lebih banyak notifikasi
+      if (modalRef.current) {
+        modalRef.current.classList.remove('show'); // Menutup dropdown
+      }
     } catch (error) {
-      console.error('Error handling load more:', error)
+      console.error('Error handling load more:', error);
     }
-  }
+  };
+  
 
   const handleNotifselect = async (notif) => {
     try {
@@ -430,8 +448,8 @@ const AppHeader = () => {
 
       // Perbarui state lokal untuk menandai notifikasi sebagai dibaca
       setNotifDesc((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: 1 } : n)))
-      // Arahkan ke layar sesuai dengan judul notifikasi
 
+      // Arahkan ke layar sesuai dengan judul notifikasi
       switch (notif.title) {
         case 'Request Order':
           navigate('/confirmall')
@@ -451,20 +469,20 @@ const AppHeader = () => {
     }
   }
 
-  const handlemark = async () => {
+  const handleMarkAllAsRead = async () => {
+    e.stopPropagation() // Cegah event bubble agar dropdown tidak auto-close
+    e.preventDefault() // Mencegah tindakan bawaan jika perlu
     if (notifDesc.length > 0) {
-      // Perbarui state lokal untuk memberikan pengalaman UX yang cepat
       const updatedNotifs = notifDesc.map((notif) => ({
         ...notif,
         isRead: 1,
       }))
       setNotifDesc(updatedNotifs)
-      setNotifCount(0) // Set local count to 0
+      setNotifCount(0) // Update notifCount setelah semua notifikasi dibaca
 
       try {
-        // Sinkronkan dengan server menggunakan fungsi dari `useNotificationService`
-        const response = await postAllNotification(warehouse.id) // Pass warehouse.id
-        console.log('All notifications marked as read:', response)
+        await postAllNotification(warehouse.id) // Sinkronkan dengan server
+        setIsModalOpen(true) // Menutup dropdown setelah Mark All As Read
       } catch (error) {
         console.error('Error marking notifications as read on server:', error)
       }
@@ -797,6 +815,7 @@ const AppHeader = () => {
                 width: '400px',
                 minWidth: '400px',
               }}
+              ref={modalRef} // Menghubungkan ref dengan dropdown
             >
               <CDropdownHeader
                 className="bg-body-secondary fw-semibold"
@@ -815,6 +834,7 @@ const AppHeader = () => {
                   Anda memiliki ({notifCount}) notifikasi
                 </div>
               </CDropdownHeader>
+
               <div
                 style={{
                   maxHeight: '500px',
@@ -822,9 +842,9 @@ const AppHeader = () => {
                 }}
               >
                 {notifDesc.length > 0 ? (
-                  notifDesc.slice(0, 6).map((notif, index) => (
+                  notifDesc.slice(0, 5).map((notif) => (
                     <CDropdownItem
-                      key={index}
+                      key={notif.id}
                       onClick={() => handleNotifselect(notif)}
                       style={{
                         backgroundColor: notif.isRead === 0 ? '#E4E0E1' : 'white',
@@ -847,18 +867,16 @@ const AppHeader = () => {
                     </CDropdownItem>
                   ))
                 ) : (
-                  <CDropdownItem>No notification</CDropdownItem>
+                  <div> // Pesan jika tidak ada notifikasi</div>
                 )}
               </div>
+
               <CDropdownHeader>
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <CLink
-                    onClick={(e) => {
-                      e.preventDefault() // Mencegah default close pada dropdown
-                      handlemark() // Menjalankan fungsi untuk menandai semua notifikasi sebagai telah dibaca
-                    }}
+                    onClick={(e) => handleMarkAllAsRead(e)} // Panggil dengan event
                     className="text-primary"
                     style={{ cursor: 'pointer', textDecoration: 'none' }}
                   >

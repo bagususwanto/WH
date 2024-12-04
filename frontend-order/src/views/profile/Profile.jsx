@@ -45,6 +45,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
   const [notifProfile, setnotifProfile] = useState([])
+  const [notifCount, setNotifCount] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
   const { getNotification, getNotificationCount } = useNotificationService()
@@ -64,21 +65,39 @@ const Profile = () => {
     }
   }
 
-  const getusers = async () => {
-    const response = await getMasterData(apiUser)
-
-    // Filter user data to get only the user with id 2
-    const filteredUserData = response.data.filter((user) => user.id === 3)
-
-    // Update state with the filtered data
-    setUserData(filteredUserData)
-
-    // Check if image data exists in the filtered response and update states
-    if (filteredUserData.length > 0 && filteredUserData[0].img) {
-      setApiImage(filteredUserData[0].img) // Store the image from API in state
-      setSelectedImage(filteredUserData[0].img) // Set the selected image to the API image initially
+  const getNotifCount = (notifications) => {
+    if (notifications && Array.isArray(notifications)) {
+      const unreadCount = notifications.filter((notif) => notif.isRead === 0).length;
+      setNotifCount(unreadCount); // Update state with unread count
+    } else {
+      console.error("Notifications data is not in the expected format.");
+      setNotifCount(0); // Default to 0 if notifications is not an array
     }
-  }
+  };
+  
+
+  const getusers = async () => {
+    try {
+      const response = await getMasterData(apiUser);
+      
+      // Check if response.data is not undefined and is an array before calling filter()
+      if (response && response.data && Array.isArray(response.data)) {
+        const filteredUserData = response.data.filter((user) => user.id === 3);
+        setUserData(filteredUserData);
+  
+        // Check if image data exists in the filtered response and update states
+        if (filteredUserData.length > 0 && filteredUserData[0].img) {
+          setApiImage(filteredUserData[0].img); // Store the image from API in state
+          setSelectedImage(filteredUserData[0].img); // Set the selected image to the API image initially
+        }
+      } else {
+        console.error("API response is not in the expected format or is missing data.");
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+  
 
   useEffect(() => {
     getusers()
@@ -86,14 +105,14 @@ const Profile = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      getNotifDesc()
+      getNotifDesc(); // Get notifications first
       const interval = setInterval(() => {
-        getNotifCount() // Poll every 5 seconds
-      }, 5000)
-      return () => clearInterval(interval) // Clear interval on component unmount
+        getNotifCount(notifProfile); // Pass the notifications data
+      }, 5000);
+      return () => clearInterval(interval); // Clear interval on component unmount
     }
-  }, [warehouse, cartCount])
-
+  }, [warehouse, cartCount, notifProfile]); // Make sure notifProfile is updated properly
+  
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {

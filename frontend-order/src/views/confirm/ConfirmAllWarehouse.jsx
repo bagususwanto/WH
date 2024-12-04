@@ -113,7 +113,7 @@ const ApproveAll = () => {
       case 'waiting confirmation':
         return 'warning'
       case 'on process':
-        return 'success'
+        return 'warning'
       case 'ready to deliver':
         return 'secondary'
       case 'ready to pickup':
@@ -410,7 +410,6 @@ const ApproveAll = () => {
                       <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
                         <CRow className="align-items-center">
                           <CCol>
-                            <CIcon className="me-2" icon={getTabIcon(product.status)} />
                             <label className="me-2 fs-6">
                               {format(parseISO(product.transactionDate), 'dd/MM/yyyy')}
                             </label>
@@ -461,20 +460,21 @@ const ApproveAll = () => {
                             </CCol>
                             <CCol xs="4">
                               {product.Detail_Orders.length === 1 ? (
-                                <label>
+                                <label style={{ fontSize: '0.9em' }}>
                                   {product.Detail_Orders[0]?.Inventory?.Material?.description}
                                 </label>
                               ) : (
-                                <label>
+                                <label style={{ fontSize: '0.9em' }}>
                                   {product.Detail_Orders[0]?.Inventory?.Material?.description}
                                   ...
                                 </label>
                               )}
                               <br />
-                              <label className="fw-bold fs-6">
+                              <label className="fw-bold " style={{ fontSize: '0.85em' }}>
                                 Total: {product.Detail_Orders.length} Item
                               </label>
                             </CCol>
+
                             <CCol xs="3" className="text-end">
                               <label className="fw-bold fs-6 me-1">
                                 Rp{' '}

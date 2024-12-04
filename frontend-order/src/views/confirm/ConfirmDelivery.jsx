@@ -364,6 +364,11 @@ const ApproveAll = () => {
                   rows={3}
                   value={Confirmwarehouse.remarks || 'No message'}
                   onChange={(e) => setMessage(e.target.value)}
+                  style={{
+                    backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                    color: '#888', // Warna teks abu-abu
+                    border: '1px solid #ccc', // Border abu-abu
+                  }}
                   disabled
                 />
               )}
@@ -422,14 +427,14 @@ const ApproveAll = () => {
                           />
                         </CCol>
                         <CCol xs="8">
-                          <div>
-                            <label style={{ fontSize: '1rem', lineHeight: '2' }}>
+                          <div style={{ lineHeight: '1.3' }}>
+                            <label
+                              style={{ fontSize: '1rem', display: 'block', marginBottom: '0.2rem' }}
+                            >
                               {product.Inventory.Material?.description}
                             </label>
-                            <br />
                             <label
-                              style={{ fontSize: '0.9rem', lineHeight: '0.8' }}
-                              className="fw-bold"
+                              style={{ fontSize: '0.8rem', display: 'block', fontWeight: 'bold' }}
                             >
                               {product.Inventory.Address_Rack?.addressRackName}
                             </label>
@@ -443,9 +448,14 @@ const ApproveAll = () => {
                               alignItems: 'center',
                             }}
                           >
-                            <label style={{ fontSize: '1rem', lineHeight: '2' }}>
-                              {`${product.quantity} ${product.Inventory.Material.uom}`}
+                           <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.9rem', marginRight: '0.3rem' }}>
+                              {product.quantity}
                             </label>
+                            <label style={{ fontSize: '0.9rem' }} className="fw-light">
+                              {product.Inventory.Material.uom}
+                            </label>
+                          </div>
                           </div>
                         </CCol>
                       </CRow>
