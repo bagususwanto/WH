@@ -574,7 +574,7 @@ const History = () => {
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                               <label style={{ marginBottom: '8px' }}>{item.status}</label>
                               <label>{item.remarks}</label>
-                            </div>
+                            </div>    
                           </label>
                         </div>
                       </div>

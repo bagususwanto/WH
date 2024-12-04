@@ -105,6 +105,8 @@ const Confirm = () => {
   const navigate = useNavigate()
   const [Confirmapproval, setConfirmapproval] = useState(initialConfirmApproval)
   const [loading, setLoading] = useState(true) // Add loading state
+  const [modalConfirm, setModalConfirm] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState('')
 
   const apiCategory = 'category'
   useEffect(() => {
@@ -140,16 +142,16 @@ const Confirm = () => {
   const currentProducts = productsData.slice(indexOfFirstItem, indexOfLastItem)
   const totalPages = Math.ceil(productsData.length / itemsPerPage)
 
- useEffect(() => {
-  // Hitung ulang total harga berdasarkan kuantitas terbaru
-  const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
-    const quantity = quantities[product.id] || 1;
-    const price = product.Inventory.Material?.price || 0;
-    return acc + price * quantity;
-  }, 0);
+  useEffect(() => {
+    // Hitung ulang total harga berdasarkan kuantitas terbaru
+    const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
+      const quantity = quantities[product.id] || 1
+      const price = product.Inventory.Material?.price || 0
+      return acc + price * quantity
+    }, 0)
 
-  setTotalAmount(newTotal);
-}, [Confirmapproval, quantities]); // Tambahkan 'quantities' ke dependencies
+    setTotalAmount(newTotal)
+  }, [Confirmapproval, quantities]) // Tambahkan 'quantities' ke dependencies
   //useeffect quantity
   useEffect(() => {
     // Map the quantities from the API response (Confirmapproval.Detail_Orders)
@@ -311,6 +313,77 @@ const Confirm = () => {
   const handleButtonClick = () => {
     setClicked(true)
     navigate('/order')
+  }
+  const handleInputChange = (e) => {
+    setRejectionReason(e.target.value)
+  }
+
+  const handleModalCart = (product) => {
+    setSelectedProduct(product)
+    setModalConfirm(true) // Tampilkan modal
+  }
+  const handleConfirmRejection = async () => {
+    if (!rejectionReason) {
+      Swal.fire({
+        title: 'Missing Information',
+        text: 'Please enter a rejection reason',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+      })
+      return
+    }
+
+    try {
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to reject this order.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, reject it!',
+        cancelButtonText: 'No, cancel!',
+        reverseButtons: true,
+      })
+
+      if (result.isConfirmed) {
+        try {
+          const data = {
+            remarks: rejectionReason,
+          }
+          console.log('warehouse', warehouse)
+          console.log('selectedProduct', selectedProduct)
+          console.log('dataaa', data)
+          const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
+          // Update Confirmapproval state by removing the deleted item
+          const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
+            (order) => order.id !== selectedProduct.id,
+          )
+
+          // Set the new state with updated Detail_Orders
+          setConfirmwarehouse((prevConfirmwarehouse) => ({
+            ...prevConfirmwarehouse,
+            Detail_Orders: updatedDetailOrders,
+          }))
+
+          // Handle success
+          MySwal.fire(
+            'Rejected!',
+            'The order has been rejected.,sudah masuk tab untuk item rejected',
+            'success',
+          )
+
+          // Optionally update the UI here
+          setModalConfirm(false) // Tutup modal
+          setRejectionReason('') // Reset alasan penolakan
+        } catch (error) {
+          console.error('Error in rejection API call:', error)
+          MySwal.fire('Error!', 'An unexpected error occurred.', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('Error confirming rejection:', error)
+    }
   }
 
   return (
@@ -523,22 +596,26 @@ const Confirm = () => {
                         <CCol xs={2} sm={2} md={1}>
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-               
                             style={{ height: '130%', width: '130%' }}
                           />
                         </CCol>
                         <CCol xs={6} sm={5} md={6}>
                           <div>
-                            <label style={{fontSize:'0.95em'}}>{product.Inventory.Material.description}</label>
+                            <label style={{ fontSize: '0.95em' }}>
+                              {product.Inventory.Material.description}
+                            </label>
                             <br />
-                            <label style={{fontSize:'0.9em'}} className="fw-bold ">
+                            <label style={{ fontSize: '0.9em' }} className="fw-bold ">
                               Rp {product.Inventory.Material.price.toLocaleString('id-ID')}
                             </label>
                             <br />
-                            <label style={{fontSize:"0.75em"}} >Min Order: {product.Inventory.Material.minOrder} {product.Inventory.Material.uom}</label>
+                            <label style={{ fontSize: '0.75em' }}>
+                              Min Order: {product.Inventory.Material.minOrder}{' '}
+                              {product.Inventory.Material.uom}
+                            </label>
                           </div>
                         </CCol>
-                        <CCol xs={3} sm={3} md={3} >
+                        <CCol xs={3} sm={3} md={3}>
                           <div
                             style={{
                               display: 'flex',
@@ -578,30 +655,80 @@ const Confirm = () => {
                           </div>
                         </CCol>
 
-                        <CCol xs={2} sm={2} md={2} className="d-flex justify-content-end align-items-center">
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              width: '100%',
-                            }}
-                          >
-                            <span style={{ fontSize: '0.9em' }}>
-                              ({product.Inventory.Material?.uom || 'UOM'})
-                            </span>
-                            <CIcon
-                              icon={cilTrash}
-                              className="text-danger"
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => handleDelete(product.id)}
-                            />
-                          </div>
+                        <CCol
+                          xs={2}
+                          sm={2}
+                          md={2}
+                          className="d-flex justify-content-end align-items-center"
+                        >
+                          {product.isReject == 1 ? (
+                            <CBadge
+                              color="danger"
+                              className="ms-auto"
+                              style={{
+                                fontSize: '0.6em',
+                                padding: '5px 10px',
+                                borderRadius: '12px',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              Rejected
+                            </CBadge>
+                          ) : (
+                            <CButton
+                              size="sm"
+                              className="ms-auto"
+                              style={{ border: 'none', boxShadow: 'none' }} // Hilangkan border dan shadow
+                              onClick={() => handleModalCart(product)}
+                            >
+                              <CIcon icon={cilTrash} style={{ color: 'red' }} />
+                            </CButton>
+                          )}
                         </CCol>
                       </CRow>
                     </CCardBody>
                   </CCard>
                 ))}
+          </CRow>
+          <CRow>
+            {/* modal */}
+            {modalConfirm && selectedProduct && (
+              <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
+                <CModalHeader>
+                  <CModalTitle>Approval Rejection Reason</CModalTitle>
+                </CModalHeader>
+                <CModalBody>
+                  <CRow className="mb-2">
+                    <CCol md="4">
+                      <CImage
+                        src={`${config.BACKEND_URL}${selectedProduct.Inventory.Material.img}`}
+                        style={{ height: '100%', width: '100%' }}
+                        // alt={selectedProduct.Material.description}
+                        fluid
+                        className="rounded"
+                      />
+                    </CCol>
+                    <CCol md="8">
+                      <strong>{selectedProduct.Inventory.Material.description}</strong>
+                      <p style={{ fontSize: '0.8em' }}>
+                        {selectedProduct.Inventory.Address_Rack.addressRackName}
+                      </p>
+                    </CCol>
+                  </CRow>
+                  <CFormInput
+                    type="text"
+                    placeholder="Enter rejection reason"
+                    value={rejectionReason}
+                    onChange={handleInputChange}
+                  />
+                </CModalBody>
+                <CModalFooter>
+                  <CButton color="danger" onClick={handleConfirmRejection}>
+                    Submit Reject
+                  </CButton>
+                </CModalFooter>
+              </CModal>
+            )}
           </CRow>
 
           {/* Pagination */}
