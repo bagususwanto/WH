@@ -239,60 +239,57 @@ const Confirm = () => {
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      // Cari produk berdasarkan productId
-      const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId)
+      const product = Confirmwarehouse.Detail_Orders.find((p) => p.id === productId)
 
-      // Pastikan produk ditemukan
-      if (!product) {
-        return prevQuantities // Jika produk tidak ditemukan, kembalikan state sebelumnya
-      }
+      if (!product) return prevQuantities // Jika produk tidak ditemukan
 
-      const maxQuantity = product.quantity // Batas maksimum
-      const currentQuantity = prevQuantities[productId] || 1 // Kuantitas saat ini, default ke 1 jika tidak ada
+      const maxQuantity = product.quantity // Kuantitas maksimum dari API
+      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
 
-      // Periksa apakah kuantitas saat ini masih di bawah batas maksimum
       if (currentQuantity < maxQuantity) {
         return {
           ...prevQuantities,
-          [productId]: currentQuantity + 1, // Tambah 1 ke kuantitas saat ini
+          [productId]: currentQuantity + 1, // Tambah kuantitas sebesar 1
         }
       }
 
-      // Jika sudah mencapai batas maksimum, tetap return state sebelumnya
+      // Jika mencapai batas maksimum, tetap kembalikan state sebelumnya
       return prevQuantities
     })
   }
-
   // ... (Lanjutkan kode lainnya)
 
   const handleDecreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: Math.max(
-        (prevQuantities[productId] ||
-          Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId).quantity) - 1,
-        1,
-      ),
-    }))
-  }
+    setQuantities((prevQuantities) => {
+      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
 
+      if (currentQuantity > 1) {
+        return {
+          ...prevQuantities,
+          [productId]: currentQuantity - 1, // Kurangi kuantitas sebesar 1
+        }
+      }
+
+      // Jika sudah mencapai batas minimum (1), tetap kembalikan state sebelumnya
+      return prevQuantities
+    })
+  }
   const handleQuantityChange = (productId, value) => {
     const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
-    const product = Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId)
+    const product = Confirmwarehouse.Detail_Orders.find((p) => p.id === productId)
 
-    // Pastikan produk ditemukan
     if (!product) {
       console.error(`Product with ID ${productId} not found`)
       return
     }
 
-    const maxQuantity = product.quantity // Batas maksimum
+    const maxQuantity = product.quantity // Kuantitas maksimum
 
-    // Periksa apakah nilai yang dimasukkan valid dan tidak melebihi batas
+    // Validasi apakah nilai yang dimasukkan valid (angka, tidak melebihi batas, dan >= 1)
     if (!isNaN(newQuantity) && newQuantity >= 1 && newQuantity <= maxQuantity) {
       setQuantities((prevQuantities) => ({
         ...prevQuantities,
-        [productId]: newQuantity, // Set nilai baru
+        [productId]: newQuantity,
       }))
     } else {
       console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`)
@@ -594,11 +591,18 @@ const Confirm = () => {
               currentItems.map((product, index) => (
                 <CCard
                   key={product.id}
-                  className="d-flex flex-column justify-content-between"
-                  onClick={() => handleCardClick(product)}
+                  className="d-flex flex-column justify-content-between mb-3"
+                  onClick={(e) => {
+                    if (
+                      e.target.tagName !== 'BUTTON' && // Jangan trigger saat tombol ditekan
+                      e.target.tagName !== 'INPUT' // Jangan trigger saat input difokuskan
+                    ) {
+                      handleCardClick(product.id) // Hanya klik di luar tombol/input yang diakui
+                    }
+                  }}
                   style={{
-                    backgroundColor: selectedItems[index] ? '#C9E9D2' : 'white', // Hijau jika dipilih, putih jika tidak
-                    cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
+                    backgroundColor: selectedItems.includes(product.id) ? '#C9E9D2' : 'white', // Hijau jika dipilih, putih jika tidak
+                    cursor: 'pointer',
                   }}
                 >
                   <CCardBody>
@@ -639,6 +643,7 @@ const Confirm = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleDecreaseQuantity(product.id)}
+                              disabled={quantities[product.id] <= 1} // Disable tombol jika kuantitas sudah mencapai minimum
                             >
                               -
                             </CButton>
@@ -647,25 +652,24 @@ const Confirm = () => {
                               value={quantities[product.id] || 1}
                               aria-label="Number input"
                               onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                              className="text-center" // Utility class for centering text
+                              className="text-center"
                               style={{
-                                textAlign: 'center', // Center text horizontally
-                                verticalAlign: 'middle', // Center text vertically
-                                height: '100%', // Make input fill its container's height
-                                border: 'none', // Remove border
-                                outline: 'none', // Remove focus outline
-                                backgroundColor: 'transparent', // Make the background transparent
-                                color: '#000', // Ensure text is visible with a contrasting color
-                                fontSize: '1rem', // Adjust font size for better readability
+                                textAlign: 'center',
+                                verticalAlign: 'middle',
+                                height: '100%',
+                                border: 'none',
+                                outline: 'none',
+                                backgroundColor: 'transparent',
+                                color: '#000',
+                                fontSize: '1rem',
                               }}
                             />
-
                             <CButton
                               color="secondary"
                               variant="outline"
                               size="sm"
                               onClick={() => handleIncreaseQuantity(product.id)}
-                              disable
+                              disabled={quantities[product.id] >= product.quantity} // Disable tombol jika kuantitas sudah mencapai maksimum
                             >
                               +
                             </CButton>

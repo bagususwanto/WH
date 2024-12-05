@@ -346,7 +346,11 @@ const History = () => {
                     </CCard>
                   ))
                 ) : myOrderData.length > 0 ? (
-                  myOrderData.map((order) => (
+                  myOrderData
+                  .filter(
+                    (order) => order.Detail_Orders && order.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
+                  )
+                  .map((order) => (
                     <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
                       <CRow className="align-items-center">
                         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -358,10 +362,10 @@ const History = () => {
                             <CBadge
                               className="me-2"
                               color={getSeverity(
-                                order.Detail_Orders[0].isReject == 1 ? 'rejected' : order.status,
+                                order.Detail_Orders[0]?.isReject == 1 ? 'rejected' : order.status,
                               )}
                             >
-                              {order.Detail_Orders[0].isReject == 1
+                              {order.Detail_Orders[0]?.isReject == 1
                                 ? 'REJECTED'
                                 : order.status.toUpperCase()}
                             </CBadge>
@@ -441,7 +445,7 @@ const History = () => {
       </CTabs>
 
       {selectedProduct && (
-        <CModal visible={visible} onClose={() => setVisible(false)} className="modal-xl">
+        <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
           <CModalHeader>
             <CModalTitle>Order Details</CModalTitle>
           </CModalHeader>
@@ -451,7 +455,7 @@ const History = () => {
                 <CCardBody>
                   <CRow className="align-items-center mb-2">
                     <CCol>
-                      <CIcon className="me-2" icon={getTabIcon(order.status)} />
+                      <CIcon className="me-2" icon={getTabIcon(selectedProduct.status)} />
                       <label className="me-2 fs-6">
                         {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                       </label>
@@ -467,7 +471,11 @@ const History = () => {
                           ? 'REJECTED'
                           : selectedProduct.status.toUpperCase()}
                       </CBadge>
-                      <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
+                      <label className="me-2 fw-light">
+                        {selectedProduct.transactionNumber
+                          ? `${selectedProduct.transactionNumber}`
+                          : `${selectedProduct.requestNumber}`}
+                      </label>
                     </CCol>
                   </CRow>
                   <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
@@ -502,6 +510,43 @@ const History = () => {
                       </CCol>
                     </CRow>
                   ))}
+                  <hr style={{ height: '5px', margin: '5px ' }} />
+                  <CRow
+                    className="mb-1" // Margin bawah antar elemen
+                    style={{
+                      alignItems: 'center', // Pastikan elemen sejajar secara vertikal
+                      justifyContent: 'space-between', // Elemen kiri dan kanan berjarak
+                    }}
+                  >
+                    {/* Kolom Kiri */}
+                    <CCol xs="6">
+                      {' '}
+                      {/* Mengatur List GI & Delivery di sebelah kiri */}
+                      <label
+                        className="fw-light mb-1"
+                        style={{
+                          fontSize: '0.85rem', // Ukuran font kecil
+                        }}
+                      >
+                        List GI & Delivery
+                      </label>
+                    </CCol>
+
+                    {/* Kolom Kanan */}
+                    <CCol xs="6" className="text-end">
+                      {' '}
+                      {/* Payment Method di sebelah kanan */}
+                      <label
+                        style={{
+                          fontSize: '0.85rem', // Ukuran font serupa
+                        }}
+                      >
+                        {selectedProduct.paymentMethod} :
+                      </label>
+                      <span style={{ marginLeft: '8px' }}>{selectedProduct.paymentNumber}</span>
+                    </CCol>
+                  </CRow>
+
                   <hr style={{ height: '5px', margin: '5px ' }} />
                   <label
                     className="fw-light mb-1"

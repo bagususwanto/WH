@@ -741,19 +741,19 @@ const Home = () => {
                   <CRow className="d-flex justify-content-between my-2 ">
                     <CCol xs="1">
                       <CCardImage
-                        src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
-                        alt={order.Detail_Orders[0].Inventory.Material.description}
+                        src={`${config.BACKEND_URL}${order.Detail_Orders[0]?.Inventory.Material.img}`}
+                        alt={order.Detail_Orders[0]?.Inventory.Material.description}
                         style={{ height: '100%', width: '100%' }}
                       />
                     </CCol>
 
                     <CCol>
                       {order.Detail_Orders.length === 1 ? (
-                        <label key={order.Detail_Orders[0].id}>
-                          {order.Detail_Orders[0].Inventory.Material.description}
+                        <label key={order.Detail_Orders[0]?.id}>
+                          {order.Detail_Orders[0]?.Inventory.Material.description}
                         </label>
                       ) : (
-                        <label>{order.Detail_Orders[0].Inventory.Material.description}...</label>
+                        <label>{order.Detail_Orders[0]?.Inventory.Material.description}...</label>
                       )}
                       <br />
                       <label className="fw-bold fs-6">

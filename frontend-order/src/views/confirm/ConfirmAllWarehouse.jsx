@@ -305,6 +305,10 @@ const ApproveAll = () => {
     }
   }
   console.log('productsData', productsData)
+  const totalQuantity = new Set(
+    (selectedProduct?.Detail_Orders || []).map((detail) => detail.Inventory.Material.description),
+  ).size
+
   return (
     <>
       <CRow className="mt-0">
@@ -406,8 +410,11 @@ const ApproveAll = () => {
                 </CRow>
               ) : (
                 <CRow className="mt-1">
-                  {productsData.length > 0 ? (
-                    productsData.map((product) => (
+                  {productsData
+                    .filter(
+                      (product) => product.Detail_Orders && product.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
+                    )
+                    .map((product) => (
                       <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
                         <CRow className="align-items-center">
                           <CCol>
@@ -418,12 +425,12 @@ const ApproveAll = () => {
                             <CBadge
                               className="me-2"
                               color={getSeverity(
-                                product.Detail_Orders[0].isReject == 1
+                                product.Detail_Orders[0]?.isReject == 1
                                   ? 'rejected'
                                   : product.status,
                               )}
                             >
-                              {product.Detail_Orders[0].isReject == 1
+                              {product.Detail_Orders[0]?.isReject == 1
                                 ? 'REJECTED'
                                 : product.status.toUpperCase()}
                             </CBadge>
@@ -503,16 +510,15 @@ const ApproveAll = () => {
                           </CRow>
                         </CRow>
                       </CCard>
-                    ))
-                  ) : (
-                    <p>No orders found</p>
-                  )}
+                    ))}
+                  {productsData.filter((product) => product.Detail_Orders?.length > 0).length ===
+                    0 && <p>No valid orders found</p>}
                 </CRow>
               )}
 
               {console.log('111111', orderHistory)}
               {selectedProduct && (
-                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-xl">
+                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                   <CModalHeader>
                     <CModalTitle>Product Details</CModalTitle>
                   </CModalHeader>
@@ -521,26 +527,31 @@ const ApproveAll = () => {
                       <CCard className="h-80">
                         <CCardBody>
                           <CRow className="align-items-center mb-3">
-                            <CCol>
-                              <CIcon className="me-2" icon={cilCart} />
-                              <label className="me-2 fs-6">
-                                {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
-                              </label>
-                              <CBadge
-                                className="me-2"
-                                color={getSeverity(
-                                  selectedProduct.Detail_Orders[0].isReject == 1
-                                    ? 'rejected'
-                                    : selectedProduct.status,
-                                )}
-                              >
-                                {selectedProduct.Detail_Orders[0].isReject == 1
-                                  ? 'REJECTED'
-                                  : selectedProduct.status.toUpperCase()}
-                              </CBadge>
-                              <label className="me-2 fw-light">
-                                {selectedProduct.requestNumber}
-                              </label>
+                            <CCol className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <CIcon className="me-2" icon={cilCart} />
+                                <label className="me-2 fs-6">
+                                  {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
+                                </label>
+                                <CBadge
+                                  className="me-2"
+                                  color={getSeverity(
+                                    selectedProduct.Detail_Orders[0].isReject === 1
+                                      ? 'rejected'
+                                      : selectedProduct.status,
+                                  )}
+                                >
+                                  {selectedProduct.Detail_Orders[0].isReject === 1
+                                    ? 'REJECTED'
+                                    : selectedProduct.status.toUpperCase()}
+                                </CBadge>
+                                <label className="me-2 fw-light">
+                                  {selectedProduct.requestNumber}
+                                </label>
+                              </div>
+                              <div>
+                                <label>Total: {totalQuantity} Item</label>
+                              </div>
                             </CCol>
                           </CRow>
                           <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
@@ -579,6 +590,44 @@ const ApproveAll = () => {
                               </CCol>
                             </CRow>
                           ))}
+                          <hr style={{ height: '5px', margin: '2px ' }} />
+                          <CRow
+                            className="mb-1" // Margin bawah antar elemen
+                            style={{
+                              alignItems: 'center', // Pastikan elemen sejajar secara vertikal
+                              justifyContent: 'space-between', // Elemen kiri dan kanan berjarak
+                            }}
+                          >
+                            {/* Kolom Kiri */}
+                            <CCol xs="6">
+                              {' '}
+                              {/* Mengatur List GI & Delivery di sebelah kiri */}
+                              <label
+                                className="fw-light mb-1"
+                                style={{
+                                  fontSize: '0.85rem', // Ukuran font kecil
+                                }}
+                              >
+                                List GI & Delivery
+                              </label>
+                            </CCol>
+
+                            {/* Kolom Kanan */}
+                            <CCol xs="6" className="text-end">
+                              {' '}
+                              {/* Payment Method di sebelah kanan */}
+                              <label
+                                style={{
+                                  fontSize: '0.85rem', // Ukuran font serupa
+                                }}
+                              >
+                                {selectedProduct.paymentMethod} :
+                              </label>
+                              <span style={{ marginLeft: '8px' }}>
+                                {selectedProduct.paymentNumber}
+                              </span>
+                            </CCol>
+                          </CRow>
                           <hr style={{ height: '5px', margin: '2px ' }} />
                           <label
                             className="fw-light mb-1"

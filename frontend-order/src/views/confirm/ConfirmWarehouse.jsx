@@ -378,7 +378,7 @@ const Confirm = () => {
                     {loading ? (
                       <Skeleton width={200} />
                     ) : (
-                      Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                      Confirmwarehouse.Detail_Orders[0]?.Inventory.Address_Rack.Storage.Plant
                         .Warehouse.warehouseName
                     )}
                   </label>

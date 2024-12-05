@@ -412,7 +412,11 @@ const ApproveAll = () => {
                     </>
                   ) : myApprovalData.length > 0 ? (
                     // Data Approval
-                    myApprovalData.map((approval) => (
+                    myApprovalData
+                    .filter(
+                      (approval) => approval.Detail_Orders && approval.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
+                    )
+                    .map((approval) => (
                       <CCard className="h-78 mb-2" key={approval.id}>
                         <CCardBody className="d-flex flex-column justify-content-between">
                           <CRow className="align-items-center">
@@ -633,7 +637,7 @@ const ApproveAll = () => {
             {console.log('111111', orderHistory)}
 
             {selectedProduct && (
-              <CModal visible={visible} onClose={() => setVisible(false)} className="modal-xl">
+              <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                 <CModalHeader>
                   <CModalTitle>Product Details</CModalTitle>
                 </CModalHeader>
@@ -693,12 +697,51 @@ const ApproveAll = () => {
                           </CRow>
                         ))}
                         <hr style={{ height: '5px', margin: '2px ' }} />
+                        <CRow
+                          className="mb-1" // Margin bawah antar elemen
+                          style={{
+                            alignItems: 'center', // Pastikan elemen sejajar secara vertikal
+                            justifyContent: 'space-between', // Elemen kiri dan kanan berjarak
+                          }}
+                        >
+                          {/* Kolom Kiri */}
+                          <CCol xs="6">
+                            {' '}
+                            {/* Mengatur List GI & Delivery di sebelah kiri */}
+                            <label
+                              className="fw-light mb-1"
+                              style={{
+                                fontSize: '0.85rem', // Ukuran font kecil
+                              }}
+                            >
+                              List GI & Delivery
+                            </label>
+                          </CCol>
+
+                          {/* Kolom Kanan */}
+                          <CCol xs="6" className="text-end">
+                            {' '}
+                            {/* Payment Method di sebelah kanan */}
+                            <label
+                              style={{
+                                fontSize: '0.85rem', // Ukuran font serupa
+                              }}
+                            >
+                              {selectedProduct.paymentMethod} :
+                            </label>
+                            <span style={{ marginLeft: '8px' }}>
+                              {selectedProduct.paymentNumber}
+                            </span>
+                          </CCol>
+                        </CRow>
+                        <hr style={{ height: '5px', margin: '2px ' }} />
                         <label
                           className="fw-light mb-1"
                           style={{
                             fontSize: '0.85rem', // Ukuran font kecil
                           }}
                         >
+                          <hr style={{ height: '5px', margin: '2px ' }} />
                           Tracking Item
                         </label>
                         {orderHistory.map((item, index) => {
