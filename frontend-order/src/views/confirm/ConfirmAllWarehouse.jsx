@@ -512,7 +512,7 @@ const ApproveAll = () => {
 
               {console.log('111111', orderHistory)}
               {selectedProduct && (
-                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+                <CModal visible={visible} onClose={() => setVisible(false)} className="modal-xl">
                   <CModalHeader>
                     <CModalTitle>Product Details</CModalTitle>
                   </CModalHeader>
@@ -592,25 +592,17 @@ const ApproveAll = () => {
                             const isFirst = index === 0 // Memeriksa apakah item adalah yang pertama
 
                             return (
-                              <div
+                              <CRow
                                 key={item.id}
+                                className="mb-3" // Margin bawah antar item
                                 style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'flex-start',
+                                  alignItems: 'center', // Pastikan elemen rata
                                 }}
                               >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    marginBottom: '12px',
-                                  }}
-                                >
-                                  {/* Tanggal dan waktu */}
+                                {/* Kolom Tanggal dan Waktu */}
+                                <CCol xs="auto">
                                   <label
                                     style={{
-                                      marginRight: '15px',
                                       fontSize: '0.8rem',
                                       color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
                                     }}
@@ -619,8 +611,10 @@ const ApproveAll = () => {
                                     {', '}
                                     {format(parseISO(item.createdAt), 'HH:mm')}
                                   </label>
+                                </CCol>
 
-                                  {/* Ikon dalam lingkaran */}
+                                {/* Kolom Ikon */}
+                                <CCol xs="auto">
                                   <div
                                     style={{
                                       border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
@@ -638,24 +632,23 @@ const ApproveAll = () => {
                                       style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
                                     />
                                   </div>
+                                </CCol>
 
-                                  {/* Status */}
-                                  <label
+                                {/* Kolom Status */}
+                                <CCol>
+                                  <div
                                     style={{
-                                      marginLeft: '8px',
                                       fontSize: '0.91rem',
                                       textTransform: 'capitalize',
                                       color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                                     }}
                                   >
-                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                  <label style={{fontSize:'0.96em'}}>{item.status}</label>
-                                    <label> By : {item.User.name}</label>
-                                    <label> Remark : {item.remarks}</label>
+                                    <label style={{ fontSize: '0.96em' }}>{item.status}</label>
+                                    <div>By : {item.User.name}</div>
+                                    <div>Remark : {item.remarks}</div>
                                   </div>
-                                  </label>
-                                </div>
-                              </div>
+                                </CCol>
+                              </CRow>
                             )
                           })}
                         </CCardBody>

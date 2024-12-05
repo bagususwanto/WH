@@ -796,7 +796,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '0px', left: '35px' }}
+                  style={{ top: '2px', left: '35px' }}
                 >
                   {notifCount}
                 </CBadge>
