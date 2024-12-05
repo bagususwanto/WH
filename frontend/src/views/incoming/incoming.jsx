@@ -722,7 +722,7 @@ const Incoming = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={visible} onClose={() => setVisible(false)}>
+      <CModal visible={visible} onClose={() => setVisible(false)} backdrop="static">
         <CModalHeader>
           <CModalTitle id="LiveDemoExampleLabel">Upload Incoming</CModalTitle>
         </CModalHeader>
