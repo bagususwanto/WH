@@ -121,18 +121,23 @@ export const getOrderWarehouse = async (req, res) => {
         {
           model: DetailOrder,
           where: whereCondition2,
+          required: true,
+          separate: true,
           include: [
             {
               model: Inventory,
+              required: true,
               attributes: ["id", "addressId", "materialId"],
               include: [
                 {
                   model: AddressRack,
+                  required: true,
                   attributes: ["id", "addressRackName"],
                   where: { flag: 1 },
                   include: [
                     {
                       model: Storage,
+                      required: true,
                       attributes: ["id", "storageName"],
                       where: { flag: 1 },
                       include: [
@@ -156,7 +161,7 @@ export const getOrderWarehouse = async (req, res) => {
                 },
                 {
                   model: Material,
-                  required: false,
+                  required: true,
                   attributes: [
                     "id",
                     "materialNo",
