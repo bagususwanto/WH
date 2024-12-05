@@ -789,8 +789,6 @@ const AppHeader = () => {
             <CDropdownToggle
               className="d-flex align-items-center position-relative"
               caret={false}
-              onMouseEnter={() => setDropdownNotif(false)} // Nonaktifkan autoClose saat mouse di ikon
-              onMouseLeave={() => setDropdownNotif(true)} // Aktifkan autoClose saat mouse meninggalkan ikon
             >
               <CIcon icon={cilBell} size="lg" />
               {notifCount > 0 && (
@@ -798,7 +796,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '-2px', right: '25px' }}
+                  style={{ top: '0px', left: '35px' }}
                 >
                   {notifCount}
                 </CBadge>
