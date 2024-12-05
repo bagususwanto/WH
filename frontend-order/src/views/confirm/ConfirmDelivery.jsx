@@ -25,6 +25,8 @@ import {
   CFooter,
   CFormLabel,
   CFormTextarea,
+  CPagination,
+  CPaginationItem
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -102,6 +104,9 @@ const ApproveAll = () => {
   const [message, setMessage] = useState('')
   const [selectedItems, setSelectedItems] = useState({})
   const [loading, setLoading] = useState(true) // Add loading state
+  const itemsPerPage = 6
+  const [currentPage, setCurrentPage] = useState(1)
+
 
   useEffect(() => {
     // Simulate data fetching or processing delay
@@ -208,6 +213,17 @@ const ApproveAll = () => {
       ...prev,
       [index]: !prev[index], // Toggle status untuk item berdasarkan index
     }))
+  }
+
+  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+
+  // Get current items based on the current page
+  const currentItems =   Confirmwarehouse.Detail_Orders?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  )
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
   }
 
   return (
@@ -417,7 +433,7 @@ const ApproveAll = () => {
                     </CCard>
                   ))
               : // Jika tidak loading, tampilkan data sebenarnya
-                Confirmwarehouse.Detail_Orders?.map((product, index) => (
+              currentItems.map((product, index) => (
                   <CCard
                     key={index}
                     className="d-flex flex-column justify-content-between"
@@ -479,6 +495,33 @@ const ApproveAll = () => {
                     </CCardBody>
                   </CCard>
                 ))}
+          </CRow>
+          <CRow className="mt-4">
+            <CCol className="d-flex justify-content-center sticky-pagination">
+              <CPagination aria-label="Page navigation example">
+                <CPaginationItem
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </CPaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <CPaginationItem
+                    key={index}
+                    active={currentPage === index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </CPaginationItem>
+              </CPagination>
+            </CCol>
           </CRow>
         </CCol>
       </CRow>

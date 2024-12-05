@@ -272,7 +272,7 @@ const Confirm = () => {
   const totalPages = Math.ceil(productsData.length / itemsPerPage)
 
   // Get current items based on the current page
-  const currentItems = Confirmwarehouse.Detail_Orders.slice(
+  const currentItems = Confirmwarehouse.Detail_Orders?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   )

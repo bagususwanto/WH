@@ -28,6 +28,8 @@ import {
   CButtonGroup,
   CFormLabel,
   CImage,
+  CPagination,
+  CPaginationItem,
   CCardHeader,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
@@ -72,6 +74,8 @@ const Confirm = () => {
   const [selectedItems, setSelectedItems] = useState([]) // Harus array
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [rejectionReason, setRejectionReason] = useState('')
+  const itemsPerPage = 6
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [loading, setLoading] = useState(true) // Add loading state
   useEffect(() => {
@@ -363,6 +367,17 @@ const Confirm = () => {
       console.error('Error confirming rejection:', error)
     }
   }
+
+  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+
+  // Get current items based on the current page
+  const currentItems = sortedOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  )
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+  }
   return (
     <CContainer>
       <CRow className="mt-1">
@@ -557,7 +572,7 @@ const Confirm = () => {
               options={[
                 ...Confirmwarehouse.Detail_Orders.map((order) => ({
                   value: order.Inventory.id,
-                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 2), // Ambil 2 karakter pertama
+                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 3), // Ambil 2 karakter pertama
                 })).filter(
                   (option, index, self) =>
                     index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
@@ -576,7 +591,7 @@ const Confirm = () => {
                 <Skeleton count={3} height={150} />
               </>
             ) : (
-              sortedOrders.map((product, index) => (
+              currentItems.map((product, index) => (
                 <CCard
                   key={product.id}
                   className="d-flex flex-column justify-content-between"
@@ -717,7 +732,7 @@ const Confirm = () => {
                             <CRow className="mb-2">
                               <CCol md="4">
                                 <CImage
-                                  src={'https://via.placeholder.com/150'}
+                                  src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                                   // alt={selectedProduct.Material.description}
                                   fluid
                                   className="rounded"
@@ -757,6 +772,33 @@ const Confirm = () => {
                 </CCard>
               ))
             )}
+          </CRow>
+          <CRow className="mt-4">
+            <CCol className="d-flex justify-content-center sticky-pagination">
+              <CPagination aria-label="Page navigation example">
+                <CPaginationItem
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </CPaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <CPaginationItem
+                    key={index}
+                    active={currentPage === index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </CPaginationItem>
+              </CPagination>
+            </CCol>
           </CRow>
         </CCol>
       </CRow>
