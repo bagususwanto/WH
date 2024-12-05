@@ -552,7 +552,7 @@ const Confirm = () => {
         </CCol>
 
         <CCol xs={8}>
-          <CRow className="g-2">
+          <CRow>
             {loading
               ? Array.from({ length: 3 }).map((_, index) => (
                   <CCard className="h-80 rounded-45 bg-grey" key={index}>
@@ -691,7 +691,6 @@ const Confirm = () => {
                     </CCardBody>
                   </CCard>
                 ))}
-            ,
           </CRow>
           <div className="d-flex justify-content-center mt-4">
             <CPagination>

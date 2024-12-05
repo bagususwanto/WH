@@ -81,7 +81,7 @@ const AppHeaderDropdown = () => {
   ) {
     shouldShowApproval = true
   }
-  if (roleName === 'super admin' || roleName === 'warehouse staff') {
+  if (roleName === 'super admin' || roleName === 'warehouse staff' || roleName === 'warehouse member') {
     shouldShowWarehouse = true
   }
 
