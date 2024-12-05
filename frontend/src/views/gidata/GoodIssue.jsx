@@ -46,13 +46,18 @@ const GoodIssue = () => {
 
   const columns = [
     {
-      field: 'User.Organization.Plant.plantName',
+      field: 'plantName',
       header: 'Plant',
       sortable: true,
     },
     {
-      field: 'User.username',
+      field: 'username',
       header: 'Ordered By',
+      sortable: true,
+    },
+    {
+      field: 'currentApprover',
+      header: 'Accepted By',
       sortable: true,
     },
     // {
@@ -71,11 +76,11 @@ const GoodIssue = () => {
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'User.Organization.Section.sectionName': {
+    sectionName: {
       value: null,
       matchMode: FilterMatchMode.CONTAINS,
     },
-    'User.Organization.Plant.plantName': {
+    plantName: {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
@@ -88,11 +93,11 @@ const GoodIssue = () => {
   const initFilters = () => {
     setFilters({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'User.Organization.Section.sectionName': {
+      sectionName: {
         value: null,
         matchMode: FilterMatchMode.CONTAINS,
       },
-      'User.Organization.Plant.plantName': {
+      plantName: {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
@@ -163,32 +168,34 @@ const GoodIssue = () => {
         sectionId ? sectionId : '',
         statusOrder ? statusOrder : '',
       )
-      const dataWithFormattedFields = response.data.map((item) => {
-        const materialNo = item.Detail_Orders?.[0]?.Inventory?.Material?.materialNo || 'N/A'
-        const description = item.Detail_Orders?.[0]?.Inventory?.Material?.description || 'N/A'
-        const quantity = item.Detail_Orders?.[0]?.quantity
-        const transactionNo = item.transactionNumber ? item.transactionNumber : item.requestNumber
-        const currentApprover = item.Approvals[0]?.User.username
-        const transactionDate = format(parseISO(item.transactionDate), 'yyyy-MM-dd') || ''
-        return {
-          ...item,
-          materialNo,
-          description,
-          quantity,
-          transactionNo,
-          currentApprover,
-          transactionDate,
-          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          // formattedUpdateAt: item.updatedAt
-          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-          //   : '',
-        }
-      })
-      setGoodIssue(dataWithFormattedFields)
+      console.log('response.data', response.data)
+      // Transform data
+      const dataWithDetailsExpanded = response.data.flatMap((item, parentIndex) =>
+        item.Detail_Orders.map((detail, childIndex) => ({
+          index: `${parentIndex}-${childIndex}`,
+          transactionNo: item.transactionNumber || item.requestNumber,
+          transactionDate: item.transactionDate
+            ? format(parseISO(item.transactionDate), 'yyyy-MM-dd')
+            : '',
+          sectionName: item.User.Organization.Section.sectionName,
+          plantName: item.User.Organization.Plant.plantName,
+          username: item.User.username,
+          paymentMethod: item.paymentMethod,
+          paymentNumber: item.paymentNumber,
+          currentApprover: item.Approvals[0]?.User.username,
+          status: item.status,
+          materialNo: detail.Inventory.Material.materialNo,
+          description: detail.Inventory.Material.description,
+          quantity: detail.quantity,
+        })),
+      )
+      console.log(dataWithDetailsExpanded)
+
+      setGoodIssue(dataWithDetailsExpanded)
     } catch (error) {
       console.error('Error fetching goodIssue:', error)
     } finally {
-      setLoading(false) // Set loading to false after data is fetched
+      setLoading(false)
     }
   }
 
@@ -247,7 +254,7 @@ const GoodIssue = () => {
 
     setSectionId(selectedSectionId)
     let _filters = { ...filters }
-    _filters['User.Organization.Section.sectionName'].value = e.value
+    _filters['sectionName'].value = e.value
     setFilters(_filters)
     setShouldFetch(true)
   }
@@ -271,7 +278,7 @@ const GoodIssue = () => {
     getSectionByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['User.Organization.Plant.plantName'].value = selectedPlantName
+    _filters['plantName'].value = selectedPlantName
     setFilters(_filters)
     setShouldFetch(true)
   }
@@ -286,6 +293,7 @@ const GoodIssue = () => {
 
   const applyFilters = () => {
     let filteredData = [...goodIssue]
+    console.log('goodIssue', goodIssue)
 
     if (filters['global'].value) {
       const globalFilterValue = filters['global'].value.toLowerCase()
@@ -295,26 +303,20 @@ const GoodIssue = () => {
       })
     }
 
-    if (filters['User.Organization.Section.sectionName'].value) {
+    if (filters['sectionName'].value) {
       filteredData = filteredData.filter(
-        (item) =>
-          item.User?.Organization?.Section?.sectionName ===
-          filters['User.Organization.Section.sectionName'].value,
+        (item) => item.sectionName === filters['sectionName'].value,
       )
     }
 
-    if (filters['User.Organization.Plant.plantName'].value) {
-      filteredData = filteredData.filter(
-        (item) =>
-          item.User?.Organization?.Plant?.plantName ===
-          filters['User.Organization.Plant.plantName'].value,
-      )
+    if (filters['plantName'].value) {
+      filteredData = filteredData.filter((item) => item.plantName === filters['plantName'].value)
     }
 
     if (filters['status'].value) {
       filteredData = filteredData.filter((item) => item.status === filters['status'].value)
     }
-
+    console.log('filteredData', filteredData)
     setVisibleData(filteredData)
   }
 
@@ -344,8 +346,8 @@ const GoodIssue = () => {
           'Issue QTY': item.quantity,
           'Transaction No': item.transactionNo,
           'Transaction Date': item.transactionDate,
-          Section: item.User.Organization.Section.sectionName,
-          Plant: item.User.Organization.Plant.plantName,
+          Section: item.sectionName,
+          Plant: item.plantName,
           'Ordered By': item.User.username,
           'GI Method': item.paymentMethod,
           'GI Number': item.paymentNumber,
@@ -426,7 +428,7 @@ const GoodIssue = () => {
       <p>Loading goodIssue data...</p>
     </div>
   )
-
+  console.log('visibleData', visibleData)
   return (
     <CRow>
       <CCol>
@@ -472,7 +474,7 @@ const GoodIssue = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['User.Organization.Plant.plantName'].value}
+                  value={filters['plantName'].value}
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
@@ -483,7 +485,7 @@ const GoodIssue = () => {
               </CCol>
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
-                  value={filters['User.Organization.Section.sectionName'].value}
+                  value={filters['sectionName'].value}
                   options={section}
                   onChange={handleSectionChange}
                   placeholder="Select Section"
@@ -539,7 +541,7 @@ const GoodIssue = () => {
                   paginator
                   rowsPerPageOptions={[10, 50, 100, 500]}
                   rows={10}
-                  dataKey="id"
+                  dataKey="index"
                   filters={filters}
                   loading={loading}
                   emptyMessage="No goodIssue found."
@@ -549,6 +551,13 @@ const GoodIssue = () => {
                   removableSort
                   header={header}
                 >
+                  <Column
+                    header="No"
+                    sortable
+                    frozen={true}
+                    body={(data, props) => props.rowIndex + 1}
+                    bodyStyle={{ textAlign: 'center' }}
+                  ></Column>
                   <Column
                     field="materialNo"
                     header="Material"
@@ -565,12 +574,7 @@ const GoodIssue = () => {
                   ></Column>
                   <Column field="transactionNo" header="Transaction No" sortable></Column>
                   <Column field="transactionDate" header="Transaction Date" sortable></Column>
-                  <Column
-                    field="User.Organization.Section.sectionName"
-                    header="Section"
-                    ß
-                    sortable
-                  ></Column>
+                  <Column field="sectionName" header="Section" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -583,7 +587,6 @@ const GoodIssue = () => {
                     />
                   ))}
                   <Column field="paymentNumber" header="GI number" sortable></Column>
-                  {/* <Column field="status" header="Last Status" sortable></Column> */}
                 </DataTable>
               </>
             )}

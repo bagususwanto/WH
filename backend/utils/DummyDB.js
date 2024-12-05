@@ -5727,7 +5727,7 @@ export const sectionData = [
   {
     sectionCode: 109141200,
     sectionName: "Assembly Area #2 (Red) Sec",
-    gicId: 67,
+    gicId: 82,
     wbsId: 2,
   },
   {
