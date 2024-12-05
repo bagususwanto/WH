@@ -762,8 +762,8 @@ const ApproveAll = () => {
                                   }}
                                 >
                                   <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <label style={{fontSize:'0.96em'}}>{item.status}</label>
                                     <label> By : {item.User.name}</label>
-                                    <label>{item.status}</label>
                                     <label> Remark : {item.remarks}</label>
                                   </div>
                                 </label>

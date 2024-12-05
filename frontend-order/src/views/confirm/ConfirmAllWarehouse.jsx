@@ -648,11 +648,11 @@ const ApproveAll = () => {
                                       color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
                                     }}
                                   >
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                      <label>By : {item.User.name}</label>
-                                      <label>{item.status}</label>
-                                      <label>Remark : {item.remarks}</label>
-                                    </div>
+                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <label style={{fontSize:'0.96em'}}>{item.status}</label>
+                                    <label> By : {item.User.name}</label>
+                                    <label> Remark : {item.remarks}</label>
+                                  </div>
                                   </label>
                                 </div>
                               </div>
