@@ -479,12 +479,9 @@ const ApproveAll = () => {
 
                             <CCol xs="3" className="text-end">
                               <label className="fw-bold fs-6 me-1">
-                                Rp{' '}
-                                {product.Detail_Orders.reduce(
-                                  (total, order) => total + (order.Inventory.Material.price || 0),
-                                  0,
-                                ).toLocaleString('id-ID')}
+                                Rp {product.totalPrice.toLocaleString('id-ID')}
                               </label>
+
                               <br />
                               <label className="me-1">
                                 <span className="fw-light">{product.paymentMethod}:</span>{' '}
@@ -622,7 +619,7 @@ const ApproveAll = () => {
                                     {', '}
                                     {format(parseISO(item.createdAt), 'HH:mm')}
                                   </label>
-  
+
                                   {/* Ikon dalam lingkaran */}
                                   <div
                                     style={{
@@ -641,7 +638,7 @@ const ApproveAll = () => {
                                       style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
                                     />
                                   </div>
-  
+
                                   {/* Status */}
                                   <label
                                     style={{
