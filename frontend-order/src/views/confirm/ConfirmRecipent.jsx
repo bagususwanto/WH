@@ -264,15 +264,15 @@ const Confirm = () => {
                     <CFormCheck
                       className="me-3"
                       type="radio"
-                      id="pickup"
-                      label="Pickup"
+                      id="otodoke"
+                      label="Otodoke"
                       checked={isPickup}
                       onChange={() => setIsPickup(true)}
                     />
                     <CFormCheck
                       type="radio"
-                      id="otodoke"
-                      label="Otodoke"
+                      id="pickup"
+                      label="Pickup"
                       checked={!isPickup}
                       onChange={() => setIsPickup(false)}
                     />
@@ -291,7 +291,7 @@ const Confirm = () => {
                         }
                       </label>
                     </div>
-                    {!isPickup && (
+                    {isPickup && (
                       <>
                         <CIcon
                           icon={cilArrowBottom}
@@ -308,7 +308,7 @@ const Confirm = () => {
                       </>
                     )}
                   </div>
-                  {!isPickup && (
+                  {isPickup && (
                     <>
                       <hr />
                       <label className="fw-bold mb-2">Schedule Otodoke</label>

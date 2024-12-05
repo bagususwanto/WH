@@ -236,7 +236,7 @@ const History = () => {
       case 'rejected':
         return cilBan // Icon silang
       default:
-        return cilClipboard // Default icon
+        return cilBan // Default icon
     }
   }
 
@@ -451,7 +451,7 @@ const History = () => {
                 <CCardBody>
                   <CRow className="align-items-center mb-2">
                     <CCol>
-                      <CIcon className="me-2" icon={cilCart} />
+                      <CIcon className="me-2" icon={getTabIcon(order.status)} />
                       <label className="me-2 fs-6">
                         {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                       </label>
