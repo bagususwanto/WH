@@ -105,60 +105,116 @@ export const getMyOrder = async (req, res) => {
 
     const totalPages = Math.ceil(totalData / limit);
 
-    // Ambil data berdasarkan filter dengan paginasi
-    const myOrder = await Order.findAll({
-      where: whereCondition,
-      include: [
-        {
-          model: DetailOrder,
-          where: whereCondition2,
-          required: true,
-          separate: true,
-          include: [
-            {
-              model: Inventory,
-              required: true,
-              include: [
-                {
-                  model: Material,
-                  required: true,
-                  where: { flag: 1 },
-                },
-                {
-                  model: AddressRack,
-                  required: true,
-                  where: { flag: 1 },
-                  include: [
-                    {
-                      model: Storage,
-                      required: true,
-                      where: { flag: 1 },
-                      include: [
-                        {
-                          model: Plant,
-                          required: true,
-                          where: { warehouseId: warehouseId, flag: 1 },
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: OrderHistory,
-          separate: true,
-          required: false,
-          order: [["createdAt", "DESC"]],
-        },
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [["createdAt", "DESC"]],
-      subQuery: false,
-    });
+    let myOrder;
+
+    if (isReject == 1) {
+      myOrder = await Order.findAll({
+        where: whereCondition,
+        include: [
+          {
+            model: DetailOrder,
+            where: whereCondition2,
+            required: true,
+            include: [
+              {
+                model: Inventory,
+                required: true,
+                include: [
+                  {
+                    model: Material,
+                    required: true,
+                    where: { flag: 1 },
+                  },
+                  {
+                    model: AddressRack,
+                    required: true,
+                    where: { flag: 1 },
+                    include: [
+                      {
+                        model: Storage,
+                        required: true,
+                        where: { flag: 1 },
+                        include: [
+                          {
+                            model: Plant,
+                            required: true,
+                            where: { warehouseId: warehouseId, flag: 1 },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: OrderHistory,
+            separate: true,
+            required: false,
+            order: [["createdAt", "DESC"]],
+          },
+        ],
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [["createdAt", "DESC"]],
+        subQuery: false,
+      });
+    } else {
+      myOrder = await Order.findAll({
+        where: whereCondition,
+        include: [
+          {
+            model: DetailOrder,
+            where: whereCondition2,
+            required: true,
+            separate: true,
+            include: [
+              {
+                model: Inventory,
+                required: true,
+                include: [
+                  {
+                    model: Material,
+                    required: true,
+                    where: { flag: 1 },
+                  },
+                  {
+                    model: AddressRack,
+                    required: true,
+                    where: { flag: 1 },
+                    include: [
+                      {
+                        model: Storage,
+                        required: true,
+                        where: { flag: 1 },
+                        include: [
+                          {
+                            model: Plant,
+                            required: true,
+                            where: { warehouseId: warehouseId, flag: 1 },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: OrderHistory,
+            separate: true,
+            required: false,
+            order: [["createdAt", "DESC"]],
+          },
+        ],
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [["createdAt", "DESC"]],
+        subQuery: false,
+      });
+    }
 
     // Kirimkan response dengan data dan totalPages
     res.status(200).json({

@@ -10,7 +10,7 @@ const db = new Sequelize(
   {
     host: process.env.DB_SERVER,
     dialect: process.env.DIALECT,
-    logging: false,
+    // logging: false,
     timezone: "+07:00",
     dialectOptions: {
       options: {

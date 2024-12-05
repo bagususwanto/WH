@@ -644,7 +644,7 @@ export const completeOrder = async (req, res) => {
     );
 
     // Create order history
-    await postOrderHistory("your items received", userId, orderId, null, {
+    await postOrderHistory("Order Completed", userId, orderId, null, {
       transaction,
     });
 

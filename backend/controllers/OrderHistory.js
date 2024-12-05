@@ -27,7 +27,7 @@ const getIconByStatus = (status) => {
     return "cilUser";
   } else if (status.includes("accepted")) {
     return "cilHome";
-  } else if (status.includes("received")) {
+  } else if (status.includes("completed")) {
     return "cilCheckCircle";
   } else if (status.includes("created")) {
     return "cilClipboard";
