@@ -581,6 +581,10 @@ const Confirm = () => {
                   key={product.id}
                   className="d-flex flex-column justify-content-between"
                   onClick={() => handleCardClick(product)}
+                  style={{
+                    backgroundColor: selectedItems[index] ? '#C9E9D2' : 'white', // Hijau jika dipilih, putih jika tidak
+                    cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
+                  }}
                 >
                   <CCardBody>
                     <CRow className="align-items-center">
@@ -630,11 +634,14 @@ const Confirm = () => {
                               onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                               className="text-center" // Utility class for centering text
                               style={{
-                                textAlign: 'center', // Pusatkan teks secara horizontal
-                                verticalAlign: 'middle', // Pusatkan teks secara vertikal
-                                height: '100%', // Pastikan input sesuai tinggi kontainer jika perlu
-                                border: 'none', // Hilangkan border
-                                outline: 'none', // Hilangkan garis biru/oranye saat fokus
+                                textAlign: 'center', // Center text horizontally
+                                verticalAlign: 'middle', // Center text vertically
+                                height: '100%', // Make input fill its container's height
+                                border: 'none', // Remove border
+                                outline: 'none', // Remove focus outline
+                                backgroundColor: 'transparent', // Make the background transparent
+                                color: '#000', // Ensure text is visible with a contrasting color
+                                fontSize: '1rem', // Adjust font size for better readability
                               }}
                             />
 

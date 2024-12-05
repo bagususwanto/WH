@@ -65,7 +65,7 @@ const Confirm = () => {
   const { getWarehouseConfirm, rejectWarehouseConfirm, postWarehouseConfirm } =
     useWarehouseService()
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(7) // Limit to 5 items per page
+  const itemsPerPage = 6
   const savedConfirmWarehouse = JSON.parse(localStorage.getItem('confirmWarehouse'))
   const [Confirmwarehouse, setConfirmwarehouse] = useState(savedConfirmWarehouse)
   const MySwal = withReactContent(Swal)
@@ -116,12 +116,6 @@ const Confirm = () => {
     }
   }, [])
 
-  // This is where currentProducts is initialized
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentProducts = productsData.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(productsData.length / itemsPerPage)
-
   useEffect(() => {
     const newTotal = Confirmwarehouse.Detail_Orders.reduce((acc, product) => {
       // Ensure that the product is checked
@@ -141,10 +135,6 @@ const Confirm = () => {
     }, {})
     setQuantities(initialQuantities) // Set the quantities state
   }, [Confirmwarehouse])
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber)
-  }
 
   const handleApprove = async () => {
     // Collect the necessary data
@@ -192,72 +182,7 @@ const Confirm = () => {
     })
   }
   // Handle Increase and Decrease Quantity
-  const handleIncreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]:
-        (prevQuantities[productId] ||
-          Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId).quantity) + 1,
-    }))
-  }
 
-  const handleDecreaseQuantity = (productId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [productId]: Math.max(
-        (prevQuantities[productId] ||
-          Confirmwarehouse.Detail_Orders.find((p) => p.productId === productId).quantity) - 1,
-        1,
-      ),
-    }))
-  }
-  // const handleIncreaseQuantity = (productId) => {
-  //   setQuantities((prevQuantities) => {
-  //     const newQuantity = (prevQuantities[productId] || 1) + 1 // Increase quantity by 1
-
-  //     // Update total amount directly
-  //     const updatedTotalAmount =
-  //       totalAmount +
-  //       (Confirmwarehouse.Detail_Orders.find((p) => p.id === productId)?.Inventory.Material.price ||
-  //         0)
-  //     setTotalAmount(updatedTotalAmount)
-
-  //     return {
-  //       ...prevQuantities,
-  //       [productId]: newQuantity, // Update the quantity for the specific product
-  //     }
-  //   })
-  // }
-
-  // const handleDecreaseQuantity = (productId) => {
-  //   setQuantities((prevQuantities) => {
-  //     const currentQuantity = prevQuantities[productId] || 1
-  //     return {
-  //       ...prevQuantities,
-  //       [productId]: newQuantity,
-  //     }
-  //   })
-  // }
-
-  const handleQuantityChange = (productId, value) => {
-    const newQuantity = parseInt(value, 10)
-    if (!isNaN(newQuantity) && newQuantity >= 1) {
-      setQuantities((prevQuantities) => {
-        // Calculate the price difference
-        const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
-        const price = product?.Inventory.Material.price || 0
-        const quantityDifference = newQuantity - (prevQuantities[productId] || 1)
-
-        // Update total amount based on the quantity difference
-        setTotalAmount(totalAmount + price * quantityDifference)
-
-        return {
-          ...prevQuantities,
-          [productId]: newQuantity,
-        }
-      })
-    }
-  }
   const handleButtonClick = () => {
     setClicked(true)
     navigate('/order')
@@ -275,8 +200,8 @@ const Confirm = () => {
     setRejectionReason(e.target.value)
   }
 
-  const handleModalCart = (product) => {
-    setSelectedProduct(product)
+  const handleModalCart = (item) => {
+    setSelectedProduct(item)
     setModalConfirm(true) // Tampilkan modal
   }
 
@@ -342,6 +267,17 @@ const Confirm = () => {
     } catch (error) {
       console.error('Error confirming rejection:', error)
     }
+  }
+  // Calculate total pages based on data length
+  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+
+  // Get current items based on the current page
+  const currentItems = Confirmwarehouse.Detail_Orders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  )
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
   }
 
   return (
@@ -574,25 +510,25 @@ const Confirm = () => {
                     </CCardBody>
                   </CCard>
                 ))
-              : Confirmwarehouse.Detail_Orders.map((product) => (
-                  <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
+              : currentItems.map((item) => (
+                  <CCard className="h-80 rounded-45 bg-grey" key={item.id}>
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
                         <CCol xs={2} sm={1} md={1}>
                           <CCardImage
-                            src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                            src={`${config.BACKEND_URL}${item.Inventory.Material.img}`}
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
                         <CCol xs={5} sm={5} md={6}>
                           <div style={{ lineHeight: '1.5' }}>
                             <label style={{ fontSize: '0.9em' }}>
-                              {product.Inventory.Material.description}
+                              {item.Inventory.Material.description}
                             </label>
                             <label
                               style={{ fontSize: '0.7em', fontWeight: 'bold', display: 'block' }}
                             >
-                              {product.Inventory.Address_Rack.addressRackName}
+                              {item.Inventory.Address_Rack.addressRackName}
                             </label>
                           </div>
                         </CCol>
@@ -607,16 +543,16 @@ const Confirm = () => {
                           >
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <label style={{ fontSize: '0.9rem', marginRight: '0.3rem' }}>
-                                {product.quantity}
+                                {item.quantity}
                               </label>
                               <label style={{ fontSize: '0.9rem' }} className="fw-light">
-                                {product.Inventory.Material.uom}
+                                {item.Inventory.Material.uom}
                               </label>
                             </div>
                           </div>
                         </CCol>
                         <CCol xs={3} sm={3} md={2}>
-                          {product.isReject == 1 ? (
+                          {item.isReject == 1 ? (
                             <CBadge
                               color="danger"
                               className="ms-auto"
@@ -635,7 +571,7 @@ const Confirm = () => {
                               variant="outline"
                               size="sm"
                               className="ms-auto"
-                              onClick={() => handleModalCart(product)}
+                              onClick={() => handleModalCart(item)}
                             >
                               Reject
                             </CButton>
@@ -653,7 +589,7 @@ const Confirm = () => {
                               <CRow className="mb-2">
                                 <CCol md="4">
                                   <CImage
-                                    src={'https://via.placeholder.com/150'}
+                                    src={`${config.BACKEND_URL}${item.Inventory.Material.img}`}
                                     // alt={selectedProduct.Material.description}
                                     fluid
                                     className="rounded"
@@ -682,41 +618,45 @@ const Confirm = () => {
                         )}
                       </CRow>
                       {/* Show the rejection reason under the product if rejected */}
-                      {product.rejected && (
+                      {item.rejected && (
                         <div style={{ marginTop: '10px' }}>
                           <label className="fw-bold">Rejection Reason:</label>
-                          <p>{product.rejectionReason}</p>
+                          <p>{item.rejectionReason}</p>
                         </div>
                       )}
                     </CCardBody>
                   </CCard>
                 ))}
           </CRow>
-          <div className="d-flex justify-content-center mt-4">
-            <CPagination>
-              <CPaginationItem
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </CPaginationItem>
-              {[...Array(totalPages)].map((_, index) => (
+          {/* Pagination */}
+          <CRow className="mt-4">
+            <CCol className="d-flex justify-content-center sticky-pagination">
+              <CPagination aria-label="Page navigation example">
                 <CPaginationItem
-                  key={index + 1}
-                  active={index + 1 === currentPage}
-                  onClick={() => handlePageChange(index + 1)}
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
                 >
-                  {index + 1}
+                  Previous
                 </CPaginationItem>
-              ))}
-              <CPaginationItem
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </CPaginationItem>
-            </CPagination>
-          </div>
+                {[...Array(totalPages)].map((_, index) => (
+                  <CPaginationItem
+                    key={index}
+                    active={currentPage === index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                  >
+                    {index + 1}
+                  </CPaginationItem>
+                ))}
+                <CPaginationItem
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </CPaginationItem>
+              </CPagination>
+            </CCol>
+          </CRow>
+          ;
         </CCol>
       </CRow>
     </CContainer>
