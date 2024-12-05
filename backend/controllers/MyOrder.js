@@ -113,6 +113,7 @@ export const getMyOrder = async (req, res) => {
           model: DetailOrder,
           where: whereCondition2,
           required: true,
+          separate: true,
           include: [
             {
               model: Inventory,

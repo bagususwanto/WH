@@ -348,7 +348,8 @@ const GoodIssue = () => {
           'Transaction Date': item.transactionDate,
           Section: item.sectionName,
           Plant: item.plantName,
-          'Ordered By': item.User.username,
+          'Ordered By': item.username,
+          'Accepted By': item.currentApprover,
           'GI Method': item.paymentMethod,
           'GI Number': item.paymentNumber,
         }
