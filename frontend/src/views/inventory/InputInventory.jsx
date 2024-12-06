@@ -739,7 +739,7 @@ const InputInventory = () => {
 
           // Membersihkan IndexedDB
           clearIndexedDB()
-          
+
           // Fetch data yang sesuai dengan selectedStorageVal
           fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
             setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
@@ -1122,8 +1122,9 @@ const InputInventory = () => {
               </CRow>
               {/* Collapse content */}
               <CButton color="secondary" className="mt-3" onClick={() => setVisible(!visible)}>
-                Show List
+                {visible ? 'Hide List' : 'Show List'}
               </CButton>
+
               <CCollapse visible={visible}>
                 <CCard className="mt-3">
                   <CCardBody>
