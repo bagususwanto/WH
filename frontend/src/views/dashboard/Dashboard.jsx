@@ -650,7 +650,7 @@ const Dashboard = () => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 2.8, 2.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
+                  options={chartOptions(inventoriescritical, 0, 4.9, 4.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
                   height={410}
                 />
               )}

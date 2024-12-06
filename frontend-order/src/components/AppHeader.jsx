@@ -362,10 +362,6 @@ const AppHeader = () => {
     setSelectedCategory(selectedCat)
   }
 
-  const handleFocus = () => {
-    setShowRecentSearches(searchHistory.length > 0)
-  }
-
   const handleBlur = (e) => {
     setTimeout(() => {
       // Pastikan e.currentTarget tidak null sebelum memanggil contains
@@ -482,6 +478,22 @@ const AppHeader = () => {
         console.error('Error marking notifications as read on server:', error)
       }
     }
+  }
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setShowRecentSearches(false)
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleFocus = () => {
+    setShowRecentSearches(searchHistory.length > 0)
   }
 
   return (
