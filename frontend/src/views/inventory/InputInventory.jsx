@@ -497,8 +497,8 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setConversionUom(selectedItem.Material.Packaging.packaging)
-        setConversionRate(selectedItem.Material.Packaging.unitPackaging)
+        setConversionUom(selectedItem.Material.Packaging?.packaging)
+        setConversionRate(selectedItem.Material.Packaging?.unitPackaging)
         setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
@@ -523,8 +523,8 @@ const InputInventory = () => {
           value: selectedItem.id,
           label: selectedItem.Address_Rack.addressRackName,
         })
-        setConversionUom(selectedItem.Material.Packaging.packaging)
-        setConversionRate(selectedItem.Material.Packaging.unitPackaging)
+        setConversionUom(selectedItem.Material.Packaging?.packaging)
+        setConversionRate(selectedItem.Material.Packaging?.unitPackaging)
         setBaseUom(selectedItem.Material.uom)
         quantityInputRef.current?.focus()
       }
