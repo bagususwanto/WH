@@ -689,7 +689,7 @@ const AppHeader = () => {
 
         <CHeaderNav className="d-flex align-items-center">
           {/* Konten keranjang dan notifikasi */}
-          <CDropdown variant="nav-item">
+          <CDropdown variant="nav-item" autoClose={'outside'}>
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative me-3"
               caret={false}
@@ -700,7 +700,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '-5px', right: '-10px' }}
+                  style={{ top: '-3px', right: '-26px' }}
                 >
                   {cartCount}
                 </CBadge>
@@ -786,17 +786,14 @@ const AppHeader = () => {
           </CDropdown>
 
           <CDropdown variant="nav-item" autoClose={'outside'}>
-            <CDropdownToggle
-              className="d-flex align-items-center position-relative"
-              caret={false}
-            >
+            <CDropdownToggle className="d-flex align-items-center position-relative" caret={false}>
               <CIcon icon={cilBell} size="lg" />
               {notifCount > 0 && (
                 <CBadge
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '4px', left: '31px' }}
+                  style={{ top: '5px', right: '-14px' }}
                 >
                   {notifCount}
                 </CBadge>
