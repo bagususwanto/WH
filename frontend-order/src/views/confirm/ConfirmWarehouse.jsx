@@ -511,7 +511,7 @@ const Confirm = () => {
                   </CCard>
                 ))
               : currentItems.map((item) => (
-                  <CCard className="h-80 rounded-45 bg-grey" key={item.id}>
+                <CCard className="h-80 rounded-45 bg-grey mb-1" key={item.id}>
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
                         <CCol xs={2} sm={1} md={1}>

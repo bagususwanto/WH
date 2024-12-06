@@ -296,9 +296,9 @@ const Confirm = () => {
     }
   }
 
-  const handleInputChange = (e) => {
-    setRejectionReason(e.target.value)
-  }
+  useEffect(() => {
+    setRejectionReason('Barang pesanan habis')
+  }, [modalConfirm]) // Atur setiap kali modalConfirm berubah
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
@@ -470,7 +470,7 @@ const Confirm = () => {
                     {loading ? (
                       <Skeleton width={200} />
                     ) : (
-                      Confirmwarehouse.Detail_Orders[0].Inventory.Address_Rack.Storage.Plant
+                      Confirmwarehouse.Detail_Orders[0]?.Inventory.Address_Rack.Storage.Plant
                         .Warehouse.warehouseName
                     )}
                   </label>
@@ -753,7 +753,7 @@ const Confirm = () => {
                               type="text"
                               placeholder="Enter rejection reason"
                               value={rejectionReason}
-                              onChange={handleInputChange}
+                              onChange={(e) => setRejectionReason(e.target.value)}
                             />
                           </CModalBody>
                           <CModalFooter>
