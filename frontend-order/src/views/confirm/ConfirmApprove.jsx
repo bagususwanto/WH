@@ -94,7 +94,7 @@ const ConfirmApp = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(7) // Limit to 5 items per page
+  const itemsPerPage = 4 // Limit to 5 items per page
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
@@ -139,8 +139,7 @@ const ConfirmApp = () => {
   // This is where currentProducts is initialized
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentProducts = productsData.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+
 
   useEffect(() => {
     // Hitung ulang total harga berdasarkan kuantitas terbaru
@@ -205,6 +204,12 @@ const ConfirmApp = () => {
     }
   }
 
+  const totalPages = Math.ceil(Confirmapproval.Detail_Orders.length / itemsPerPage)
+
+  const currentItems = Confirmapproval.Detail_Orders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  )
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
   }
@@ -487,7 +492,8 @@ const ConfirmApp = () => {
                     <label style={{ marginLeft: '8px' }}>
                       {' '}
                       {
-                        Confirmapproval.Detail_Orders[0].Inventory.Material.Storages[0].Plant.Warehouse.warehouseName
+                        Confirmapproval.Detail_Orders[0].Inventory.Material.Storages[0].Plant
+                          .Warehouse.warehouseName
                       }
                     </label>
                   </div>
@@ -496,7 +502,9 @@ const ConfirmApp = () => {
                       <CIcon icon={cilArrowBottom} size="lg" />
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
-                        <label style={{ marginLeft: '8px' }}>{Confirmwarehouse.User.Organization.Line.lineName}</label>
+                        <label style={{ marginLeft: '8px' }}>
+                          {Confirmwarehouse.User.Organization.Line.lineName}
+                        </label>
                       </div>
                     </>
                   )}
@@ -594,7 +602,7 @@ const ConfirmApp = () => {
                     </CCardBody>
                   </CCard>
                 ))
-              : Confirmapproval.Detail_Orders.map((product) => (
+              : currentItems.map((product) => (
                   <CCard className="h-80 rounded-45 bg-grey" key={product.id}>
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
@@ -737,11 +745,10 @@ const ConfirmApp = () => {
           </CRow>
 
           {/* Pagination */}
-          <div className="d-flex justify-content-center mt-4">
-            {loading ? (
-              <Skeleton height={30} width={200} />
-            ) : (
-              <CPagination>
+
+          <CRow className="mt-4">
+            <CCol className="d-flex justify-content-center sticky-pagination">
+              <CPagination aria-label="Page navigation example">
                 <CPaginationItem
                   disabled={currentPage === 1}
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -750,8 +757,8 @@ const ConfirmApp = () => {
                 </CPaginationItem>
                 {[...Array(totalPages)].map((_, index) => (
                   <CPaginationItem
-                    key={index + 1}
-                    active={index + 1 === currentPage}
+                    key={index}
+                    active={currentPage === index + 1}
                     onClick={() => handlePageChange(index + 1)}
                   >
                     {index + 1}
@@ -764,8 +771,8 @@ const ConfirmApp = () => {
                   Next
                 </CPaginationItem>
               </CPagination>
-            )}
-          </div>
+            </CCol>
+          </CRow>
         </CCol>
       </CRow>
     </CContainer>

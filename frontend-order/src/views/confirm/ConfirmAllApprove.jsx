@@ -659,6 +659,9 @@ const ApproveAll = () => {
                               {selectedProduct.status?.toUpperCase()}
                             </CBadge>
                             <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
+                            <div>
+                                <label>Total: {totalQuantity} Item</label>
+                              </div>
                           </CCol>
                         </CRow>
                         <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
