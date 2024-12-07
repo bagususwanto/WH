@@ -239,7 +239,9 @@ const History = () => {
         return cilBan // Default icon
     }
   }
-
+  const totalQuantity = new Set(
+    (selectedProduct?.Detail_Orders || []).map((detail) => detail.Inventory.Material.description),
+  ).size
   return (
     <>
       <CRow>
@@ -347,82 +349,82 @@ const History = () => {
                   ))
                 ) : myOrderData.length > 0 ? (
                   myOrderData
-                  .filter(
-                    (order) => order.Detail_Orders && order.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
-                  )
-                  .map((order) => (
-                    <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
-                      <CRow className="align-items-center">
-                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                          <CCol>
-                            <CIcon className="me-2" icon={getTabIcon(order.status)} />
-                            <label className="me-2 fs-6">
-                              {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
-                            </label>
-                            <CBadge
-                              className="me-2"
-                              color={getSeverity(
-                                order.Detail_Orders[0]?.isReject == 1 ? 'rejected' : order.status,
+                    .filter(
+                      (order) => order.Detail_Orders && order.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
+                    )
+                    .map((order) => (
+                      <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
+                        <CRow className="align-items-center">
+                          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <CCol>
+                              <CIcon className="me-2" icon={getTabIcon(order.status)} />
+                              <label className="me-2 fs-6">
+                                {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
+                              </label>
+                              <CBadge
+                                className="me-2"
+                                color={getSeverity(
+                                  order.Detail_Orders[0]?.isReject == 1 ? 'rejected' : order.status,
+                                )}
+                              >
+                                {order.Detail_Orders[0]?.isReject == 1
+                                  ? 'REJECTED'
+                                  : order.status.toUpperCase()}
+                              </CBadge>
+                              <label className="me-2 fw-light">
+                                {order.transactionNumber
+                                  ? `${order.transactionNumber}`
+                                  : `${order.requestNumber}`}
+                              </label>
+                            </CCol>
+                          </div>
+
+                          <CRow className="d-flex justify-content-between my-2">
+                            <CCol xs="1">
+                              {order.Detail_Orders[0]?.Inventory?.Material?.img && (
+                                <CCardImage
+                                  src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
+                                  style={{ height: '100%', width: '100%' }}
+                                />
                               )}
-                            >
-                              {order.Detail_Orders[0]?.isReject == 1
-                                ? 'REJECTED'
-                                : order.status.toUpperCase()}
-                            </CBadge>
-                            <label className="me-2 fw-light">
-                              {order.transactionNumber
-                                ? `${order.transactionNumber}`
-                                : `${order.requestNumber}`}
-                            </label>
-                          </CCol>
-                        </div>
+                            </CCol>
 
-                        <CRow className="d-flex justify-content-between my-2">
-                          <CCol xs="1">
-                            {order.Detail_Orders[0]?.Inventory?.Material?.img && (
-                              <CCardImage
-                                src={`${config.BACKEND_URL}${order.Detail_Orders[0].Inventory.Material.img}`}
-                                style={{ height: '100%', width: '100%' }}
-                              />
-                            )}
-                          </CCol>
-
-                          <CCol xs="7">
-                            {order.Detail_Orders.length === 1 ? (
-                              <label>
-                                {order.Detail_Orders[0]?.Inventory?.Material?.description}
+                            <CCol xs="7">
+                              {order.Detail_Orders.length === 1 ? (
+                                <label>
+                                  {order.Detail_Orders[0]?.Inventory?.Material?.description}
+                                </label>
+                              ) : (
+                                <label>
+                                  {order.Detail_Orders[0]?.Inventory?.Material?.description}..
+                                </label>
+                              )}
+                              <br />
+                              <label className="fw-bold fs-6">
+                                Total: {order.Detail_Orders.length} Item
                               </label>
-                            ) : (
-                              <label>
-                                {order.Detail_Orders[0]?.Inventory?.Material?.description}..
-                              </label>
-                            )}
-                            <br />
-                            <label className="fw-bold fs-6">
-                              Total: {order.Detail_Orders.length} Item
-                            </label>
-                          </CCol>
-                          <CCol xs="4" className="text-end" style={{ fontSize: '0.95em' }}>
-                            <label>{order.paymentMethod} :</label>
-                            <span className="fw-bold"> {order.paymentNumber}</span>
-                          </CCol>
-                        </CRow>
+                            </CCol>
+                            <CCol xs="4" className="text-end" style={{ fontSize: '0.95em' }}>
+                              <label>{order.paymentMethod} :</label>
+                              <span className="fw-bold"> {order.paymentNumber}</span>
+                            </CCol>
+                          </CRow>
 
-                        <CRow className="d-flex justify-content-end align-items-center">
-                          <CCol xs={4} className="d-flex justify-content-end">
-                            <CButton
-                              color="secondary"
-                              variant="outline"
-                              onClick={() => handleViewHistoryOrder(order)}
-                              size="sm"
-                            >
-                              View Detail Order
-                            </CButton>
-                          </CCol>
+                          <CRow className="d-flex justify-content-end align-items-center">
+                            <CCol xs={4} className="d-flex justify-content-end">
+                              <CButton
+                                color="secondary"
+                                variant="outline"
+                                onClick={() => handleViewHistoryOrder(order)}
+                                size="sm"
+                              >
+                                View Detail Order
+                              </CButton>
+                            </CCol>
+                          </CRow>
                         </CRow>
-                      </CRow>
-                    </CCard>
-                  ))
+                      </CCard>
+                    ))
                 ) : (
                   <p>No orders available.</p>
                 )}
@@ -454,13 +456,14 @@ const History = () => {
               <CCard className="h-80 mt-1">
                 <CCardBody>
                   <CRow className="align-items-center mb-2">
-                    <CCol>
+                  <CCol className="d-flex justify-content-between align-items-center">
+                    <div>
                       <CIcon className="me-2" icon={getTabIcon(selectedProduct.status)} />
                       <label className="me-2 fs-6">
                         {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
                       </label>
                       <CBadge
-                        className="me-2"
+                       
                         color={getSeverity(
                           selectedProduct.Detail_Orders[0].isReject == 1
                             ? 'rejected'
@@ -471,11 +474,15 @@ const History = () => {
                           ? 'REJECTED'
                           : selectedProduct.status.toUpperCase()}
                       </CBadge>
-                      <label className="me-2 fw-light">
+                      <label className=" fw-light">
                         {selectedProduct.transactionNumber
                           ? `${selectedProduct.transactionNumber}`
                           : `${selectedProduct.requestNumber}`}
                       </label>
+                      </div>
+                      <div>
+                        <label>Total: {totalQuantity} Item</label>
+                      </div>
                     </CCol>
                   </CRow>
                   <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />

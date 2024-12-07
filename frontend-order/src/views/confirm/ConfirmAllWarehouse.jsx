@@ -501,10 +501,11 @@ const ApproveAll = () => {
                             <CCol xs={4} className="d-flex justify-content-end">
                               <CButton
                                 onClick={() => handleWarehouseConfirmationproduct(product)}
-                                color="primary"
+                                color="secondary"
+                                variant="outline"
                                 size="sm"
                               >
-                                View Detail Confirm
+                                View Detail 
                               </CButton>
                             </CCol>
                           </CRow>

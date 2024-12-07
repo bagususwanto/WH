@@ -28,7 +28,7 @@ import {
   CModalFooter,
   CButtonGroup,
   CImage,
-  CSpinner 
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -64,9 +64,7 @@ const Confirm = () => {
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
 
-  const [loading, setLoading] = useState(false); // To control the loading overlay
-
-  
+  const [loading, setLoading] = useState(false) // To control the loading overlay
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
     if (!acc.includes(product.inventoryId)) {
@@ -114,36 +112,36 @@ const Confirm = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        order(); // Call the order function directly
+        order() // Call the order function directly
       }
-    });
-  };
+    })
+  }
 
   const order = async () => {
-    setLoading(true); // Show loading screen
+    setLoading(true) // Show loading screen
     try {
-      const cartIds = verifiedCartItems.map((item) => item.id);
+      const cartIds = verifiedCartItems.map((item) => item.id)
 
       if (cartIds.length === 0) {
-        setLoading(false);
+        setLoading(false)
         return MySwal.fire({
           icon: 'error',
           title: 'Order Error',
           text: 'No items to order. Please add items to the cart before proceeding.',
-        });
+        })
       }
 
-      const orderTime = deadline;
+      const orderTime = deadline
 
       // Validate if "Otodoke" is selected
-      if (!isPickup) {
+      if (isPickup) {
         if (!orderTime) {
-          setLoading(false);
+          setLoading(false)
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please Select Cycle.',
-          });
+          })
         }
       }
 
@@ -155,27 +153,27 @@ const Confirm = () => {
           ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber
           : '' // GIC number
 
-      const paymentMethod = iswbs ? 'GIC' : 'WBS'; // Determine payment method
-      const deliveryMethod = isPickup ? 'pickup' : 'otodoke'; // Delivery method
+      const paymentMethod = iswbs ? 'GIC' : 'WBS' // Determine payment method
+      const deliveryMethod = isPickup ? 'otodoke' : 'pickup' // Delivery method
 
       // Validate order details
-      if (!isPickup) {
+      if (isPickup) {
         if (!orderTime || !paymentNumber || !paymentMethod || !deliveryMethod) {
-          setLoading(false);
+          setLoading(false)
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please ensure all order details are filled out before proceeding.',
-          });
+          })
         }
       } else {
         if (!paymentNumber || !paymentMethod || !deliveryMethod) {
-          setLoading(false);
+          setLoading(false)
           return MySwal.fire({
             icon: 'error',
             title: 'Order Error',
             text: 'Please ensure all order details are filled out before proceeding.',
-          });
+          })
         }
       }
 
@@ -189,23 +187,23 @@ const Confirm = () => {
           remarks: message,
         },
         warehouse.id,
-      );
+      )
 
-      setCart([]);
-      setCartCount(0);
+      setCart([])
+      setCartCount(0)
 
-      navigate('/history'); // Navigate to history page after successful order
+      navigate('/history') // Navigate to history page after successful order
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Error creating order:', error)
       MySwal.fire({
         icon: 'error',
         title: 'Order Error',
         text: 'Something went wrong. Please try again later.',
-      });
+      })
     } finally {
-      setLoading(false); // Hide loading screen
+      setLoading(false) // Hide loading screen
     }
-  };
+  }
 
   useEffect(() => {
     // Reset deadline if verifiedCartItems change
@@ -218,273 +216,276 @@ const Confirm = () => {
 
   return (
     <>
-{loading && (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}
-  >
-    <CSpinner color="light" style={{ width: '3rem', height: '3rem' }} />
-  </div>
-)}
-    <CContainer>
-      <CRow>
-        <CCol xs={4}>
-          <CCard className="rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-            <CCardBody>
-              {loading ? (
-                // Skeleton Loader
-                <>
-                  <Skeleton height={20} width="60%" className="mb-3" />
-                  <Skeleton height={20} width="40%" className="mb-3" />
-                  <Skeleton height={15} width="90%" className="mb-3" />
-                  <hr />
-                  <Skeleton height={20} width="60%" className="mb-3" />
-                  <Skeleton height={20} width="90%" className="mb-3" />
-                  <Skeleton height={15} width="90%" className="mb-3" />
-                  <hr />
-                  <Skeleton height={20} width="60%" className="mb-3" />
-                  <Skeleton height={40} width="100%" className="mb-3" />
-                  <Skeleton height={40} width="100px" className="mt-4" />
-                </>
-              ) : (
-                // Konten Asli
-                <>
-                  <label className="fw-bold mb-2">Select Delivery Type</label>
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <CFormCheck
-                      className="me-3"
-                      type="radio"
-                      id="otodoke"
-                      label="Otodoke"
-                      checked={isPickup}
-                      onChange={() => setIsPickup(true)}
-                    />
-                    <CFormCheck
-                      type="radio"
-                      id="pickup"
-                      label="Pickup"
-                      checked={!isPickup}
-                      onChange={() => setIsPickup(false)}
-                    />
-                  </div>
-                  <hr />
-                  <label className="fw-bold mb-2">Address Detail Confirmation</label>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <CIcon icon={cilHome} size="lg" />
-                      <label style={{ marginLeft: '8px' }}>
-                        {
-                          verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse
-                            .warehouseName
-                        }
-                      </label>
+      {loading && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <CSpinner color="light" style={{ width: '3rem', height: '3rem' }} />
+        </div>
+      )}
+      <CContainer>
+        <CRow>
+          <CCol xs={4}>
+            <CCard className="rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+              <CCardBody>
+                {loading ? (
+                  // Skeleton Loader
+                  <>
+                    <Skeleton height={20} width="60%" className="mb-3" />
+                    <Skeleton height={20} width="40%" className="mb-3" />
+                    <Skeleton height={15} width="90%" className="mb-3" />
+                    <hr />
+                    <Skeleton height={20} width="60%" className="mb-3" />
+                    <Skeleton height={20} width="90%" className="mb-3" />
+                    <Skeleton height={15} width="90%" className="mb-3" />
+                    <hr />
+                    <Skeleton height={20} width="60%" className="mb-3" />
+                    <Skeleton height={40} width="100%" className="mb-3" />
+                    <Skeleton height={40} width="100px" className="mt-4" />
+                  </>
+                ) : (
+                  // Konten Asli
+                  <>
+                    <label className="fw-bold mb-2">Select Delivery Type</label>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <CFormCheck
+                        className="me-3"
+                        type="radio"
+                        id="otodoke"
+                        label="Otodoke"
+                        checked={isPickup}
+                        onChange={() => setIsPickup(true)}
+                      />
+                      <CFormCheck
+                        type="radio"
+                        id="pickup"
+                        label="Pickup"
+                        checked={!isPickup}
+                        onChange={() => {
+                          setIsPickup(false) // Set ke Pickup
+                          setDeadline('') // Reset nilai deadline
+                        }}
+                      />
+                    </div>
+                    <hr />
+                    <label className="fw-bold mb-2">Address Detail Confirmation</label>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <CIcon icon={cilHome} size="lg" />
+                        <label style={{ marginLeft: '8px' }}>
+                          {
+                            verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse
+                              .warehouseName
+                          }
+                        </label>
+                      </div>
+                      {isPickup && (
+                        <>
+                          <CIcon
+                            icon={cilArrowBottom}
+                            size="lg"
+                            className="text-muted"
+                            style={{ opacity: 0.7, marginTop: '5px' }}
+                          />
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
+                            <CIcon icon={cilLocationPin} size="lg" />
+                            <label style={{ marginLeft: '8px' }}>
+                              {verifiedCartItems[0].User.Organization.Line?.lineName}
+                            </label>
+                          </div>
+                        </>
+                      )}
                     </div>
                     {isPickup && (
                       <>
-                        <CIcon
-                          icon={cilArrowBottom}
-                          size="lg"
-                          className="text-muted"
-                          style={{ opacity: 0.7, marginTop: '5px' }}
-                        />
-                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                          <CIcon icon={cilLocationPin} size="lg" />
-                          <label style={{ marginLeft: '8px' }}>
-                            {verifiedCartItems[0].User.Organization.Line?.lineName}
-                          </label>
-                        </div>
+                        <hr />
+                        <label className="fw-bold mb-2">Schedule Otodoke</label>
+                        <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
+                          <option value="" className="fw-light">
+                            Select Cycle
+                          </option>
+                          {verifiedCartItems.length > 0 &&
+                            verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
+                              (serviceHour) => (
+                                <option key={serviceHour.id} value={`${serviceHour.time}`}>
+                                  {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
+                                </option>
+                              ),
+                            )}
+                        </CFormSelect>
                       </>
                     )}
-                  </div>
-                  {isPickup && (
-                    <>
-                      <hr />
-                      <label className="fw-bold mb-2">Schedule Otodoke</label>
-                      <CFormSelect value={deadline} onChange={(e) => setDeadline(e.target.value)}>
-                        <option value="" className="fw-light">
-                          Select Cycle
-                        </option>
-                        {verifiedCartItems.length > 0 &&
-                          verifiedCartItems[0].Inventory.Address_Rack.Storage.Plant.Warehouse.Service_Hours.map(
-                            (serviceHour) => (
-                              <option key={serviceHour.id} value={`${serviceHour.time}`}>
-                                {`Shift ${serviceHour.shiftId}: ${serviceHour.time}`}
-                              </option>
-                            ),
-                          )}
-                      </CFormSelect>
-                    </>
-                  )}
-                  <hr />
-                  <label className="fw-bold mb-2">GI Method</label>
-                  {verifiedCartItems.length > 0 && (
-                    <>
-                      <CFormCheck
-                        type="radio"
-                        id="payment1"
-                        label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : ''}`}
-                        checked={!iswbs}
-                        onChange={() => setIswbs(false)}
-                      />
-                      <CFormCheck
-                        type="radio"
-                        id="payment2"
-                        label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber : ''}`}
-                        checked={iswbs}
-                        onChange={() => setIswbs(true)}
-                      />
-                    </>
-                  )}
-                  <hr />
-                  <CFormTextarea
-                    className="mt-3"
-                    placeholder="Leave a message"
-                    rows={3}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                  />
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                    className="mt-4"
-                  >
-                    <label className="fw-bold">Total Item: {totalQuantity} Item</label>
-                    <CButton color="primary" onClick={handleCheckout}>
-                      Order Now
-                    </CButton>
-                  </div>
-                </>
-              )}
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        <CCol xs={8}>
-          <CRow className="g-2">
-            {loading
-              ? // Skeleton Loader
-                [...Array(itemsPerPage)].map((_, index) => (
-                  <CCard className="h-100" key={index}>
-                    <CCardBody
-                      className="d-flex flex-column justify-content-between"
-                      style={{ height: '100%' }}
+                    <hr />
+                    <label className="fw-bold mb-2">GI Method</label>
+                    {verifiedCartItems.length > 0 && (
+                      <>
+                        <CFormCheck
+                          type="radio"
+                          id="payment1"
+                          label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : ''}`}
+                          checked={!iswbs}
+                          onChange={() => setIswbs(false)}
+                        />
+                        <CFormCheck
+                          type="radio"
+                          id="payment2"
+                          label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber : ''}`}
+                          checked={iswbs}
+                          onChange={() => setIswbs(true)}
+                        />
+                      </>
+                    )}
+                    <hr />
+                    <CFormTextarea
+                      className="mt-3"
+                      placeholder="Leave a message"
+                      rows={3}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                    />
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                      className="mt-4"
                     >
-                      <CRow className="align-items-start" style={{ height: '100%' }}>
-                        {/* Image Skeleton */}
-                        <CCol xs="2" className="d-flex justify-content-center align-items-center">
-                          <Skeleton
-                            height={75} // Match image height
-                            width="60%"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        </CCol>
+                      <label className="fw-bold">Total Item: {totalQuantity} Item</label>
+                      <CButton color="primary" onClick={handleCheckout}>
+                        Order Now
+                      </CButton>
+                    </div>
+                  </>
+                )}
+              </CCardBody>
+            </CCard>
+          </CCol>
 
-                        {/* Description Skeleton */}
-                        <CCol xs="9" className="d-flex flex-column justify-content-start">
-                          <div>
-                            <Skeleton height={20} width="80%" className="mb-2" />
-                            <Skeleton height={15} width="60%" />
-                          </div>
-                        </CCol>
+          <CCol xs={8}>
+            <CRow className="g-2">
+              {loading
+                ? // Skeleton Loader
+                  [...Array(itemsPerPage)].map((_, index) => (
+                    <CCard className="h-100" key={index}>
+                      <CCardBody
+                        className="d-flex flex-column justify-content-between"
+                        style={{ height: '100%' }}
+                      >
+                        <CRow className="align-items-start" style={{ height: '100%' }}>
+                          {/* Image Skeleton */}
+                          <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                            <Skeleton
+                              height={75} // Match image height
+                              width="60%"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          </CCol>
 
-                        {/* Quantity Skeleton */}
-                        <CCol xs="1" className="d-flex justify-content-start align-items-center">
-                          <Skeleton height={20} width="50%" />
-                        </CCol>
-                      </CRow>
-                    </CCardBody>
-                  </CCard>
-                ))
-              : // Actual Content
-                currentItems.map((data) => (
-                  <CCard className="h-100" key={data.id}>
-                    <CCardBody
-                      className="d-flex flex-column justify-content-between"
-                      style={{ height: '100%' }}
-                    >
-                      <CRow className="align-items-start" style={{ height: '100%' }}>
-                        {/* Image Column */}
-                        <CCol xs="1" className="d-flex justify-content-center align-items-center">
-                          <CCardImage
-                            src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
+                          {/* Description Skeleton */}
+                          <CCol xs="9" className="d-flex flex-column justify-content-start">
+                            <div>
+                              <Skeleton height={20} width="80%" className="mb-2" />
+                              <Skeleton height={15} width="60%" />
+                            </div>
+                          </CCol>
 
-                            style={{
-                              width: '100%', // Ensure it takes the full width
-                              objectFit: 'contain', // Keep the aspect ratio
-                            }}
-                          />
-                        </CCol>
+                          {/* Quantity Skeleton */}
+                          <CCol xs="1" className="d-flex justify-content-start align-items-center">
+                            <Skeleton height={20} width="50%" />
+                          </CCol>
+                        </CRow>
+                      </CCardBody>
+                    </CCard>
+                  ))
+                : // Actual Content
+                  currentItems.map((data) => (
+                    <CCard className="h-100" key={data.id}>
+                      <CCardBody
+                        className="d-flex flex-column justify-content-between"
+                        style={{ height: '100%' }}
+                      >
+                        <CRow className="align-items-start" style={{ height: '100%' }}>
+                          {/* Image Column */}
+                          <CCol xs="1" className="d-flex justify-content-center align-items-center">
+                            <CCardImage
+                              src={`${config.BACKEND_URL}${data.Inventory.Material.img}`}
+                              style={{
+                                width: '100%', // Ensure it takes the full width
+                                objectFit: 'contain', // Keep the aspect ratio
+                              }}
+                            />
+                          </CCol>
 
-                        {/* Description Column */}
-                        <CCol xs="9" className="d-flex flex-column justify-content-start">
-                          <div>
-                            <label className="fw-bold">{data.Inventory.Material.description}</label>
-                            <br />
-                            <label className="fw-light fs-6">
-                              {data.Inventory.Material.materialNo}
-                            </label>
-                          </div>
-                        </CCol>
+                          {/* Description Column */}
+                          <CCol xs="9" className="d-flex flex-column justify-content-start">
+                            <div>
+                              <label className="fw-bold">
+                                {data.Inventory.Material.description}
+                              </label>
+                              <br />
+                              <label className="fw-light fs-6">
+                                {data.Inventory.Material.materialNo}
+                              </label>
+                            </div>
+                          </CCol>
 
-                        {/* Quantity Column */}
-                        <CCol xs="2" className="d-flex justify-content-start align-items-center">
-                          <label>{`${data.quantity} ${data.Inventory.Material.uom}`}</label>
-                        </CCol>
-                      </CRow>
-                    </CCardBody>
-                  </CCard>
-                ))}
-          </CRow>
+                          {/* Quantity Column */}
+                          <CCol xs="2" className="d-flex justify-content-start align-items-center">
+                            <label>{`${data.quantity} ${data.Inventory.Material.uom}`}</label>
+                          </CCol>
+                        </CRow>
+                      </CCardBody>
+                    </CCard>
+                  ))}
+            </CRow>
 
-          {/* Pagination */}
-          <CRow className="mt-4">
-            <CCol className="d-flex justify-content-center sticky-pagination">
-              <CPagination aria-label="Page navigation example">
-                <CPaginationItem
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  Previous
-                </CPaginationItem>
-                {[...Array(totalPages)].map((_, index) => (
+            {/* Pagination */}
+            <CRow className="mt-4">
+              <CCol className="d-flex justify-content-center sticky-pagination">
+                <CPagination aria-label="Page navigation example">
                   <CPaginationItem
-                    key={index}
-                    active={currentPage === index + 1}
-                    onClick={() => handlePageChange(index + 1)}
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
                   >
-                    {index + 1}
+                    Previous
                   </CPaginationItem>
-                ))}
-                <CPaginationItem
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  Next
-                </CPaginationItem>
-              </CPagination>
-            </CCol>
-          </CRow>
-        </CCol>
-      </CRow>
-    </CContainer>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <CPaginationItem
+                      key={index}
+                      active={currentPage === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </CPaginationItem>
+                  ))}
+                  <CPaginationItem
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                  >
+                    Next
+                  </CPaginationItem>
+                </CPagination>
+              </CCol>
+            </CRow>
+          </CCol>
+        </CRow>
+      </CContainer>
     </>
   )
-
 }
 
 export default Confirm
