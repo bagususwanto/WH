@@ -66,6 +66,7 @@ const InputInventory = () => {
   const [conversionRate, setConversionRate] = useState(0)
   const [visible, setVisible] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [matchedMaterialNos, setMatchedMaterialNos] = useState([])
   const itemsPerPage = 10
 
   const indexOfLastItem = currentPage * itemsPerPage
@@ -105,14 +106,27 @@ const InputInventory = () => {
 
   useEffect(() => {
     const inventoryData = filteredInventory.length > 0 ? filteredInventory : inventory
-    // Cari materialNo yang cocok antara currentItems dan items
+
+    // Mencari materialNo yang cocok antara items dan inventory
     const matches = inventoryData
-      .map((item) => item.Material?.materialNo)
-      .filter((materialNo) => items.some((i) => i.materialNo === materialNo))
+      .filter(
+        (item) =>
+          item.Material?.materialNo && // Pastikan materialNo ada
+          items.some((i) => i.materialNo === item.Material.materialNo), // Cek kecocokan dengan items
+      )
+      .map((item) => item.Material.materialNo)
+
+    // Cari materialNo dengan quantityActual yang tidak null
+    const done = inventoryData
+      .filter((item) => item.quantityActual !== null) // Cek quantityActual tidak null
+      .map((item) => item.Material?.materialNo) // Ambil materialNo;
+
+    // Gabungkan hasil dan hilangkan duplikat
+    const uniqueMatches = Array.from(new Set([...matches, ...done]))
 
     // Perbarui state dengan daftar materialNo yang cocok
-    setMatchedMaterialNos(matches)
-  }, [items, selectedAddressCodeVal])
+    setMatchedMaterialNos(uniqueMatches)
+  }, [items, filteredInventory, inventory, selectedAddressCodeVal])
 
   const getPlant = async () => {
     try {
@@ -169,7 +183,7 @@ const InputInventory = () => {
     }
   }
 
-  const handlePlantChange = (selectedPlant) => {
+  const handlePlantChange = async (selectedPlant) => {
     if (!navigator.onLine) {
       // Jika jaringan offline, tampilkan notifikasi
       MySwal.fire({
@@ -181,25 +195,8 @@ const InputInventory = () => {
       return // Hentikan aksi jika offline
     }
 
-    if (items && items.length > 0) {
-      MySwal.fire({
-        title: 'Warning',
-        html: `You have unsaved changes. <br/>
-    Please submit the current inventory before making any changes.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Submit',
-        cancelButtonText: 'Cancel',
-        reverseButtons: true,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          handleSubmit()
-        }
-      })
-      setSelectedPlantVal(selectedPlantVal)
-    }
+    const warehouseId = await getMasterDataById(apiWarehousePlant, selectedPlant.value)
+    await getMasterDataById('check-warehouse', warehouseId.id)
 
     if (!selectedPlant) {
       // Jika dropdown di-clear
@@ -304,6 +301,10 @@ const InputInventory = () => {
         await getInventories(selectedStorage.value, 'DIRECT')
         const selectedTypeMaterialOpt = mapTypeMaterial.find((tm) => tm.label === 'DIRECT')
         setSelectedTypeMaterial(selectedTypeMaterialOpt)
+        // Fetch data yang sesuai dengan selectedStorageVal
+        fetchInventoryFromIndexedDB(selectedStorage.label, (inventoryData) => {
+          setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+        })
       } catch (error) {
         console.error(error)
       } finally {
@@ -409,7 +410,48 @@ const InputInventory = () => {
     }
   }
 
-  const [matchedMaterialNos, setMatchedMaterialNos] = useState([])
+  const fetchInventoryFromIndexedDB = (selectedStorageVal, callback) => {
+    const request = indexedDB.open('InventoryDB', 1)
+
+    request.onupgradeneeded = function (e) {
+      const db = e.target.result
+      if (!db.objectStoreNames.contains('inventory')) {
+        const store = db.createObjectStore('inventory', { keyPath: 'id' })
+        store.createIndex('materialNo', 'materialNo', { unique: false })
+        store.createIndex('storage', 'storage', { unique: false }) // Tambahkan index untuk storage
+      }
+    }
+
+    request.onsuccess = function (e) {
+      const db = e.target.result
+      const transaction = db.transaction('inventory', 'readonly')
+      const store = transaction.objectStore('inventory')
+
+      // Filter data berdasarkan nilai `storage`
+      const index = store.index('storage')
+      const storageRequest = index.getAll(selectedStorageVal.label)
+
+      storageRequest.onsuccess = function () {
+        callback(storageRequest.result)
+      }
+
+      storageRequest.onerror = function () {
+        MySwal.fire({
+          title: 'Error!',
+          text: 'Failed to fetch data from IndexedDB.',
+          icon: 'error',
+        })
+      }
+    }
+
+    request.onerror = function () {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Failed to open IndexedDB.',
+        icon: 'error',
+      })
+    }
+  }
 
   const handleAddInventory = () => {
     if (
@@ -426,32 +468,89 @@ const InputInventory = () => {
         address: selectedAddress.label,
         uom: baseUom,
         quantity: quantity,
+        storage: selectedStorageVal.label,
       }
 
-      // Cek apakah item dengan id yang sama sudah ada dalam items
-      const isDuplicate = items.some((item) => item.id === newInventoryItem.id)
+      // Buka atau buat IndexedDB database
+      const request = indexedDB.open('InventoryDB', 1)
 
-      if (isDuplicate) {
-        // Tampilkan pesan error jika item duplikat
+      request.onupgradeneeded = function (e) {
+        const db = e.target.result
+        if (!db.objectStoreNames.contains('inventory')) {
+          const store = db.createObjectStore('inventory', { keyPath: 'id' })
+          store.createIndex('materialNo', 'materialNo', { unique: false })
+          store.createIndex('storage', 'storage', { unique: false })
+        }
+      }
+
+      request.onsuccess = function (e) {
+        const db = e.target.result
+        const transaction = db.transaction('inventory', 'readwrite')
+        const store = transaction.objectStore('inventory')
+
+        // Cek apakah item dengan id yang sama sudah ada dalam IndexedDB
+        const getRequest = store.get(newInventoryItem.id)
+
+        getRequest.onsuccess = function () {
+          if (getRequest.result) {
+            // Tampilkan pesan error jika item duplikat
+            MySwal.fire({
+              title: 'Error!',
+              text: 'Item already exists in the inventory list.',
+              icon: 'error',
+            })
+          } else {
+            // Jika tidak ada duplikasi, tambahkan item baru ke IndexedDB
+            const addRequest = store.add(newInventoryItem)
+
+            addRequest.onsuccess = function () {
+              MySwal.fire({
+                title: 'Success!',
+                text: 'Item added to inventory.',
+                icon: 'success',
+              })
+              // Fetch data yang sesuai dengan selectedStorageVal
+              fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+                setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+              })
+            }
+
+            addRequest.onerror = function () {
+              MySwal.fire({
+                title: 'Error!',
+                text: 'Failed to add item to inventory.',
+                icon: 'error',
+              })
+            }
+          }
+        }
+
+        getRequest.onerror = function () {
+          MySwal.fire({
+            title: 'Error!',
+            text: 'Failed to check item existence.',
+            icon: 'error',
+          })
+        }
+      }
+
+      request.onerror = function () {
         MySwal.fire({
           title: 'Error!',
-          text: 'Item already exists in the inventory list.',
+          text: 'Failed to open IndexedDB.',
           icon: 'error',
         })
-      } else {
-        // Jika tidak ada duplikasi, tambahkan item baru
-        setItems([...items, newInventoryItem])
-
-        // Reset input setelah menambahkan item
-        setSelectedMaterialNo(null)
-        setSelectedDescription(null)
-        setSelectedAddress(null)
-        setQuantity('')
-        setConversionUom('')
-        setBaseUom('')
-        setConversionRate(0)
-        setQuantityConversion('')
       }
+
+      // Reset input setelah menambahkan item
+      setSelectedMaterialNo(null)
+      setSelectedDescription(null)
+      setSelectedAddress(null)
+      setQuantity('')
+      setConversionUom('')
+      setBaseUom('')
+      setConversionRate(0)
+      setQuantityConversion('')
     } else {
       MySwal.fire({
         title: 'Error!',
@@ -462,7 +561,7 @@ const InputInventory = () => {
   }
 
   // Fungsi untuk menghapus item dari tabel
-  const handleDeleteInventory = (index) => {
+  const handleDeleteInventory = (itemId) => {
     MySwal.fire({
       title: 'Are you sure?',
       text: 'Do you want to remove this item from the inventory?',
@@ -475,11 +574,43 @@ const InputInventory = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        // Jika pengguna mengonfirmasi, hapus item berdasarkan index
-        const updatedItems = items.filter((_, i) => i !== index)
-        setItems(updatedItems)
+        // Buka IndexedDB
+        const request = indexedDB.open('InventoryDB', 1)
 
-        MySwal.fire('Deleted!', 'Your item has been removed.', 'success')
+        request.onsuccess = function (e) {
+          const db = e.target.result
+          const transaction = db.transaction('inventory', 'readwrite')
+          const store = transaction.objectStore('inventory')
+
+          // Hapus item berdasarkan itemId
+          const deleteRequest = store.delete(itemId)
+
+          deleteRequest.onsuccess = function () {
+            // Tampilkan pesan sukses
+            MySwal.fire('Deleted!', 'Your item has been removed.', 'success')
+
+            // Fetch data yang sesuai dengan selectedStorageVal
+            fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+              setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+            })
+          }
+
+          deleteRequest.onerror = function () {
+            MySwal.fire({
+              title: 'Error!',
+              text: 'Failed to delete the item from inventory.',
+              icon: 'error',
+            })
+          }
+        }
+
+        request.onerror = function () {
+          MySwal.fire({
+            title: 'Error!',
+            text: 'Failed to open IndexedDB.',
+            icon: 'error',
+          })
+        }
       }
     })
   }
@@ -536,6 +667,40 @@ const InputInventory = () => {
     }
   }
 
+  // Fungsi untuk membersihkan IndexedDB
+  const clearIndexedDB = () => {
+    const request = indexedDB.open('InventoryDB', 1)
+
+    request.onsuccess = function (e) {
+      const db = e.target.result
+      const transaction = db.transaction('inventory', 'readwrite')
+      const store = transaction.objectStore('inventory')
+
+      // Menghapus seluruh data dalam object store 'inventory'
+      const clearRequest = store.clear()
+
+      clearRequest.onsuccess = function () {
+        console.log('IndexedDB cleared successfully.')
+      }
+
+      clearRequest.onerror = function () {
+        MySwal.fire({
+          title: 'Error!',
+          text: 'Failed to clear IndexedDB.',
+          icon: 'error',
+        })
+      }
+    }
+
+    request.onerror = function () {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Failed to open IndexedDB.',
+        icon: 'error',
+      })
+    }
+  }
+
   const handleSubmit = async () => {
     if (!navigator.onLine) {
       // Jika jaringan offline, tampilkan notifikasi
@@ -569,8 +734,16 @@ const InputInventory = () => {
 
           const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
           await updateInventorySubmit(warehouseId.id, items) // Mengirimkan semua item dalam satu body
-          setItems([]) // Kosongkan tabel setelah submit berhasil
+          await getInventories(selectedStorageVal.value, selectedTypeMaterial.label)
           MySwal.fire('Success', 'Inventory updated successfully!', 'success')
+
+          // Membersihkan IndexedDB
+          clearIndexedDB()
+
+          // Fetch data yang sesuai dengan selectedStorageVal
+          fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+            setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+          })
         } catch (error) {
           console.error('Error updating items:', error)
         }
@@ -949,8 +1122,9 @@ const InputInventory = () => {
               </CRow>
               {/* Collapse content */}
               <CButton color="secondary" className="mt-3" onClick={() => setVisible(!visible)}>
-                Show List
+                {visible ? 'Hide List' : 'Show List'}
               </CButton>
+
               <CCollapse visible={visible}>
                 <CCard className="mt-3">
                   <CCardBody>
@@ -1085,7 +1259,7 @@ const InputInventory = () => {
                             icon={cilTrash}
                             size="xl"
                             style={{ fontSize: '80px', cursor: 'pointer', color: 'red' }} // Memperbesar ukuran dan ubah warna
-                            onClick={() => handleDeleteInventory(index)}
+                            onClick={() => handleDeleteInventory(item.id)}
                           />
                         </CTableDataCell>
                       </CTableRow>

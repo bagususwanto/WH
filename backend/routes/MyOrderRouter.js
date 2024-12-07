@@ -4,6 +4,9 @@ import { getMyOrder } from "../controllers/MyOrder.js";
 
 const router = express.Router();
 
-router.get("/myorder/:warehouseId", checkRole(["super admin", "group head", "line head", "section head", "department head"]), getMyOrder);
+router.get(
+  "/myorder/:warehouseId",
+  getMyOrder
+);
 
 export default router;
