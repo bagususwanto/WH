@@ -92,6 +92,20 @@ const useMasterDataService = () => {
     }
   }
 
+  const uploadImageMaterial = async (api, id, file) => {
+    try {
+      const response = await axiosJWT.post(`/${api}/${id}`, file, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response
+    } catch (error) {
+      handleError(error, 'Error post:')
+    }
+  }
+
   return {
     getMasterData,
     getMasterDataById,
@@ -99,6 +113,7 @@ const useMasterDataService = () => {
     updateMasterDataById,
     deleteMasterDataById,
     uploadMasterData,
+    uploadImageMaterial,
   }
 }
 

@@ -44,8 +44,9 @@ import notificationRouter from "./routes/NotificationRouter.js";
 import warehouseProcessRouter from "./routes/WarehouseProcessRouter.js";
 import orderHistoryRouter from "./routes/OrderHistoryRouter.js";
 import goodIssueRouter from "./routes/GoodIssueRouter.js";
+import packagingRouter from "./routes/PackagingRouter.js";
 import "./jobs/CronJob.js";
-import { verifyToken } from "./middleware/VerifyToken.js";
+import { verifyToken } from "./middleware/verifyToken.js";
 
 dotenv.config();
 const app = express();
@@ -95,6 +96,7 @@ app.use(express.json());
 
 // Auth router
 app.use("/api", authRouter);
+
 app.use(verifyToken);
 
 // Master data router
@@ -120,6 +122,7 @@ app.use("/api", organizationRouter);
 app.use("/api", serviceHoursRouter);
 app.use("/api", userPlantRouter);
 app.use("/api", userWarehouseRouter);
+app.use("/api", packagingRouter);
 
 // Harcoded router
 app.use("/api", harcodedRouter);
