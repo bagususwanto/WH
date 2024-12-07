@@ -50,6 +50,9 @@ import {
   cilTruck,
   cilWalk,
   cilCircle,
+  cilApplications,
+  cilPlaylistAdd,
+  cilBan
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -230,6 +233,30 @@ const ApproveAll = () => {
     }
   }
 
+
+  const getTabIcon = (status) => {
+    switch (status) {
+      case 'all':
+        return cilApplications // Icon kertas
+      case 'waiting approval':
+        return cilUser // Icon kertas
+
+      case 'waiting confirmation':
+        return cilClipboard // Icon kertas
+      case 'on process':
+        return cilCart // Icon keranjang
+      case 'ready to deliver':
+      case 'ready to pickup':
+        return cilTruck // Icon truck
+      case 'completed':
+        return cilCheckCircle // Icon ceklis
+      case 'rejected':
+        return cilBan // Icon silang
+      default:
+        return cilBan // Default icon
+    }
+  }
+
   // Total harga produk
   useEffect(() => {
     const newTotal = currentProducts.reduce((acc, product) => {
@@ -285,7 +312,9 @@ const ApproveAll = () => {
     setCurrentPage(page)
     getApprove(page)
   }
-
+  const totalQuantity = new Set(
+    (selectedProduct?.Detail_Orders || []).map((detail) => detail.Inventory.Material.description),
+  ).size
   return (
     <>
       <CRow>
@@ -413,94 +442,94 @@ const ApproveAll = () => {
                   ) : myApprovalData.length > 0 ? (
                     // Data Approval
                     myApprovalData
-                    .filter(
-                      (approval) => approval.Detail_Orders && approval.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
-                    )
-                    .map((approval) => (
-                      <CCard className="h-78 mb-2" key={approval.id}>
-                        <CCardBody className="d-flex flex-column justify-content-between">
-                          <CRow className="align-items-center">
-                            {/* Order information */}
-                            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <CCol>
-                                <CIcon className="me-2" icon={cilUser} />
-                                <label className="me-2 fs-6">
-                                  {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
-                                </label>
-                                <CBadge
-                                  className="me-2"
-                                  color={getSeverity(approval.status)}
-                                  style={{ textTransform: 'uppercase' }}
-                                >
-                                  {approval.status}
-                                </CBadge>
+                      .filter(
+                        (approval) => approval.Detail_Orders && approval.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
+                      )
+                      .map((approval) => (
+                        <CCard className="h-78 mb-2" key={approval.id}>
+                          <CCardBody className="d-flex flex-column justify-content-between">
+                            <CRow className="align-items-center">
+                              {/* Order information */}
+                              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                                <CCol>
+                                  <CIcon className="me-2" icon={getTabIcon(approval.status)}/>
+                                  <label className="me-2 fs-6">
+                                    {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
+                                  </label>
+                                  <CBadge
+                                    className="me-2"
+                                    color={getSeverity(approval.status)}
+                                    style={{ textTransform: 'uppercase' }}
+                                  >
+                                    {approval.status}
+                                  </CBadge>
 
-                                <label className="me-2 fw-light">
-                                  {approval.transactionNumber
-                                    ? approval.transactionNumber
-                                    : approval.requestNumber}
+                                  <label className="me-2 fw-light">
+                                    {approval.transactionNumber
+                                      ? approval.transactionNumber
+                                      : approval.requestNumber}
+                                  </label>
+                                </CCol>
+                                <label className="fw-bold fs-6">
+                                  Total: {approval.Detail_Orders.length}
+                                </label>
+                              </div>
+                            </CRow>
+                            <hr />
+
+                            {/* Product and user information */}
+                            <CRow>
+                              <CCol xs="1"></CCol>
+                              <CCol xs="4">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div>
+                                    <strong>From:</strong> {approval.User.name}
+                                  </div>
+                                  <div>
+                                    <strong>Role:</strong> {approval.User.position}
+                                  </div>
+                                  <div>
+                                    <strong>Section:</strong>{' '}
+                                    {approval.User.Organization.Section.sectionName}
+                                  </div>
+                                </div>
+                              </CCol>
+
+                              <CCol className="text-end">
+                                <label className="fw-bold fs-6 me-1">
+                                  Rp{' '}
+                                  {approval.Detail_Orders.reduce(
+                                    (total, order) => total + (order.Inventory.Material.price || 0),
+                                    0,
+                                  ).toLocaleString('id-ID')}
+                                </label>
+                                <br />
+                                <label className="me-1">
+                                  <span className="fw-light">{approval.paymentMethod}:</span>{' '}
+                                  {approval.paymentNumber}
                                 </label>
                               </CCol>
-                              <label className="fw-bold fs-6">
-                                Total: {approval.Detail_Orders.length}
-                              </label>
-                            </div>
-                          </CRow>
-                          <hr />
+                            </CRow>
 
-                          {/* Product and user information */}
-                          <CRow>
-                            <CCol xs="1"></CCol>
-                            <CCol xs="4">
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <div>
-                                  <strong>From:</strong> {approval.User.name}
-                                </div>
-                                <div>
-                                  <strong>Role:</strong> {approval.User.position}
-                                </div>
-                                <div>
-                                  <strong>Section:</strong>{' '}
-                                  {approval.User.Organization.Section.sectionName}
-                                </div>
-                              </div>
-                            </CCol>
-
-                            <CCol className="text-end">
-                              <label className="fw-bold fs-6 me-1">
-                                Rp{' '}
-                                {approval.Detail_Orders.reduce(
-                                  (total, order) => total + (order.Inventory.Material.price || 0),
-                                  0,
-                                ).toLocaleString('id-ID')}
-                              </label>
-                              <br />
-                              <label className="me-1">
-                                <span className="fw-light">{approval.paymentMethod}:</span>{' '}
-                                {approval.paymentNumber}
-                              </label>
-                            </CCol>
-                          </CRow>
-
-                          {/* View Detail button */}
-                          <CRow className="d-flex justify-content-end align-items-center">
-                            <CCol xs={4} className="d-flex justify-content-end">
-                              <CButton
-                                onClick={() => handleViewHistoryOrder(approval)} // Pass the approval data when clicked
-                                size="sm"
-                                style={{
-                                  backgroundColor: 'white',
-                                  color: '#219fee',
-                                  border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
-                                }}
-                              >
-                                View Detail Approved
-                              </CButton>
-                            </CCol>
-                          </CRow>
-                        </CCardBody>
-                      </CCard>
-                    ))
+                            {/* View Detail button */}
+                            <CRow className="d-flex justify-content-end align-items-center">
+                              <CCol xs={4} className="d-flex justify-content-end">
+                                <CButton
+                                  onClick={() => handleViewHistoryOrder(approval)} // Pass the approval data when clicked
+                                  size="sm"
+                                  style={{
+                                    backgroundColor: 'white',
+                                    color: '#219fee',
+                                    border: '1px solid #219fee', // Optional: if you want a border with the same color as the text
+                                  }}
+                                >
+                                  View Detail Approved
+                                </CButton>
+                              </CCol>
+                            </CRow>
+                          </CCardBody>
+                        </CCard>
+                      ))
                   ) : (
                     <p>No Approval available.</p>
                   )}
@@ -546,7 +575,7 @@ const ApproveAll = () => {
                             {/* Order information */}
                             <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                               <CCol>
-                                <CIcon className="me-2" icon={cilUser} />
+                                <CIcon className="me-2" icon={getTabIcon(approval.status)} />
                                 <label className="me-2 fs-6">
                                   {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
                                 </label>
@@ -646,22 +675,26 @@ const ApproveAll = () => {
                     <CCard className="h-80">
                       <CCardBody>
                         <CRow className="align-items-center mb-3">
-                          <CCol>
-                            <CIcon className="me-2" icon={cilCart} />
-                            <label className="me-2 fs-6">
-                              {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
-                            </label>
-                            <CBadge
-                              className="me-2"
-                              size="md"
-                              color={getSeverity(selectedProduct.status)}
-                            >
-                              {selectedProduct.status?.toUpperCase()}
-                            </CBadge>
-                            <label className="me-2 fw-light">{selectedProduct.requestNumber}</label>
+                          <CCol className="d-flex justify-content-between align-items-center">
                             <div>
-                                <label>Total: {totalQuantity} Item</label>
-                              </div>
+                              <CIcon className="me-2" icon={getTabIcon(selectedProduct.status)} />
+                              <label className="me-2 fs-6">
+                                {format(parseISO(selectedProduct.transactionDate), 'dd/MM/yyyy')}
+                              </label>
+                              <CBadge
+                                className="me-2"
+                                size="md"
+                                color={getSeverity(selectedProduct.status)}
+                              >
+                                {selectedProduct.status?.toUpperCase()}
+                              </CBadge>
+                              <label className="me-2 fw-light">
+                                {selectedProduct.requestNumber}
+                              </label>
+                            </div>
+                            <div>
+                              <label>Total: {totalQuantity} Item</label>
+                            </div>
                           </CCol>
                         </CRow>
                         <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
@@ -744,7 +777,6 @@ const ApproveAll = () => {
                             fontSize: '0.85rem', // Ukuran font kecil
                           }}
                         >
-                          <hr style={{ height: '5px', margin: '2px ' }} />
                           Tracking Item
                         </label>
                         {orderHistory.map((item, index) => {
@@ -804,7 +836,7 @@ const ApproveAll = () => {
                                 >
                                   <label style={{ fontSize: '0.96em' }}>{item.status}</label>
                                   <div>By : {item.User.name}</div>
-                                  <div>Remark : {item.remarks}</div>
+                                  <div style={{ fontSize: '0.8em' }}>Remark : {item.remarks}</div>
                                 </div>
                               </CCol>
                             </CRow>

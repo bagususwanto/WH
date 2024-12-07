@@ -222,7 +222,7 @@ const History = () => {
       case 'all':
         return cilApplications // Icon kertas
       case 'waiting approval':
-        return cilPlaylistAdd // Icon kertas
+        return cilUser // Icon kertas
 
       case 'waiting confirmation':
         return cilClipboard // Icon kertas

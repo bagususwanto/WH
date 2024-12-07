@@ -57,17 +57,17 @@ const AppHeader = () => {
         <CHeaderToggler onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}>
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
-        <img src={logo} alt="Logo" className="sidebar-brand-full" height={50} />
-        <CCol sm={2}></CCol>
+        <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
+        <CCol sm={8}></CCol>
         <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
-        <CHeaderNav className="ms-auto">
+        {/* <CHeaderNav className="ms-auto">
           <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
             <CDropdownToggle className="py-0 pe-0 d-flex align-items-center" caret={false}>
               <CIcon icon={cilBell} size="lg" style={{ marginRight: '0.5rem' }} />
             </CDropdownToggle>
-            {/* Add dropdown menu here if necessary */}
+  
           </CDropdown>
-        </CHeaderNav>
+        </CHeaderNav> */}
         <CHeaderNav>
           <AppHeaderDropdown />
         </CHeaderNav>

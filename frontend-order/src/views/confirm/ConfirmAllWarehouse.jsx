@@ -289,7 +289,7 @@ const ApproveAll = () => {
   const getTabIcon = (status) => {
     switch (status) {
       case 'waiting confirmation':
-        return cilClipboard // Icon kertas
+        return cilUser // Icon kertas
       case 'on process':
         return cilCart // Icon keranjang
       case 'ready to deliver':

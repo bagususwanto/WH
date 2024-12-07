@@ -17,8 +17,8 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
+import React, { useEffect, useState, useContext } from 'react'
 
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
 import swal from 'sweetalert2'
@@ -30,6 +30,7 @@ const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Tambahkan state untuk mengontrol dropdown
 
   const handleHistory = () => {
     navigate('/history')
@@ -84,14 +85,23 @@ const AppHeaderDropdown = () => {
   if (roleName === 'super admin' || roleName === 'warehouse staff' || roleName === 'warehouse member') {
     shouldShowWarehouse = true
   }
+  const handleDropdownToggle = () => {
+    const dropdownElement = document.querySelector('.order-header')
+    if (!isDropdownOpen) {
+      dropdownElement?.classList.remove('sticky-search-bar')
+    } else {
+      dropdownElement?.classList.add('sticky-search-bar')
+    }
+    setIsDropdownOpen(!isDropdownOpen) // Toggle state
+  }
 
   return (
-    <CDropdown variant="nav-item">
-      <CDropdownToggle
-        placement="bottom-end"
-        className="py-0 pe-0 d-flex align-items-center"
-        caret={false}
-      >
+    <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
+    <CDropdownToggle
+      className="py-0 pe-0 d-flex align-items-center"
+      caret={false}
+      onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
+    >
         <CAvatar src={profile} size="md" />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>

@@ -269,7 +269,7 @@ const Confirm = () => {
     }
   }
   // Calculate total pages based on data length
-  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+  const totalPages = Math.ceil(Confirmwarehouse.Detail_Orders?.length / itemsPerPage)
 
   // Get current items based on the current page
   const currentItems = Confirmwarehouse.Detail_Orders?.slice(
@@ -629,7 +629,8 @@ const Confirm = () => {
                 ))}
           </CRow>
           {/* Pagination */}
-          <CRow className="mt-4">
+           {/* Pagination */}
+           <CRow className="mt-4">
             <CCol className="d-flex justify-content-center sticky-pagination">
               <CPagination aria-label="Page navigation example">
                 <CPaginationItem
@@ -656,7 +657,6 @@ const Confirm = () => {
               </CPagination>
             </CCol>
           </CRow>
-          ;
         </CCol>
       </CRow>
     </CContainer>

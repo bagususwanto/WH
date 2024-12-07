@@ -76,7 +76,8 @@ const Confirm = () => {
   const [rejectionReason, setRejectionReason] = useState('')
   const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(1)
-
+  const [selectedProductId, setSelectedProductId] = useState([])
+  const [clickedItemIndex, setClickedItemIndex] = useState(null)
   const [loading, setLoading] = useState(true) // Add loading state
   useEffect(() => {
     // Map the quantities from the API response (Confirmapproval.Detail_Orders)
@@ -179,18 +180,18 @@ const Confirm = () => {
     }
   }
 
-  const toggleSelectItem = (index) => {
-    setSelectedItems((prevSelectedItems) => {
-      const updatedItems = [...prevSelectedItems]
-      if (updatedItems.includes(index)) {
-        // Jika sudah dipilih, hapus dari daftar
-        return updatedItems.filter((item) => item !== index)
-      } else {
-        // Jika belum dipilih, tambahkan ke daftar
-        updatedItems.push(index)
-        return updatedItems
-      }
-    })
+  const toggleSelectItem = (index, e) => {
+    // Prevent toggling if the click is on the +, - or input
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return
+
+    const updatedSelectedItems = [...selectedItems]
+    if (updatedSelectedItems.includes(index)) {
+      updatedSelectedItems.splice(updatedSelectedItems.indexOf(index), 1)
+    } else {
+      updatedSelectedItems.push(index)
+    }
+    setSelectedItems(updatedSelectedItems)
+    setClickedItemIndex(index) // Set the clicked index to enable the next item click
   }
 
   const totalQuantity = (Confirmwarehouse.Detail_Orders || []).reduce((acc, product) => {
@@ -365,7 +366,7 @@ const Confirm = () => {
     }
   }
 
-  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage)
 
   // Get current items based on the current page
   const currentItems = sortedOrders.slice(
@@ -374,6 +375,17 @@ const Confirm = () => {
   )
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
+  }
+
+  const handleItemSelect = (productId) => {
+    // Cek jika produk sudah dipilih
+    if (selectedProductId.includes(productId)) {
+      // Jika sudah dipilih, hapus dari daftar seleksi
+      setSelectedProductId(selectedProductId.filter((id) => id !== productId))
+    } else {
+      // Jika belum dipilih, tambahkan ke daftar seleksi
+      setSelectedProductId([...selectedProductId, productId])
+    }
   }
   return (
     <CContainer>
@@ -567,9 +579,10 @@ const Confirm = () => {
               className="basic-single mt-0"
               classNamePrefix="select"
               options={[
+                { value: 'all', label: 'All' }, // Tambahkan opsi "All" di awal
                 ...Confirmwarehouse.Detail_Orders.map((order) => ({
                   value: order.Inventory.id,
-                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 3), // Ambil 2 karakter pertama
+                  label: order.Inventory.Address_Rack.addressRackName.slice(0, 4), // Ambil 4 karakter pertama
                 })).filter(
                   (option, index, self) =>
                     index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
@@ -582,38 +595,42 @@ const Confirm = () => {
                   ? { label: selectedAddressCode, value: selectedAddressCode }
                   : null
               }
+              style={{ zIndex: 9999, position: 'relative' }}
             />
             {loading ? (
               <>
                 <Skeleton count={3} height={150} />
               </>
             ) : (
-              currentItems.map((product, index) => (
+              currentItems.map((product) => (
                 <CCard
                   key={product.id}
-                  className="d-flex flex-column justify-content-between mb-3"
-                  onClick={(e) => {
-                    if (
-                      e.target.tagName !== 'BUTTON' && // Jangan trigger saat tombol ditekan
-                      e.target.tagName !== 'INPUT' // Jangan trigger saat input difokuskan
-                    ) {
-                      handleCardClick(product.id) // Hanya klik di luar tombol/input yang diakui
-                    }
-                  }}
+                  className="d-flex flex-column justify-content-between mb-1"
                   style={{
-                    backgroundColor: selectedItems.includes(product.id) ? '#C9E9D2' : 'white', // Hijau jika dipilih, putih jika tidak
-                    cursor: 'pointer',
+                    backgroundColor: selectedProductId.includes(product.id) ? '#C9E9D2' : 'white', // Hijau jika terpilih, putih jika tidak
                   }}
                 >
                   <CCardBody>
                     <CRow className="align-items-center">
-                      <CCol xs={2} sm={1} md={1}>
+                      <CCol
+                        xs={2}
+                        sm={1}
+                        md={1}
+                        onClick={() => handleItemSelect(product.id)} // Handle klik pada gambar
+                        style={{ cursor: 'pointer' }}
+                      >
                         <CCardImage
                           src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                           style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                         />
                       </CCol>
-                      <CCol xs={5} sm={5} md={5}>
+                      <CCol
+                        xs={5}
+                        sm={5}
+                        md={5}
+                        onClick={() => handleItemSelect(product.id)} // Handle klik pada deskripsi
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div style={{ lineHeight: '1.5' }}>
                           <label style={{ fontSize: '0.9em' }}>
                             {product.Inventory.Material.description}
@@ -757,7 +774,11 @@ const Confirm = () => {
                             />
                           </CModalBody>
                           <CModalFooter>
-                            <CButton color="danger" onClick={handleConfirmRejection}>
+                            <CButton
+                              color="danger"
+                              onClick={handleConfirmRejection}
+                              style={{ color: 'white' }} // Menambahkan warna teks putih
+                            >
                               Submit Reject
                             </CButton>
                           </CModalFooter>
@@ -779,7 +800,7 @@ const Confirm = () => {
           </CRow>
           <CRow className="mt-4">
             <CCol className="d-flex justify-content-center sticky-pagination">
-              <CPagination aria-label="Page navigation example">
+            <CPagination aria-label="Page navigation example" style={{ position: 'relative', zIndex: 0 }}>
                 <CPaginationItem
                   disabled={currentPage === 1}
                   onClick={() => handlePageChange(currentPage - 1)}

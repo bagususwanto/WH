@@ -94,7 +94,7 @@ const ConfirmApp = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 4 // Limit to 5 items per page
+  const itemsPerPage = 6 // Limit to 5 items per page
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
@@ -550,6 +550,11 @@ const ConfirmApp = () => {
                   rows={3}
                   value={Confirmapproval.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
                   onChange={(e) => setMessage(e.target.value)}
+                  style={{
+                    backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                    color: '#888', // Warna teks abu-abu
+                    border: '1px solid #ccc', // Border abu-abu
+                  }}
                   disabled
                 />
               )}

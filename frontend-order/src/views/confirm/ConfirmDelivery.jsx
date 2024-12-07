@@ -26,7 +26,7 @@ import {
   CFormLabel,
   CFormTextarea,
   CPagination,
-  CPaginationItem
+  CPaginationItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -106,8 +106,7 @@ const ApproveAll = () => {
   const [loading, setLoading] = useState(true) // Add loading state
   const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(1)
-
-
+  const [selectedProductId, setSelectedProductId] = useState([])
   useEffect(() => {
     // Simulate data fetching or processing delay
     const timeout = setTimeout(() => {
@@ -215,17 +214,26 @@ const ApproveAll = () => {
     }))
   }
 
-  const totalPages = Math.ceil(productsData.length / itemsPerPage)
+  const totalPages = Math.ceil(Confirmwarehouse.Detail_Orders.length / itemsPerPage)
 
   // Get current items based on the current page
-  const currentItems =   Confirmwarehouse.Detail_Orders?.slice(
+  const currentItems = Confirmwarehouse.Detail_Orders?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   )
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
   }
-
+  const handleItemSelect = (productId) => {
+    // Cek jika produk sudah dipilih
+    if (selectedProductId.includes(productId)) {
+      // Jika sudah dipilih, hapus dari daftar seleksi
+      setSelectedProductId(selectedProductId.filter((id) => id !== productId))
+    } else {
+      // Jika belum dipilih, tambahkan ke daftar seleksi
+      setSelectedProductId([...selectedProductId, productId])
+    }
+  }
   return (
     <CContainer>
       <CRow className="mt-1">
@@ -433,25 +441,31 @@ const ApproveAll = () => {
                     </CCard>
                   ))
               : // Jika tidak loading, tampilkan data sebenarnya
-              currentItems.map((product, index) => (
+                currentItems.map((product, index) => (
                   <CCard
-                    key={index}
-                    className="d-flex flex-column justify-content-between"
-                    onClick={() => toggleSelectItem(index)}
-                    style={{
-                      backgroundColor: selectedItems[index] ? '#A1C398' : 'white', // Hijau jika dipilih, putih jika tidak
-                      cursor: 'pointer', // Tambahkan kursor pointer untuk efek klik
-                    }}
-                  >
+                  key={product.id}
+                  className="d-flex flex-column justify-content-between mb-1"
+                  style={{
+                    backgroundColor: selectedProductId.includes(product.id) ? '#C9E9D2' : 'white', // Hijau jika terpilih, putih jika tidak
+                  }}
+                >
                     <CCardBody className="d-flex flex-column justify-content-between">
                       <CRow className="align-items-center">
-                        <CCol xs="1">
+                        <CCol
+                          xs="1"
+                          onClick={() => handleItemSelect(product.id)} // Handle klik pada gambar
+                          style={{ cursor: 'pointer' }}
+                        >
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
                             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                           />
                         </CCol>
-                        <CCol xs="8">
+                        <CCol
+                          xs="8"
+                          onClick={() => handleItemSelect(product.id)} // Handle klik pada deskripsi
+                          style={{ cursor: 'pointer' }}
+                        >
                           <div style={{ lineHeight: '1.3' }}>
                             <label
                               style={{ fontSize: '1rem', display: 'block', marginBottom: '0.2rem' }}

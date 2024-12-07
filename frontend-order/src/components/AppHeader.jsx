@@ -97,6 +97,8 @@ const AppHeader = () => {
   const modalRef = useRef(null) // Ref untuk modal dropdown
   const [modalCloseTimer, setModalCloseTimer] = useState(null)
   const [dropdownNotif, setDropdownNotif] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
 
   const iconMap = {
     'Office Supp.': cilPencil,
@@ -701,7 +703,13 @@ const AppHeader = () => {
 
         <CHeaderNav className="d-flex align-items-center">
           {/* Konten keranjang dan notifikasi */}
-          <CDropdown variant="nav-item" autoClose={'outside'}>
+          <CDropdown
+            variant="nav-item"
+            autoClose={'outside'}
+            visible={isCartOpen}
+            onMouseEnter={() => setIsCartOpen(true)} // Open on hover
+            onMouseLeave={() => setIsCartOpen(false)} // Close when mouse leaves
+          >
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative me-3"
               caret={false}
@@ -712,7 +720,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '-3px', right: '-26px' }}
+                  style={{ top: '-3px', right: '-28px' }}
                 >
                   {cartCount}
                 </CBadge>
@@ -797,7 +805,13 @@ const AppHeader = () => {
             </CDropdownMenu>
           </CDropdown>
 
-          <CDropdown variant="nav-item" autoClose={'outside'}>
+          <CDropdown
+            variant="nav-item"
+            autoClose={'outside'}
+            visible={isNotifOpen}
+            onMouseEnter={() => setIsNotifOpen(true)} // Open on hover
+            onMouseLeave={() => setIsNotifOpen(false)} // Close when mouse leaves
+          >
             <CDropdownToggle className="d-flex align-items-center position-relative" caret={false}>
               <CIcon icon={cilBell} size="lg" />
               {notifCount > 0 && (
@@ -805,7 +819,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '5px', right: '-14px' }}
+                  style={{ top: '5px', right: '-22px' }}
                 >
                   {notifCount}
                 </CBadge>
