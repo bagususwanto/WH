@@ -283,7 +283,7 @@ const ApproveAll = () => {
     { key: 'Ready to Deliver', label: 'Ready to Delivery' },
     { key: 'Ready to Pickup', label: 'Ready to Pickup' },
     { key: 'Completed', label: 'Completed' },
-    { key: 'Rejected', label: 'Rejected' },
+    { key: 'Rejected', label: 'Not Complete' },
   ]
 
   const getTabIcon = (status) => {

@@ -726,7 +726,7 @@ const Confirm = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              Rejected
+                              Empty
                             </CBadge>
                           ) : (
                             <CButton
@@ -736,7 +736,7 @@ const Confirm = () => {
                               className="ms-auto"
                               onClick={() => handleModalCart(product)}
                             >
-                              Reject
+                              Empty
                             </CButton>
                           )}
                         </div>
@@ -747,7 +747,7 @@ const Confirm = () => {
                       {modalConfirm && selectedProduct && (
                         <CModal visible={modalConfirm} onClose={() => setModalConfirm(false)}>
                           <CModalHeader>
-                            <CModalTitle>Provide Rejection Reason</CModalTitle>
+                            <CModalTitle>Give your reasons</CModalTitle>
                           </CModalHeader>
                           <CModalBody>
                             <CRow className="mb-2">
@@ -780,7 +780,7 @@ const Confirm = () => {
                               onClick={handleConfirmRejection}
                               style={{ color: 'white' }} // Menambahkan warna teks putih
                             >
-                              Submit Reject
+                              Submit Decline
                             </CButton>
                           </CModalFooter>
                         </CModal>
