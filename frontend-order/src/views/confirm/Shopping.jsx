@@ -298,7 +298,7 @@ const Confirm = () => {
   }
 
   useEffect(() => {
-    setRejectionReason('Barang pesanan habis')
+    setRejectionReason('Ordered item is not available')
   }, [modalConfirm]) // Atur setiap kali modalConfirm berubah
 
   const handleModalCart = (product) => {
@@ -771,6 +771,7 @@ const Confirm = () => {
                               placeholder="Enter rejection reason"
                               value={rejectionReason}
                               onChange={(e) => setRejectionReason(e.target.value)}
+                              disabled
                             />
                           </CModalBody>
                           <CModalFooter>

@@ -44,7 +44,7 @@ import {
   cilTags,
   cilHome,
   cilInbox,
-  cilKeyboard,
+  cilBan,
   cilUser,
   cilCart,
   cilHeart,
@@ -114,6 +114,28 @@ const Home = () => {
   const navigate = useNavigate()
 
   const apiCategory = 'category-public'
+    const getTabIcon = (status) => {
+    switch (status) {
+      case 'all':
+        return cilApplications // Icon kertas
+      case 'waiting approval':
+        return cilUser // Icon kertas
+
+      case 'waiting confirmation':
+        return cilClipboard // Icon kertas
+      case 'on process':
+        return cilCart // Icon keranjang
+      case 'ready to deliver':
+      case 'ready to pickup':
+        return cilTruck // Icon truck
+      case 'completed':
+        return cilCheckCircle // Icon ceklis
+      case 'rejected':
+        return cilBan // Icon silang
+      default:
+        return cilBan // Default icon
+    }
+  }
 
   const icons = {
     cilClipboard,
@@ -490,7 +512,9 @@ const Home = () => {
     setSelectedOrder(product)
     setVisible(true)
   }
-
+  const totalQuantity = new Set(
+    (selectedOrder?.Detail_Orders || []).map((detail) => detail.Inventory.Material.description),
+  ).size
   return (
     <>
       <CRow>
@@ -780,93 +804,190 @@ const Home = () => {
         </div>
 
         {selectedOrder && (
-          <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
-            <CModalHeader>
-              <CModalTitle>Order Details</CModalTitle>
-            </CModalHeader>
-            <CModalBody>
-              <CRow className="g-1 mt-2">
-                <CCard className="h-80">
-                  <CCardBody>
-                    <CRow className="align-items-center mb-3">
-                      <CCol>
-                        <CIcon className="me-2" icon={cilCart} />
-                        <label className="me-2 fs-6">
-                          {format(parseISO(selectedOrder.createdAt), 'dd/MM/yyyy')}
-                        </label>
-                        <CBadge className="me-2" color={getSeverity(selectedOrder.status)}>
-                          {selectedOrder.status.toUpperCase()}
-                        </CBadge>
-                        <label className="me-2 fw-light">{selectedOrder.transactionNumber}</label>
-                      </CCol>
-                    </CRow>
+        <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
+        <CModalHeader>
+          <CModalTitle>Order Details</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CRow className="g-1 ">
+            <CCard className="h-80 mt-1">
+              <CCardBody>
+                <CRow className="align-items-center mb-2">
+                <CCol className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <CIcon className="me-2" icon={getTabIcon(selectedOrder?.status)} />
+                    <label className="me-2 fs-6">
+                      {format(parseISO(selectedOrder.transactionDate), 'dd/MM/yyyy')}
+                    </label>
+                    <CBadge
+                     
+                      color={getSeverity(
+                        selectedOrder.Detail_Orders[0].isReject == 1
+                          ? 'rejected'
+                          : selectedOrder.status,
+                      )}
+                    >
+                      {selectedOrder.Detail_Orders[0].isReject == 1
+                        ? 'REJECTED'
+                        : selectedOrder.status.toUpperCase()}
+                    </CBadge>
+                    <label className=" fw-light">
+                      {selectedOrder.transactionNumber
+                        ? `${selectedOrder.transactionNumber}`
+                        : `${selectedOrder.requestNumber}`}
+                    </label>
+                    </div>
+                    <div>
+                      <label>Total: {totalQuantity} Item</label>
+                    </div>
+                  </CCol>
+                </CRow>
+                <hr style={{ height: '2px', backgroundColor: 'black', margin: '2px ' }} />
+                <label
+                  className="fw-light mb-1"
+                  style={{
+                    fontSize: '0.85rem', // Ukuran font kecil
+                  }}
+                >
+                  List of Product
+                </label>
 
-                    {selectedOrder.Detail_Orders.map((detail) => (
-                      <CRow className="align-items-center mb-3" key={detail.id}>
-                        <CCol xs="1">
-                          <CCardImage
-                            src={'https://via.placeholder.com/150'}
-                            style={{ height: '100%', width: '100%' }}
-                          />
-                        </CCol>
-                        <CCol xs="9">
-                          <label>{detail.Inventory.Material.description}</label>
-                        </CCol>
-                      </CRow>
-                    ))}
+                {selectedOrder.Detail_Orders.map((detail) => (
+                  <CRow className="align-items-center mb-2" key={detail.id}>
+                    <CCol xs="1">
+                      <CCardImage
+                        src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
+                        style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
+                      />
+                    </CCol>
+                    <CCol xs="8">
+                      <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                        {detail.Inventory.Material.description}
+                      </label>
+                    </CCol>
 
-                    {orderHistory.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        <div
+                    {/* Kolom Kuantitas di Pojok Kanan */}
+                    <CCol xs="3" className="d-flex justify-content-end">
+                      <label style={{ fontSize: '0.8rem', lineHeight: '2' }}>
+                        {`${detail.quantity} ${detail.Inventory.Material.uom}`}
+                      </label>
+                    </CCol>
+                  </CRow>
+                ))}
+                <hr style={{ height: '5px', margin: '5px ' }} />
+                <CRow
+                  className="mb-1" // Margin bawah antar elemen
+                  style={{
+                    alignItems: 'center', // Pastikan elemen sejajar secara vertikal
+                    justifyContent: 'space-between', // Elemen kiri dan kanan berjarak
+                  }}
+                >
+                  {/* Kolom Kiri */}
+                  <CCol xs="6">
+                    {' '}
+                    {/* Mengatur List GI & Delivery di sebelah kiri */}
+                    <label
+                      className="fw-light mb-1"
+                      style={{
+                        fontSize: '0.85rem', // Ukuran font kecil
+                      }}
+                    >
+                      List GI & Delivery
+                    </label>
+                  </CCol>
+
+                  {/* Kolom Kanan */}
+                  <CCol xs="6" className="text-end">
+                    {' '}
+                    {/* Payment Method di sebelah kanan */}
+                    <label
+                      style={{
+                        fontSize: '0.85rem', // Ukuran font serupa
+                      }}
+                    >
+                      {selectedOrder.paymentMethod} :
+                    </label>
+                    <span style={{ marginLeft: '8px' }}>{selectedOrder.paymentNumber}</span>
+                  </CCol>
+                </CRow>
+
+                <hr style={{ height: '5px', margin: '5px ' }} />
+                <label
+                  className="fw-light mb-1"
+                  style={{
+                    fontSize: '0.85rem', // Ukuran font kecil
+                  }}
+                >
+                  Tracking Item
+                </label>
+                {orderHistory.map((item, index) => {
+                  const isFirst = index === 0 // Memeriksa apakah item adalah yang pertama
+
+                  return (
+                    <CRow
+                      key={item.id}
+                      className="mb-3" // Margin bawah antar item
+                      style={{
+                        alignItems: 'center', // Pastikan elemen rata
+                      }}
+                    >
+                      {/* Kolom Tanggal dan Waktu */}
+                      <CCol xs="auto">
+                        <label
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '16px',
+                            fontSize: '0.8rem',
+                            color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
                           }}
                         >
-                          <label style={{ marginRight: '8px' }}>
-                            {format(parseISO(item.createdAt), 'dd MMM yyyy')}
-                            {', '}
-                            {format(parseISO(item.createdAt), 'HH:mm')}
-                          </label>
-                          <div
-                            style={{
-                              border: '2px solid #000',
-                              borderRadius: '50%',
-                              width: '40px',
-                              height: '40px',
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <CIcon icon={icons[item.icon]} size="lg" />
-                          </div>
-                          <label style={{ marginLeft: '8px' }}>
-                            {' '}
-                            {item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1).toLowerCase()}
-                          </label>
+                          {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                          {', '}
+                          {format(parseISO(item.createdAt), 'HH:mm')}
+                        </label>
+                      </CCol>
+
+                      {/* Kolom Ikon */}
+                      <CCol xs="auto">
+                        <div
+                          style={{
+                            border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <CIcon
+                            icon={icons[item.icon]}
+                            size="lg"
+                            style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
+                          />
                         </div>
-                      </div>
-                    ))}
-                  </CCardBody>
-                </CCard>
-              </CRow>
-            </CModalBody>
-            <CModalFooter>
-              <CButton color="secondary" onClick={() => setVisible(false)}>
-                Close
-              </CButton>
-            </CModalFooter>
-          </CModal>
+                      </CCol>
+
+                      {/* Kolom Status */}
+                      <CCol>
+                        <div
+                          style={{
+                            fontSize: '0.91rem',
+                            textTransform: 'capitalize',
+                            color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
+                          }}
+                        >
+                          <label style={{ fontSize: '0.96em' }}>{item.status}</label>
+                          <div>By : {item.User.name}</div>
+                          <div>Remark : {item.remarks}</div>
+                        </div>
+                      </CCol>
+                    </CRow>
+                  )
+                })}
+              </CCardBody>
+            </CCard>
+          </CRow>
+        </CModalBody>
+      </CModal>
         )}
       </CRow>
       <hr />
