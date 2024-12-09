@@ -428,11 +428,12 @@ const Material = () => {
   const handleDeleteMaterial = (materialId) => {
     MySwal.fire({
       title: 'Apakah Anda yakin?',
-      text: 'Material ini tidak dapat dipulihkan!',
+      text: 'This material cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Ya, hapus!',
+      confirmButtonText: 'Ya, delete!',
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         confirmDelete(materialId)
@@ -443,7 +444,7 @@ const Material = () => {
   const confirmDelete = async (materialId) => {
     try {
       await deleteMasterDataById(apiMaterialDelete, materialId)
-      MySwal.fire('Terhapus!', 'Material telah dihapus.', 'success')
+      MySwal.fire('Deleted!', 'Material deleted successfully.', 'success')
       await getMaterial() // Refresh the list after deletion
     } catch (error) {
       console.error('Error menghapus material:', error)
