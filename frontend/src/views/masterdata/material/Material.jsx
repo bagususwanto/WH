@@ -67,10 +67,17 @@ const Material = () => {
     uom: '',
     price: '',
     type: '',
+    mrpType: '',
     categoryId: '',
     supplierId: '',
+    packaging: '',
+    unitPackaging: '',
     minStock: '',
     maxStock: '',
+    minOrder: '',
+    img: '',
+    storageId: '',
+    plantId: '',
   })
   const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
@@ -115,6 +122,7 @@ const Material = () => {
 
   const apiPlant = 'plant-public'
   const apiStorage = 'storage-plant'
+  const apiMasterMaterial = 'material'
   const apiMaterial = `material?plantId=${plantId ? plantId : ''}&storageId=${storageId ? storageId : ''}&type=${type ? type : ''}`
   const apiTypeMaterial = 'material-type'
   const apiUOMS = 'uom'
@@ -252,12 +260,26 @@ const Material = () => {
   const getPackaging = async () => {
     try {
       const response = await getMasterData(apiPackaging)
-      const packagingOptions = response.data.map((packaging) => ({
-        label: packaging.packaging,
-        value: packaging.packaging,
-        id: packaging.id,
-        unitPackaging: packaging.unitPackaging,
-      }))
+
+      // Menggunakan Set untuk menyimpan packaging yang unik
+      const uniquePackaging = new Set()
+
+      const packagingOptions = response.data
+        .filter((packaging) => {
+          // Cek apakah packaging sudah ada di Set
+          if (!uniquePackaging.has(packaging.packaging)) {
+            uniquePackaging.add(packaging.packaging) // Tambahkan ke Set jika belum ada
+            return true // Sertakan dalam hasil
+          }
+          return false // Abaikan jika sudah ada
+        })
+        .map((packaging) => ({
+          label: packaging.packaging,
+          value: packaging.packaging,
+          id: packaging.id,
+          unitPackaging: packaging.unitPackaging,
+        }))
+
       setPackagingOptions(packagingOptions)
     } catch (error) {
       console.error('Error fetching Packaging:', error)
@@ -337,10 +359,17 @@ const Material = () => {
       uom: '',
       price: '',
       type: '',
-      Category: '',
-      Supplier: '',
+      mrpType: '',
+      categoryId: '',
+      supplierId: '',
+      packaging: '',
+      unitPackaging: '',
       minStock: '',
       maxStock: '',
+      minOrder: '',
+      img: '',
+      storageId: '',
+      plantId: '',
     })
     setModal(true)
   }
@@ -368,7 +397,7 @@ const Material = () => {
     const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
     const selectedMRPType = mrpTypeOptions.find((option) => option.value === material.mrpType)
     const selectedPackaging = packagingOptions.find(
-      (option) => option?.id === material.Packaging?.id,
+      (option) => option?.value === material.Packaging?.packaging,
     )
     const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
     const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
@@ -455,11 +484,11 @@ const Material = () => {
       const materialToSave = { ...currentMaterial }
 
       if (isEdit) {
-        await updateMasterDataById(apiMaterial, currentMaterial.id, materialToSave)
+        await updateMasterDataById(apiMasterMaterial, currentMaterial.id, materialToSave)
         MySwal.fire('Updated!', 'Material has been updated.', 'success')
       } else {
         delete materialToSave.id
-        await postMasterData(apiMaterial, materialToSave)
+        await postMasterData(apiMasterMaterial, materialToSave)
         MySwal.fire('Added!', 'Material has been added.', 'success')
       }
     } catch (error) {
@@ -467,7 +496,7 @@ const Material = () => {
     } finally {
       setLoading(false)
       setModal(false)
-      getMaterial() // Refresh the list
+      setShouldFetch(true)
     }
   }
 
@@ -1056,7 +1085,7 @@ const Material = () => {
                   )}
                 </CCol>
                 {/* Form Material */}
-
+                {console.log(currentMaterial)}
                 <CCol xs={12} lg={9}>
                   <CRow className="gy-3">
                     <CCol xs={12} md={6} lg={4}>
@@ -1101,7 +1130,7 @@ const Material = () => {
                           classNamePrefix="select"
                           isClearable={isClearable}
                           id="type"
-                          onChange={handlePlantChange}
+                          onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e })}
                           styles={customStyles}
                         />
                       </div>
@@ -1137,7 +1166,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="category"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, categoryId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1154,7 +1183,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="mrpType"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, mrpType: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1229,7 +1258,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="packaging"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, packaging: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1256,7 +1285,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="supplier"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, supplierId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1278,7 +1307,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="storage"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, storageId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1295,7 +1324,7 @@ const Material = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="plant"
-                    onChange={handlePlantChange}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, plantId: e })}
                     styles={customStyles}
                   />
                 </div>

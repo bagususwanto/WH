@@ -4,6 +4,7 @@ import Supplier from "../models/SupplierModel.js";
 import Packaging from "../models/PackagingModel.js";
 import Plant from "../models/PlantModel.js";
 import Storage from "../models/StorageModel.js";
+import MaterialStorage from "../models/MaterialStorageModel.js";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -138,18 +139,116 @@ export const getMaterialIdByMaterialNo = async (req, res) => {
 
 export const createMaterial = async (req, res) => {
   try {
-    const materialNo = await Material.findOne({
-      where: { materialNo: req.body.materialNo, flag: 1 },
-    });
+    // Body
+    const {
+      materialNo,
+      description,
+      uom,
+      price,
+      type,
+      mrpType,
+      minStock,
+      maxStock,
+      categoryId,
+      supplierId,
+      packaging,
+      unitPackaging,
+      minOrder,
+      storageId,
+      plantId,
+    } = req.body;
 
-    if (materialNo) {
-      return res.status(400).json({ message: "Material No. already exists" });
+    // Validasi data tersedia
+    if (
+      !materialNo ||
+      !description ||
+      !uom ||
+      !price ||
+      price === 0 ||
+      !type ||
+      !mrpType ||
+      !minStock ||
+      minStock === 0 ||
+      !maxStock ||
+      maxStock === 0 ||
+      !categoryId ||
+      !supplierId ||
+      !minOrder ||
+      minOrder === 0 ||
+      !storageId ||
+      !plantId
+    ) {
+      return res.status(400).json({
+        message: "All fields are required, except packaging and unit packaging",
+      });
     }
 
-    await Material.create(req.body);
-    res.status(201).json({ message: "Material Created" });
+    if (packaging && !unitPackaging) {
+      return res.status(400).json({ message: "Unit Packaging is required" });
+    }
+
+    if (!packaging && unitPackaging) {
+      return res.status(400).json({ message: "Packaging is required" });
+    }
+
+    // Cek packaging
+    let packagingRes = null;
+    if (packaging && unitPackaging) {
+      const existPackaging = await Packaging.findOne({
+        where: {
+          packaging: packaging.value,
+          unitPackaging: unitPackaging,
+          flag: 1,
+        },
+      });
+
+      if (!existPackaging) {
+        packagingRes = await Packaging.create({
+          packaging: packaging.value,
+          unitPackaging: unitPackaging,
+        });
+      } else {
+        packagingRes = existPackaging;
+      }
+    }
+
+    // Cek storageId dan plantId
+    const storagePlant = await Storage.findOne({
+      where: { id: storageId.id, plantId: plantId.id, flag: 1 },
+    });
+    if (!storagePlant) {
+      return res.status(400).json({
+        message: "Storage or Plant not found, please check storage and plant",
+      });
+    }
+
+    // Buat material baru
+    const newMaterial = await Material.create({
+      materialNo,
+      description,
+      uom: uom.value,
+      price,
+      type: type.value,
+      mrpType: mrpType.value,
+      minStock,
+      maxStock,
+      categoryId: categoryId.id,
+      supplierId: supplierId.id,
+      packagingId: packagingRes?.id,
+      minOrder,
+    });
+
+    // Hubungkan material dengan storage
+    await MaterialStorage.create({
+      materialId: newMaterial.id,
+      storageId: storageId.id,
+    });
+
+    res
+      .status(201)
+      .json({ message: "Material Created", material: newMaterial });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -157,6 +256,56 @@ export const createMaterial = async (req, res) => {
 export const updateMaterial = async (req, res) => {
   try {
     const materialId = req.params.id;
+
+    // Body
+    const {
+      description,
+      uom,
+      price,
+      type,
+      mrpType,
+      minStock,
+      maxStock,
+      categoryId,
+      supplierId,
+      packaging,
+      unitPackaging,
+      minOrder,
+      storageId,
+      plantId,
+    } = req.body;
+
+    // validasi data tersedia
+    if (
+      !description ||
+      !uom ||
+      !price ||
+      price === 0 ||
+      !type ||
+      !mrpType ||
+      !minStock ||
+      minStock === 0 ||
+      !maxStock ||
+      maxStock === 0 ||
+      !categoryId ||
+      !supplierId ||
+      !minOrder ||
+      minOrder === 0 ||
+      !storageId ||
+      !plantId
+    ) {
+      return res.status(400).json({
+        message: "All fields are required, except packaging and unit packaging",
+      });
+    }
+
+    if (packaging && !unitPackaging) {
+      return res.status(400).json({ message: "Unit Packaging is required" });
+    }
+
+    if (!packaging && unitPackaging) {
+      return res.status(400).json({ message: "Packaging is required" });
+    }
 
     const material = await Material.findOne({
       where: { id: materialId, flag: 1 },
@@ -166,15 +315,72 @@ export const updateMaterial = async (req, res) => {
       return res.status(404).json({ message: "Material not found" });
     }
 
-    await Material.update(req.body, {
-      where: {
-        id: materialId,
-        flag: 1,
-      },
+    let packagingRes = null;
+    // Cek packaging
+    if (packaging && unitPackaging) {
+      const existPackaging = await Packaging.findOne({
+        where: {
+          packaging: packaging.value,
+          unitPackaging: unitPackaging,
+          flag: 1,
+        },
+      });
+
+      if (!existPackaging) {
+        packagingRes = await Packaging.create({
+          packaging: packaging.value,
+          unitPackaging: unitPackaging,
+        });
+      } else {
+        packagingRes = existPackaging;
+      }
+    }
+
+    // Cek storageId dan plantId
+    const storagePlant = await Storage.findOne({
+      where: { id: storageId.id, plantId: plantId.id, flag: 1 },
     });
+    if (!storagePlant) {
+      return res.status(400).json({
+        message: "Storage or Plant not found, please check storage and plant",
+      });
+    }
+
+    // Cek materialId dan storageId
+    const materialStorage = await MaterialStorage.findOne({
+      where: { materialId: materialId, storageId: storageId.id, flag: 1 },
+    });
+    if (!materialStorage) {
+      MaterialStorage.create({
+        materialId: materialId,
+        storageId: storageId.id,
+      });
+    }
+
+    await Material.update(
+      {
+        description,
+        uom: uom.value,
+        price,
+        type: type.value,
+        mrpType: mrpType.value,
+        minStock,
+        maxStock,
+        categoryId: categoryId.id,
+        supplierId: supplierId.id,
+        packagingId: packagingRes?.id,
+        minOrder,
+      },
+      {
+        where: {
+          id: materialId,
+          flag: 1,
+        },
+      }
+    );
     res.status(200).json({ message: "Material Updated" });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

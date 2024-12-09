@@ -6331,6 +6331,12 @@ export const sectionData = [
     wbsId: 2,
   },
   {
+    sectionCode: 109124200,
+    sectionName: "Vehicles Inspection White Sec",
+    gicId: 33,
+    wbsId: 2,
+  },
+  {
     sectionCode: 111131400,
     sectionName: "Warehouse KRW Plant & Steel Opr Sec",
     gicId: 338,
