@@ -26,7 +26,10 @@ import {
   CForm,
   CSpinner,
   CFormLabel,
+  CImage,
 } from '@coreui/react'
+import { CIcon } from '@coreui/icons-react'
+import { cilImagePlus, cilXCircle } from '@coreui/icons'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -41,8 +44,8 @@ const MySwal = withReactContent(swal)
 
 const Material = () => {
   const [materials, setMaterials] = useState([])
-  const [supplier, setSupplier] = useState([])
-  const [category, setCategory] = useState([])
+  const [supplierOptions, setSupplierOptions] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
@@ -50,6 +53,9 @@ const Material = () => {
   const [storage, setStorage] = useState([])
   const [type, setType] = useState()
   const [typeOptions, setTypeOptions] = useState([])
+  const [uomOptions, setUomOptions] = useState([])
+  const [mrpTypeOptions, setMRPTypeOptions] = useState([])
+  const [packagingOptions, setPackagingOptions] = useState([])
   const [storageId, setStorageId] = useState()
   const [plantId, setPlantId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
@@ -84,6 +90,7 @@ const Material = () => {
     updateMasterDataById,
     postMasterData,
     uploadMasterData,
+    uploadImageMaterial,
   } = useMasterDataService()
 
   const [filters, setFilters] = useState({
@@ -109,15 +116,25 @@ const Material = () => {
   const apiStorage = 'storage-plant'
   const apiMaterial = `material?plantId=${plantId ? plantId : ''}&storageId=${storageId ? storageId : ''}&type=${type ? type : ''}`
   const apiTypeMaterial = 'material-type'
+  const apiUOMS = 'uom'
+  const apiMRPType = 'mrp-type'
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
   const apiCategory = 'category'
+  const apiPackaging = 'packaging'
   const apiUpload = 'upload-master-material'
+  const apiDeleteImgMaterial = 'material-delete-image'
+  const apiUploadImageMaterial = 'material-upload-image'
 
   useEffect(() => {
     setLoading(false)
     getPlant()
     getMaterialType()
+    getUOMS()
+    getCategory()
+    getMRPType()
+    getPackaging()
+    getSupplier()
   }, [])
 
   useEffect(() => {
@@ -187,19 +204,72 @@ const Material = () => {
     }
   }
 
+  const getUOMS = async () => {
+    try {
+      const response = await getMasterData(apiUOMS)
+      const uomOptions = response.data.map((uom) => ({
+        label: uom.uom,
+        value: uom.uom,
+        id: uom.id,
+      }))
+      setUomOptions(uomOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
+  const getMRPType = async () => {
+    try {
+      const response = await getMasterData(apiMRPType)
+      const mrpTypeOptions = response.data.map((mrpType) => ({
+        label: mrpType.type,
+        value: mrpType.type,
+        id: mrpType.id,
+      }))
+      setMRPTypeOptions(mrpTypeOptions)
+    } catch (error) {
+      console.error('Error fetching plant:', error)
+    }
+  }
+
   const getCategory = async () => {
     try {
       const response = await getMasterData(apiCategory)
-      setCategory(response.data)
+      const categoryOptions = response.data.map((category) => ({
+        label: category.categoryName,
+        value: category.categoryName,
+        id: category.id,
+      }))
+      setCategoryOptions(categoryOptions)
     } catch (error) {
       console.error('Error fetching Category:', error)
+    }
+  }
+
+  const getPackaging = async () => {
+    try {
+      const response = await getMasterData(apiPackaging)
+      const packagingOptions = response.data.map((packaging) => ({
+        label: packaging.packaging,
+        value: packaging.packaging,
+        id: packaging.id,
+        unitPackaging: packaging.unitPackaging,
+      }))
+      setPackagingOptions(packagingOptions)
+    } catch (error) {
+      console.error('Error fetching Packaging:', error)
     }
   }
 
   const getSupplier = async () => {
     try {
       const response = await getMasterData(apiSupplier)
-      setSupplier(response.data)
+      const supplierOptions = response.data.map((supplier) => ({
+        label: supplier.supplierName,
+        value: supplier.supplierName,
+        id: supplier.id,
+      }))
+      setSupplierOptions(supplierOptions)
     } catch (error) {
       console.error('Error fetching Supplier:', error)
     }
@@ -236,6 +306,7 @@ const Material = () => {
     } catch (error) {
       console.error('Error fetching incoming:', error)
     } finally {
+      setShouldFetch(false)
       setLoading(false) // Set loading to false after data is fetched
     }
   }
@@ -275,18 +346,33 @@ const Material = () => {
   )
 
   const handleEditMaterial = (material) => {
+    console.log(material)
+
+    const selectedUOM = uomOptions.find((option) => option.value === material.uom)
+    const selectedType = typeOptions.find((option) => option.value === material.type)
+    const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
+    const selectedMRPType = mrpTypeOptions.find((option) => option.value === material.mrpType)
+    const selectedPackaging = packagingOptions.find(
+      (option) => option?.id === material.Packaging?.id,
+    )
+    const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
     setIsEdit(true)
     setCurrentMaterial({
       id: material.id,
       materialNo: material.materialNo,
       description: material.description,
-      uom: material.uom,
+      uom: selectedUOM || null,
       price: material.price,
-      type: material.type,
-      categoryId: material.Category ? material.Category.id : '',
-      supplierId: material.Supplier ? material.Supplier.id : '',
+      type: selectedType || null,
+      mrpType: selectedMRPType || null,
+      categoryId: selectedCategory || null,
+      supplierId: selectedSupplier || null,
+      packagingId: selectedPackaging || null,
+      unitPackaging: material.Packaging?.unitPackaging,
       minStock: material.minStock,
       maxStock: material.maxStock,
+      minOrder: material.minOrder,
+      img: material.img,
     })
     setModal(true)
   }
@@ -413,11 +499,6 @@ const Material = () => {
     />
   )
 
-  const selectCategory = category.map((cat) => ({
-    value: cat.id,
-    label: cat.categoryName,
-  }))
-
   const handleCategoryChange = (selectedOption) => {
     setCurrentMaterial({
       ...currentMaterial,
@@ -425,28 +506,12 @@ const Material = () => {
     })
   }
 
-  // Find the selected address option for initial value
-  const selectedCategoryOption = selectCategory.find(
-    (cat) => cat.value === currentMaterial.categoryId,
-  )
-
-  // Prepare address options for Select
-  const selectSupplier = supplier.map((supp) => ({
-    value: supp.id,
-    label: supp.supplierName,
-  }))
-
   const handleSupplierChange = (selectedOption) => {
     setCurrentMaterial({
       ...currentMaterial,
       supplierId: selectedOption ? selectedOption.value : '',
     })
   }
-
-  // Find the selected address option for initial value
-  const selectedSupplierOption = selectSupplier.find(
-    (supp) => supp.value === currentMaterial.supplierId,
-  )
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
@@ -670,7 +735,64 @@ const Material = () => {
   )
 
   const imageBodyTemplate = (rowData) => {
-    return <img src={`${config.IMG_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
+    return (
+      <img src={`${config.BACKEND_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
+    )
+  }
+
+  const handleDeleteImage = async (id) => {
+    try {
+      await updateMasterDataById(apiDeleteImgMaterial, id)
+      setCurrentMaterial({
+        ...currentMaterial,
+        img: '',
+      })
+      MySwal.fire('Success', 'Image deleted successfully', 'success')
+      setShouldFetch(true)
+    } catch (error) {
+      console.error('Error deleting image:', error)
+    }
+  }
+
+  const handleAddImage = async (id) => {
+    try {
+      // Membuat elemen input file secara dinamis
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*' // Hanya menerima file gambar
+
+      // Menangani pemilihan file
+      input.onchange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) {
+          return MySwal.fire('Error', 'No file selected', 'error')
+        }
+
+        // Membuat FormData untuk mengirim file ke backend
+        const formData = new FormData()
+        formData.append('image', file)
+
+        try {
+          // Melakukan request POST ke endpoint backend
+          const response = await uploadImageMaterial(apiUploadImageMaterial, id, formData)
+          console.log('Image uploaded successfully:', response.data)
+
+          setCurrentMaterial({
+            ...currentMaterial,
+            img: response.data.imgPath,
+          })
+          MySwal.fire('Success', 'Image added successfully', 'success')
+          setShouldFetch(true) // Memperbarui data setelah upload sukses
+        } catch (error) {
+          console.error('Error uploading image:', error)
+        }
+      }
+
+      // Memicu dialog pemilihan file
+      input.click()
+    } catch (error) {
+      console.error('Error adding image:', error)
+    }
   }
 
   return (
@@ -799,13 +921,7 @@ const Material = () => {
                     frozen
                     alignFrozen="left"
                   />
-                  <Column
-                    header="Image"
-                    body={imageBodyTemplate}
-                    style={{ width: '25%' }}
-                    frozen
-                    alignFrozen="left"
-                  />
+                  <Column header="Image" body={imageBodyTemplate} frozen alignFrozen="left" />
                   <Column
                     field="materialNo"
                     header="Material No"
@@ -840,58 +956,190 @@ const Material = () => {
         </CCard>
       </CCol>
 
-      <CModal backdrop="static" size="lg" visible={modal} onClose={() => setModal(false)}>
+      <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit Material' : 'Add Material'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
-                <CFormInput
-                  label="Material No"
-                  value={currentMaterial.materialNo}
-                  onChange={(e) =>
-                    setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })
-                  }
-                />
+              {/* Section: Informasi Material */}
+              <CCol xs={12}>
+                <h5>Material Information</h5>
               </CCol>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
-                <CFormInput
-                  label="Description"
-                  value={currentMaterial.description}
-                  onChange={(e) =>
-                    setCurrentMaterial({ ...currentMaterial, description: e.target.value })
-                  }
-                />
+              <div className="clearfix d-flex flex-wrap align-items-start">
+                {/* Foto Material */}
+                <CCol
+                  xs={12}
+                  lg={3}
+                  className="d-flex justify-content-center align-items-center mb-3"
+                  style={{
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    position: 'relative', // Relative untuk parent gambar
+                  }}
+                >
+                  {currentMaterial.img ? (
+                    <div
+                      className="position-relative"
+                      style={{
+                        width: '160px',
+                        height: '160px',
+                      }}
+                    >
+                      {/* Gambar Material */}
+                      <CImage
+                        align="start"
+                        rounded
+                        src={`${config.BACKEND_URL}${currentMaterial.img}`}
+                        className="shadow-sm w-100 h-100"
+                        style={{
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      {/* Tombol Delete (X) */}
+                      <CIcon
+                        icon={cilXCircle}
+                        size="lg"
+                        className="position-absolute"
+                        style={{
+                          top: '-5px',
+                          right: '-5px',
+                          cursor: 'pointer',
+                          color: 'red',
+                        }}
+                        onClick={() => handleDeleteImage(currentMaterial.id)}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="d-flex justify-content-center align-items-center border border-secondary"
+                      style={{
+                        width: '160px',
+                        height: '160px',
+                        borderRadius: '8px',
+                        backgroundColor: '#f9f9f9',
+                        position: 'relative', // Untuk memastikan elemen di dalamnya tetap proporsional
+                      }}
+                    >
+                      {/* Tombol Tambah Gambar (+) */}
+                      <CIcon
+                        icon={cilImagePlus}
+                        size="xl"
+                        style={{
+                          cursor: 'pointer',
+                          color: 'green',
+                        }}
+                        onClick={() => handleAddImage(currentMaterial.id)}
+                      />
+                    </div>
+                  )}
+                </CCol>
+                {/* Form Material */}
+
+                <CCol xs={12} lg={9}>
+                  <CRow className="gy-3">
+                    <CCol xs={12} md={6} lg={4}>
+                      <CFormInput
+                        label="Material No"
+                        value={currentMaterial.materialNo}
+                        onChange={(e) =>
+                          setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })
+                        }
+                      />
+                    </CCol>
+                    <CCol xs={12} md={6} lg={4}>
+                      <div className="form-group">
+                        <label className="mb-2" htmlFor="uom">
+                          Base UOM
+                        </label>
+                        <Select
+                          value={currentMaterial.uom}
+                          options={uomOptions}
+                          className="basic-single"
+                          classNamePrefix="select"
+                          isClearable={isClearable}
+                          id="uom"
+                          onChange={handlePlantChange}
+                          styles={customStyles}
+                        />
+                      </div>
+                    </CCol>
+                    <CCol xs={12} md={6} lg={4}>
+                      <div className="form-group">
+                        <label className="mb-2" htmlFor="type">
+                          Type
+                        </label>
+                        <Select
+                          value={currentMaterial.type}
+                          options={typeOptions}
+                          className="basic-single"
+                          classNamePrefix="select"
+                          isClearable={isClearable}
+                          id="type"
+                          onChange={handlePlantChange}
+                          styles={customStyles}
+                        />
+                      </div>
+                    </CCol>
+                    <CCol xs={12} className="mb-3">
+                      <CFormInput
+                        label="Description"
+                        value={currentMaterial.description}
+                        onChange={(e) =>
+                          setCurrentMaterial({ ...currentMaterial, description: e.target.value })
+                        }
+                      />
+                    </CCol>
+                  </CRow>
+                </CCol>
+              </div>
+
+              {/* Section: Kategori dan MRP */}
+              <CCol xs={12}>
+                <h5>Category & MRP</h5>
               </CCol>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
-                <CFormInput
-                  label="UOM"
-                  value={currentMaterial.uom}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e.target.value })}
-                />
+              <CCol className="mb-3" sm={12} md={6} lg={4}>
+                <div className="form-group">
+                  <label className="mb-2" htmlFor="category">
+                    Category
+                  </label>
+                  <Select
+                    value={currentMaterial.categoryId}
+                    options={categoryOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="category"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
               </CCol>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
-                <CFormInput
-                  label="Type"
-                  value={currentMaterial.type}
-                  onChange={(e) => setCurrentMaterial({ ...currentMaterial, type: e.target.value })}
-                />
+              <CCol className="mb-3" sm={12} md={6} lg={4}>
+                <div className="form-group">
+                  <label className="mb-2" htmlFor="mrpType">
+                    MRP Type
+                  </label>
+                  <Select
+                    value={currentMaterial.mrpType}
+                    options={mrpTypeOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="mrpType"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
               </CCol>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
-                <Select
-                  className="basic-single"
-                  classNamePrefix="select"
-                  isClearable={isClearable}
-                  // options={categoryOptions}
-                  id="category"
-                  onChange={handlePlantChange}
-                  styles={customStyles}
-                  // value={selectedPlantVal}
-                />
+
+              {/* Section: Harga dan Stok */}
+              <CCol xs={12}>
+                <h5>Price & Stock</h5>
               </CCol>
-              <CCol className="mb-2" xs={12} sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
                 <CFormInput
                   label="Price"
                   type="number"
@@ -901,21 +1149,106 @@ const Material = () => {
                   }
                 />
               </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Min. Stock"
+                  type="number"
+                  value={currentMaterial.minStock}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, minStock: e.target.value })
+                  }
+                />
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Max. Stock"
+                  type="number"
+                  value={currentMaterial.maxStock}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, maxStock: e.target.value })
+                  }
+                />
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Min. Order"
+                  type="number"
+                  value={currentMaterial.minOrder}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, minOrder: e.target.value })
+                  }
+                />
+              </CCol>
+
+              {/* Section: Packaging dan Supplier */}
+              <CCol xs={12}>
+                <h5>Packaging & Supplier</h5>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <div className="form-group">
+                  <label className="mb-2" htmlFor="packaging">
+                    Packaging
+                  </label>
+                  <Select
+                    value={currentMaterial.packagingId}
+                    options={packagingOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="packaging"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <CFormInput
+                  label="Unit of Packaging"
+                  type="number"
+                  value={currentMaterial.unitPackaging}
+                  onChange={(e) =>
+                    setCurrentMaterial({ ...currentMaterial, unitPackaging: e.target.value })
+                  }
+                />
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <div className="form-group">
+                  <label className="mb-2" htmlFor="supplier">
+                    Supplier
+                  </label>
+                  <Select
+                    value={currentMaterial.supplierId}
+                    options={supplierOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="supplier"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+
+              {/* Section: Informasi Tambahan */}
+              <CCol xs={12}>
+                <h5>Other Information</h5>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <div className="form-group">
+                  <label className="mb-2" htmlFor="storage">
+                    Storage
+                  </label>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="storage"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
             </CRow>
-            <CFormInput
-              label="Min Stock"
-              className="mb-2"
-              type="number"
-              value={currentMaterial.minStock}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, minStock: e.target.value })}
-            />
-            <CFormInput
-              label="Max Stock"
-              className="mb-2"
-              type="number"
-              value={currentMaterial.maxStock}
-              onChange={(e) => setCurrentMaterial({ ...currentMaterial, maxStock: e.target.value })}
-            />
           </CForm>
         </CModalBody>
         <CModalFooter>
