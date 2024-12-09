@@ -1,14 +1,14 @@
 /* custom.css */
-.custom-datatable .p-datatable-thead>tr>th,
-.custom-datatable .p-datatable-tbody>tr>td {
+.custom-datatable .p-datatable-thead > tr > th,
+.custom-datatable .p-datatable-tbody > tr > td {
   border: 1px solid #dee2e6;
 }
 
-.custom-datatable .p-datatable-thead>tr>th {
+.custom-datatable .p-datatable-thead > tr > th {
   background-color: #f8f9fa;
 }
 
-.custom-datatable .p-datatable-tbody>tr>td {
+.custom-datatable .p-datatable-tbody > tr > td {
   background-color: #ffffff;
   font-size: 10pt;
   text-transform: uppercase;
@@ -38,4 +38,8 @@ button.p-row-editor-save.p-link {
   background-color: white;
   padding-top: 10px;
   padding-bottom: 10px;
+}
+
+.required-label span {
+  color: red;
 }

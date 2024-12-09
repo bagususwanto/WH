@@ -23,7 +23,7 @@ export const postOrderHistory = async (status, userId, orderId, remarks) => {
 const getIconByStatus = (status) => {
   if (status.includes("approved")) {
     return "cilUser";
-  } else if (status.includes("rejected")) {
+  } else if (status.includes("revised")) {
     return "cilUser";
   } else if (status.includes("accepted")) {
     return "cilHome";

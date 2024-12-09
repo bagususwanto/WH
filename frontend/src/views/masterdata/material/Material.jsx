@@ -49,15 +49,16 @@ const Material = () => {
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
-  const [plant, setPlant] = useState([])
+  const [plantOptions, setPlantOptions] = useState([])
   const [storage, setStorage] = useState([])
   const [type, setType] = useState()
   const [typeOptions, setTypeOptions] = useState([])
   const [uomOptions, setUomOptions] = useState([])
   const [mrpTypeOptions, setMRPTypeOptions] = useState([])
   const [packagingOptions, setPackagingOptions] = useState([])
+  const [storageOptions, setStorageOptions] = useState([])
   const [storageId, setStorageId] = useState()
-  const [plantId, setPlantId] = useState()
+  const [plantId, setPlantOptionsId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentMaterial, setCurrentMaterial] = useState({
     id: '',
@@ -120,6 +121,7 @@ const Material = () => {
   const apiMRPType = 'mrp-type'
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
+  const apiStorages = 'storage'
   const apiCategory = 'category'
   const apiPackaging = 'packaging'
   const apiUpload = 'upload-master-material'
@@ -135,6 +137,7 @@ const Material = () => {
     getMRPType()
     getPackaging()
     getSupplier()
+    getStorage()
   }, [])
 
   useEffect(() => {
@@ -184,7 +187,7 @@ const Material = () => {
         value: plant.plantName,
         id: plant.id,
       }))
-      setPlant(plantOptions)
+      setPlantOptions(plantOptions)
     } catch (error) {
       console.error('Error fetching plant:', error)
     }
@@ -275,6 +278,20 @@ const Material = () => {
     }
   }
 
+  const getStorage = async () => {
+    try {
+      const response = await getMasterData(apiStorages)
+      const storageOptions = response.data.map((storage) => ({
+        label: storage.storageName,
+        value: storage.storageName,
+        id: storage.id,
+      }))
+      setStorageOptions(storageOptions)
+    } catch (error) {
+      console.error('Error fetching Storage:', error)
+    }
+  }
+
   const getMaterial = async () => {
     setLoading(true)
     try {
@@ -346,8 +363,6 @@ const Material = () => {
   )
 
   const handleEditMaterial = (material) => {
-    console.log(material)
-
     const selectedUOM = uomOptions.find((option) => option.value === material.uom)
     const selectedType = typeOptions.find((option) => option.value === material.type)
     const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
@@ -356,6 +371,8 @@ const Material = () => {
       (option) => option?.id === material.Packaging?.id,
     )
     const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
+    const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
+    const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
     setIsEdit(true)
     setCurrentMaterial({
       id: material.id,
@@ -367,12 +384,14 @@ const Material = () => {
       mrpType: selectedMRPType || null,
       categoryId: selectedCategory || null,
       supplierId: selectedSupplier || null,
-      packagingId: selectedPackaging || null,
+      packaging: selectedPackaging || null,
       unitPackaging: material.Packaging?.unitPackaging,
       minStock: material.minStock,
       maxStock: material.maxStock,
       minOrder: material.minOrder,
       img: material.img,
+      storageId: selectedStorage || null,
+      plantId: selectedPlant || null,
     })
     setModal(true)
   }
@@ -666,7 +685,7 @@ const Material = () => {
       },
     })
     setGlobalFilterValue('')
-    setPlantId(null)
+    setPlantOptionsId(null)
     setStorageId(null)
     setType(null)
     setMaterials([])
@@ -695,10 +714,10 @@ const Material = () => {
 
   const handlePlantChange = (e) => {
     const selectedPlantName = e.value
-    const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
+    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.id // Dapatkan plant.id
 
-    setPlantId(plantId)
+    setPlantOptionsId(plantId)
     getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
@@ -818,7 +837,7 @@ const Material = () => {
               <CCol xs={12} sm={6} md={4}>
                 <Dropdown
                   value={filters['plant'].value}
-                  options={plant}
+                  options={plantOptions}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
                   className="p-column-filter mb-2"
@@ -1041,18 +1060,22 @@ const Material = () => {
                 <CCol xs={12} lg={9}>
                   <CRow className="gy-3">
                     <CCol xs={12} md={6} lg={4}>
+                      <label className="mb-2 required-label" htmlFor="materialNo">
+                        Material No <span>*</span>
+                      </label>
                       <CFormInput
-                        label="Material No"
                         value={currentMaterial.materialNo}
                         onChange={(e) =>
                           setCurrentMaterial({ ...currentMaterial, materialNo: e.target.value })
                         }
+                        disabled={isEdit}
+                        readOnly={isEdit}
                       />
                     </CCol>
                     <CCol xs={12} md={6} lg={4}>
                       <div className="form-group">
-                        <label className="mb-2" htmlFor="uom">
-                          Base UOM
+                        <label className="mb-2 required-label" htmlFor="uom">
+                          Base UOM <span>*</span>
                         </label>
                         <Select
                           value={currentMaterial.uom}
@@ -1061,15 +1084,15 @@ const Material = () => {
                           classNamePrefix="select"
                           isClearable={isClearable}
                           id="uom"
-                          onChange={handlePlantChange}
+                          onChange={(e) => setCurrentMaterial({ ...currentMaterial, uom: e })}
                           styles={customStyles}
                         />
                       </div>
                     </CCol>
                     <CCol xs={12} md={6} lg={4}>
                       <div className="form-group">
-                        <label className="mb-2" htmlFor="type">
-                          Type
+                        <label className="mb-2 required-label" htmlFor="materialNo">
+                          Type <span>*</span>
                         </label>
                         <Select
                           value={currentMaterial.type}
@@ -1084,8 +1107,10 @@ const Material = () => {
                       </div>
                     </CCol>
                     <CCol xs={12} className="mb-3">
+                      <label className="mb-2 required-label" htmlFor="materialNo">
+                        Description <span>*</span>
+                      </label>
                       <CFormInput
-                        label="Description"
                         value={currentMaterial.description}
                         onChange={(e) =>
                           setCurrentMaterial({ ...currentMaterial, description: e.target.value })
@@ -1102,8 +1127,8 @@ const Material = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={4}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="category">
-                    Category
+                  <label className="mb-2 required-label" htmlFor="category">
+                    Category <span>*</span>
                   </label>
                   <Select
                     value={currentMaterial.categoryId}
@@ -1119,8 +1144,8 @@ const Material = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={4}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="mrpType">
-                    MRP Type
+                  <label className="mb-2 required-label" htmlFor="mrpType">
+                    MRP Type <span>*</span>
                   </label>
                   <Select
                     value={currentMaterial.mrpType}
@@ -1140,8 +1165,10 @@ const Material = () => {
                 <h5>Price & Stock</h5>
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <label htmlFor="price" className="mb-2 required-label">
+                  Price <span>*</span>
+                </label>
                 <CFormInput
-                  label="Price"
                   type="number"
                   value={currentMaterial.price}
                   onChange={(e) =>
@@ -1150,8 +1177,10 @@ const Material = () => {
                 />
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <label htmlFor="minStock" className="mb-2 required-label">
+                  Min. Stock <span>*</span>
+                </label>
                 <CFormInput
-                  label="Min. Stock"
                   type="number"
                   value={currentMaterial.minStock}
                   onChange={(e) =>
@@ -1160,8 +1189,10 @@ const Material = () => {
                 />
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <label htmlFor="maxStock" className="mb-2 required-label">
+                  Max. Stock <span>*</span>
+                </label>
                 <CFormInput
-                  label="Max. Stock"
                   type="number"
                   value={currentMaterial.maxStock}
                   onChange={(e) =>
@@ -1170,8 +1201,10 @@ const Material = () => {
                 />
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <label htmlFor="minOrder" className="mb-2 required-label">
+                  Min. Order ({currentMaterial?.uom.label})<span>*</span>
+                </label>
                 <CFormInput
-                  label="Min. Order"
                   type="number"
                   value={currentMaterial.minOrder}
                   onChange={(e) =>
@@ -1190,7 +1223,7 @@ const Material = () => {
                     Packaging
                   </label>
                   <Select
-                    value={currentMaterial.packagingId}
+                    value={currentMaterial.packaging}
                     options={packagingOptions}
                     className="basic-single"
                     classNamePrefix="select"
@@ -1211,10 +1244,10 @@ const Material = () => {
                   }
                 />
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="supplier">
-                    Supplier
+                  <label className="mb-2 required-label" htmlFor="supplier">
+                    Supplier <span>*</span>
                   </label>
                   <Select
                     value={currentMaterial.supplierId}
@@ -1233,16 +1266,35 @@ const Material = () => {
               <CCol xs={12}>
                 <h5>Other Information</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={6} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="storage">
-                    Storage
+                  <label className="mb-2 required-label" htmlFor="storage">
+                    Storage <span>*</span>
                   </label>
                   <Select
+                    value={currentMaterial.storageId}
+                    options={storageOptions}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="storage"
+                    onChange={handlePlantChange}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={6} lg={6}>
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="plant">
+                    Plant <span>*</span>
+                  </label>
+                  <Select
+                    value={currentMaterial.plantId}
+                    options={plantOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="plant"
                     onChange={handlePlantChange}
                     styles={customStyles}
                   />
