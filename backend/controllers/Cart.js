@@ -78,14 +78,17 @@ export const addToCart = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: ["minOrder"],
+          attributes: ["minOrder", "uom"],
           where: { flag: 1 },
         },
       ],
     });
-    if (quantity < inventory.Material.minOrder) {
+    if (
+      quantity < inventory.Material.minOrder ||
+      quantity % inventory.Material.minOrder !== 0
+    ) {
       return res.status(400).json({
-        message: `Quantity cannot be less than ${inventory.Material.minOrder}`,
+        message: `The amount must be a multiple of ${inventory.Material.minOrder} ${inventory.Material.uom}`,
       });
     }
 

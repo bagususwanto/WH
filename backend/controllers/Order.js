@@ -621,12 +621,9 @@ export const checkout = async (req, res) => {
     }
 
     // Validasi minimum order quantity
-    const minimumOrderQuantity = await isMinimumOrderQuantity(cartIds);
-
-    if (!minimumOrderQuantity) {
-      return res
-        .status(400)
-        .json({ message: "Minimum order quantity not met" });
+    const result = await isMinimumOrderQuantity(cartIds);
+    if (!result.isValid) {
+      return res.status(400).json({ message: result.error });
     }
 
     // const stockStatus = await isStockAvailable(cartIds);
@@ -679,19 +676,25 @@ const isMinimumOrderQuantity = async (cartIds) => {
   for (const cart of carts) {
     // Pastikan semua properti yang dibutuhkan ada
     if (!cart.Inventory || !cart.Inventory.Material) {
-      return false;
+      return {
+        isValid: false,
+        error: `Invalid cart data, item not found`,
+      };
     }
 
     const minOrder = cart.Inventory.Material.minOrder;
 
     // Periksa apakah jumlah tidak memenuhi syarat
     if (cart.quantity < minOrder || cart.quantity % minOrder !== 0) {
-      return false;
+      return {
+        isValid: false,
+        error: `Item ${cart.Inventory.Material.description}, quantity must match the minimum order quantity of ${minOrder} ${cart.Inventory.Material.uom}`,
+      };
     }
   }
 
   // Semua item memenuhi syarat
-  return true;
+  return { isValid: true, minimumOrder: null };
 };
 
 // create order
@@ -749,8 +752,9 @@ export const createOrder = async (req, res) => {
     }
 
     // Jika quantity order < min order
-    if (!(await isMinimumOrderQuantity(cartIds))) {
-      return res.status(400).json({ message: "Quantity order not valid" });
+    const result = await isMinimumOrderQuantity(cartIds);
+    if (!result.isValid) {
+      return res.status(400).json({ message: result.error });
     }
 
     // Jika waktu pengiriman tidak valid
