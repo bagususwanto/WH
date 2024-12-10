@@ -140,7 +140,6 @@ const ConfirmApp = () => {
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
 
-
   useEffect(() => {
     // Hitung ulang total harga berdasarkan kuantitas terbaru
     const newTotal = Confirmapproval.Detail_Orders.reduce((acc, product) => {
@@ -361,13 +360,13 @@ const ConfirmApp = () => {
           console.log('dataaa', data)
           const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
           // Update Confirmapproval state by removing the deleted item
-          const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(
+          const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
             (order) => order.id !== selectedProduct.id,
           )
 
           // Set the new state with updated Detail_Orders
-          setConfirmwarehouse((prevConfirmwarehouse) => ({
-            ...prevConfirmwarehouse,
+          setConfirmapproval((prevConfirmapproval) => ({
+            ...prevConfirmapproval,
             Detail_Orders: updatedDetailOrders,
           }))
 
@@ -503,7 +502,7 @@ const ConfirmApp = () => {
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                         <CIcon icon={cilLocationPin} size="lg" />
                         <label style={{ marginLeft: '8px' }}>
-                          {Confirmwarehouse.User.Organization.Line.lineName}
+                          {Confirmapproval.User.Organization.Line.lineName}
                         </label>
                       </div>
                     </>

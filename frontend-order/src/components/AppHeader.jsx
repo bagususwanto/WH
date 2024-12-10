@@ -720,7 +720,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '-3px', right: '-28px' }}
+                  style={{ top: '-4px', right: '-26px' }}
                 >
                   {cartCount}
                 </CBadge>
@@ -819,7 +819,7 @@ const AppHeader = () => {
                   color="danger"
                   shape="rounded-pill"
                   className="position-absolute translate-middle"
-                  style={{ top: '5px', right: '-22px' }}
+                  style={{ top: '5px', right: '-15px' }}
                 >
                   {notifCount}
                 </CBadge>
@@ -874,7 +874,20 @@ const AppHeader = () => {
                       }}
                     >
                       <CRow className="fw-light py-0 mb-0">
-                        <label style={{ fontSize: '0.75em', whiteSpace: 'normal' }}>
+                        <label
+                          style={{
+                            fontSize: '0.75em',
+                            whiteSpace: 'normal',
+                            color:
+                              notif.title === 'request approval'
+                                ? 'yellow'
+                                : notif.title === 'Order Completed'
+                                  ? 'green'
+                                  : notif.title === 'Item Rejected'
+                                    ? 'red'
+                                    : 'inherit', // Default color
+                          }}
+                        >
                           <CIcon icon={cilEnvelopeClosed} size="sm" /> {notif.title}
                         </label>
                       </CRow>
