@@ -46,7 +46,9 @@ import orderHistoryRouter from "./routes/OrderHistoryRouter.js";
 import goodIssueRouter from "./routes/GoodIssueRouter.js";
 import packagingRouter from "./routes/PackagingRouter.js";
 import "./jobs/CronJob.js";
-import { verifyToken } from "./middleware/verifyToken.js";
+import { verifyToken } from "./middleware/VerifyToken.js";
+
+
 
 dotenv.config();
 const app = express();
@@ -98,6 +100,7 @@ app.use(express.json());
 app.use("/api", authRouter);
 
 app.use(verifyToken);
+
 
 // Master data router
 app.use("/api", categoryRouter);

@@ -534,10 +534,14 @@ export const approveOrder = async (req, res) => {
           const price = order.Inventory.Material.price;
 
           // Validasi jika quantity kurang dari minOrder
-          if (quantityAfter < order.Inventory.Material.minOrder) {
+          if (
+            quantityAfter < order.Inventory.Material.minOrder ||
+            quantityAfter % order.Inventory.Material.minOrder !== 0
+          ) {
             await transaction.rollback();
             return res.status(400).json({
-              message: `Quantity the material ${order.Inventory.Material.materialNo} must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
+              message: `Item ${order.Inventory.Material.description}, quantity must match the minimum order quantity of 
+              ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
             });
           }
 
@@ -607,10 +611,11 @@ export const approveOrder = async (req, res) => {
     }, 0);
 
     if (isLast == 1) {
+      const transactionNumber = await generateOrderNumber(1);
       const orderUpdate = await Order.update(
         {
           isApproval: 1,
-          transactionNumber: await generateOrderNumber(1),
+          transactionNumber: transactionNumber,
           status: "waiting confirmation",
           totalPrice: totalPrice,
         },
@@ -620,7 +625,7 @@ export const approveOrder = async (req, res) => {
       const userIds = await getUserIdWarehouse({ warehouseId: warehouseId });
       const notification = {
         title: "Request Order",
-        description: `Request Order to Warehouse with Transaction Number ${orderUpdate.transactionNumber}`,
+        description: `Request Order to Warehouse with Transaction Number ${transactionNumber}`,
         category: "approval",
       };
       await createNotification(userIds, notification, transaction);
