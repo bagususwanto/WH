@@ -7,7 +7,7 @@ import { format, parseISO } from 'date-fns'
 import '../../scss/modal_backdrop.scss'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-
+import config from '../../utils/Config'
 import {
   CCard,
   CCardBody,
@@ -505,7 +505,7 @@ const ApproveAll = () => {
                                 variant="outline"
                                 size="sm"
                               >
-                                View Detail 
+                                View Detail
                               </CButton>
                             </CCol>
                           </CRow>
@@ -517,7 +517,7 @@ const ApproveAll = () => {
                 </CRow>
               )}
 
-              {console.log('111111', orderHistory)}
+              {console.log('111111', productsData)}
               {selectedProduct && (
                 <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
                   <CModalHeader>
@@ -584,10 +584,10 @@ const ApproveAll = () => {
                                 className="text-end"
                                 style={{ fontSize: '0.8rem', lineHeight: '1.2' }}
                               >
-                                <label className="fw-bold">
-                                  Rp{' '}
-                                  {detail.Inventory.Material.price.toLocaleString('id-ID') || '0'}
-                                </label>
+                                <label style={{ fontSize: '0.8rem' }}>
+                                  {detail.quantity}
+                                </label>{' '}
+                                <label style={{ fontSize: '0.8rem' }} className="fw-light">{detail.Inventory.Material.uom}</label>
                               </CCol>
                             </CRow>
                           ))}

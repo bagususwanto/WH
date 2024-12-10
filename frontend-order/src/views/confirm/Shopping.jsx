@@ -79,6 +79,8 @@ const Confirm = () => {
   const [selectedProductId, setSelectedProductId] = useState([])
   const [clickedItemIndex, setClickedItemIndex] = useState(null)
   const [loading, setLoading] = useState(true) // Add loading state
+  const [isLeftCardHidden, setIsLeftCardHidden] = useState(false)
+
   useEffect(() => {
     // Map the quantities from the API response (Confirmapproval.Detail_Orders)
     const initialQuantities = Confirmwarehouse.Detail_Orders.reduce((acc, product) => {
@@ -387,191 +389,33 @@ const Confirm = () => {
       setSelectedProductId([...selectedProductId, productId])
     }
   }
+  const toggleLeftCard = () => {
+    setIsLeftCardHidden((prev) => !prev)
+  }
+
   return (
     <CContainer>
-      <CRow className="mt-1">
-        <CCol xs={4}>
-          <CCard className=" rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
+      <>
+        <CRow>
+          <CCol xs={4}>
+          <CCard>
             <CCardBody>
-              {/* {roleName === 'super admin' && ( */}
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                {loading ? (
-                  <Skeleton width={100} />
-                ) : (
-                  <label className="fw-bold mb-2">Total: {totalQuantity} Item</label>
-                )}
-                <CButton color="primary" onClick={handleApprove} disabled={loading}>
-                  {loading ? <Skeleton width={100} /> : 'Deliver Now'}
-                </CButton>
-              </div>
+              {loading ? (
+                <Skeleton width={100} />
+              ) : (
+                <>
+                  <CButton onClick={toggleLeftCard}>
+                    <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
+                  </CButton>
+                </>
+              )}
+              <CButton color="primary"size="sm" onClick={handleApprove} disabled={loading}>
+                {loading ? <Skeleton width={100} /> : 'Deliver Now'}
+              </CButton>
             </CCardBody>
-          </CCard>
-          <CCard className="mt-2 rounded-0" style={{ position: 'sticky', top: '0', zIndex: '10' }}>
-            <CCardBody>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                {loading ? (
-                  <Skeleton circle={true} height={60} width={60} />
-                ) : (
-                  <img
-                    src="path-to-user-photo.jpg"
-                    alt="User Profile"
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      marginRight: '16px',
-                    }}
-                  />
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div>
-                    <strong>FROM:</strong>{' '}
-                    {loading ? <Skeleton width={120} /> : Confirmwarehouse.User.name}
-                  </div>
-                  <div>
-                    <strong>LINE:</strong>{' '}
-                    {loading ? (
-                      <Skeleton width={120} />
-                    ) : (
-                      Confirmwarehouse.User.Organization.Line.lineName
-                    )}
-                  </div>
-                  <div>
-                    <small className="fw-light" style={{ marginRight: '5px' }}>
-                      Request at
-                    </small>
-                    {loading ? (
-                      <Skeleton width={80} />
-                    ) : (
-                      <small>
-                        {format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}
-                      </small>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* )} */}
-              <label className="fw-bold mb-2">Select Delivery Type</label>
-              {loading ? (
-                <Skeleton width={150} height={20} />
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <CFormCheck
-                    className="me-3"
-                    type="radio"
-                    id="pickup"
-                    label={`${Confirmwarehouse.deliveryMethod.charAt(0).toUpperCase()}${Confirmwarehouse.deliveryMethod.slice(1)}`}
-                    checked={!isPickup}
-                    onChange={() => setIsPickup()}
-                    disabled
-                  />
-                </div>
-              )}
-              <hr />
-              <label className="fw-bold mb-2">Address Detail Confirmation</label>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                  {loading ? (
-                    <Skeleton circle={true} height={24} width={24} />
-                  ) : (
-                    <CIcon icon={cilHome} size="lg" />
-                  )}
-                  <label style={{ marginLeft: '8px' }}>
-                    {loading ? (
-                      <Skeleton width={200} />
-                    ) : (
-                      Confirmwarehouse.Detail_Orders[0]?.Inventory.Address_Rack.Storage.Plant
-                        .Warehouse.warehouseName
-                    )}
-                  </label>
-                </div>
-
-                {loading ? (
-                  <>
-                    <Skeleton height={20} width={24} />
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
-                      <Skeleton circle={true} height={24} width={24} />
-                      <Skeleton width={200} style={{ marginLeft: '8px' }} />
-                    </div>
-                  </>
-                ) : (
-                  Confirmwarehouse.deliveryMethod !== 'pickup' && (
-                    <>
-                      <CIcon icon={cilArrowBottom} size="lg" />
-                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
-                        <CIcon icon={cilLocationPin} size="lg" />
-                        <label style={{ marginLeft: '8px' }}>
-                          {Confirmwarehouse.User.Organization.Line.lineName}
-                        </label>
-                      </div>
-                    </>
-                  )
-                )}
-              </div>
-              {loading ? (
-                <Skeleton height={20} width={150} />
-              ) : (
-                Confirmwarehouse.deliveryMethod !== 'pickup' && (
-                  <>
-                    <hr />
-                    <label className="fw-bold mb-2">Deadline Order</label>
-                    <div>
-                      <CFormInput
-                        type="text"
-                        value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
-                        readOnly
-                        style={{
-                          backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
-                          color: '#888', // Warna teks abu-abu
-                          border: '1px solid #ccc', // Border abu-abu
-                        }}
-                      />
-                    </div>
-                  </>
-                )
-              )}
-              <hr />
-              <label className="fw-bold mb-2">GI Method</label>
-              {loading ? (
-                <Skeleton width={250} height={20} />
-              ) : (
-                <CFormCheck
-                  type="radio"
-                  id="payment2"
-                  label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
-                  checked={iswbs}
-                  onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
-                  disabled
-                />
-              )}
-
-              <hr />
-              {loading ? (
-                <Skeleton count={3} />
-              ) : (
-                <CFormTextarea
-                  className="mt-3"
-                  rows={3}
-                  value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
-                  onChange={(e) => setMessage(e.target.value)}
-                  style={{
-                    backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
-                    color: '#888', // Warna teks abu-abu
-                    border: '1px solid #ccc', // Border abu-abu
-                  }}
-                  disabled
-                />
-              )}
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        <CCol xs={8}>
-          {/* Address Code Form */}
-
-          <CRow className="g-2">
+            </CCard>
+          </CCol>
+          <CCol xs={8}>
             <CFormLabel htmlFor="address" style={{ fontSize: '0.8rem', marginBottom: '0rem' }}>
               Address Code
             </CFormLabel>
@@ -597,6 +441,183 @@ const Confirm = () => {
               }
               style={{ zIndex: 9999, position: 'relative' }}
             />
+          </CCol>
+        </CRow>
+        <CRow>{/* Add content for the second row */}</CRow>
+      </>
+
+      <CRow>
+        <CCol xs={isLeftCardHidden ? 12 : 4}>
+          {/* Card Kiri */}
+          {!isLeftCardHidden && (
+            <CCard
+              className="mt-2 rounded-0"
+              style={{ position: 'sticky', top: '0', zIndex: '10' }}
+            >
+              <CCardBody>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                  {loading ? (
+                    <Skeleton circle={true} height={60} width={60} />
+                  ) : (
+                    <img
+                      src="path-to-user-photo.jpg"
+                      alt="User Profile"
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        marginRight: '16px',
+                      }}
+                    />
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div>
+                      <strong>FROM:</strong>{' '}
+                      {loading ? <Skeleton width={120} /> : Confirmwarehouse.User.name}
+                    </div>
+                    <div>
+                      <strong>LINE:</strong>{' '}
+                      {loading ? (
+                        <Skeleton width={120} />
+                      ) : (
+                        Confirmwarehouse.User.Organization.Line.lineName
+                      )}
+                    </div>
+                    <div>
+                      <small className="fw-light" style={{ marginRight: '5px' }}>
+                        Request at
+                      </small>
+                      {loading ? (
+                        <Skeleton width={80} />
+                      ) : (
+                        <small>
+                          {format(parseISO(Confirmwarehouse.transactionDate), 'dd/MM/yyyy')}
+                        </small>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* )} */}
+                <label className="fw-bold mb-2">Select Delivery Type</label>
+                {loading ? (
+                  <Skeleton width={150} height={20} />
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <CFormCheck
+                      className="me-3"
+                      type="radio"
+                      id="pickup"
+                      label={`${Confirmwarehouse.deliveryMethod.charAt(0).toUpperCase()}${Confirmwarehouse.deliveryMethod.slice(1)}`}
+                      checked={!isPickup}
+                      onChange={() => setIsPickup()}
+                      disabled
+                    />
+                  </div>
+                )}
+                <hr />
+                <label className="fw-bold mb-2">Address Detail Confirmation</label>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                    {loading ? (
+                      <Skeleton circle={true} height={24} width={24} />
+                    ) : (
+                      <CIcon icon={cilHome} size="lg" />
+                    )}
+                    <label style={{ marginLeft: '8px' }}>
+                      {loading ? (
+                        <Skeleton width={200} />
+                      ) : (
+                        Confirmwarehouse.Detail_Orders[0]?.Inventory.Address_Rack.Storage.Plant
+                          .Warehouse.warehouseName
+                      )}
+                    </label>
+                  </div>
+
+                  {loading ? (
+                    <>
+                      <Skeleton height={20} width={24} />
+                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                        <Skeleton circle={true} height={24} width={24} />
+                        <Skeleton width={200} style={{ marginLeft: '8px' }} />
+                      </div>
+                    </>
+                  ) : (
+                    Confirmwarehouse.deliveryMethod !== 'pickup' && (
+                      <>
+                        <CIcon icon={cilArrowBottom} size="lg" />
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                          <CIcon icon={cilLocationPin} size="lg" />
+                          <label style={{ marginLeft: '8px' }}>
+                            {Confirmwarehouse.User.Organization.Line.lineName}
+                          </label>
+                        </div>
+                      </>
+                    )
+                  )}
+                </div>
+                {loading ? (
+                  <Skeleton height={20} width={150} />
+                ) : (
+                  Confirmwarehouse.deliveryMethod !== 'pickup' && (
+                    <>
+                      <hr />
+                      <label className="fw-bold mb-2">Deadline Order</label>
+                      <div>
+                        <CFormInput
+                          type="text"
+                          value={`${Confirmwarehouse.scheduleDelivery || ''} WIB `}
+                          readOnly
+                          style={{
+                            backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                            color: '#888', // Warna teks abu-abu
+                            border: '1px solid #ccc', // Border abu-abu
+                          }}
+                        />
+                      </div>
+                    </>
+                  )
+                )}
+                <hr />
+                <label className="fw-bold mb-2">GI Method</label>
+                {loading ? (
+                  <Skeleton width={250} height={20} />
+                ) : (
+                  <CFormCheck
+                    type="radio"
+                    id="payment2"
+                    label={`${Confirmwarehouse.paymentMethod} = ${Confirmwarehouse.paymentNumber}`} // Corrected syntax
+                    checked={iswbs}
+                    onChange={() => setIswbs(false)} // Corrected to set `iswbs` to false
+                    disabled
+                  />
+                )}
+
+                <hr />
+                {loading ? (
+                  <Skeleton count={3} />
+                ) : (
+                  <CFormTextarea
+                    className="mt-3"
+                    rows={3}
+                    value={Confirmwarehouse.remarks || 'No message'} // Jika remarks null, tampilkan "No message"
+                    onChange={(e) => setMessage(e.target.value)}
+                    style={{
+                      backgroundColor: '#FBFBFB', // Latar belakang abu-abu muda
+                      color: '#888', // Warna teks abu-abu
+                      border: '1px solid #ccc', // Border abu-abu
+                    }}
+                    disabled
+                  />
+                )}
+              </CCardBody>
+            </CCard>
+          )}
+        </CCol>
+
+        <CCol xs={isLeftCardHidden ? 12 : 8} className="mt-2">
+          {/* Address Code Form */}
+
+          <CRow className="g-2">
             {loading ? (
               <>
                 <Skeleton count={3} height={150} />
@@ -801,7 +822,10 @@ const Confirm = () => {
           </CRow>
           <CRow className="mt-4">
             <CCol className="d-flex justify-content-center sticky-pagination">
-            <CPagination aria-label="Page navigation example" style={{ position: 'relative', zIndex: 0 }}>
+              <CPagination
+                aria-label="Page navigation example"
+                style={{ position: 'relative', zIndex: 0 }}
+              >
                 <CPaginationItem
                   disabled={currentPage === 1}
                   onClick={() => handlePageChange(currentPage - 1)}
