@@ -682,8 +682,10 @@ const isMinimumOrderQuantity = async (cartIds) => {
       return false;
     }
 
+    const minOrder = cart.Inventory.Material.minOrder;
+
     // Periksa apakah jumlah tidak memenuhi syarat
-    if (cart.quantity < cart.Inventory.Material.minOrder) {
+    if (cart.quantity < minOrder || cart.quantity % minOrder !== 0) {
       return false;
     }
   }
@@ -753,12 +755,10 @@ export const createOrder = async (req, res) => {
 
     // Jika waktu pengiriman tidak valid
     if (isLateDelivery(orderTimeStr)) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "The delivery schedule has been missed, please select a new schedule or pickup method",
-        });
+      return res.status(400).json({
+        message:
+          "The delivery schedule has been missed, please select a new schedule or pickup method",
+      });
     }
 
     // Pemanggilan fungsi isStockAvailable
