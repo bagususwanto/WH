@@ -260,60 +260,63 @@ const ConfirmApp = () => {
 
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      const newQuantity = (prevQuantities[productId] || 1) + 1 // Increase quantity by 1
+      const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
 
-      // Update total amount directly
-      const updatedTotalAmount =
-        totalAmount +
-        (Confirmapproval.Detail_Orders.find((p) => p.id === productId)?.Inventory.Material.price ||
-          0)
-      setTotalAmount(updatedTotalAmount)
+      if (!product) return prevQuantities // Jika produk tidak ditemukan
 
-      return {
-        ...prevQuantities,
-        [productId]: newQuantity, // Update the quantity for the specific product
+      const maxQuantity = product.quantity // Kuantitas maksimum dari API
+      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
+
+      if (currentQuantity < maxQuantity) {
+        return {
+          ...prevQuantities,
+          [productId]: currentQuantity + 1, // Tambah kuantitas sebesar 1
+        }
       }
+
+      // Jika mencapai batas maksimum, tetap kembalikan state sebelumnya
+      return prevQuantities
     })
   }
+  // ... (Lanjutkan kode lainnya)
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      const currentQuantity = prevQuantities[productId] || 1
-      const newQuantity = Math.max(currentQuantity - 1, 1) // Decrease by 1, but prevent it from going below 1
-      // Update total amount directly, subtracting price only if quantity decreased
+      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
+
       if (currentQuantity > 1) {
-        const updatedTotalAmount =
-          totalAmount -
-          (Confirmapproval.Detail_Orders.find((p) => p.id === productId)?.Inventory.Material
-            .price || 0)
-        setTotalAmount(updatedTotalAmount)
-      }
-      return {
-        ...prevQuantities,
-        [productId]: newQuantity,
-      }
-    })
-  }
-
-  const handleQuantityChange = (productId, value) => {
-    const newQuantity = parseInt(value, 10)
-    if (!isNaN(newQuantity) && newQuantity >= 1) {
-      setQuantities((prevQuantities) => {
-        // Calculate the price difference
-        const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
-        const price = product?.Inventory.Material.price || 0
-        const quantityDifference = newQuantity - (prevQuantities[productId] || 1)
-
-        // Update total amount based on the quantity difference
-        setTotalAmount(totalAmount + price * quantityDifference)
-
         return {
           ...prevQuantities,
-          [productId]: newQuantity,
+          [productId]: currentQuantity - 1, // Kurangi kuantitas sebesar 1
         }
-      })
+      }
+
+      // Jika sudah mencapai batas minimum (1), tetap kembalikan state sebelumnya
+      return prevQuantities
+    })
+  }
+  const handleQuantityChange = (productId, value) => {
+    const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
+    const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
+
+    if (!product) {
+      console.error(`Product with ID ${productId} not found`)
+      return
+    }
+
+    const maxQuantity = product.quantity // Kuantitas maksimum
+
+    // Validasi apakah nilai yang dimasukkan valid (angka, tidak melebihi batas, dan >= 1)
+    if (!isNaN(newQuantity) && newQuantity >= 1 && newQuantity <= maxQuantity) {
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [productId]: newQuantity,
+      }))
+    } else {
+      console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`)
     }
   }
+
   const handleButtonClick = () => {
     setClicked(true)
     navigate('/order')

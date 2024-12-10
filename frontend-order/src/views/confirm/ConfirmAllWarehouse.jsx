@@ -568,7 +568,7 @@ const ApproveAll = () => {
                             <CRow className="align-items-center mb-2" key={index}>
                               <CCol xs="1">
                                 <CCardImage
-                                  src={detail.Inventory.Material.img}
+                                  src={`${config.BACKEND_URL}${detail.Inventory.Material.img}`}
                                   style={{ height: '40px', width: '40px', objectFit: 'contain' }} // Smaller image
                                 />
                               </CCol>
@@ -584,10 +584,10 @@ const ApproveAll = () => {
                                 className="text-end"
                                 style={{ fontSize: '0.8rem', lineHeight: '1.2' }}
                               >
-                                <label style={{ fontSize: '0.8rem' }}>
-                                  {detail.quantity}
-                                </label>{' '}
-                                <label style={{ fontSize: '0.8rem' }} className="fw-light">{detail.Inventory.Material.uom}</label>
+                                <label style={{ fontSize: '0.8rem' }}>{detail.quantity}</label>{' '}
+                                <label style={{ fontSize: '0.8rem' }} className="fw-light">
+                                  {detail.Inventory.Material.uom}
+                                </label>
                               </CCol>
                             </CRow>
                           ))}
