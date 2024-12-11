@@ -627,13 +627,13 @@ export const shopingOrder = async (req, res) => {
         });
       }
     }
-
+    console.log(respOrder);
     const updatedOrders = [];
 
     // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
       for (const item of updateQuantity) {
-        const order = respOrder.DetailOrders.find(
+        const order = respOrder.Detail_Orders.find(
           (o) => o.id === item.detailOrderId
         );
         if (order) {
@@ -681,7 +681,7 @@ export const shopingOrder = async (req, res) => {
     }
 
     // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
-    for (const order of respOrder.DetailOrders) {
+    for (const order of respOrder.Detail_Orders) {
       if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
         updatedOrders.push({
           quantity: order.quantity,
@@ -857,7 +857,7 @@ export const rejectOrderWarehouse = async (req, res) => {
     const orderId = order.orderId;
 
     if (role) {
-      if (role !== "warehouse staff") {
+      if (role !== "warehouse staff" || role !== "warehouse member") {
         return res.status(401).json({
           message: "Unauthorized, only warehouse staff can reject the order",
         });
