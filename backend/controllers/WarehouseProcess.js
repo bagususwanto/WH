@@ -149,7 +149,7 @@ export const getOrderWarehouse = async (req, res) => {
         },
       ],
     });
-
+    console.log("totalRecords", totalRecords);
     // Hitung total halaman
     const totalPages = Math.ceil(totalRecords / limit);
 
@@ -161,7 +161,7 @@ export const getOrderWarehouse = async (req, res) => {
           model: DetailOrder,
           where: whereCondition2,
           required: true,
-          separate: true,
+          // separate: true,
           include: [
             {
               model: Inventory,
@@ -256,6 +256,7 @@ export const getOrderWarehouse = async (req, res) => {
           ],
         },
       ],
+      order: [["createdAt", "DESC"]],
       subQuery: false,
       limit: parseInt(limit),
       offset: parseInt(offset),
@@ -857,7 +858,7 @@ export const rejectOrderWarehouse = async (req, res) => {
     const orderId = order.orderId;
 
     if (role) {
-      if (role !== "warehouse staff" || role !== "warehouse member") {
+      if (role !== "warehouse staff" && role !== "warehouse member") {
         return res.status(401).json({
           message: "Unauthorized, only warehouse staff can reject the order",
         });
