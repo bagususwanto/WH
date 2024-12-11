@@ -45,7 +45,13 @@ const LogApproval = db.define(
 User.hasMany(LogApproval, { foreignKey: "userId", onDelete: "NO ACTION" });
 LogApproval.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
-DetailOrder.hasMany(LogApproval, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
-LogApproval.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "CASCADE" });
+DetailOrder.hasMany(LogApproval, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
+LogApproval.belongsTo(DetailOrder, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
 
 export default LogApproval;
