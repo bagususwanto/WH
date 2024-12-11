@@ -398,21 +398,21 @@ const Confirm = () => {
       <>
         <CRow>
           <CCol xs={4}>
-          <CCard>
-            <CCardBody>
-              {loading ? (
-                <Skeleton width={100} />
-              ) : (
-                <>
-                  <CButton onClick={toggleLeftCard}>
-                    <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
-                  </CButton>
-                </>
-              )}
-              <CButton color="primary"size="sm" onClick={handleApprove} disabled={loading}>
-                {loading ? <Skeleton width={100} /> : 'Deliver Now'}
-              </CButton>
-            </CCardBody>
+            <CCard>
+              <CCardBody>
+                {loading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  <>
+                    <CButton onClick={toggleLeftCard}>
+                      <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
+                    </CButton>
+                  </>
+                )}
+                <CButton color="primary" size="sm" onClick={handleApprove} disabled={loading}>
+                  {loading ? <Skeleton width={100} /> : 'Deliver Now'}
+                </CButton>
+              </CCardBody>
             </CCard>
           </CCol>
           <CCol xs={8}>
@@ -656,11 +656,15 @@ const Confirm = () => {
                           <label style={{ fontSize: '0.9em' }}>
                             {product.Inventory.Material.description}
                           </label>
-                          <label
-                            style={{ fontSize: '0.7em', fontWeight: 'bold', display: 'block' }}
-                          >
-                            {product.Inventory.Address_Rack.addressRackName}
-                          </label>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.7em', marginRight: '0.5em' }}>
+                              {product.Inventory.Material.materialNo}
+                            </label>
+                            <label style={{ fontSize: '0.7em', fontWeight: 'bold' }}>
+                              - {product.Inventory.Address_Rack.addressRackName}
+                            </label>
+                          </div>
+
                           <label style={{ fontSize: '0.65em', display: 'block' }}>
                             Min Order: {product.Inventory.Material.minOrder}{' '}
                             {product.Inventory.Material.uom}
@@ -774,7 +778,7 @@ const Confirm = () => {
                             <CRow className="mb-2">
                               <CCol md="4">
                                 <CImage
-                                  src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+                                  src={`${config.BACKEND_URL}${selectedProduct.Inventory.Material.img}`}
                                   // alt={selectedProduct.Material.description}
                                   fluid
                                   className="rounded"

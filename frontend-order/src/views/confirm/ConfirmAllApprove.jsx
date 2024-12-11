@@ -496,7 +496,7 @@ const ApproveAll = () => {
                               </CCol>
 
                               <CCol className="text-end">
-                                <label className="fw-bold fs-6 me-1">
+                                <label className="fw-bold fs-6 me-1"> 
                                   Rp{' '}
                                   {approval.totalPrice.toLocaleString('id-ID')}
                                 </label>

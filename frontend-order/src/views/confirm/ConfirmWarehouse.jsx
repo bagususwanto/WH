@@ -589,7 +589,7 @@ const Confirm = () => {
                               <CRow className="mb-2">
                                 <CCol md="4">
                                   <CImage
-                                    src={`${config.BACKEND_URL}${item.Inventory.Material.img}`}
+                                    src={`${config.BACKEND_URL}${selectedProduct.Inventory.Material.img}`}
                                     // alt={selectedProduct.Material.description}
                                     fluid
                                     className="rounded"
