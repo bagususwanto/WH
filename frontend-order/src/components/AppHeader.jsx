@@ -100,6 +100,10 @@ const AppHeader = () => {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
 
+  // Cek apakah 4 digit terakhir dari searchQuery adalah angka
+  const lastFourDigits = searchQuery.slice(-4)
+  const isLastFourDigitsNumber = /^\d{4}$/.test(lastFourDigits)
+
   const iconMap = {
     'Office Supp.': cilPencil,
     'Oper. Supply': cilFactory,
@@ -630,7 +634,11 @@ const AppHeader = () => {
                       <div
                         key={product.id}
                         className="suggestion-item"
-                        onClick={() => handleSuggestionClick(product.Material.description)}
+                        onClick={() =>
+                          isLastFourDigitsNumber
+                            ? handleSuggestionClick(product.Material.materialNo)
+                            : handleSuggestionClick(product.Material.description)
+                        }
                         style={{
                           padding: '10px',
                           cursor: 'pointer',
