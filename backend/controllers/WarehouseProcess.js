@@ -633,7 +633,7 @@ export const shopingOrder = async (req, res) => {
     // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
       for (const item of updateQuantity) {
-        const order = respOrder.DetailOrders.find(
+        const order = respOrder.DetailOrder.find(
           (o) => o.id === item.detailOrderId
         );
         if (order) {
@@ -681,7 +681,7 @@ export const shopingOrder = async (req, res) => {
     }
 
     // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
-    for (const order of respOrder.DetailOrders) {
+    for (const order of respOrder.DetailOrder) {
       if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
         updatedOrders.push({
           quantity: order.quantity,

@@ -209,7 +209,14 @@ const Confirm = () => {
     const orderId = Confirmwarehouse.id // Assuming orderId is stored in Confirmapproval object
     const warehouseId = warehouse.id // Assuming warehouseId is available in `warehouse` state
 
-    const data = {}
+    const updateQuantity = Confirmwarehouse.Detail_Orders.map((product) => ({
+      detailOrderId: product.id, // Detail order ID from API
+      quantity: quantities[product.id] || product.quantity, // Get updated quantity from state or use the original quantity
+    }))
+
+    const data = {
+      updateQuantity,
+    }
 
     // Confirm with the user before proceeding
     MySwal.fire({
@@ -398,21 +405,21 @@ const Confirm = () => {
       <>
         <CRow>
           <CCol xs={4}>
-          <CCard>
-            <CCardBody>
-              {loading ? (
-                <Skeleton width={100} />
-              ) : (
-                <>
-                  <CButton onClick={toggleLeftCard}>
-                    <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
-                  </CButton>
-                </>
-              )}
-              <CButton color="primary"size="sm" onClick={handleApprove} disabled={loading}>
-                {loading ? <Skeleton width={100} /> : 'Deliver Now'}
-              </CButton>
-            </CCardBody>
+            <CCard>
+              <CCardBody>
+                {loading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  <>
+                    <CButton onClick={toggleLeftCard}>
+                      <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
+                    </CButton>
+                  </>
+                )}
+                <CButton color="primary" size="sm" onClick={handleApprove} disabled={loading}>
+                  {loading ? <Skeleton width={100} /> : 'Deliver Now'}
+                </CButton>
+              </CCardBody>
             </CCard>
           </CCol>
           <CCol xs={8}>
