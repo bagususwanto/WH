@@ -108,6 +108,45 @@ export const getOrderWarehouse = async (req, res) => {
             },
           ],
         },
+        {
+          model: User,
+          where: { flag: 1 },
+          attributes: [
+            "id",
+            "username",
+            "name",
+            "position",
+            "img",
+            "noHandphone",
+            "email",
+            "createdAt",
+            "updatedAt",
+          ],
+          include: [
+            {
+              model: Organization,
+              where: { flag: 1 },
+              include: [
+                {
+                  model: Line,
+                  required: false,
+                  where: { flag: 1 },
+                },
+                {
+                  model: Section,
+                  required: false,
+                  where: { flag: 1 },
+                },
+              ],
+            },
+            // {
+            //   model: Warehouse,
+            //   as: "alternateWarehouse",
+            //   required: true,
+            //   where: { id: warehouseId },
+            // },
+          ],
+        },
       ],
     });
 
@@ -344,7 +383,7 @@ export const processOrder = async (req, res) => {
     const orderId = req.params.orderId;
     const userId = req.user.userId;
     const role = req.user.roleName;
-    const updateQuantity = req.body.updateQuantity;
+    // const updateQuantity = req.body.updateQuantity;
 
     // Example data updateQuantity
     // {
@@ -365,28 +404,28 @@ export const processOrder = async (req, res) => {
       attributes: ["status", "isApproval"],
     });
 
-    const orders = await DetailOrder.findAll({
-      where: { orderId: orderId },
-      include: [
-        {
-          model: Inventory,
-          include: [
-            {
-              model: Material,
-              where: { flag: 1 },
-              attributes: [
-                "id",
-                "price",
-                "materialNo",
-                "description",
-                "uom",
-                "minOrder",
-              ],
-            },
-          ],
-        },
-      ],
-    });
+    // const orders = await DetailOrder.findAll({
+    //   where: { orderId: orderId },
+    //   include: [
+    //     {
+    //       model: Inventory,
+    //       include: [
+    //         {
+    //           model: Material,
+    //           where: { flag: 1 },
+    //           attributes: [
+    //             "id",
+    //             "price",
+    //             "materialNo",
+    //             "description",
+    //             "uom",
+    //             "minOrder",
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // });
 
     if (
       orderStatus.status === "waiting approval" ||
@@ -408,25 +447,209 @@ export const processOrder = async (req, res) => {
       });
     }
 
-    let typeLog = "accepted warehouse";
+    // let typeLog = "accepted warehouse";
     const status = "accepted warehouse";
+    // const updatedOrders = [];
+
+    // // Lakukan update quantity berdasarkan detailOrderId
+    // if (updateQuantity && updateQuantity.length > 0) {
+    //   for (const item of updateQuantity) {
+    //     const order = orders.find((o) => o.id === item.detailOrderId);
+    //     if (order) {
+    //       const quantityBefore = order.quantity;
+    //       const quantityAfter = item.quantity;
+    //       const price = order.Inventory.Material.price;
+
+    //       // Validasi jika quantity kurang dari min order
+    //       if (quantityAfter < order.Inventory.Material.minOrder) {
+    //         await transaction.rollback();
+    //         return res.status(400).json({
+    //           message: `Quantity the material ${order.Inventory.Material.materialNo}
+    //            must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
+    //         });
+    //       }
+
+    //       // Update quantity dan price di DetailOrder
+    //       await DetailOrder.update(
+    //         { quantity: quantityAfter, price: quantityAfter * price },
+    //         { where: { id: item.detailOrderId }, transaction }
+    //       );
+
+    //       // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
+    //       updatedOrders.push({
+    //         quantity: quantityAfter,
+    //         price: quantityAfter * price,
+    //       });
+
+    //       // Log perubahan ke tabel LogApproval
+    //       await LogApproval.create(
+    //         {
+    //           typeLog: "adjust",
+    //           userId: userId,
+    //           detailOrderId: item.detailOrderId,
+    //           quantityBefore: quantityBefore,
+    //           quantityAfter: quantityAfter,
+    //         },
+    //         { transaction }
+    //       );
+    //     }
+    //   }
+    // }
+
+    // // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
+    // for (const order of orders) {
+    //   if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
+    //     updatedOrders.push({
+    //       quantity: order.quantity,
+    //       price: order.quantity * order.Inventory.Material.price,
+    //     });
+    //   }
+    // }
+
+    // Buat riwayat approval di tabel Approval
+    await Approval.create(
+      {
+        orderId: orderId,
+        userId: userId,
+        status: status,
+      },
+      { transaction }
+    );
+
+    // await LogApproval.bulkCreate(
+    //   orders.map((detailOrder) => ({
+    //     typeLog: typeLog,
+    //     userId: userId,
+    //     detailOrderId: detailOrder.id,
+    //     quantityBefore: detailOrder.quantity,
+    //     quantityAfter: detailOrder.quantity,
+    //   })),
+    //   { transaction }
+    // );
+
+    // Buat riwayat order
+    await postOrderHistory(status, userId, orderId, null, { transaction });
+
+    // // Hitung totalPrice dari updatedOrders
+    // const totalPrice = updatedOrders.reduce((total, detailOrder) => {
+    //   return total + detailOrder.price;
+    // }, 0);
+
+    // Update status order menjadi "on process" dan simpan totalPrice
+    const updatedOrder = await Order.update(
+      {
+        status: "on process",
+        // totalPrice: totalPrice,
+      },
+      { where: { id: orderId }, transaction }
+    );
+
+    // Commit transaksi setelah operasi berhasil
+    await transaction.commit();
+
+    // Respon success
+    return res.status(200).json({
+      message: "Process success",
+      status: "Processed",
+      "Transaction Number": updatedOrder.transactionNumber,
+    });
+  } catch (error) {
+    // Rollback transaksi jika terjadi error
+    await transaction.rollback();
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const shopingOrder = async (req, res) => {
+  const transaction = await db.transaction(); // Mulai transaksi
+  try {
+    const orderId = req.params.orderId;
+    const userId = req.user.userId;
+    const role = req.user.roleName;
+    const updateQuantity = req.body.updateQuantity;
+
+    // Example data updateQuantity
+    // {
+    //   "updateQuantity": [
+    //     {
+    //       "detailOrderId": 1,
+    //       "quantity": 50
+    //     },
+    //     {
+    //       "detailOrderId": 2,
+    //       "quantity": 30
+    //     }
+    //   ]
+    // }
+
+    const respOrder = await Order.findOne({
+      where: { id: orderId },
+      attributes: ["id", "deliveryMethod", "status", "isApproval"],
+      include: [
+        {
+          model: DetailOrder,
+          include: [
+            {
+              model: Inventory,
+              include: [
+                {
+                  model: Material,
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (respOrder.status !== "on process" || respOrder.isApproval !== 1) {
+      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
+      return res
+        .status(401)
+        .json({ message: "Unauthorized, the order cannot be processed" });
+    }
+
+    let status;
+
+    if (respOrder.deliveryMethod == "pickup") {
+      status = "ready to pickup";
+    } else {
+      status = "ready to deliver";
+    }
+
+    if (role) {
+      if (role !== "warehouse member" && role !== "warehouse staff") {
+        return res.status(401).json({
+          message:
+            "Unauthorized, you are not warehouse member or warehouse staff",
+        });
+      }
+    }
+
     const updatedOrders = [];
 
     // Lakukan update quantity berdasarkan detailOrderId
     if (updateQuantity && updateQuantity.length > 0) {
       for (const item of updateQuantity) {
-        const order = orders.find((o) => o.id === item.detailOrderId);
+        const order = respOrder.DetailOrders.find(
+          (o) => o.id === item.detailOrderId
+        );
         if (order) {
           const quantityBefore = order.quantity;
           const quantityAfter = item.quantity;
           const price = order.Inventory.Material.price;
 
           // Validasi jika quantity kurang dari min order
-          if (quantityAfter < order.Inventory.Material.minOrder) {
+          if (
+            quantityAfter < order.Inventory.Material.minOrder ||
+            quantityAfter % order.Inventory.Material.minOrder !== 0
+          ) {
             await transaction.rollback();
             return res.status(400).json({
-              message: `Quantity the material ${order.Inventory.Material.materialNo}
-               must be at least ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
+              message: `Item ${order.Inventory.Material.materialNo},
+               quantity must match the minimum order quantity of ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
             });
           }
 
@@ -458,7 +681,7 @@ export const processOrder = async (req, res) => {
     }
 
     // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
-    for (const order of orders) {
+    for (const order of respOrder.DetailOrders) {
       if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
         updatedOrders.push({
           quantity: order.quantity,
@@ -467,27 +690,6 @@ export const processOrder = async (req, res) => {
       }
     }
 
-    // Buat riwayat approval di tabel Approval
-    await Approval.create(
-      {
-        orderId: orderId,
-        userId: userId,
-        status: status,
-      },
-      { transaction }
-    );
-
-    await LogApproval.bulkCreate(
-      orders.map((detailOrder) => ({
-        typeLog: typeLog,
-        userId: userId,
-        detailOrderId: detailOrder.id,
-        quantityBefore: detailOrder.quantity,
-        quantityAfter: detailOrder.quantity,
-      })),
-      { transaction }
-    );
-
     // Buat riwayat order
     await postOrderHistory(status, userId, orderId, null, { transaction });
 
@@ -495,73 +697,6 @@ export const processOrder = async (req, res) => {
     const totalPrice = updatedOrders.reduce((total, detailOrder) => {
       return total + detailOrder.price;
     }, 0);
-
-    // Update status order menjadi "on process" dan simpan totalPrice
-    const updatedOrder = await Order.update(
-      {
-        status: "on process",
-        totalPrice: totalPrice,
-      },
-      { where: { id: orderId }, transaction }
-    );
-
-    // Commit transaksi setelah operasi berhasil
-    await transaction.commit();
-
-    // Respon success
-    return res.status(200).json({
-      message: "Process success",
-      status: "Processed",
-      "Transaction Number": updatedOrder.transactionNumber,
-    });
-  } catch (error) {
-    // Rollback transaksi jika terjadi error
-    await transaction.rollback();
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const shopingOrder = async (req, res) => {
-  const transaction = await db.transaction(); // Mulai transaksi
-  try {
-    const orderId = req.params.orderId;
-    const userId = req.user.userId;
-    const role = req.user.roleName;
-
-    const respOrder = await Order.findOne({
-      where: { id: orderId },
-      attributes: ["id", "deliveryMethod", "status", "isApproval"],
-      include: [
-        {
-          model: DetailOrder,
-        },
-      ],
-    });
-
-    if (respOrder.status !== "on process" || respOrder.isApproval !== 1) {
-      await transaction.rollback(); // Batalkan transaksi jika order tidak ditemukan
-      return res
-        .status(401)
-        .json({ message: "Unauthorized, the order cannot be processed" });
-    }
-
-    let status;
-
-    if (respOrder.deliveryMethod == "pickup") {
-      status = "ready to pickup";
-    } else {
-      status = "ready to deliver";
-    }
-
-    if (role) {
-      if (role !== "warehouse member" && role !== "warehouse staff") {
-        return res.status(401).json({
-          message:
-            "Unauthorized, you are not warehouse member or warehouse staff",
-        });
-      }
-    }
 
     // Create Log entry
     await LogEntry.bulkCreate(
@@ -579,7 +714,7 @@ export const shopingOrder = async (req, res) => {
 
     // update status order
     const order = await Order.update(
-      { status: status },
+      { status: status, totalPrice: totalPrice },
       { where: { id: orderId }, transaction }
     );
 
