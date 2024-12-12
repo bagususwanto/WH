@@ -14,6 +14,7 @@ import {
   cilBadge,
   cilEnvelopeLetter,
   cilHeart,
+  cilClipboard
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
@@ -47,6 +48,9 @@ const AppHeaderDropdown = () => {
   }
   const handleconfirmall = () => {
     navigate('/confirmall')
+  }
+  const handledatacomplete = () => {
+    navigate('/goodissue')
   }
 
   const handleLogout = async () => {
@@ -145,6 +149,15 @@ const AppHeaderDropdown = () => {
             <CDropdownItem onClick={handleconfirmall} style={{ cursor: 'pointer' }}>
               <CIcon icon={cilEnvelopeLetter} className="me-2" />
               GI Confirm
+            </CDropdownItem>
+          </>
+        )}
+          {shouldShowApproval && (
+          <>
+            <CDropdownDivider />
+            <CDropdownItem onClick={handledatacomplete} style={{ cursor: 'pointer' }}>
+              <CIcon icon={cilClipboard} className="me-2" />
+              Complete Data
             </CDropdownItem>
           </>
         )}

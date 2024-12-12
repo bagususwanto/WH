@@ -15,6 +15,7 @@ const ConfirmRec = React.lazy(() => import('./views/confirm/ConfirmRecipent'))
 const Shopping = React.lazy(() => import('./views/confirm/Shopping'))
 const Order = React.lazy(() => import('./views/order/Order'))
 const Cart = React.lazy(() => import('./views/cart/Cart'))
+const GoodIssue = React.lazy(() => import('./views/gidata/GoodIssue'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -33,6 +34,7 @@ const routes = [
   { path: '/confirmall/delivery-pickupconfirm', name: 'ConfirmDel', element: ConfirmDel },
   { path: '/confirmall/shopping', name: 'Shopping', element: Shopping },
   { path: '/confirmrecipent', name: 'ConfirmRec', element: ConfirmRec },
+  { path: '/goodissue', name: 'Good Issue', element: GoodIssue },
 ]
 
 export default routes

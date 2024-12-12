@@ -377,7 +377,7 @@ const Cart = () => {
                               type="text"
                               value={quantities[product.inventoryId] || product.quantity}
                               className="w-25 text-center border-0"
-                              readOnly
+                          
                             />
                             <CButton
                               color="secondary"
