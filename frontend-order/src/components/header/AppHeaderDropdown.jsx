@@ -14,12 +14,12 @@ import {
   cilBadge,
   cilEnvelopeLetter,
   cilHeart,
-  cilClipboard
+  cilClipboard,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
 import React, { useEffect, useState, useContext } from 'react'
-
+import config from '../../utils/Config'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
 import swal from 'sweetalert2'
@@ -31,7 +31,7 @@ const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Tambahkan state untuk mengontrol dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false) // Tambahkan state untuk mengontrol dropdown
 
   const handleHistory = () => {
     navigate('/history')
@@ -50,8 +50,11 @@ const AppHeaderDropdown = () => {
     navigate('/confirmall')
   }
   const handledatacomplete = () => {
-    navigate('/goodissue')
-  }
+    window.open(`${config.INVEN_URL}/#/goodissue`, '_blank');
+  };
+  
+  
+  
 
   const handleLogout = async () => {
     try {
@@ -86,7 +89,11 @@ const AppHeaderDropdown = () => {
   ) {
     shouldShowApproval = true
   }
-  if (roleName === 'super admin' || roleName === 'warehouse staff' || roleName === 'warehouse member') {
+  if (
+    roleName === 'super admin' ||
+    roleName === 'warehouse staff' ||
+    roleName === 'warehouse member'
+  ) {
     shouldShowWarehouse = true
   }
   const handleDropdownToggle = () => {
@@ -101,15 +108,15 @@ const AppHeaderDropdown = () => {
 
   return (
     <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
-    <CDropdownToggle
-      className="py-0 pe-0 d-flex align-items-center"
-      caret={false}
-      onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
-    >
+      <CDropdownToggle
+        className="py-0 pe-0 d-flex align-items-center"
+        caret={false}
+        onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
+      >
         <CAvatar src={profile} size="md" />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
-          <span style={{ fontSize: '1em' }} >
+          <span style={{ fontSize: '1em' }}>
             {firstName}
             {''} {lastName}
           </span>
@@ -152,7 +159,7 @@ const AppHeaderDropdown = () => {
             </CDropdownItem>
           </>
         )}
-          {shouldShowApproval && (
+        {shouldShowApproval && (
           <>
             <CDropdownDivider />
             <CDropdownItem onClick={handledatacomplete} style={{ cursor: 'pointer' }}>
