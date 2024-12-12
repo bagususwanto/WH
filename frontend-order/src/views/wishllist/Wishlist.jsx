@@ -29,7 +29,8 @@ const Wishlist = () => {
   const [wishlistData, setWishlistData] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
-  const [quantity, setQuantity] = useState(1)
+  const minOrder = selectedProduct?.Material?.minOrder;
+  const [quantity, setQuantity] = useState(minOrder);
   const [isAdjustMode, setIsAdjustMode] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
   const { postCart, updateCart } = useCartService()
@@ -57,6 +58,7 @@ const Wishlist = () => {
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
+    setQuantity(product.Material?.minOrder || 1);
     setModalOrder(true)
   }
 
