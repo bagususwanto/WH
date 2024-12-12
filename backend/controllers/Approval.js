@@ -494,7 +494,7 @@ export const approveOrder = async (req, res) => {
     const updateQuantity = req.body.updateQuantity;
 
     const orders = await DetailOrder.findAll({
-      where: { orderId: orderId },
+      where: { orderId: orderId, isDelete: 0, isReject: 0 },
       attributes: ["id", "quantity"],
       include: [
         {
@@ -516,6 +516,12 @@ export const approveOrder = async (req, res) => {
         },
       ],
     });
+
+    // Validasi jika order tidak ditemukan
+    if (orders.length === 0 || !orders) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     if (!(await isAuthorizedApproval(orderId, userId))) {
       await transaction.rollback();
@@ -612,7 +618,7 @@ export const approveOrder = async (req, res) => {
 
     if (isLast == 1) {
       const transactionNumber = await generateOrderNumber(1);
-      const orderUpdate = await Order.update(
+      await Order.update(
         {
           isApproval: 1,
           transactionNumber: transactionNumber,
@@ -772,6 +778,12 @@ export const deleteOrderItem = async (req, res) => {
         },
       ],
     });
+
+    // Validasi bahwa order sudah di delete
+    if (order.isDelete == 1) {
+      await transaction.rollback(); // Batalkan transaksi jika order sudah di delete
+      return res.status(404).json({ message: "Order already deleted" });
+    }
 
     // Cek isApproval
     if (order.Order.isApproval == 1) {

@@ -13,11 +13,32 @@ const useApprovalService = () => {
     throw new Error(message + error.message)
   }
 
-  
+  const getApproval = async ({
+    id,
+    isApproved = 0,
+    page = 1,
+    startDate = '',
+    endDate = '',
+    q = '',
+  }) => {
+    try {
+      const response = await axiosJWT.get(
+        `/approval/${id}?approved=${isApproved}&page=${page}&limit=10&startDate=${startDate}&endDate=${endDate}&q=${q}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching Approval:')
+    }
+  }
 
-  const getApproval = async ({id,isApproved = 0,page = 1, startDate = '', endDate = '',q = '' }) => {
+  const deleteOrderItemApproval = async (detailorderId, warehouseId, data) => {
     try {
-      const response = await axiosJWT.get(`/approval/${id}?approved=${isApproved}&page=${page}&limit=10&startDate=${startDate}&endDate=${endDate}&q=${q}`, {
+      const response = await axiosJWT.put(`/order-item/${detailorderId}/${warehouseId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -27,20 +48,7 @@ const useApprovalService = () => {
       handleError(error, 'Error fetching Approval:')
     }
   }
-  
-  const deleteOrderItemApproval = async (detailorderId,warehouseId) => {
-    try {
-      const response = await axiosJWT.put(`/order-item/${detailorderId}/${warehouseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      return response
-    } catch (error) {
-      handleError(error, 'Error fetching Approval:')
-    }
-  }
-  const postApproval = async (orderId,warehouseId,   data) => {
+  const postApproval = async (orderId, warehouseId, data) => {
     try {
       const response = await axiosJWT.post(`/approve/${orderId}/${warehouseId}`, data, {
         headers: {
@@ -52,7 +60,7 @@ const useApprovalService = () => {
       handleError(error, 'Error post:')
     }
   }
- 
+
   const getMasterDataById = async (api, id) => {
     try {
       const response = await axiosJWT.get(`/${api}/${id}`, {
@@ -69,7 +77,7 @@ const useApprovalService = () => {
   return {
     getApproval,
     deleteOrderItemApproval,
-    postApproval
+    postApproval,
   }
 }
 
