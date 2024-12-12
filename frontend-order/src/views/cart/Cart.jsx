@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import '../../scss/stickyfooter.scss'
 import config from '../../utils/Config'
-import { CCard, CCardBody, CCardImage, CButton, CRow, CCol } from '@coreui/react'
+import { CCard, CCardBody, CCardImage, CButton, CRow, CCol,CFormInput } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilTrash } from '@coreui/icons'
 import useManageStockService from '../../services/ProductService'
@@ -329,7 +329,6 @@ const Cart = () => {
                         <CCol xs="2" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
-
                             style={{
                               width: '90%', // Ensure it takes the full width
                               height: '100px', // Fixed height for uniformity
@@ -339,20 +338,25 @@ const Cart = () => {
                         </CCol>
 
                         {/* Description Column */}
-                        <CCol xs="6" className="d-flex flex-column justify-content-start">
+                        <CCol xs="5" className="d-flex flex-column justify-content-start">
                           <div>
                             <label className="fw-bold fs-6">
                               {product.Inventory.Material.description}
                             </label>
                             <br />
-                            <label style={{fontSize:"0.9em"}} className='fw-light'>{product.Inventory.Material.materialNo}</label>
+                            <label style={{ fontSize: '0.9em' }} className="fw-light">
+                              {product.Inventory.Material.materialNo}
+                            </label>
                             <br />
-                            <label style={{fontSize:"0.8em"}} >Min Order: {product.Inventory.Material.minOrder} {product.Inventory.Material.uom}</label>
+                            <label style={{ fontSize: '0.8em' }}>
+                              Min Order: {product.Inventory.Material.minOrder}{' '}
+                              {product.Inventory.Material.uom}
+                            </label>
                           </div>
                         </CCol>
 
                         {/* Quantity Column */}
-                        <CCol xs="2" className="d-flex justify-content-center align-items-center">
+                        <CCol xs="3" className="d-flex justify-content-center align-items-center">
                           <div
                             style={{
                               display: 'flex',
@@ -368,9 +372,13 @@ const Cart = () => {
                             >
                               -
                             </CButton>
-                            <span className="mx-3">
-                              {quantities[product.inventoryId] || product.quantity}
-                            </span>
+
+                            <CFormInput
+                              type="text"
+                              value={quantities[product.inventoryId] || product.quantity}
+                              className="w-25 text-center border-0"
+                              readOnly
+                            />
                             <CButton
                               color="secondary"
                               variant="outline"
