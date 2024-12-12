@@ -628,7 +628,6 @@ export const shopingOrder = async (req, res) => {
         });
       }
     }
-    console.log(respOrder);
     const updatedOrders = [];
 
     // Lakukan update quantity berdasarkan detailOrderId
@@ -679,15 +678,15 @@ export const shopingOrder = async (req, res) => {
           );
         }
       }
-    }
 
-    // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
-    for (const order of respOrder.Detail_Orders) {
-      if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
-        updatedOrders.push({
-          quantity: order.quantity,
-          price: order.quantity * order.Inventory.Material.price,
-        });
+      // Tambahkan detail order yang tidak diubah ke updatedOrders untuk menghitung totalPrice
+      for (const order of respOrder.Detail_Orders) {
+        if (!updateQuantity.some((item) => item.detailOrderId === order.id)) {
+          updatedOrders.push({
+            quantity: order.quantity,
+            price: order.quantity * order.Inventory.Material.price,
+          });
+        }
       }
     }
 
