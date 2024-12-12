@@ -66,24 +66,30 @@ export const getOrderWarehouse = async (req, res) => {
     // Hitung total entri sesuai kondisi pencarian
     const totalRecords = await Order.count({
       where: whereCondition,
+      distinct: true,
+      col: "id",
       include: [
         {
           model: DetailOrder,
           attributes: ["id"],
           where: whereCondition2,
+          required: true,
           include: [
             {
               model: Inventory,
               attributes: ["id"],
+              required: true,
               include: [
                 {
                   model: AddressRack,
                   attributes: ["id"],
                   where: { flag: 1 },
+                  required: true,
                   include: [
                     {
                       model: Storage,
                       attributes: ["id"],
+                      required: true,
                       where: { flag: 1 },
                       include: [
                         {
@@ -149,7 +155,7 @@ export const getOrderWarehouse = async (req, res) => {
         },
       ],
     });
-    console.log("totalRecords", totalRecords);
+
     // Hitung total halaman
     const totalPages = Math.ceil(totalRecords / limit);
 

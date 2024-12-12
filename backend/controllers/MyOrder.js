@@ -62,6 +62,8 @@ export const getMyOrder = async (req, res) => {
     // Hitung total data untuk menghitung totalPages
     const totalData = await Order.count({
       where: whereCondition,
+      distinct: true,
+      col: "id",
       include: [
         {
           model: DetailOrder,

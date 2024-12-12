@@ -196,6 +196,8 @@ const findRoleAndOrders = async (
   // Hitung total entri sesuai kondisi
   const totalRecords = await Order.count({
     where: whereCondition,
+    distinct: true,
+    col: "id",
     include: includes,
   });
 
