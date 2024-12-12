@@ -4,10 +4,6 @@ import { getGoodIssue } from "../controllers/GoodIssue.js";
 
 const router = express.Router();
 
-router.get(
-  "/good-issue",
-  checkRole(["super admin", "warehouse member", "warehouse staff"]),
-  getGoodIssue
-);
+router.get("/good-issue", getGoodIssue);
 
 export default router;

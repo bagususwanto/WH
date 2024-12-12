@@ -359,11 +359,7 @@ const ConfirmApp = () => {
             remarks: rejectionReason,
           }
 
-          console.log('warehouse', warehouse)
-          console.log('selectedProduct', selectedProduct)
-          console.log('dataaa', data)
-
-          await deleteOrderItemApproval(selectedProduct.id, warehouse.id)
+          await deleteOrderItemApproval(selectedProduct.id, warehouse.id, data)
 
           // Update Confirmapproval state by removing the deleted item
           const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
@@ -378,6 +374,12 @@ const ConfirmApp = () => {
 
           // Handle success
           MySwal.fire('Deleted!', 'The order has been deleted successfully.', 'success')
+
+          // Validasi jika item list yg dihapus itu sudah tidak ada lagi di list
+          if (updatedDetailOrders.length === 0) {
+            // Redirect ke halaman approveall
+            navigate('/approveall')
+          }
 
           // Optionally update the UI here
           setModalConfirm(false) // Tutup modal
@@ -561,7 +563,7 @@ const ConfirmApp = () => {
             </CCardBody>
           </CCard>
 
-          <CButton
+          {/* <CButton
             className={`box mt-5 ${clicked ? 'btn-clicked' : ''}`}
             color="secondary"
             style={{
@@ -578,7 +580,7 @@ const ConfirmApp = () => {
             onClick={handleButtonClick}
           >
             <CIcon icon={cilCart} size="lg" />
-          </CButton>
+          </CButton>  */}
         </CCol>
 
         <CCol xs={8}>
