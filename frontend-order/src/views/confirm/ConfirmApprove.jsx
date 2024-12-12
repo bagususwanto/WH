@@ -330,6 +330,7 @@ const ConfirmApp = () => {
     setModalConfirm(true) // Tampilkan modal
   }
   const handleConfirmRejection = async () => {
+    
     if (!rejectionReason) {
       Swal.fire({
         title: 'Missing Information',
@@ -357,21 +358,24 @@ const ConfirmApp = () => {
         try {
           const data = {
             remarks: rejectionReason,
-          }
-          console.log('warehouse', warehouse)
-          console.log('selectedProduct', selectedProduct)
-          console.log('dataaa', data)
-          const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
+          };
+
+          console.log('warehouse', warehouse);
+          console.log('selectedProduct', selectedProduct);
+          console.log('dataaa', data);
+
+          await deleteOrderItemApproval(selectedProduct.id, warehouse.id);
+
           // Update Confirmapproval state by removing the deleted item
           const updatedDetailOrders = Confirmapproval.Detail_Orders.filter(
-            (order) => order.id !== selectedProduct.id,
-          )
+            (order) => order.id !== selectedProduct.id
+          );
 
           // Set the new state with updated Detail_Orders
           setConfirmapproval((prevConfirmapproval) => ({
             ...prevConfirmapproval,
             Detail_Orders: updatedDetailOrders,
-          }))
+          }));
 
           // Handle success
           MySwal.fire(
@@ -730,9 +734,10 @@ const ConfirmApp = () => {
                     </CCol>
                     <CCol md="8">
                       <strong>{selectedProduct.Inventory.Material.description}</strong>
-                      <p style={{ fontSize: '0.8em' }}>
-                        {selectedProduct.Inventory.Address_Rack.addressRackName}
-                      </p>
+                      <br/>
+                      <label style={{ fontSize: '0.9em' }} >
+                              Rp {selectedProduct.Inventory.Material.price.toLocaleString('id-ID')}
+                            </label>
                     </CCol>
                   </CRow>
                   <CFormInput

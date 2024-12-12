@@ -761,6 +761,15 @@ export const deleteOrderItem = async (req, res) => {
         {
           model: Order,
         },
+        {
+          model: Inventory,
+          include: [
+            {
+              model: Material,
+              where: { flag: 1 },
+            },
+          ],
+        },
       ],
     });
 

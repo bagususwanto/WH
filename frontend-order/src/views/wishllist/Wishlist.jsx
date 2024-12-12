@@ -192,6 +192,18 @@ const Wishlist = () => {
     }
   }
 
+   // Pastikan minOrder dideklarasikan sebelum digunakan
+   const handleIncrease = () => {
+    const minOrder = selectedProduct?.Material?.minOrder || 1
+    setQuantity((prev) => prev + minOrder)
+  }
+
+  const handleDecrease = () => {
+    const minOrder = selectedProduct?.Material?.minOrder || 1
+    setQuantity((prev) => Math.max(prev - minOrder, minOrder))
+  }
+
+
   return (
     <>
       <CRow className="mb-2">
@@ -349,7 +361,7 @@ const Wishlist = () => {
                 <div className="d-flex align-items-center">
                   <CButton
                     color="primary"
-                    onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                    onClick={handleDecrease}
                     style={{
                       backgroundColor: 'white',
                       color: '#219fee',
@@ -362,12 +374,12 @@ const Wishlist = () => {
                     type="text"
                     value={quantity}
                     className="w-25 text-center border-0"
-                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+                    readOnly
                   />
 
                   <CButton
                     color="primary"
-                    onClick={() => setQuantity((prev) => prev + 1)}
+                    onClick={handleIncrease}
                     style={{
                       backgroundColor: 'white',
                       color: '#219fee',
