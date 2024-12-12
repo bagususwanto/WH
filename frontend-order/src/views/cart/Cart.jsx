@@ -26,7 +26,7 @@ const Cart = () => {
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
-
+  const [quantity, setQuantity] = useState({});
   const [isLoading, setIsLoading] = useState(true) // Track loading state
 
   const [modalVisible, setModalVisible] = useState(false)
@@ -242,6 +242,20 @@ const Cart = () => {
   const handleCancel = () => {
     setModalVisible(false)
   }
+  const handleIncrease = (inventoryId, minOrder) => {
+    setQuantity((prev) => ({
+      ...prev,
+      [inventoryId]: (prev[inventoryId] || 0) + minOrder,
+    }));
+  };
+  
+  // Fungsi untuk menurunkan jumlah
+  const handleDecrease = (inventoryId, minOrder) => {
+    setQuantity((prev) => ({
+      ...prev,
+      [inventoryId]: Math.max((prev[inventoryId] || minOrder) - minOrder, minOrder),
+    }));
+  };
   return (
     <>
       <CRow className="mt-1">
@@ -368,14 +382,16 @@ const Cart = () => {
                               color="secondary"
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDecreaseQuantity(product.inventoryId)}
+                              onClick={() =>
+                                handleDecrease(product.inventoryId, product.Inventory.Material?.minOrder || 1)
+                              }
                             >
                               -
                             </CButton>
 
                             <CFormInput
                               type="text"
-                              value={quantities[product.inventoryId] || product.quantity}
+                              value={quantity[product.inventoryId] || product.quantity || 0}
                               className="w-25 text-center border-0"
                           
                             />
@@ -383,7 +399,9 @@ const Cart = () => {
                               color="secondary"
                               variant="outline"
                               size="sm"
-                              onClick={() => handleIncreaseQuantity(product.inventoryId)}
+                              onClick={() =>
+                                handleIncrease(product.inventoryId, product.Inventory.Material?.minOrder || 1)
+                              }
                             >
                               +
                             </CButton>
