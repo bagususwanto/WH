@@ -161,7 +161,7 @@ export const getOrderWarehouse = async (req, res) => {
           model: DetailOrder,
           where: whereCondition2,
           required: true,
-          // separate: true,
+          separate: true,
           include: [
             {
               model: Inventory,
