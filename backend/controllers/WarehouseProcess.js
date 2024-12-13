@@ -17,6 +17,7 @@ import db from "../utils/Database.js";
 import { createNotification } from "./Notification.js";
 import Plant from "../models/PlantModel.js";
 import Storage from "../models/StorageModel.js";
+import Redpost from "../models/RedpostModel.js";
 
 export const getOrderWarehouse = async (req, res) => {
   try {
@@ -672,7 +673,7 @@ export const shopingOrder = async (req, res) => {
             From ${quantityBefore} ${order.Inventory.Material.uom} to ${quantityAfter} ${order.Inventory.Material.uom}`,
             userId,
             orderId,
-            'Out of Stock',
+            "Out of Stock",
             { transaction }
           );
 
@@ -686,6 +687,18 @@ export const shopingOrder = async (req, res) => {
             [respOrder.userId],
             notification,
             transaction
+          );
+
+          // Create data redpost
+          await Redpost.create(
+            {
+              detailOrderId: item.detailOrderId,
+              userId: userId,
+              quantityRequest: quantityBefore,
+              quantityReturn: quantityAfter,
+              quantity: quantityBefore - quantityAfter,
+            },
+            { transaction }
           );
 
           // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
@@ -924,6 +937,21 @@ export const rejectOrderWarehouse = async (req, res) => {
     await createNotification([order.Order.userId], notification, {
       transaction,
     });
+
+    // Jika remarks mengandung kata stock not available
+    if (remarks.toLowerCase().includes("item is not available")) {
+      // Create data redpost
+      await Redpost.create(
+        {
+          detailOrderId: detailOrderId,
+          userId: userId,
+          quantityRequest: order.quantity,
+          quantityReturn: 0,
+          quantity: order.quantity,
+        },
+        { transaction }
+      );
+    }
 
     await transaction.commit(); // Commit transaksi setelah operasi berhasil
 
