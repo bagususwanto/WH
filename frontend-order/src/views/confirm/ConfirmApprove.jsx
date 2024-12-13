@@ -98,6 +98,7 @@ const ConfirmApp = () => {
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
+  const [deacreaseReason, setDeacreaseReason] = useState('barang habis boyyy') // Default remark
   const location = useLocation()
   const { initialConfirmApproval } = location.state
   const { deleteOrderItemApproval, postApproval } = useApprovalService()
@@ -108,8 +109,7 @@ const ConfirmApp = () => {
   const [modalConfirm, setModalConfirm] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
   const [showInput, setShowInput] = useState({})
-  const [remarks, setRemarks] = useState({});
-
+  const [remarks, setRemarks] = useState({})
 
   const apiCategory = 'category'
   useEffect(() => {
@@ -226,7 +226,7 @@ const ConfirmApp = () => {
       detailOrderId: product.id,
       quantity: quantities[product.id] || product.quantity,
       remark: remarks[product.id] || '', // Tambahkan remark jika ada
-    }));
+    }))
 
     // Construct the data object to send in the POST request
     const data = {
@@ -286,39 +286,38 @@ const ConfirmApp = () => {
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId);
-  
-      if (!product) return prevQuantities;
-  
-      const minOrder = product.Inventory.Material.minOrder;
-      const currentQuantity = prevQuantities[productId] || product.quantity;
-  
+      const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
+
+      if (!product) return prevQuantities
+
+      const minOrder = product.Inventory.Material.minOrder
+      const currentQuantity = prevQuantities[productId] || product.quantity
+
       if (currentQuantity - minOrder >= minOrder) {
         setShowInput((prevShowInput) => ({
           ...prevShowInput,
           [productId]: true,
-        }));
-  
+        }))
+
         setRemarks((prevRemarks) => ({
           ...prevRemarks,
           [productId]: 'The quantity of this item is already enough',
-        }));
-  
+        }))
+
         return {
           ...prevQuantities,
           [productId]: currentQuantity - minOrder,
-        };
+        }
       }
-  
+
       setShowInput((prevShowInput) => ({
         ...prevShowInput,
         [productId]: false,
-      }));
-  
-      return prevQuantities;
-    });
-  };
-  
+      }))
+
+      return prevQuantities
+    })
+  }
 
   const handleQuantityChange = (productId, value) => {
     const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
@@ -341,7 +340,6 @@ const ConfirmApp = () => {
       console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`)
     }
   }
-
 
   const handleButtonClick = () => {
     setClicked(true)
@@ -417,6 +415,9 @@ const ConfirmApp = () => {
     } catch (error) {
       console.error('Error confirming rejection:', error)
     }
+  }
+  const handleRemarkApprove = (e) => {
+    setDeacreaseReason(e.target.value)
   }
 
   return (
@@ -701,8 +702,6 @@ const ConfirmApp = () => {
                           </div>
                         </CCol>
 
-                       
-
                         <CCol
                           xs={2}
                           sm={2}
@@ -734,19 +733,26 @@ const ConfirmApp = () => {
                           )}
                         </CCol>
                       </CRow>
-                       {/* Tampilkan Form Input Tambahan Jika Diperlukan */}
-                       {showInput[product.id] && (
-                          <CRow className="mt-2">
+                      {/* Tampilkan Form Input Tambahan Jika Diperlukan */}
+                      {showInput[product.id] && (
+                        <CRow className="mt-2">
+                          <CRow>
+                            <label style={{ fontSize: '0.8em', fontWeight: 'lighter' }}>
+                              Remark
+                            </label>
+                          </CRow>
+                          <CRow>
                             <CCol xs={12}>
                               <CFormInput
                                 type="text"
                                 placeholder="Enter additional quantity"
-                                value={quantities[product.id] || ''}
-                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                                value={deacreaseReason} // This will show the current state
+                                onChange={handleRemarkApprove} // Update state as the user types
                               />
                             </CCol>
                           </CRow>
-                        )}
+                        </CRow>
+                      )}
                     </CCardBody>
                   </CCard>
                 ))}
