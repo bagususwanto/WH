@@ -37,7 +37,7 @@ const useCartService = () => {
       handleError(error, 'Error post:')
     }
   }
-  const updateCart = async (warehouseId,data) => {
+  const updateCart = async (data, warehouseId) => {
     try {
       const response = await axiosJWT.put(`/cart/${warehouseId}`, data, {
         headers: {
