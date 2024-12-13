@@ -171,13 +171,13 @@ const History = () => {
       case 'waiting confirmation':
         return 'warning'
       case 'on process':
-        return 'warning'
+        return 'info'
       case 'approved':
-        return 'success'
+        return 'info'
       case 'ready to deliver':
-        return 'secondary'
+        return 'info'
       case 'ready to pickup':
-        return 'secondary'
+        return 'info'
       case 'completed':
         return 'success'
       case 'rejected':
@@ -469,13 +469,14 @@ const History = () => {
                             ? 'rejected'
                             : selectedProduct.status,
                         )}
+                        className="me-2" // Add margin-right for spacing
                       >
                         {selectedProduct.Detail_Orders[0].isReject == 1
                           ? 'REJECTED'
                           : selectedProduct.status.toUpperCase()}
                       </CBadge>
                       <label className=" fw-light">
-                        {selectedProduct.transactionNumber
+                       {selectedProduct.transactionNumber
                           ? `${selectedProduct.transactionNumber}`
                           : `${selectedProduct.requestNumber}`}
                       </label>
