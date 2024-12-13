@@ -592,7 +592,7 @@ export const shopingOrder = async (req, res) => {
 
     const respOrder = await Order.findOne({
       where: { id: orderId },
-      attributes: ["id", "deliveryMethod", "status", "isApproval"],
+      attributes: ["id", "deliveryMethod", "status", "isApproval", "userId"],
       include: [
         {
           model: DetailOrder,
@@ -642,6 +642,7 @@ export const shopingOrder = async (req, res) => {
         const order = respOrder.Detail_Orders.find(
           (o) => o.id === item.detailOrderId
         );
+
         if (order) {
           const quantityBefore = order.quantity;
           const quantityAfter = item.quantity;
@@ -663,6 +664,28 @@ export const shopingOrder = async (req, res) => {
           await DetailOrder.update(
             { quantity: quantityAfter, price: quantityAfter * price },
             { where: { id: item.detailOrderId }, transaction }
+          );
+
+          // Create history order
+          await postOrderHistory(
+            `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse, 
+            From ${quantityBefore} ${order.Inventory.Material.uom} to ${quantityAfter} ${order.Inventory.Material.uom}`,
+            userId,
+            orderId,
+            'Out of Stock',
+            { transaction }
+          );
+
+          // Create Notification revised order
+          const notification = {
+            title: "Order Revised",
+            description: `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse`,
+            category: "approval",
+          };
+          await createNotification(
+            [respOrder.userId],
+            notification,
+            transaction
           );
 
           // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
