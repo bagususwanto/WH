@@ -302,6 +302,12 @@ const useNavigation = () => {
         to: '/incoming',
         icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
       })
+      baseNav.push({
+        component: CNavItem,
+        name: 'Redpost Data',
+        to: '/redpost',
+        icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+      })
     }
 
     if (roleName === 'super admin') {
