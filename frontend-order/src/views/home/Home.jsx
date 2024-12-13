@@ -754,7 +754,11 @@ const Home = () => {
             <p>No orders available.</p>
           ) : (
             myOrderData &&
-            myOrderData.map((order) => (
+            myOrderData.map((order) => {
+              const validDetails = order.Detail_Orders.filter((detail) => detail.quantity > 0);
+              if (validDetails.length === 0) return null;
+      
+              return (
               <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
                 <CRow className="align-items-center">
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -814,9 +818,10 @@ const Home = () => {
                   </CRow>
                 </CRow>
               </CCard>
-            ))
-          )}
-        </div>
+            );
+          })
+        )}
+      </div>
 
         {selectedOrder && (
           <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
@@ -836,12 +841,12 @@ const Home = () => {
                           </label>
                           <CBadge
                             color={getSeverity(
-                              selectedOrder?.Detail_Orders[0].isReject == 1
+                              selectedOrder?.Detail_Orders.isReject == 1
                                 ? 'rejected'
                                 : selectedOrder.status,
                             )}
                           >
-                            {selectedOrder.Detail_Orders[0].isReject == 1
+                            {selectedOrder.Detail_Orders.isReject == 1
                               ? 'REJECTED'
                               : selectedOrder.status.toUpperCase()}
                           </CBadge>

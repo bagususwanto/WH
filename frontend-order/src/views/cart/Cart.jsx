@@ -193,23 +193,29 @@ const Cart = () => {
   // }
 
   // Handle Increase and Decrease Quantity
-  const handleIncreaseQuantity = (inventoryId, minOrder) => {
-    setQuantities((prevQuantities) => {
-      const currentQuantity = prevQuantities[inventoryId] || cartData.find((p) => p.inventoryId === inventoryId).quantity;
-      return {
-        ...prevQuantities,
-        [inventoryId]: currentQuantity + minOrder,
-      };
-    });
-  };
+  const handleIncreaseQuantity = async (productId, minOrder) => {
+  setQuantities((prevQuantities) => {
+    const currentQuantity = prevQuantities[productId] || cartData.find((p) => p.productId === productId).quantity;
+    const newQuantity = currentQuantity + minOrder;
+
+    // Panggil postCart untuk memperbarui server
+    postCart({ productId, quantity: newQuantity }, warehouse.id);
+
+    return {
+      ...prevQuantities,
+      [productId]: newQuantity,
+    };
+  });
+};
+
   
-  const handleDecreaseQuantity = (inventoryId, minOrder) => {
+  const handleDecreaseQuantity = (productId, minOrder) => {
     setQuantities((prevQuantities) => {
-      const currentQuantity = prevQuantities[inventoryId] || cartData.find((p) => p.inventoryId === inventoryId).quantity;
+      const currentQuantity = prevQuantities[productId] || cartData.find((p) => p.productId === productId).quantity;
       const newQuantity = Math.max(currentQuantity - minOrder, minOrder);
       return {
         ...prevQuantities,
-        [inventoryId]: newQuantity,
+        [productId]: newQuantity,
       };
     });
   };
@@ -376,7 +382,7 @@ const Cart = () => {
                               color="secondary"
                               variant="outline"
                               size="sm"
-                              onClick={() => handleIncreaseQuantity(product.inventoryId, product.Inventory.Material.minOrder)}
+                              onClick={() => handleIncreaseQuantity(product.inventoryId)}
                             >
                               +
                             </CButton>

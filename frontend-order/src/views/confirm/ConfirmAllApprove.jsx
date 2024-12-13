@@ -52,7 +52,7 @@ import {
   cilCircle,
   cilApplications,
   cilPlaylistAdd,
-  cilBan
+  cilBan,
 } from '@coreui/icons'
 import useProductService from '../../services/ProductService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -232,7 +232,6 @@ const ApproveAll = () => {
         return 'primary'
     }
   }
-
 
   const getTabIcon = (status) => {
     switch (status) {
@@ -452,7 +451,7 @@ const ApproveAll = () => {
                               {/* Order information */}
                               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                 <CCol>
-                                  <CIcon className="me-2" icon={getTabIcon(approval.status)}/>
+                                  <CIcon className="me-2" icon={getTabIcon(approval.status)} />
                                   <label className="me-2 fs-6">
                                     {format(parseISO(approval.transactionDate), 'dd/MM/yyyy')}
                                   </label>
@@ -496,9 +495,8 @@ const ApproveAll = () => {
                               </CCol>
 
                               <CCol className="text-end">
-                                <label className="fw-bold fs-6 me-1"> 
-                                  Rp{' '}
-                                  {approval.totalPrice.toLocaleString('id-ID')}
+                                <label className="fw-bold fs-6 me-1">
+                                  Rp {approval.totalPrice.toLocaleString('id-ID')}
                                 </label>
                                 <br />
                                 <label className="me-1">
@@ -712,10 +710,19 @@ const ApproveAll = () => {
                               />
                             </CCol>
                             <CCol xs="9">
-                              <label style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-                                {' '}
-                                {/* Smaller text */}
+                              <label
+                                style={{
+                                  fontSize: '0.8rem',
+                                  lineHeight: '1.2',
+                                  marginRight: '8px',
+                                }}
+                              >
                                 {detail.Inventory.Material.description}
+                              </label>
+                              <label
+                                style={{ fontSize: '0.8rem', lineHeight: '2', fontWeight: '300' }}
+                              >
+                               ( {`${detail.quantity} ${detail.Inventory.Material.uom}`})
                               </label>
                             </CCol>
                             <CCol

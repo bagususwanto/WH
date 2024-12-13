@@ -98,7 +98,7 @@ const ConfirmApp = () => {
   const [deadline, setDeadline] = useState('')
   const [message, setMessage] = useState('')
   const { roleName } = useVerify()
-  const [deacreaseReason, setDeacreaseReason] = useState('barang habis boyyy') // Default remark
+  const [deacreaseReason, setDeacreaseReason] = useState('Sudah Cukup Untuk Pesanan Item ini') // Default remark
   const location = useLocation()
   const { initialConfirmApproval } = location.state
   const { deleteOrderItemApproval, postApproval } = useApprovalService()
@@ -225,7 +225,7 @@ const ConfirmApp = () => {
     const updateQuantity = Confirmapproval.Detail_Orders.map((product) => ({
       detailOrderId: product.id,
       quantity: quantities[product.id] || product.quantity,
-      remark: remarks[product.id] || '', // Tambahkan remark jika ada
+      remarks: remarks[product.id] || '', // Tambahkan remark jika ada
     }))
 
     // Construct the data object to send in the POST request
@@ -416,8 +416,11 @@ const ConfirmApp = () => {
       console.error('Error confirming rejection:', error)
     }
   }
-  const handleRemarkApprove = (e) => {
-    setDeacreaseReason(e.target.value)
+  const handleRemarkChange = (productId, value) => {
+    setRemarks((prevRemarks) => ({
+      ...prevRemarks,
+      [productId]: value, // Perbarui remark hanya untuk produk yang sesuai
+    }))
   }
 
   return (
@@ -745,9 +748,9 @@ const ConfirmApp = () => {
                             <CCol xs={12}>
                               <CFormInput
                                 type="text"
-                                placeholder="Enter additional quantity"
-                                value={deacreaseReason} // This will show the current state
-                                onChange={handleRemarkApprove} // Update state as the user types
+                                placeholder="Enter additional remark"
+                                value={remarks[product.id] || ''} // Tampilkan remark spesifik produk
+                                onChange={(e) => handleRemarkChange(product.id, e.target.value)} // Perbarui remark per produk
                               />
                             </CCol>
                           </CRow>
