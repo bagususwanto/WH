@@ -107,6 +107,9 @@ const ConfirmApp = () => {
   const [loading, setLoading] = useState(true) // Add loading state
   const [modalConfirm, setModalConfirm] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
+  const [showInput, setShowInput] = useState({})
+  const [remarks, setRemarks] = useState({});
+
 
   const apiCategory = 'category'
   useEffect(() => {
@@ -220,9 +223,10 @@ const ConfirmApp = () => {
 
     // Create the updateQuantity array with the updated quantities
     const updateQuantity = Confirmapproval.Detail_Orders.map((product) => ({
-      detailOrderId: product.id, // Detail order ID from API
-      quantity: quantities[product.id] || product.quantity, // Get updated quantity from state or use the original quantity
-    }))
+      detailOrderId: product.id,
+      quantity: quantities[product.id] || product.quantity,
+      remark: remarks[product.id] || '', // Tambahkan remark jika ada
+    }));
 
     // Construct the data object to send in the POST request
     const data = {
@@ -258,6 +262,7 @@ const ConfirmApp = () => {
     })
   }
 
+  // Handle Increase and Decrease Quantity
   const handleIncreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
       const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
@@ -265,36 +270,56 @@ const ConfirmApp = () => {
       if (!product) return prevQuantities // Jika produk tidak ditemukan
 
       const maxQuantity = product.quantity // Kuantitas maksimum dari API
-      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
+      const minOrder = product.Inventory.Material.minOrder // Minimum pesanan dari produk
+      const currentQuantity = prevQuantities[productId] || minOrder // Default kuantitas awal
 
-      if (currentQuantity < maxQuantity) {
+      if (currentQuantity + minOrder <= maxQuantity) {
         return {
           ...prevQuantities,
-          [productId]: currentQuantity + 1, // Tambah kuantitas sebesar 1
+          [productId]: currentQuantity + minOrder, // Tambah sesuai minOrder
         }
       }
 
-      // Jika mencapai batas maksimum, tetap kembalikan state sebelumnya
-      return prevQuantities
+      return prevQuantities // Batas maksimum tercapai
     })
   }
-  // ... (Lanjutkan kode lainnya)
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
-
-      if (currentQuantity > 1) {
+      const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId);
+  
+      if (!product) return prevQuantities;
+  
+      const minOrder = product.Inventory.Material.minOrder;
+      const currentQuantity = prevQuantities[productId] || product.quantity;
+  
+      if (currentQuantity - minOrder >= minOrder) {
+        setShowInput((prevShowInput) => ({
+          ...prevShowInput,
+          [productId]: true,
+        }));
+  
+        setRemarks((prevRemarks) => ({
+          ...prevRemarks,
+          [productId]: 'The quantity of this item is already enough',
+        }));
+  
         return {
           ...prevQuantities,
-          [productId]: currentQuantity - 1, // Kurangi kuantitas sebesar 1
-        }
+          [productId]: currentQuantity - minOrder,
+        };
       }
+  
+      setShowInput((prevShowInput) => ({
+        ...prevShowInput,
+        [productId]: false,
+      }));
+  
+      return prevQuantities;
+    });
+  };
+  
 
-      // Jika sudah mencapai batas minimum (1), tetap kembalikan state sebelumnya
-      return prevQuantities
-    })
-  }
   const handleQuantityChange = (productId, value) => {
     const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
     const product = Confirmapproval.Detail_Orders.find((p) => p.id === productId)
@@ -316,6 +341,7 @@ const ConfirmApp = () => {
       console.warn(`Invalid quantity: ${newQuantity}. Must be between 1 and ${maxQuantity}.`)
     }
   }
+
 
   const handleButtonClick = () => {
     setClicked(true)
@@ -675,6 +701,8 @@ const ConfirmApp = () => {
                           </div>
                         </CCol>
 
+                       
+
                         <CCol
                           xs={2}
                           sm={2}
@@ -706,10 +734,24 @@ const ConfirmApp = () => {
                           )}
                         </CCol>
                       </CRow>
+                       {/* Tampilkan Form Input Tambahan Jika Diperlukan */}
+                       {showInput[product.id] && (
+                          <CRow className="mt-2">
+                            <CCol xs={12}>
+                              <CFormInput
+                                type="text"
+                                placeholder="Enter additional quantity"
+                                value={quantities[product.id] || ''}
+                                onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                              />
+                            </CCol>
+                          </CRow>
+                        )}
                     </CCardBody>
                   </CCard>
                 ))}
           </CRow>
+
           <CRow>
             {/* modal */}
             {modalConfirm && selectedProduct && (

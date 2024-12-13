@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
 import '../../scss/stickyfooter.scss'
 import config from '../../utils/Config'
-import { CCard, CCardBody, CCardImage, CButton, CRow, CCol,CFormInput } from '@coreui/react'
+import { CCard, CCardBody, CCardImage, CButton, CRow, CCol } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilTrash } from '@coreui/icons'
 import useManageStockService from '../../services/ProductService'
@@ -26,7 +26,7 @@ const Cart = () => {
   const [checkedItems, setCheckedItems] = useState({}) // New state for individual checkboxes
   const [totalAmount, setTotalAmount] = useState(0)
   const [quantities, setQuantities] = useState({})
-  const [quantity, setQuantity] = useState({});
+
   const [isLoading, setIsLoading] = useState(true) // Track loading state
 
   const [modalVisible, setModalVisible] = useState(false)
@@ -193,25 +193,26 @@ const Cart = () => {
   // }
 
   // Handle Increase and Decrease Quantity
-  const handleIncreaseQuantity = (inventoryId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [inventoryId]:
-        (prevQuantities[inventoryId] ||
-          cartData.find((p) => p.inventoryId === inventoryId).quantity) + 1,
-    }))
-  }
-
-  const handleDecreaseQuantity = (inventoryId) => {
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [inventoryId]: Math.max(
-        (prevQuantities[inventoryId] ||
-          cartData.find((p) => p.inventoryId === inventoryId).quantity) - 1,
-        1,
-      ),
-    }))
-  }
+  const handleIncreaseQuantity = (inventoryId, minOrder) => {
+    setQuantities((prevQuantities) => {
+      const currentQuantity = prevQuantities[inventoryId] || cartData.find((p) => p.inventoryId === inventoryId).quantity;
+      return {
+        ...prevQuantities,
+        [inventoryId]: currentQuantity + minOrder,
+      };
+    });
+  };
+  
+  const handleDecreaseQuantity = (inventoryId, minOrder) => {
+    setQuantities((prevQuantities) => {
+      const currentQuantity = prevQuantities[inventoryId] || cartData.find((p) => p.inventoryId === inventoryId).quantity;
+      const newQuantity = Math.max(currentQuantity - minOrder, minOrder);
+      return {
+        ...prevQuantities,
+        [inventoryId]: newQuantity,
+      };
+    });
+  };
   const handleCheckout = () => {
     MySwal.fire({
       title: 'Confirm Checkout',
@@ -242,20 +243,6 @@ const Cart = () => {
   const handleCancel = () => {
     setModalVisible(false)
   }
-  const handleIncrease = (inventoryId, minOrder) => {
-    setQuantity((prev) => ({
-      ...prev,
-      [inventoryId]: (prev[inventoryId] || 0) + minOrder,
-    }));
-  };
-  
-  // Fungsi untuk menurunkan jumlah
-  const handleDecrease = (inventoryId, minOrder) => {
-    setQuantity((prev) => ({
-      ...prev,
-      [inventoryId]: Math.max((prev[inventoryId] || minOrder) - minOrder, minOrder),
-    }));
-  };
   return (
     <>
       <CRow className="mt-1">
@@ -343,6 +330,7 @@ const Cart = () => {
                         <CCol xs="2" className="d-flex justify-content-center align-items-center">
                           <CCardImage
                             src={`${config.BACKEND_URL}${product.Inventory.Material.img}`}
+
                             style={{
                               width: '90%', // Ensure it takes the full width
                               height: '100px', // Fixed height for uniformity
@@ -352,25 +340,20 @@ const Cart = () => {
                         </CCol>
 
                         {/* Description Column */}
-                        <CCol xs="5" className="d-flex flex-column justify-content-start">
+                        <CCol xs="6" className="d-flex flex-column justify-content-start">
                           <div>
                             <label className="fw-bold fs-6">
                               {product.Inventory.Material.description}
                             </label>
                             <br />
-                            <label style={{ fontSize: '0.9em' }} className="fw-light">
-                              {product.Inventory.Material.materialNo}
-                            </label>
+                            <label style={{fontSize:"0.9em"}} className='fw-light'>{product.Inventory.Material.materialNo}</label>
                             <br />
-                            <label style={{ fontSize: '0.8em' }}>
-                              Min Order: {product.Inventory.Material.minOrder}{' '}
-                              {product.Inventory.Material.uom}
-                            </label>
+                            <label style={{fontSize:"0.8em"}} >Min Order: {product.Inventory.Material.minOrder} {product.Inventory.Material.uom}</label>
                           </div>
                         </CCol>
 
                         {/* Quantity Column */}
-                        <CCol xs="3" className="d-flex justify-content-center align-items-center">
+                        <CCol xs="2" className="d-flex justify-content-center align-items-center">
                           <div
                             style={{
                               display: 'flex',
@@ -382,26 +365,18 @@ const Cart = () => {
                               color="secondary"
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                handleDecrease(product.inventoryId, product.Inventory.Material?.minOrder || 1)
-                              }
+                              onClick={() => handleDecreaseQuantity(product.inventoryId, product.Inventory.Material.minOrder)}
                             >
                               -
                             </CButton>
-
-                            <CFormInput
-                              type="text"
-                              value={quantity[product.inventoryId] || product.quantity || 0}
-                              className="w-25 text-center border-0"
-                          
-                            />
+                            <span className="mx-3">
+                              {quantities[product.inventoryId] || product.quantity}
+                            </span>
                             <CButton
                               color="secondary"
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                handleIncrease(product.inventoryId, product.Inventory.Material?.minOrder || 1)
-                              }
+                              onClick={() => handleIncreaseQuantity(product.inventoryId, product.Inventory.Material.minOrder)}
                             >
                               +
                             </CButton>

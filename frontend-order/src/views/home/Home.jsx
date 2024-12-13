@@ -836,7 +836,7 @@ const Home = () => {
                           </label>
                           <CBadge
                             color={getSeverity(
-                              selectedOrder.Detail_Orders[0].isReject == 1
+                              selectedOrder?.Detail_Orders[0].isReject == 1
                                 ? 'rejected'
                                 : selectedOrder.status,
                             )}
@@ -1310,11 +1310,9 @@ const Home = () => {
                   </CButton>
 
                   <span className="mx-3 fw-light">
-                    ({' '}
-                    {selectedProduct.Inventory
-                      ? selectedProduct.Inventory.Material.minOrder
-                      : selectedProduct.Material.minOrder}{' '}
-                    {''})
+                  {selectedProduct.Inventory
+                      ? selectedProduct.Inventory.Material.uom
+                      : selectedProduct.Material.uom}
                   </span>
                 </div>
               </CCol>

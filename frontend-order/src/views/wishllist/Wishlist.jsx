@@ -58,7 +58,7 @@ const Wishlist = () => {
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
-    setQuantity(product.Material?.minOrder || 1);
+    setQuantity(product.Inventory?.Material?.minOrder || 1);
     setModalOrder(true)
   }
 
@@ -196,12 +196,12 @@ const Wishlist = () => {
 
    // Pastikan minOrder dideklarasikan sebelum digunakan
    const handleIncrease = () => {
-    const minOrder = selectedProduct?.Material?.minOrder || 1
+    const minOrder = selectedProduct?.Inventory?.Material?.minOrder || 1
     setQuantity((prev) => prev + minOrder)
   }
 
   const handleDecrease = () => {
-    const minOrder = selectedProduct?.Material?.minOrder || 1
+    const minOrder = selectedProduct?.Inventory?.Material?.minOrder || 1
     setQuantity((prev) => Math.max(prev - minOrder, minOrder))
   }
 
