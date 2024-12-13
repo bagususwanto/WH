@@ -516,6 +516,10 @@ export const approveOrder = async (req, res) => {
             },
           ],
         },
+        {
+          model: Order,
+          attributes: ["id", "userId"],
+        },
       ],
     });
 
@@ -539,6 +543,7 @@ export const approveOrder = async (req, res) => {
         if (order) {
           const quantityBefore = order.quantity;
           const quantityAfter = item.quantity;
+          const remarks = item.remarks ? item.remarks : null;
           const price = order.Inventory.Material.price;
 
           // Validasi jika quantity kurang dari minOrder
@@ -557,6 +562,28 @@ export const approveOrder = async (req, res) => {
           await DetailOrder.update(
             { quantity: quantityAfter, price: quantityAfter * price },
             { where: { id: item.detailOrderId }, transaction }
+          );
+
+          // Create history order
+          await postOrderHistory(
+            `Order quantity for item ${order.Inventory.Material.description} revised by ${role}, 
+            From ${quantityBefore} ${order.Inventory.Material.uom} to ${quantityAfter} ${order.Inventory.Material.uom}`,
+            userId,
+            orderId,
+            remarks,
+            { transaction }
+          );
+
+          // Create Notification revised order
+          const notification = {
+            title: "Order Revised",
+            description: `Order quantity for item ${order.Inventory.Material.description} revised by ${role}`,
+            category: "approval",
+          };
+          await createNotification(
+            [order.Order.userId],
+            notification,
+            transaction
           );
 
           // Menyimpan detail order yang di-update

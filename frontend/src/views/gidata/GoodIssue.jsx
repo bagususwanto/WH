@@ -187,6 +187,7 @@ const GoodIssue = () => {
           materialNo: detail.Inventory.Material.materialNo,
           description: detail.Inventory.Material.description,
           quantity: detail.quantity,
+          uom: detail.Inventory.Material.uom,
         })),
       )
       console.log(dataWithDetailsExpanded)
@@ -344,6 +345,7 @@ const GoodIssue = () => {
           'Material No': item.materialNo,
           Description: item.description,
           'Issue QTY': item.quantity,
+          UOM: item.uom,
           'Transaction No': item.transactionNo,
           'Transaction Date': item.transactionDate,
           Section: item.sectionName,
@@ -573,6 +575,7 @@ const GoodIssue = () => {
                     sortable
                     bodyStyle={{ textAlign: 'center' }}
                   ></Column>
+                  <Column field="uom" header="UOM" sortable></Column>
                   <Column field="transactionNo" header="Transaction No" sortable></Column>
                   <Column field="transactionDate" header="Transaction Date" sortable></Column>
                   <Column field="sectionName" header="Section" sortable></Column>
