@@ -363,6 +363,12 @@ const Confirm = () => {
             'success',
           )
 
+          // Validasi jika item list yg dihapus itu sudah tidak ada lagi di list
+          if (updatedDetailOrders.length === 0) {
+            // Redirect ke halaman approveall
+            navigate('/confirmall')
+          }
+
           // Optionally update the UI here
           setModalConfirm(false) // Tutup modal
           setRejectionReason('') // Reset alasan penolakan
