@@ -45,28 +45,18 @@ const GoodIssue = () => {
 
   const columns = [
     {
-      field: 'plantName',
-      header: 'Plant',
-      sortable: true,
-    },
-    {
-      field: 'username',
+      field: 'orderedBy',
       header: 'Ordered By',
       sortable: true,
     },
     {
-      field: 'currentApprover',
-      header: 'Accepted By',
+      field: 'quantityRequest',
+      header: 'Quantity Request',
       sortable: true,
     },
-    // {
-    //   field: 'currentApprover',
-    //   header: 'Current Approver',
-    //   sortable: true,
-    // },
     {
-      field: 'paymentMethod',
-      header: 'GI Method',
+      field: 'quantityReturn',
+      header: 'Quantity Return',
       sortable: true,
     },
   ]
@@ -172,12 +162,20 @@ const GoodIssue = () => {
         const materialNo = item.Detail_Order.Inventory.Material.materialNo
         const description = item.Detail_Order.Inventory.Material.description
         const uom = item.Detail_Order.Inventory.Material.uom
+        const sectionName = item.Detail_Order.Order.User.Organization.Section.sectionName
+        const plantName = item.Detail_Order.Order.User.Organization.Plant.plantName
+        const pic = item.User.username
+        const orderedBy = item.Detail_Order.Order.User.username
         return {
           ...item,
           materialNo,
           description,
           uom,
           date,
+          sectionName,
+          plantName,
+          pic,
+          orderedBy,
         }
       })
       console.log('dataWithFormattedFields', dataWithFormattedFields)
@@ -503,7 +501,7 @@ const GoodIssue = () => {
         </CCard>
 
         <CCard className="mb-3">
-          <CCardHeader>Good Issue Transaction</CCardHeader>
+          <CCardHeader>Redpost</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent /> // Render loading component when loading is true
@@ -534,7 +532,7 @@ const GoodIssue = () => {
                   paginator
                   rowsPerPageOptions={[10, 50, 100, 500]}
                   rows={10}
-                  dataKey="index"
+                  dataKey="id"
                   filters={filters}
                   loading={loading}
                   emptyMessage="No redpost found."
@@ -566,9 +564,10 @@ const GoodIssue = () => {
                     bodyStyle={{ textAlign: 'center' }}
                   ></Column>
                   <Column field="uom" header="UOM" sortable></Column>
-                  <Column field="transactionNo" header="Transaction No" sortable></Column>
-                  <Column field="transactionDate" header="Transaction Date" sortable></Column>
+                  <Column field="pic" header="PIC" sortable></Column>
+                  <Column field="date" header="Redpost Date" sortable></Column>
                   <Column field="sectionName" header="Section" sortable></Column>
+                  <Column field="plantName" header="Plant" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -580,7 +579,6 @@ const GoodIssue = () => {
                       bodyStyle={col.bodyStyle}
                     />
                   ))}
-                  <Column field="paymentNumber" header="GI number" sortable></Column>
                 </DataTable>
               </>
             )}
