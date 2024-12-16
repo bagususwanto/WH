@@ -822,8 +822,30 @@ const InputInventory = () => {
     setIsQrScannerOpen(true)
   }
 
+  const [boundingBoxes, setBoundingBoxes] = useState([])
+
   const handleScan = (result) => {
-    if (!result || result.length === 0) return
+    setBoundingBoxes([])
+    if (!result || result.length === 0) {
+      // Jika tidak ada hasil, kosongkan bounding boxes
+      setBoundingBoxes([])
+      return
+    }
+
+    if (result && result.length > 0) {
+      const videoElement = document.querySelector('video') // Ambil elemen video dari Scanner
+      const videoRect = videoElement.getBoundingClientRect() // Dimensi dan posisi video di viewport
+
+      const boxes = result.map((res) => ({
+        x: res.boundingBox.x * (videoRect.width / videoElement.videoWidth),
+        y: res.boundingBox.y * (videoRect.height / videoElement.videoHeight),
+        width: res.boundingBox.width * (videoRect.width / videoElement.videoWidth),
+        height: res.boundingBox.height * (videoRect.height / videoElement.videoHeight),
+        rawValue: res.rawValue,
+      }))
+
+      setBoundingBoxes(boxes)
+    }
 
     // Menghapus karakter newline dari hasil scan
     const rawValue = result[0].rawValue.replace(/\n/g, '')
@@ -833,6 +855,7 @@ const InputInventory = () => {
         title: 'Error!',
         text: 'Plant is required, please select a dropdown plant',
         icon: 'error',
+        toast: true,
       })
       return
     }
@@ -842,6 +865,7 @@ const InputInventory = () => {
         title: 'Error!',
         text: 'Storage is required, please select a dropdown storage',
         icon: 'error',
+        toast: true,
       })
       return
     }
@@ -851,6 +875,7 @@ const InputInventory = () => {
         title: 'Error!',
         text: 'QR code is empty, please scan again',
         icon: 'error',
+        toast: true,
       })
       return
     }
@@ -868,23 +893,28 @@ const InputInventory = () => {
       setSelectedMaterialNo(selectedOption) // Simpan hasil pemindaian ke state
       handleMaterialNoChange(selectedOption)
 
-      setIsQrScannerOpen(false)
-
       MySwal.fire({
         title: 'Success!',
         text: 'Material found, please input quantity',
         icon: 'success',
-        timer: 2000,
+        toast: true,
+        timer: 3000,
         timerProgressBar: true, // Show progress bar
         didClose: () => {
           quantityInputRef.current?.focus() // Focus on quantity input after closing
+          setBoundingBoxes([])
         },
       })
+
+      setTimeout(() => {
+        setIsQrScannerOpen(false)
+      }, 3000)
     } else {
       MySwal.fire({
         title: 'Error!',
         text: 'Material not found, please check the QR code',
         icon: 'error',
+        toast: true,
       })
     }
   }
@@ -1187,15 +1217,43 @@ const InputInventory = () => {
 
               <CRow className="mt-3">
                 {/* Modal untuk QR Scanner */}
-                <CModal visible={isQrScannerOpen} onClose={() => setIsQrScannerOpen(false)}>
+                <CModal
+                  visible={isQrScannerOpen}
+                  onClose={() => {
+                    setIsQrScannerOpen(false)
+                    setBoundingBoxes([])
+                  }}
+                >
                   <CModalHeader closeButton>Scan QR Code</CModalHeader>
-                  <CModalBody>
+                  <CModalBody style={{ position: 'relative' }}>
                     <Scanner
                       onError={handleError}
-                      constraints={{ facingMode: 'environment' }}
+                      constraints={{ video: { facingMode: 'environment' } }}
                       onScan={handleScan}
                       style={{ width: '100%' }}
+                      allowMultiple={true} // mendukung banyak QR Code
+                      scanDelay={3000}
                     />
+                    {/* Menampilkan teks hasil scan QR Code di posisi barcode */}
+                    {boundingBoxes.length > 0 &&
+                      boundingBoxes.map((box, index) => (
+                        <span
+                          key={index}
+                          style={{
+                            position: 'absolute',
+                            top: `${box.y}px`,
+                            left: `${box.x}px`,
+                            color: 'yellow', // Warna teks
+                            fontSize: '14px', // Ukuran teks
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Latar belakang semi-transparan untuk visibilitas
+                            padding: '2px 5px', // Jarak di dalam teks
+                            borderRadius: '4px', // Sudut membulat
+                            whiteSpace: 'nowrap', // Teks tidak membungkus
+                          }}
+                        >
+                          {box.rawValue}
+                        </span>
+                      ))}
                   </CModalBody>
                 </CModal>
               </CRow>

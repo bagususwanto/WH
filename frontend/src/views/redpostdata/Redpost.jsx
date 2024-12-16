@@ -23,7 +23,7 @@ import 'flatpickr/dist/flatpickr.min.css'
 
 const MySwal = withReactContent(Swal)
 
-const GoodIssue = () => {
+const Redpost = () => {
   const [redpost, setRedpost] = useState([])
   const [plant, setPlant] = useState([])
   const [section, setSection] = useState([])
@@ -332,16 +332,15 @@ const GoodIssue = () => {
         return {
           'Material No': item.materialNo,
           Description: item.description,
-          'Issue QTY': item.quantity,
+          Quantity: item.quantity,
           UOM: item.uom,
-          'Transaction No': item.transactionNo,
-          'Transaction Date': item.transactionDate,
+          PIC: item.pic,
+          'Redpost Date': item.date,
           Section: item.sectionName,
           Plant: item.plantName,
-          'Ordered By': item.username,
-          'Accepted By': item.currentApprover,
-          'GI Method': item.paymentMethod,
-          'GI Number': item.paymentNumber,
+          'Ordered By': item.orderedBy,
+          'Quantity Request': item.quantityRequest,
+          'Quantity Return': item.quantityReturn,
         }
       })
 
@@ -366,7 +365,7 @@ const GoodIssue = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_goodIssue') {
+        if (fileName === 'template_redpost') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -589,4 +588,4 @@ const GoodIssue = () => {
   )
 }
 
-export default GoodIssue
+export default Redpost

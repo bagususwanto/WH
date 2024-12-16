@@ -649,76 +649,79 @@ export const shopingOrder = async (req, res) => {
           const quantityAfter = item.quantity;
           const price = order.Inventory.Material.price;
 
-          // Validasi jika quantity kurang dari min order
-          if (
-            quantityAfter < order.Inventory.Material.minOrder ||
-            quantityAfter % order.Inventory.Material.minOrder !== 0
-          ) {
-            await transaction.rollback();
-            return res.status(400).json({
-              message: `Item ${order.Inventory.Material.materialNo},
+          // Cek apakah quantity berbeda
+          if (quantityBefore !== quantityAfter) {
+            // Validasi jika quantity kurang dari min order
+            if (
+              quantityAfter < order.Inventory.Material.minOrder ||
+              quantityAfter % order.Inventory.Material.minOrder !== 0
+            ) {
+              await transaction.rollback();
+              return res.status(400).json({
+                message: `Item ${order.Inventory.Material.materialNo},
                quantity must match the minimum order quantity of ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
-            });
-          }
+              });
+            }
 
-          // Update quantity dan price di DetailOrder
-          await DetailOrder.update(
-            { quantity: quantityAfter, price: quantityAfter * price },
-            { where: { id: item.detailOrderId }, transaction }
-          );
+            // Update quantity dan price di DetailOrder
+            await DetailOrder.update(
+              { quantity: quantityAfter, price: quantityAfter * price },
+              { where: { id: item.detailOrderId }, transaction }
+            );
 
-          // Create history order
-          await postOrderHistory(
-            `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse, 
+            // Create history order
+            await postOrderHistory(
+              `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse, 
             From ${quantityBefore} ${order.Inventory.Material.uom} to ${quantityAfter} ${order.Inventory.Material.uom}`,
-            userId,
-            orderId,
-            "Out of Stock",
-            { transaction }
-          );
+              userId,
+              orderId,
+              "Out of Stock",
+              { transaction }
+            );
 
-          // Create Notification revised order
-          const notification = {
-            title: "Order Revised",
-            description: `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse`,
-            category: "approval",
-          };
-          await createNotification(
-            [respOrder.userId],
-            notification,
-            transaction
-          );
+            // Create Notification revised order
+            const notification = {
+              title: "Order Revised",
+              description: `Order quantity for item ${order.Inventory.Material.description} revised by Warehouse`,
+              category: "approval",
+            };
+            await createNotification(
+              [respOrder.userId],
+              notification,
+              transaction
+            );
 
-          // Create data redpost
-          await Redpost.create(
-            {
-              detailOrderId: item.detailOrderId,
-              userId: userId,
-              quantityRequest: quantityBefore,
-              quantityReturn: quantityAfter,
-              quantity: quantityBefore - quantityAfter,
-              date: new Date(new Date().getTime() - 8 * 60 * 60 * 1000), // Tanggal sekarang dikurangi 8 jam
-            },
-            { transaction }
-          );
+            // Create data redpost
+            await Redpost.create(
+              {
+                detailOrderId: item.detailOrderId,
+                userId: userId,
+                quantityRequest: quantityBefore,
+                quantityReturn: quantityAfter,
+                quantity: quantityBefore - quantityAfter,
+                date: new Date(new Date().getTime() - 8 * 60 * 60 * 1000), // Tanggal sekarang dikurangi 8 jam
+              },
+              { transaction }
+            );
 
-          // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
-          updatedOrders.push({
-            quantity: quantityAfter,
-            price: quantityAfter * price,
-          });
+            // Simpan perubahan ke array updatedOrders untuk perhitungan totalPrice
+            updatedOrders.push({
+              quantity: quantityAfter,
+              price: quantityAfter * price,
+            });
 
-          // Log perubahan ke tabel LogApproval
-          await LogApproval.create(
-            {
-              typeLog: "adjust",
-              userId: userId,
-              detailOrderId: item.detailOrderId,
-              quantityBefore: quantityBefore,
-              quantityAfter: quantityAfter,
-            },
-            { transaction }
-          );
+            // Log perubahan ke tabel LogApproval
+            await LogApproval.create(
+              {
+                typeLog: "adjust",
+                userId: userId,
+                detailOrderId: item.detailOrderId,
+                quantityBefore: quantityBefore,
+                quantityAfter: quantityAfter,
+              },
+              { transaction }
+            );
+          }
         }
       }
 
@@ -732,9 +735,6 @@ export const shopingOrder = async (req, res) => {
         }
       }
     }
-
-    // Buat riwayat order
-    await postOrderHistory(status, userId, orderId, null, { transaction });
 
     // Hitung totalPrice dari updatedOrders
     const totalPrice = updatedOrders.reduce((total, detailOrder) => {
