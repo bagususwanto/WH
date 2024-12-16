@@ -256,8 +256,8 @@ const Dashboard = () => {
             }
 
             // Jika chart title adalah "Overflow Stock" dan stok lebih dari 6, warnai hitam
-            if (chartTitle === 'Overflow Stock' && item.stock > 6) {
-              return '#F95454' // Hitam untuk stok lebih dari 6 (Overflow)
+            if (chartTitle === 'Overflow Stock' && item.stock > 5) {
+              return '#F85454' // Hitam untuk stok lebih dari 6 (Overflow)
             }
 
             // Check if incoming value is filled (>= 1) and apply forestgreen
@@ -666,7 +666,7 @@ const Dashboard = () => {
               {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
-                  options={chartOptions(inventoriesoverflow, 0, 10, 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 7, 5)}
                   height={410}
                 />
               )}

@@ -212,7 +212,6 @@ const Shopping = () => {
     const updateQuantity = Confirmwarehouse.Detail_Orders.map((product) => ({
       detailOrderId: product.id, // Detail order ID from API
       quantity: quantities[product.id] || product.quantity, // Get updated quantity from state or use the original quantity
-      isAdjust: isAdjust
     }))
 
     const data = {
@@ -307,13 +306,12 @@ const Shopping = () => {
     }
   }
 
-
   useEffect(() => {
     setRejectionReason('Ordered item is not available')
   }, [modalConfirm]) // Atur setiap kali modalConfirm berubah
 
   const handleModalCart = (product) => {
-    console.log('adagak?',product);
+    console.log('adagak?', product)
     setSelectedProduct(product)
     setModalConfirm(true) // Tampilkan modal
   }
