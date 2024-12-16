@@ -16,6 +16,7 @@ export const getRedpost = async (req, res) => {
     const limit = 1000;
     let batch;
 
+    let whereCondition = {};
     let whereConditionPlant = { flag: 1 };
     let whereConditionSection = { flag: 1 };
 
@@ -34,7 +35,7 @@ export const getRedpost = async (req, res) => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      whereCondition.transactionDate = {
+      whereCondition.date = {
         [Op.between]: [start, end],
       };
     }
@@ -44,6 +45,7 @@ export const getRedpost = async (req, res) => {
       batch = await Redpost.findAll({
         limit,
         offset,
+        where: whereCondition,
         include: [
           {
             model: User,
