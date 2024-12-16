@@ -217,7 +217,20 @@ const ApproveAll = () => {
   const totalPages = Math.ceil(Confirmwarehouse.Detail_Orders.length / itemsPerPage)
 
   // Get current items based on the current page
-  const currentItems = Confirmwarehouse.Detail_Orders?.slice(
+  const sortedItems =
+    Confirmwarehouse?.Detail_Orders?.sort((a, b) => {
+      const numA = parseInt(
+        a?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
+        10,
+      )
+      const numB = parseInt(
+        b?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
+        10,
+      )
+      return numA - numB
+    }) || []
+
+  const currentItems = sortedItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   )

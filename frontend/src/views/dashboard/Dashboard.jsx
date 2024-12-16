@@ -257,7 +257,7 @@ const Dashboard = () => {
 
             // Jika chart title adalah "Overflow Stock" dan stok lebih dari 6, warnai hitam
             if (chartTitle === 'Overflow Stock' && item.stock > 5) {
-              return '#F85454' // Hitam untuk stok lebih dari 6 (Overflow)
+              return '#EB5B00' // Hitam untuk stok lebih dari 6 (Overflow)
             }
 
             // Check if incoming value is filled (>= 1) and apply forestgreen
@@ -615,22 +615,24 @@ const Dashboard = () => {
                   </CCol>
 
                   {/* Not Yet Incoming (Red) */}
-                  <CCol xs="auto">
-                    <div
-                      style={{
-                        backgroundColor: '#F95454',
-                        color: 'white',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1px',
-                        fontWeight: 'bold', // Menambahkan teks menjadi bold
-                      }}
-                    >
-                      <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
-                    </div>
-                  </CCol>
+                  {selectedChart === 'critical' && (
+                    <CCol xs="auto">
+                      <div
+                        style={{
+                          backgroundColor: '#F95454',
+                          color: 'white',
+                          padding: '5px 10px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
+                      </div>
+                    </CCol>
+                  )}
                 </>
               )}
             </CRow>
@@ -666,7 +668,7 @@ const Dashboard = () => {
               {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
-                  options={chartOptions(inventoriesoverflow, 0, 7, 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 8, 5)}
                   height={410}
                 />
               )}
@@ -742,7 +744,6 @@ const Dashboard = () => {
                   </>
                 )}
               </CModalBody>
-             
             </CModal>
             {isTableVisible && (
               <DataTable

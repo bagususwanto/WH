@@ -33,7 +33,7 @@ import {
   CCardHeader,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilHome, cilCart, cilTrash, cilLocationPin, cilArrowBottom } from '@coreui/icons'
+import { cilHome, cilExposure, cilCircle, cilLocationPin, cilArrowBottom } from '@coreui/icons'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import useVerify from '../../hooks/UseVerify'
@@ -132,6 +132,24 @@ const Shopping = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (Confirmwarehouse.Detail_Orders) {
+      const sortedOrders = [...Confirmwarehouse.Detail_Orders].sort((a, b) => {
+        const addressA = a.Inventory.Address_Rack.addressRackName
+        const addressB = b.Inventory.Address_Rack.addressRackName
+
+        const numA = parseInt(addressA.match(/^\d+/)?.[0] || 'Infinity', 10)
+        const numB = parseInt(addressB.match(/^\d+/)?.[0] || 'Infinity', 10)
+
+        if (numA !== numB) {
+          return numA - numB // Urutkan berdasarkan angka
+        }
+        return addressA.localeCompare(addressB) // Urutkan secara alfabetis
+      })
+
+      setSortedOrders(sortedOrders) // Simpan ke state
+    }
+  }, [Confirmwarehouse.Detail_Orders])
   useEffect(() => {
     // Inisialisasi sortedOrders dengan produk asli
     if (Confirmwarehouse.Detail_Orders) {
@@ -254,36 +272,44 @@ const Shopping = () => {
       if (!product) return prevQuantities // Jika produk tidak ditemukan
 
       const maxQuantity = product.quantity // Kuantitas maksimum dari API
-      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
+      const minOrder = product.Inventory.Material.minOrder // Minimum order
+      const currentQuantity = prevQuantities[productId] || minOrder // Jika belum ada, mulai dari minOrder
 
-      if (currentQuantity < maxQuantity) {
+      // Tambahkan kelipatan minOrder, tapi tetap cek agar tidak melebihi maxQuantity
+      if (currentQuantity + minOrder <= maxQuantity) {
         return {
           ...prevQuantities,
-          [productId]: currentQuantity + 1, // Tambah kuantitas sebesar 1
+          [productId]: currentQuantity + minOrder,
         }
       }
 
-      // Jika mencapai batas maksimum, tetap kembalikan state sebelumnya
-      return prevQuantities
+      return prevQuantities // Jika sudah mencapai maxQuantity, tidak berubah
     })
   }
+
   // ... (Lanjutkan kode lainnya)
 
   const handleDecreaseQuantity = (productId) => {
     setQuantities((prevQuantities) => {
-      const currentQuantity = prevQuantities[productId] || 1 // Default kuantitas awal adalah 1
+      const product = Confirmwarehouse.Detail_Orders.find((p) => p.id === productId)
 
-      if (currentQuantity > 1) {
+      if (!product) return prevQuantities // Jika produk tidak ditemukan
+
+      const minOrder = product.Inventory.Material.minOrder // Minimum order
+      const currentQuantity = prevQuantities[productId] || minOrder // Jika belum ada, mulai dari minOrder
+
+      // Kurangi kelipatan minOrder, tapi cek agar tidak kurang dari minOrder
+      if (currentQuantity - minOrder >= minOrder) {
         return {
           ...prevQuantities,
-          [productId]: currentQuantity - 1, // Kurangi kuantitas sebesar 1
+          [productId]: currentQuantity - minOrder,
         }
       }
 
-      // Jika sudah mencapai batas minimum (1), tetap kembalikan state sebelumnya
-      return prevQuantities
+      return prevQuantities // Jika sudah mencapai minOrder, tidak berubah
     })
   }
+
   const handleQuantityChange = (productId, value) => {
     const newQuantity = parseInt(value, 10) // Parsing input sebagai angka
     const product = Confirmwarehouse.Detail_Orders.find((p) => p.id === productId)
@@ -385,10 +411,24 @@ const Shopping = () => {
   const totalPages = Math.ceil(sortedOrders.length / itemsPerPage)
 
   // Get current items based on the current page
-  const currentItems = sortedOrders.slice(
+  const sortedItems =
+    Confirmwarehouse?.Detail_Orders?.sort((a, b) => {
+      const numA = parseInt(
+        a?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
+        10,
+      )
+      const numB = parseInt(
+        b?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
+        10,
+      )
+      return numA - numB
+    }) || []
+
+  const currentItems = sortedItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   )
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
   }
@@ -403,7 +443,24 @@ const Shopping = () => {
       setSelectedProductId([...selectedProductId, productId])
     }
   }
-  const toggleLeftCard = () => {
+
+  const sortedAddressRackOptions = Confirmwarehouse.Detail_Orders.map((order) => ({
+    value: order.Inventory?.id, // Gunakan optional chaining
+    label: order.Inventory?.Address_Rack?.addressRackName || '', // Fallback jika undefined
+    wbCode: order.Inventory?.code?.match(/WB(\d+)/)?.[1] || null, // Ekstrak angka WB dengan aman
+  }))
+    .filter(
+      (option, index, self) => index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
+    )
+    .sort((a, b) => {
+      const numA = parseInt(a.wbCode, 10) || Infinity // Jika wbCode tidak valid, beri Infinity
+      const numB = parseInt(b.wbCode, 10) || Infinity
+
+      return numA - numB // Urutkan berdasarkan angka WB dari kecil ke besar
+    })
+
+  const handleButtonClick = () => {
+    setClicked(true)
     setIsLeftCardHidden((prev) => !prev)
   }
 
@@ -418,12 +475,10 @@ const Shopping = () => {
                   <Skeleton width={100} />
                 ) : (
                   <>
-                    <CButton onClick={toggleLeftCard}>
-                      <label className="fw-bold mb-1 ">Total: {totalQuantity} Item</label>
-                    </CButton>
+                    <label className="fw-bold mb-1 px-2 ">Total: {totalQuantity} Item</label>
                   </>
                 )}
-                <CButton color="primary" size="sm" onClick={handleApprove} disabled={loading}>
+                <CButton className="px-1 "color="primary" size="sm" onClick={handleApprove} disabled={loading}>
                   {loading ? <Skeleton width={100} /> : 'Deliver Now'}
                 </CButton>
               </CCardBody>
@@ -441,10 +496,17 @@ const Shopping = () => {
                 ...Confirmwarehouse.Detail_Orders.map((order) => ({
                   value: order.Inventory.id,
                   label: order.Inventory.Address_Rack.addressRackName.slice(0, 4), // Ambil 4 karakter pertama
-                })).filter(
-                  (option, index, self) =>
-                    index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
-                ),
+                }))
+                  .filter(
+                    (option, index, self) =>
+                      index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
+                  )
+                  // Tambahkan fungsi sorting berdasarkan angka dalam label
+                  .sort((a, b) => {
+                    const numA = parseInt(a.label.match(/\d+/)?.[0] || 'Infinity', 10)
+                    const numB = parseInt(b.label.match(/\d+/)?.[0] || 'Infinity', 10)
+                    return numA - numB // Urutkan berdasarkan angka
+                  }),
               ]}
               id="address"
               onChange={handleAddressCodeChange}
@@ -626,6 +688,28 @@ const Shopping = () => {
               </CCardBody>
             </CCard>
           )}
+          <CButton
+            className={`box mt-2 ${clicked ? 'btn-clicked' : ''}`}
+            color="secondary"
+            style={{
+              position: 'fixed',
+              bottom: '50px',
+              left: '15px',
+              width: '55px',
+              height: '55px',
+              border: '1px solid white',
+              color: 'white',
+              borderRadius: '50%',
+              boxShadow: clicked ? '0px 4px 6px rgba(0,0,0,0.2)' : 'none',
+            }}
+            onClick={handleButtonClick}
+          >
+            {loading ? (
+              <Skeleton circle={true} height={24} width={24} />
+            ) : (
+              <CIcon icon={cilExposure} size="lg" />
+            )}
+          </CButton>
         </CCol>
 
         <CCol xs={isLeftCardHidden ? 12 : 8} className="mt-2">
