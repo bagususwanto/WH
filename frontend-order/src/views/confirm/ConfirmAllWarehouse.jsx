@@ -410,10 +410,9 @@ const ApproveAll = () => {
                 </CRow>
               ) : (
                 <CRow className="mt-1">
+                  {console.log('coba', productsData)}
                   {productsData
-                    .filter(
-                      (product) => product.Detail_Orders && product.Detail_Orders.length > 0, // Filter item dengan Detail_Orders valid
-                    )
+                    .filter((product) => product) // Filter hanya mengecek keberadaan produk
                     .map((product) => (
                       <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
                         <CRow className="align-items-center">

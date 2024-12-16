@@ -166,10 +166,7 @@ const ApproveAll = () => {
     }
   }
 
-  const getUsers = async () => {
-    const response = await getMasterData(apiUser)
-    setUserData(response.data)
-  }
+
 
   const getOrderHistories = async (id) => {
     try {
