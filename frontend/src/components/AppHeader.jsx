@@ -57,9 +57,20 @@ const AppHeader = () => {
         <CHeaderToggler onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}>
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
-        <img src={logo} alt="Logo" className="sidebar-brand-full" height={40} />
+        <img
+          src={logo}
+          alt="Logo"
+          className="sidebar-brand-full"
+          style={{
+            position: 'fixed',
+            top: '0.5rem',
+            left: '3rem',
+            zIndex: 1050,
+            height: '40px',
+          }}
+        />
         <CCol sm={8}></CCol>
-        <CHeaderNav className="d-none d-md-flex"></CHeaderNav>
+        {/* <CHeaderNav className="d-none d-flex"></CHeaderNav> */}
         {/* <CHeaderNav className="ms-auto">
           <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
             <CDropdownToggle className="py-0 pe-0 d-flex align-items-center" caret={false}>
@@ -68,7 +79,7 @@ const AppHeader = () => {
   
           </CDropdown>
         </CHeaderNav> */}
-        <CHeaderNav>
+        <CHeaderNav className="ms-auto position-fixed top-0 end-0 me-3 mt-2">
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
