@@ -697,6 +697,7 @@ export const shopingOrder = async (req, res) => {
               quantityRequest: quantityBefore,
               quantityReturn: quantityAfter,
               quantity: quantityBefore - quantityAfter,
+              date: new Date(new Date.getTime() - 8 * 60 * 60 * 1000), // Tanggal sekarang dikurangi 8 jam
             },
             { transaction }
           );
@@ -948,6 +949,7 @@ export const rejectOrderWarehouse = async (req, res) => {
           quantityRequest: order.quantity,
           quantityReturn: 0,
           quantity: order.quantity,
+          date: new Date(new Date.getTime() - 8 * 60 * 60 * 1000), // Tanggal sekarang dikurangi 8 jam
         },
         { transaction }
       );

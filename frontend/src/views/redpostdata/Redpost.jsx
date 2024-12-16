@@ -168,15 +168,16 @@ const GoodIssue = () => {
       )
       console.log('response.data', response.data)
       const dataWithFormattedFields = response.data.map((item) => {
-        const discrepancy = item.actual - item.planning
-
+        const date = format(parseISO(item.date), 'yyyy-MM-dd')
+        const materialNo = item.Detail_Order.Inventory.Material.materialNo
+        const description = item.Detail_Order.Inventory.Material.description
+        const uom = item.Detail_Order.Inventory.Material.uom
         return {
           ...item,
-          discrepancy,
-          formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          formattedUpdateAt: item.updatedAt
-            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-            : '',
+          materialNo,
+          description,
+          uom,
+          date,
         }
       })
       console.log('dataWithFormattedFields', dataWithFormattedFields)

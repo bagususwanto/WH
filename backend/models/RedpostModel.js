@@ -35,15 +35,25 @@ const Redpost = db.define(
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    }
+    },
+    date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,
   }
 );
 
-DetailOrder.hasMany(Redpost, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
-Redpost.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
+DetailOrder.hasMany(Redpost, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
+Redpost.belongsTo(DetailOrder, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
 
 User.hasMany(Redpost, { foreignKey: "userId", onDelete: "NO ACTION" });
 Redpost.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
