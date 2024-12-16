@@ -546,62 +546,65 @@ export const approveOrder = async (req, res) => {
           const remarks = item.remarks ? item.remarks : null;
           const price = order.Inventory.Material.price;
 
-          // Validasi jika quantity kurang dari minOrder
-          if (
-            quantityAfter < order.Inventory.Material.minOrder ||
-            quantityAfter % order.Inventory.Material.minOrder !== 0
-          ) {
-            await transaction.rollback();
-            return res.status(400).json({
-              message: `Item ${order.Inventory.Material.description}, quantity must match the minimum order quantity of 
+          // Cek apakah quantity berbeda
+          if (quantityBefore !== quantityAfter) {
+            // Validasi jika quantity kurang dari minOrder
+            if (
+              quantityAfter < order.Inventory.Material.minOrder ||
+              quantityAfter % order.Inventory.Material.minOrder !== 0
+            ) {
+              await transaction.rollback();
+              return res.status(400).json({
+                message: `Item ${order.Inventory.Material.description}, quantity must match the minimum order quantity of 
               ${order.Inventory.Material.minOrder} ${order.Inventory.Material.uom}`,
-            });
-          }
+              });
+            }
 
-          // Update quantity dan price di DetailOrder
-          await DetailOrder.update(
-            { quantity: quantityAfter, price: quantityAfter * price },
-            { where: { id: item.detailOrderId }, transaction }
-          );
+            // Update quantity dan price di DetailOrder
+            await DetailOrder.update(
+              { quantity: quantityAfter, price: quantityAfter * price },
+              { where: { id: item.detailOrderId }, transaction }
+            );
 
-          // Create history order
-          await postOrderHistory(
-            `Order quantity for item ${order.Inventory.Material.description} revised by ${role}, 
+            // Create history order
+            await postOrderHistory(
+              `Order quantity for item ${order.Inventory.Material.description} revised by ${role}, 
             From ${quantityBefore} ${order.Inventory.Material.uom} to ${quantityAfter} ${order.Inventory.Material.uom}`,
-            userId,
-            orderId,
-            remarks,
-            { transaction }
-          );
+              userId,
+              orderId,
+              remarks,
+              { transaction }
+            );
 
-          // Create Notification revised order
-          const notification = {
-            title: "Order Revised",
-            description: `Order quantity for item ${order.Inventory.Material.description} revised by ${role}`,
-            category: "approval",
-          };
-          await createNotification(
-            [order.Order.userId],
-            notification,
-            transaction
-          );
+            // Create Notification revised order
+            const notification = {
+              title: "Order Revised",
+              description: `Order quantity for item ${order.Inventory.Material.description} revised by ${role}`,
+              category: "approval",
+            };
+            await createNotification(
+              [order.Order.userId],
+              notification,
+              transaction
+            );
 
-          // Menyimpan detail order yang di-update
-          updatedOrders.push({
-            quantity: quantityAfter,
-            price: quantityAfter * price, // Menghitung harga total untuk item ini
-          });
+            // Menyimpan detail order yang di-update
+            updatedOrders.push({
+              quantity: quantityAfter,
+              price: quantityAfter * price, // Menghitung harga total untuk item ini
+            });
 
-          await LogApproval.create(
-            {
-              typeLog: "adjust",
-              userId: userId,
-              detailOrderId: item.detailOrderId,
-              quantityBefore: quantityBefore,
-              quantityAfter: quantityAfter,
-            },
-            { transaction }
-          );
+            await LogApproval.create(
+              {
+                typeLog: "adjust",
+                userId: userId,
+                detailOrderId: item.detailOrderId,
+                quantityBefore: quantityBefore,
+                quantityAfter: quantityAfter,
+              },
+              { transaction }
+            );
+          }
         }
       }
     }
