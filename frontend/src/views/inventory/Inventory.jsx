@@ -498,7 +498,7 @@ const Inventory = () => {
           // 'Stock System': item.quantitySistem,
           // 'Stock Inventory': item.quantityActual,
           // Discrepancy: item.discrepancy,
-          'Stock On Hand': quantityActualCheck,
+          Stock: quantityActualCheck,
           // Evaluation: evaluation,
           // Remarks: item.remarks,
           // Plant: item.Address_Rack.Storage.Plant.plantName,

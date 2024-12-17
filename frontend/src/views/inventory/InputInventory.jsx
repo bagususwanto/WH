@@ -419,6 +419,7 @@ const InputInventory = () => {
         const store = db.createObjectStore('inventory', { keyPath: 'id' })
         store.createIndex('materialNo', 'materialNo', { unique: false })
         store.createIndex('storage', 'storage', { unique: false }) // Tambahkan index untuk storage
+        store.createIndex('createdAt', 'createdAt', { unique: false })
       }
     }
 
@@ -432,7 +433,13 @@ const InputInventory = () => {
       const storageRequest = index.getAll(selectedStorageVal.label)
 
       storageRequest.onsuccess = function () {
-        callback(storageRequest.result)
+        // Urutkan hasil berdasarkan createdAt secara ascending
+        const sortedData = storageRequest.result.sort((a, b) => {
+          return new Date(a.createdAt) - new Date(b.createdAt)
+        })
+
+        // Kirim data yang sudah diurutkan ke callback
+        callback(sortedData)
       }
 
       storageRequest.onerror = function () {
@@ -469,6 +476,7 @@ const InputInventory = () => {
         uom: baseUom,
         quantity: quantity,
         storage: selectedStorageVal.label,
+        createdAt: new Date().toISOString(),
       }
 
       // Buka atau buat IndexedDB database
@@ -480,6 +488,7 @@ const InputInventory = () => {
           const store = db.createObjectStore('inventory', { keyPath: 'id' })
           store.createIndex('materialNo', 'materialNo', { unique: false })
           store.createIndex('storage', 'storage', { unique: false })
+          store.createIndex('createdAt', 'createdAt', { unique: false })
         }
       }
 
@@ -811,11 +820,75 @@ const InputInventory = () => {
 
   // Fungsi untuk menyimpan perubahan quantity
   const handleSaveQuantity = (id) => {
-    setItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)),
-    )
-    setEditId(null) // Keluar dari mode edit setelah menyimpan
-    setNewQuantity('') // Reset input
+    const request = indexedDB.open('InventoryDB', 1)
+
+    request.onsuccess = function (e) {
+      const db = e.target.result
+      const transaction = db.transaction('inventory', 'readwrite')
+      const store = transaction.objectStore('inventory')
+
+      // Ambil data item yang akan diubah
+      const getRequest = store.get(id)
+
+      getRequest.onsuccess = function () {
+        const existingItem = getRequest.result
+
+        if (existingItem) {
+          // Update quantity item
+          const updatedItem = { ...existingItem, quantity: newQuantity }
+
+          // Simpan kembali item yang diperbarui ke IndexedDB
+          const updateRequest = store.put(updatedItem)
+
+          updateRequest.onsuccess = function () {
+            MySwal.fire({
+              title: 'Success!',
+              text: 'Quantity updated successfully.',
+              icon: 'success',
+            })
+
+            // Refresh data inventory setelah update
+            fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+              setItems(inventoryData) // Update state dengan data terbaru
+            })
+
+            // Keluar dari mode edit
+            setEditId(null)
+            setNewQuantity('')
+          }
+
+          updateRequest.onerror = function () {
+            MySwal.fire({
+              title: 'Error!',
+              text: 'Failed to update the quantity.',
+              icon: 'error',
+            })
+          }
+        } else {
+          MySwal.fire({
+            title: 'Error!',
+            text: 'Item not found in inventory.',
+            icon: 'error',
+          })
+        }
+      }
+
+      getRequest.onerror = function () {
+        MySwal.fire({
+          title: 'Error!',
+          text: 'Failed to fetch item from inventory.',
+          icon: 'error',
+        })
+      }
+    }
+
+    request.onerror = function () {
+      MySwal.fire({
+        title: 'Error!',
+        text: 'Failed to open IndexedDB.',
+        icon: 'error',
+      })
+    }
   }
 
   const handleQrCode = () => {
