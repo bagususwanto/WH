@@ -42,7 +42,7 @@ import useAuthService from './services/AuthService'
 const useNavigation = () => {
   const location = useLocation() // untuk mendapatkan lokasi saat ini
   const [navigation, setNavigation] = useState([])
-  const { roleName } = useVerify()
+  const { roleName, isProduction } = useVerify()
 
   const MySwal = withReactContent(Swal)
   const navigate = useNavigate()
@@ -122,6 +122,35 @@ const useNavigation = () => {
         },
       )
     }
+
+    // NAV INVENTORY UNTUK GH UP WH
+    if (
+      (isProduction == 0 && roleName === 'group head') ||
+      (isProduction == 0 && roleName === 'line head') ||
+      (isProduction == 0 && roleName === 'section head') ||
+      (isProduction == 0 && roleName === 'department head')
+    ) {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'TWIIS',
+        },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Inventory',
+          to: '/order',
+          icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Data Inventory',
+              to: '/inventory/data',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+      )
+    }
     //ORDER DAN CONFIRMATION UNTUK SUPER ADMIN
     if (roleName === 'super admin') {
       baseNav.push(
@@ -184,12 +213,7 @@ const useNavigation = () => {
         },
       )
     }
-    if (
-      roleName === 'group head' ||
-      roleName === 'line head' ||
-      roleName === 'section head' ||
-      roleName === 'department head'
-    ) {
+    if (roleName === 'group head' || roleName === 'line head' || roleName === 'section head') {
       // Lakukan sesuatu jika roleName adalah salah satu dari nilai tersebut
 
       baseNav.push(
@@ -267,7 +291,6 @@ const useNavigation = () => {
         },
         {
           component: CNavItem,
-
           name: 'Shopping',
           to: '/dummy-route', // Internal route, just a placeholder
           icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
@@ -291,11 +314,7 @@ const useNavigation = () => {
       },
     )
 
-    if (
-      roleName === 'super admin' ||
-      roleName === 'warehouse staff' ||
-      roleName === 'warehouse member'
-    ) {
+    if (isProduction == 0) {
       baseNav.push({
         component: CNavItem,
         name: 'Incoming Data',

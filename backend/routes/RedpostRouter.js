@@ -4,6 +4,21 @@ import { getRedpost } from "../controllers/Redpost.js";
 
 const router = express.Router();
 
-router.get("/redpost", getRedpost);
+router.get(
+  "/redpost",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
+  getRedpost
+);
 
 export default router;

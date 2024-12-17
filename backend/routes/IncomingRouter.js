@@ -7,7 +7,18 @@ const router = express.Router();
 
 router.get(
   "/incoming",
-  checkRole(["super admin", "warehouse member", "warehouse staff"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   getIncoming
 );
 router.get("/incoming-plan-cancel/:id", cancelIncomingPlan);

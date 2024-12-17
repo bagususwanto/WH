@@ -14,37 +14,96 @@ const router = express.Router();
 
 router.get(
   "/inventory",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   getInventory
 );
 router.put(
   "/inventory/:id/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   checkUserWarehouse,
   updateInventory
 );
 router.put(
   "/incoming/:id/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   checkUserWarehouse,
   updateIncoming
 );
 router.get(
   "/inventory-execute/:plantId/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   executeInventory
 );
 router.get(
   "/inventory-all",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   getAllInventory
 );
 router.post(
   "/inventory-submit/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [0]
+  ),
   checkUserWarehouse,
   submitInventory
 );
-
 
 export default router;
