@@ -99,7 +99,8 @@ const AppHeader = () => {
   const [dropdownNotif, setDropdownNotif] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
-
+  const categoryButtonRef = useRef(null)
+  const categoryDropdownRef = useRef(null)
   // Cek apakah 4 digit terakhir dari searchQuery adalah angka
   const lastFourDigits = searchQuery.slice(-4)
   const isLastFourDigitsNumber = /^\d{4}$/.test(lastFourDigits)
@@ -485,22 +486,58 @@ const AppHeader = () => {
       }
     }
   }
-  const handleClickOutside = (event) => {
+
+
+
+  const handleFocus = () => {
+    setShowRecentSearches(searchHistory.length > 0)
+  }
+
+ const handleMouseEnter = () => {
+    if (!showCategories) setShowCategories(true) // Menampilkan kategori hanya jika dropdown belum terbuka
+  }
+
+  // Handle ketika mouse meninggalkan tombol Category
+  const handleMouseLeave = () => {
+    // Dropdown tetap terbuka jika sudah terbuka, tidak menyembunyikan secara otomatis
+    if (!showCategories) setShowCategories(false) // Menyembunyikan kategori hanya jika dropdown belum terbuka
+  }
+
+  const handleClickOutside = (e) => {
+    // Memeriksa apakah klik berada di luar tombol kategori dan dropdown
+    if (
+      categoryButtonRef.current && !categoryButtonRef.current.contains(e.target) && // Klik di luar tombol Category
+      categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target) // Klik di luar dropdown kategori
+    ) {
+      setShowCategories(false) // Menutup dropdown jika klik di luar
+    }
+  }
+
+  useEffect(() => {
+    // Tambahkan event listener saat komponen di-mount
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('click', handleClickOutside)
+  
+    // Bersihkan event listener saat komponen di-unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [])
+
+  const handleClickOutsideSearch = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowRecentSearches(false)
     }
   }
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutsideSearch)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('mousedown', handleClickOutsideSearch)
     }
   }, [])
-
-  const handleFocus = () => {
-    setShowRecentSearches(searchHistory.length > 0)
-  }
+  
 
   return (
     <CHeader position="sticky" className="mb-4 p-0">
@@ -565,20 +602,17 @@ const AppHeader = () => {
         </CCol>
 
         <CCol xs={12} sm={1} md={1} lg={1}>
-          <CButton
-            onClick={handleToggleCategories}
-            style={{
-              backgroundColor: showCategories ? '#E4E0E1' : '', // Ubah warna saat aktif/nonaktif
-            }}
-            onMouseEnter={(e) => {
-              if (!showCategories) e.currentTarget.style.backgroundColor = '#E4E0E1'
-            }}
-            onMouseLeave={(e) => {
-              if (!showCategories) e.currentTarget.style.backgroundColor = ''
-            }}
-          >
-            Category
-          </CButton>
+        <CButton
+          ref={categoryButtonRef}
+          onClick={handleToggleCategories} // Toggle kategori saat diklik
+          onMouseEnter={handleMouseEnter} // Menampilkan kategori saat hover
+          onMouseLeave={handleMouseLeave} // Menyembunyikan kategori saat mouse meninggalkan
+          style={{
+            backgroundColor: showCategories ? '#E4E0E1' : '', // Ubah warna saat kategori aktif
+          }}
+        >
+          Category
+        </CButton>
         </CCol>
 
         {/* Search bar tetap */}
@@ -713,10 +747,13 @@ const AppHeader = () => {
           {/* Konten keranjang dan notifikasi */}
           <CDropdown
             variant="nav-item"
-            autoClose={'outside'}
-            visible={isCartOpen}
-            onMouseEnter={() => setIsCartOpen(true)} // Open on hover
-            onMouseLeave={() => setIsCartOpen('outside')} // Close when mouse leaves
+            autoClose="outside"
+            visible={isCartOpen && !isNotifOpen} // Hanya tampilkan Cart jika Notif tertutup
+            onMouseEnter={() => {
+              setIsCartOpen(true)
+              setIsNotifOpen(false) // Tutup Notif
+            }}
+            onMouseLeave={() => setIsCartOpen('outside')}
           >
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative me-3"
@@ -815,10 +852,13 @@ const AppHeader = () => {
 
           <CDropdown
             variant="nav-item"
-            autoClose={'outside'}
-            visible={isNotifOpen}
-            onMouseEnter={() => setIsNotifOpen(true)} // Open on hover
-            onMouseLeave={() => setIsNotifOpen('outside')} // Close when mouse leaves
+            autoClose="outside"
+            visible={isNotifOpen} // Tampilkan jika terbuka
+            onMouseEnter={() => {
+              setIsNotifOpen(true)
+              setIsCartOpen(false) // Tutup Cart
+            }}
+            onMouseLeave={() => setIsNotifOpen("outside")}
           >
             <CDropdownToggle className="d-flex align-items-center position-relative" caret={false}>
               <CIcon icon={cilBell} size="lg" />
@@ -944,7 +984,7 @@ const AppHeader = () => {
 
       <CContainer>
         <CRow>
-          <CCollapse visible={showCategories}>
+        <CCollapse visible={showCategories} ref={categoryDropdownRef}>
             <div className="p-3">
               <CRow>
                 {category.map((cat, index) => (

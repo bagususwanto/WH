@@ -47,7 +47,8 @@ const ProductList = () => {
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [quantity, setQuantity] = useState(1)
+  const minOrder = selectedProduct?.Iventory?.Material?.minOrder  
+  const [quantity, setQuantity] = useState(minOrder)
   const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
   const [hasMore, setHasMore] = useState(true)
@@ -523,7 +524,7 @@ const ProductList = () => {
                     type="text"
                     value={quantity}
                     className="w-25 text-center border-0"
-                    onChange={(e) => setQuantity(e.target.value)} // Memperbarui state saat input berubah
+
                   />
                   <CButton
                     color="primary"

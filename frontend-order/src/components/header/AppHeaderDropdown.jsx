@@ -18,7 +18,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext,useRef } from 'react'
 import config from '../../utils/Config'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
@@ -32,6 +32,8 @@ const AppHeaderDropdown = () => {
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false) // Tambahkan state untuk mengontrol dropdown
+  const dropdownRef = useRef(null)
+
 
   const handleHistory = () => {
     navigate('/history')
@@ -107,8 +109,27 @@ const AppHeaderDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen) // Toggle state
   }
 
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [])
+
   return (
-    <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
+    <CDropdown
+      variant="nav-item"
+         autoClose="outside"
+      visible={isDropdownOpen}
+      ref={dropdownRef}
+      onMouseEnter={() => setIsDropdownOpen(true)} // Buka saat hover
+      onMouseLeave={() => setIsDropdownOpen("outside")} // Tutup saat keluar
+    >
       <CDropdownToggle
         className="py-0 pe-0 d-flex align-items-center"
         caret={false}

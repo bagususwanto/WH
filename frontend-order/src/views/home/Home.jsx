@@ -91,9 +91,9 @@ const Home = () => {
   const { postCart, updateCart } = useCartService()
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [modalOrder, setModalOrder] = useState(false)
-  const minOrder = selectedProduct?.Material?.minOrder;
-  const [quantity, setQuantity] = useState(minOrder);
-  
+  const minOrder = selectedProduct?.Material?.minOrder
+  const [quantity, setQuantity] = useState(minOrder)
+
   const [selectedCategory, setSelectedCategory] = useState(null)
   const itemsPerPage = 6
   const [currentPage, setCurrentPage] = useState(0)
@@ -232,10 +232,15 @@ const Home = () => {
   const totalPages = Math.ceil(wishlistData.length / itemsPerPage)
 
   const handleModalCart = (product) => {
-    setSelectedProduct(product);
-    setQuantity(product.Material?.minOrder || 1);
-    setModalOrder(true);
-  };
+    setSelectedProduct(product)
+    setQuantity(product.Material?.minOrder || 1)
+    setModalOrder(true)
+  }
+  const handleModalCartWishlist = (product) => {
+    setSelectedProduct(product)
+    setQuantity(product.Inventory?.Material?.minOrder || 1)
+    setModalOrder(true)
+  }
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)
@@ -675,7 +680,7 @@ const Home = () => {
                                     fontSize: '12px',
                                     marginRight: '10px',
                                   }} // Custom styling for smaller button
-                                  onClick={() => handleModalCart(product)}
+                                  onClick={() => handleModalCartWishlist(product)}
                                 >
                                   Add to Cart
                                 </CButton>
@@ -755,73 +760,73 @@ const Home = () => {
           ) : (
             myOrderData &&
             myOrderData.map((order) => {
-              const validDetails = order.Detail_Orders.filter((detail) => detail.quantity > 0);
-              if (validDetails.length === 0) return null;
-      
+              const validDetails = order.Detail_Orders.filter((detail) => detail.quantity > 0)
+              if (validDetails.length === 0) return null
+
               return (
-              <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
-                <CRow className="align-items-center">
-                  <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <CCol>
-                      <CIcon className="me-2" icon={cilCart} />
-                      <label className="me-2 fs-6" size="sm ">
-                        {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
-                      </label>
-                      <CBadge
-                        className=" me-2 "
-                        size="sm"
-                        color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
-                      >
-                        {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
-                      </CBadge>
-                      <label className=" me-2 fw-light ">
-                        {order.transactionNumber ? order.transactionNumber : order.requestNumber}
-                      </label>
-                    </CCol>
-                  </div>
-                  <CCol xs="5"></CCol>
-
-                  <CRow className="d-flex justify-content-between my-2 ">
-                    <CCol xs="1">
-                      <CCardImage
-                        src={`${config.BACKEND_URL}${order.Detail_Orders[0]?.Inventory.Material.img}`}
-                        alt={order.Detail_Orders[0]?.Inventory.Material.description}
-                        style={{ height: '100%', width: '100%' }}
-                      />
-                    </CCol>
-
-                    <CCol>
-                      {order.Detail_Orders.length === 1 ? (
-                        <label key={order.Detail_Orders[0]?.id}>
-                          {order.Detail_Orders[0]?.Inventory.Material.description}
+                <CCard className="d-block w-100 p-3 mb-3" key={order.id}>
+                  <CRow className="align-items-center">
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                      <CCol>
+                        <CIcon className="me-2" icon={cilCart} />
+                        <label className="me-2 fs-6" size="sm ">
+                          {format(parseISO(order.transactionDate), 'dd/MM/yyyy')}
                         </label>
-                      ) : (
-                        <label>{order.Detail_Orders[0]?.Inventory.Material.description}...</label>
-                      )}
-                      <br />
-                      <label className="fw-bold fs-6">
-                        Total: {order.Detail_Orders.length} Item
-                      </label>
-                    </CCol>
-                  </CRow>
+                        <CBadge
+                          className=" me-2 "
+                          size="sm"
+                          color={getSeverity(order.isReject == 1 ? 'rejected' : order.status)}
+                        >
+                          {order.isReject == 1 ? 'REJECTED' : order.status.toUpperCase()}
+                        </CBadge>
+                        <label className=" me-2 fw-light ">
+                          {order.transactionNumber ? order.transactionNumber : order.requestNumber}
+                        </label>
+                      </CCol>
+                    </div>
+                    <CCol xs="5"></CCol>
 
-                  <CRow className="d-flex justify-content-end align-items-center">
-                    <CCol xs={4} className="d-flex justify-content-end">
-                      <CButton
-                        onClick={() => handleViewHistoryOrder(order)}
-                        color="primary"
-                        size="sm"
-                      >
-                        View Detail Order
-                      </CButton>
-                    </CCol>
+                    <CRow className="d-flex justify-content-between my-2 ">
+                      <CCol xs="1">
+                        <CCardImage
+                          src={`${config.BACKEND_URL}${order.Detail_Orders[0]?.Inventory.Material.img}`}
+                          alt={order.Detail_Orders[0]?.Inventory.Material.description}
+                          style={{ height: '100%', width: '100%' }}
+                        />
+                      </CCol>
+
+                      <CCol>
+                        {order.Detail_Orders.length === 1 ? (
+                          <label key={order.Detail_Orders[0]?.id}>
+                            {order.Detail_Orders[0]?.Inventory.Material.description}
+                          </label>
+                        ) : (
+                          <label>{order.Detail_Orders[0]?.Inventory.Material.description}...</label>
+                        )}
+                        <br />
+                        <label className="fw-bold fs-6">
+                          Total: {order.Detail_Orders.length} Item
+                        </label>
+                      </CCol>
+                    </CRow>
+
+                    <CRow className="d-flex justify-content-end align-items-center">
+                      <CCol xs={4} className="d-flex justify-content-end">
+                        <CButton
+                          onClick={() => handleViewHistoryOrder(order)}
+                          color="primary"
+                          size="sm"
+                        >
+                          View Detail Order
+                        </CButton>
+                      </CCol>
+                    </CRow>
                   </CRow>
-                </CRow>
-              </CCard>
-            );
-          })
-        )}
-      </div>
+                </CCard>
+              )
+            })
+          )}
+        </div>
 
         {selectedOrder && (
           <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">
@@ -956,6 +961,7 @@ const Home = () => {
                               style={{
                                 fontSize: '0.8rem',
                                 color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
+                                fontWeight: isFirst ? 'bold' : 'normal', // Bold untuk yang pertama
                               }}
                             >
                               {format(parseISO(item.createdAt), 'dd MMM yyyy')}
@@ -975,6 +981,7 @@ const Home = () => {
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                fontWeight: isFirst ? 'bold' : 'normal', // Bold untuk elemen pertama
                               }}
                             >
                               <CIcon
@@ -1315,7 +1322,7 @@ const Home = () => {
                   </CButton>
 
                   <span className="mx-3 fw-light">
-                  {selectedProduct.Inventory
+                    {selectedProduct.Inventory
                       ? selectedProduct.Inventory.Material.uom
                       : selectedProduct.Material.uom}
                   </span>
