@@ -294,6 +294,7 @@ export const updateIncoming = async (req, res) => {
   const transaction = await db.transaction();
   try {
     const incomingId = req.params.id;
+    const actual = req.body.actual;
 
     // Validasi untuk quantity actual tidak boleh kurang dari 0
     if (req.body.actual < 0) {
@@ -301,10 +302,15 @@ export const updateIncoming = async (req, res) => {
     }
 
     // Update data incoming dalam transaksi
-    await Incoming.update(req.body, {
-      where: { id: incomingId },
-      transaction,
-    });
+    await Incoming.update(
+      {
+        actual,
+      },
+      {
+        where: { id: incomingId },
+        transaction,
+      }
+    );
 
     const incoming = await Incoming.findOne({
       where: { id: incomingId },
@@ -321,7 +327,7 @@ export const updateIncoming = async (req, res) => {
       {
         incomingId,
         typeLogEntry: "update incoming",
-        quantity: req.body.actual,
+        quantity: actual,
         userId: req.user.userId,
         detailOrder: null,
       },
@@ -343,7 +349,69 @@ export const updateIncoming = async (req, res) => {
   } catch (error) {
     // Rollback transaksi jika terjadi error
     await transaction.rollback();
-    console.log("Error updating incoming:", error.message);
+    console.log("Error updating incoming:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const createPlanIncoming = async (req, res) => {
+  const transaction = await db.transaction();
+  try {
+    const { planning, inventoryId, incomingDate } = req.body;
+
+    const inventory = await Inventory.findOne({
+      where: { id: inventoryId },
+    });
+
+    // Validasi inventory
+    if (!inventory) {
+      return res.status(404).json({ message: "inventoryId not found" });
+    }
+
+    // Validasi untuk quantity plan tidak boleh kurang dari 0
+    if (planning < 0) {
+      return res.status(400).json({ message: "Quantity not allowed under 0" });
+    }
+
+    // Validasi untuk incomingDate tidak boleh kosong
+    if (!incomingDate) {
+      return res.status(400).json({ message: "Incoming date required" });
+    }
+
+    // Membuat entri Incoming dan menyimpan hasilnya
+    const incoming = await Incoming.create(
+      {
+        planning,
+        inventoryId,
+        logImportId: null,
+        incomingDate,
+      },
+      { transaction }
+    );
+
+    // Ambil incomingId dari entri yang baru dibuat
+    const incomingId = incoming.id;
+
+    // Membuat log entry dalam transaksi
+    await LogEntry.create(
+      {
+        incomingId,
+        typeLogEntry: "create incoming",
+        quantity: planning,
+        userId: req.user.userId,
+        detailOrder: null,
+      },
+      { transaction }
+    );
+
+    // Commit transaksi jika semua proses berhasil
+    await transaction.commit();
+
+    res.status(200).json({ message: "Incoming Updated" });
+  } catch (error) {
+    // Rollback transaksi jika terjadi error
+    await transaction.rollback();
+    console.log("Error updating incoming:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -611,5 +679,3 @@ export const submitInventory = async (req, res) => {
     return res.status(500).json({ message: "Failed to update inventory" });
   }
 };
-
-

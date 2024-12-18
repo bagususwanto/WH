@@ -28,11 +28,15 @@ const Incoming = db.define(
     },
     logImportId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: LogImport,
         key: "id",
       },
+    },
+    incomingDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
     },
   },
   {
@@ -40,10 +44,22 @@ const Incoming = db.define(
   }
 );
 
-LogImport.hasMany(Incoming, { foreignKey: "logImportId", onDelete: "NO ACTION" });
-Incoming.belongsTo(LogImport, { foreignKey: "logImportId", onDelete: "NO ACTION" });
+LogImport.hasMany(Incoming, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
+Incoming.belongsTo(LogImport, {
+  foreignKey: "logImportId",
+  onDelete: "NO ACTION",
+});
 
-Inventory.hasMany(Incoming, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
-Incoming.belongsTo(Inventory, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
+Inventory.hasMany(Incoming, {
+  foreignKey: "inventoryId",
+  onDelete: "NO ACTION",
+});
+Incoming.belongsTo(Inventory, {
+  foreignKey: "inventoryId",
+  onDelete: "NO ACTION",
+});
 
 export default Incoming;

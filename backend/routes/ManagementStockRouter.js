@@ -6,6 +6,7 @@ import {
   executeInventory,
   getAllInventory,
   submitInventory,
+  createPlanIncoming,
 } from "../controllers/ManagementStock.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
@@ -58,6 +59,12 @@ router.put(
   ),
   checkUserWarehouse,
   updateIncoming
+);
+router.post(
+  "/incoming/:warehouseId",
+  checkRole(["super admin", "warehouse staff"]),
+  checkUserWarehouse,
+  createPlanIncoming
 );
 router.get(
   "/inventory-execute/:plantId/:warehouseId",

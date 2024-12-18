@@ -452,6 +452,7 @@ export const uploadIncomingPlan = async (req, res) => {
       incomingPlan.push({
         inventoryId,
         planning: row[2],
+        incomingDate: req.body.importDate,
         logImportId,
       });
 
