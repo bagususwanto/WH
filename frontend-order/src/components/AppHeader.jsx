@@ -716,7 +716,7 @@ const AppHeader = () => {
             autoClose={'outside'}
             visible={isCartOpen}
             onMouseEnter={() => setIsCartOpen(true)} // Open on hover
-            onMouseLeave={() => setIsCartOpen(false)} // Close when mouse leaves
+            onMouseLeave={() => setIsCartOpen('outside')} // Close when mouse leaves
           >
             <CDropdownToggle
               className="py-0 pe-0 d-flex align-items-center position-relative me-3"
@@ -818,7 +818,7 @@ const AppHeader = () => {
             autoClose={'outside'}
             visible={isNotifOpen}
             onMouseEnter={() => setIsNotifOpen(true)} // Open on hover
-            onMouseLeave={() => setIsNotifOpen(false)} // Close when mouse leaves
+            onMouseLeave={() => setIsNotifOpen('outside')} // Close when mouse leaves
           >
             <CDropdownToggle className="d-flex align-items-center position-relative" caret={false}>
               <CIcon icon={cilBell} size="lg" />
