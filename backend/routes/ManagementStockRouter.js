@@ -23,7 +23,7 @@ router.get(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   getInventory
 );
@@ -38,7 +38,7 @@ router.put(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   checkUserWarehouse,
   updateInventory
@@ -54,7 +54,7 @@ router.put(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   checkUserWarehouse,
   updateIncoming
@@ -70,7 +70,7 @@ router.get(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   executeInventory
 );
@@ -85,7 +85,7 @@ router.get(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   getAllInventory
 );
@@ -100,7 +100,7 @@ router.post(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   checkUserWarehouse,
   submitInventory

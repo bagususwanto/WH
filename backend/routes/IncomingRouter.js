@@ -17,7 +17,7 @@ router.get(
       "section head",
       "department head",
     ],
-    [0]
+    [1]
   ),
   getIncoming
 );

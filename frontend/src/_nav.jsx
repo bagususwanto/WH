@@ -42,7 +42,7 @@ import useAuthService from './services/AuthService'
 const useNavigation = () => {
   const location = useLocation() // untuk mendapatkan lokasi saat ini
   const [navigation, setNavigation] = useState([])
-  const { roleName, isProduction } = useVerify()
+  const { roleName, isWarehouse } = useVerify()
 
   const MySwal = withReactContent(Swal)
   const navigate = useNavigate()
@@ -125,10 +125,10 @@ const useNavigation = () => {
 
     // NAV INVENTORY UNTUK GH UP WH
     if (
-      (isProduction == 0 && roleName === 'group head') ||
-      (isProduction == 0 && roleName === 'line head') ||
-      (isProduction == 0 && roleName === 'section head') ||
-      (isProduction == 0 && roleName === 'department head')
+      (isWarehouse == 1 && roleName === 'group head') ||
+      (isWarehouse == 1 && roleName === 'line head') ||
+      (isWarehouse == 1 && roleName === 'section head') ||
+      (isWarehouse == 1 && roleName === 'department head')
     ) {
       baseNav.push(
         {
@@ -314,7 +314,7 @@ const useNavigation = () => {
       },
     )
 
-    if (isProduction == 0) {
+    if (isWarehouse == 1) {
       baseNav.push({
         component: CNavItem,
         name: 'Incoming Data',

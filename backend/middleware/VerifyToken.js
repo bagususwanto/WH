@@ -6,12 +6,16 @@ export const verifyToken = async (req, res, next) => {
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "No token provided. Unauthorized access!" });
+    return res
+      .status(401)
+      .json({ message: "No token provided. Unauthorized access!" });
   }
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: "Invalid or expired token. Access forbidden!" });
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired token. Access forbidden!" });
     }
 
     // Panggil fungsi asinkron untuk mendapatkan data organisasi
@@ -34,6 +38,7 @@ export const verifyToken = async (req, res, next) => {
       organizationId: user.organizationId,
       warehouseId: user.warehouseId,
       isProduction: decoded.isProduction,
+      isWarehouse: decoded.isWarehouse,
       anotherWarehouseId: decoded.anotherWarehouseId,
     };
 

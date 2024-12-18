@@ -115,6 +115,11 @@ const User = db.define(
       allowNull: false,
       defaultValue: 0,
     },
+    isWarehouse: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -142,14 +147,27 @@ Warehouse.hasMany(User, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
 User.belongsTo(Warehouse, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
 
 Department.hasMany(User, { foreignKey: "departmentId", onDelete: "NO ACTION" });
-User.belongsTo(Department, { foreignKey: "departmentId", onDelete: "NO ACTION" });
+User.belongsTo(Department, {
+  foreignKey: "departmentId",
+  onDelete: "NO ACTION",
+});
 
 Division.hasMany(User, { foreignKey: "divisionId", onDelete: "NO ACTION" });
 User.belongsTo(Division, { foreignKey: "divisionId", onDelete: "NO ACTION" });
 
-Organization.hasMany(User, { foreignKey: "organizationId", onDelete: "NO ACTION" });
-User.belongsTo(Organization, { foreignKey: "organizationId", onDelete: "NO ACTION" });
+Organization.hasMany(User, {
+  foreignKey: "organizationId",
+  onDelete: "NO ACTION",
+});
+User.belongsTo(Organization, {
+  foreignKey: "organizationId",
+  onDelete: "NO ACTION",
+});
 
-User.belongsTo(Warehouse, { as: "alternateWarehouse", foreignKey: "anotherWarehouseId", constraints: false });
+User.belongsTo(Warehouse, {
+  as: "alternateWarehouse",
+  foreignKey: "anotherWarehouseId",
+  constraints: false,
+});
 
 export default User;

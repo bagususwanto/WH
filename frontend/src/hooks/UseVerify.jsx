@@ -13,7 +13,7 @@ const useVerify = () => {
   const [warehouseId, setWarehouseId] = useState(0)
   const [token, setToken] = useState('')
   const [expire, setExpire] = useState(0)
-  const [isProduction, setIsProduction] = useState(0)
+  const [isWarehouse, setIsWarehouse] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const useVerify = () => {
       setRoleName(decoded.roleName)
       setWarehouseId(decoded.anotherWarehouseId)
       setExpire(decoded.exp)
-      setIsProduction(decoded.isProduction)
+      setIsWarehouse(decoded.isWarehouse)
     } catch (error) {
       console.error('Error refreshing token:', error)
       MySwal.fire({
@@ -56,7 +56,7 @@ const useVerify = () => {
           setRoleName(decoded.roleName)
           setWarehouseId(decoded.anotherWarehouseId)
           setExpire(decoded.exp)
-          setIsProduction(decoded.isProduction)
+          setIsWarehouse(decoded.isWarehouse)
         } catch (error) {
           console.error('Error refreshing token in interceptor:', error)
           MySwal.fire({
@@ -76,7 +76,7 @@ const useVerify = () => {
     },
   )
 
-  return { name, roleName, warehouseId, token, isProduction, axiosJWT }
+  return { name, roleName, warehouseId, token, isWarehouse, axiosJWT }
 }
 
 export default useVerify

@@ -27,7 +27,7 @@ import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../services/AuthService'
 
 const AppHeaderDropdown = () => {
-  const { name, roleName } = useVerify() // Pastikan roleName disertakan di sini
+  const { name, roleName, isWarehouse } = useVerify() // Pastikan roleName disertakan di sini
   const navigate = useNavigate()
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
@@ -50,11 +50,8 @@ const AppHeaderDropdown = () => {
     navigate('/confirmall')
   }
   const handledatacomplete = () => {
-    window.open(`${config.INVEN_URL}/#/goodissue`, '_blank');
-  };
-  
-  
-  
+    window.open(`${config.INVEN_URL}/#/goodissue`, '_blank')
+  }
 
   const handleLogout = async () => {
     try {
@@ -92,7 +89,11 @@ const AppHeaderDropdown = () => {
   if (
     roleName === 'super admin' ||
     roleName === 'warehouse staff' ||
-    roleName === 'warehouse member'
+    roleName === 'warehouse member' ||
+    (isWarehouse == 1 && roleName === 'group head') ||
+    (isWarehouse == 1 && roleName === 'line head') ||
+    (isWarehouse == 1 && roleName === 'section head') ||
+    (isWarehouse == 1 && roleName === 'department head')
   ) {
     shouldShowWarehouse = true
   }

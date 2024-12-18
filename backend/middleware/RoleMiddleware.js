@@ -1,17 +1,17 @@
-export const checkRole = (allowedRoles, allowedRoleProduction = [1]) => {
+export const checkRole = (allowedRoles, allowedWarehouse = [0]) => {
   return (req, res, next) => {
     const userRoleName = req.user.roleName; // Mengambil roleName dari req.user, yang di-set oleh verifyToken
-    const isProduction = req.user.isProduction;
-    let paramsAlowedProd = allowedRoleProduction;
+    const isWarehouse = req.user.isWarehouse;
+    let paramsAllowedWH = allowedWarehouse;
     // const userRoleName = "super admin";
 
-    if (isProduction == 0) {
-      paramsAlowedProd = [0];
+    if (isWarehouse == 1) {
+      paramsAllowedWH = [1];
     }
 
     if (
       allowedRoles.includes(userRoleName) &&
-      paramsAlowedProd.includes(isProduction)
+      paramsAllowedWH.includes(isWarehouse)
     ) {
       next(); // Jika roleName sesuai dengan salah satu dari allowedRoles, lanjutkan request
     } else {

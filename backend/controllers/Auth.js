@@ -10,18 +10,35 @@ const generateTokens = (
   username,
   name,
   isProduction,
+  isWarehouse,
   roleName,
   anotherWarehouseId
 ) => {
   const accessToken = jwt.sign(
-    { userId, username, name, isProduction, roleName, anotherWarehouseId },
+    {
+      userId,
+      username,
+      name,
+      isProduction,
+      isWarehouse,
+      roleName,
+      anotherWarehouseId,
+    },
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: "15m",
     }
   );
   const refreshToken = jwt.sign(
-    { userId, username, name, isProduction, roleName, anotherWarehouseId },
+    {
+      userId,
+      username,
+      name,
+      isProduction,
+      isWarehouse,
+      roleName,
+      anotherWarehouseId,
+    },
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: "12h",
@@ -70,7 +87,7 @@ export const login = async (req, res) => {
         .json({ message: "Username atau password tidak sesuai" });
     }
 
-    const { id: userId, name, isProduction, anotherWarehouseId } = user;
+    const { id: userId, name, isProduction, isWarehouse, anotherWarehouseId } = user;
     const roleName = user.Role.roleName;
 
     const { accessToken, refreshToken } = generateTokens(
@@ -78,6 +95,7 @@ export const login = async (req, res) => {
       username,
       name,
       isProduction,
+      isWarehouse,
       roleName,
       anotherWarehouseId
     );
@@ -154,6 +172,7 @@ export const refreshToken = async (req, res) => {
           username,
           name,
           isProduction,
+          isWarehouse,
           anotherWarehouseId,
         } = user;
         const roleName = user.Role.roleName;
@@ -162,6 +181,7 @@ export const refreshToken = async (req, res) => {
           username,
           name,
           isProduction,
+          isWarehouse,
           roleName,
           anotherWarehouseId
         );
