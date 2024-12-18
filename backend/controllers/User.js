@@ -15,7 +15,17 @@ export const getUser = async (req, res) => {
   try {
     const response = await User.findAll({
       where: { flag: 1 },
-      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+      attributes: [
+        "id",
+        "username",
+        "name",
+        "position",
+        "img",
+        "noHandphone",
+        "email",
+        "createdAt",
+        "updatedAt",
+      ],
       include: [
         {
           model: Role,
@@ -79,7 +89,17 @@ export const getUserById = async (req, res) => {
         id: userId,
         flag: 1,
       },
-      attributes: ["id", "username", "name", "position", "img", "noHandphone", "email", "createdAt", "updatedAt"],
+      attributes: [
+        "id",
+        "username",
+        "name",
+        "position",
+        "img",
+        "noHandphone",
+        "email",
+        "createdAt",
+        "updatedAt",
+      ],
       include: [
         {
           model: Role,
@@ -148,12 +168,22 @@ export const createUser = async (req, res) => {
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if ((!username || !password || !name || !roleId || !position, !organizationId || isProduction == null)) {
-    return res.status(400).json({ message: "username, password, name, roleId, position, organization and isProduction must be filled" });
+  if (
+    (!username || !password || !name || !roleId || !position,
+    !organizationId || isProduction == null)
+  ) {
+    return res
+      .status(400)
+      .json({
+        message:
+          "username, password, name, roleId, position, organization and isProduction must be filled",
+      });
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ message: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters" });
   }
 
   try {
@@ -257,13 +287,27 @@ export const createUserAndOrg = async (req, res) => {
     warehouseId,
     plantId,
     isProduction,
+    isWarehouse,
   } = req.body;
 
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
 
-  if (!username || !password || !name || !roleId || !position || !warehouseId || isProduction == null) {
-    return res.status(400).json({ message: "username, password, name, roleId, position, warehouseId and isProduction must be filled" });
+  if (
+    !username ||
+    !password ||
+    !name ||
+    !roleId ||
+    !position ||
+    !warehouseId ||
+    isProduction == null
+  ) {
+    return res
+      .status(400)
+      .json({
+        message:
+          "username, password, name, roleId, position, warehouseId and isProduction must be filled",
+      });
   }
 
   let organizationId;
@@ -304,7 +348,9 @@ export const createUserAndOrg = async (req, res) => {
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
     }
 
     const existingUser = await User.findOne({
@@ -346,9 +392,14 @@ export const createUserAndOrg = async (req, res) => {
         sectionId: role.roleName === "section head" ? sectionId : null,
         departmentId: role.roleName === "department head" ? departmentId : null,
         divisionId: role.roleName === "division head" ? divisionId : null,
-        warehouseId: role.roleName === "warehouse staff" || role.roleName === "warehouse member" ? warehouseId : null,
+        warehouseId:
+          role.roleName === "warehouse staff" ||
+          role.roleName === "warehouse member"
+            ? warehouseId
+            : null,
         organizationId: organizationId,
         isProduction: isProduction,
+        isWarehouse: isWarehouse,
         anotherWarehouseId: warehouseId,
       },
       { transaction }
