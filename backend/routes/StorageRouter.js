@@ -23,7 +23,18 @@ router.put("/storage/:id", checkRole(["super admin"]), updateStorage);
 router.get("/storage-delete/:id", checkRole(["super admin"]), deleteStorage);
 router.get(
   "/storage-plant/:id",
-  checkRole(["super admin", "warehouse member", "warehouse staff"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
   getStorageByPlant
 );
 
