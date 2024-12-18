@@ -47,7 +47,7 @@ const ProductList = () => {
   const [modalOrder, setModalOrder] = useState(false)
   const [allVisible, setAllVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const minOrder = selectedProduct?.Iventory?.Material?.minOrder  
+  const minOrder = selectedProduct?.Material?.minOrder  
   const [quantity, setQuantity] = useState(minOrder)
   const [products, setProducts] = useState([])
   const [visibleCount, setVisibleCount] = useState(12)
@@ -190,6 +190,7 @@ const ProductList = () => {
 
   const handleModalCart = (product) => {
     setSelectedProduct(product)
+    setQuantity(product.Material?.minOrder || 1)
     setModalOrder(true)
   }
 
