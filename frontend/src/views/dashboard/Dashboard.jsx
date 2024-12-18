@@ -29,7 +29,7 @@ import 'primereact/resources/primereact.min.css'
 
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
-import { Modal, Button } from '@mui/material' // Importing Material-UI components
+import { Button } from 'primereact/button'
 import useManageStockService from '../../services/ManageStockService'
 import useDashboardService from '../../services/DashboardService'
 import useMasterDataService from '../../services/MasterDataService'
@@ -487,6 +487,16 @@ const Dashboard = () => {
     setModalOpen(false)
   }
 
+  const actionBodyTemplate = (rowData) => (
+    <div className="d-flex justify-content-center align-items-center">
+      <Button
+        icon="pi pi-pencil"
+        className="p-row-editor-init p-link"
+        onClick={() => handleInputIncoming(rowData)}
+      />
+    </div>
+  )
+
   return (
     <CRow>
       <CCol>
@@ -778,10 +788,12 @@ const Dashboard = () => {
                 <Column field="Incomings[0].planning" header="Qty Incom" />
                 <Column field="estimatedStock" header="Estim.Stock" />
                 <Column
-                  field="evaluation"
-                  header="Evaluation"
-                  body={statusBodyTemplate}
+                  header="Action"
+                  body={actionBodyTemplate}
+                  headerStyle={{ width: '5%' }}
                   bodyStyle={{ textAlign: 'center' }}
+                  frozen
+                  alignFrozen="right"
                 />
               </DataTable>
             )}
