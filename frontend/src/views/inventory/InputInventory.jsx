@@ -66,15 +66,21 @@ const InputInventory = () => {
   const [conversionRate, setConversionRate] = useState(0)
   const [visible, setVisible] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage2, setCurrentPage2] = useState(1)
   const [matchedMaterialNos, setMatchedMaterialNos] = useState([])
+  const [remainCounter, setRemainCounter] = useState(0)
   const itemsPerPage = 10
 
   const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfLastItem2 = currentPage2 * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const indexOfFirstItem2 = indexOfLastItem2 - itemsPerPage
   const currentItems =
     filteredInventory.length > 0
       ? filteredInventory.slice(indexOfFirstItem, indexOfLastItem)
       : inventory.slice(indexOfFirstItem, indexOfLastItem)
+
+  const itemsList = items.slice(indexOfFirstItem2, indexOfLastItem2)
 
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const { getInventory, updateInventorySubmit } = useManageStockService()
@@ -126,6 +132,7 @@ const InputInventory = () => {
 
     // Perbarui state dengan daftar materialNo yang cocok
     setMatchedMaterialNos(uniqueMatches)
+    setRemainCounter(inventoryData.length - uniqueMatches.length)
   }, [items, filteredInventory, inventory, selectedAddressCodeVal])
 
   const getPlant = async () => {
@@ -158,8 +165,16 @@ const InputInventory = () => {
   const getInventories = async (storageId, type) => {
     try {
       const response = await getInventory(plantId, storageId, type)
-      setInventory(response.data)
-      setCurrentPage(1)
+
+      // Urutkan data berdasarkan addressRackName secara ascending
+      const sortedData = response.data.sort((a, b) => {
+        const rackA = a.Address_Rack?.addressRackName?.toLowerCase() || '' // Lowercase untuk konsistensi
+        const rackB = b.Address_Rack?.addressRackName?.toLowerCase() || ''
+        return rackA.localeCompare(rackB)
+      })
+
+      setInventory(sortedData) // Simpan data yang sudah diurutkan
+      setCurrentPage(1) // Reset halaman ke 1
     } catch (error) {
       console.error(error)
     }
@@ -793,8 +808,16 @@ const InputInventory = () => {
       const inventoryByAddress = inventory.filter(
         (item) => item.Address_Rack.addressRackName.slice(0, 2) === selectedAddressCode.label,
       )
+
+      // Urutkan data yang difilter berdasarkan addressRackName secara ASC
+      const sortedInventory = inventoryByAddress.sort((a, b) => {
+        const rackA = a.Address_Rack?.addressRackName?.toLowerCase() || ''
+        const rackB = b.Address_Rack?.addressRackName?.toLowerCase() || ''
+        return rackA.localeCompare(rackB)
+      })
+
       setCurrentPage(1)
-      setFilteredInventory(inventoryByAddress) // Simpan data yang sudah difilter ke state
+      setFilteredInventory(sortedInventory) // Simpan data yang sudah difilter dan diurutkan ke state
     } else {
       // Reset jika tidak ada address code yang dipilih
       setFilteredInventory([]) // Set empty jika tidak ada address code
@@ -1041,6 +1064,16 @@ const InputInventory = () => {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   }
 
+  const handleRowClick = (row) => {
+    setSelectedMaterialNo({ value: row.id, label: row.Material.materialNo })
+    setSelectedDescription({ value: row.id, label: row.Material.description })
+    setSelectedAddress({ value: row.id, label: row.Address_Rack.addressRackName })
+    setConversionUom(row.Material.Packaging?.packaging)
+    setConversionRate(row.Material.Packaging?.unitPackaging)
+    setBaseUom(row.Material.uom)
+    quantityInputRef.current?.focus() // Focus on quantity input
+  }
+
   return (
     <CRow>
       <CCol>
@@ -1228,10 +1261,16 @@ const InputInventory = () => {
                 {visible ? 'Hide List' : 'Show List'}
               </CButton>
 
+              {/* Remain counter */}
+              <div className="mt-3">
+                <h5>Remain: {remainCounter}</h5>
+              </div>
+
               <CCollapse visible={visible}>
                 <CCard className="mt-3">
                   <CCardBody>
                     <CTable align="middle" responsive className="text-center">
+                      <CTableCaption>List of items</CTableCaption>
                       <CTableHead>
                         <CTableRow>
                           <CTableHeaderCell scope="col">#</CTableHeaderCell>
@@ -1252,6 +1291,8 @@ const InputInventory = () => {
                                     ? 'success'
                                     : 'transparent' // Jika tidak cocok, gunakan warna "primary"
                                 }
+                                onClick={() => handleRowClick(item)} // Tambahkan event onClick
+                                style={{ cursor: 'pointer' }} // Tambahkan gaya pointer untuk indikasi interaksi
                               >
                                 <CTableDataCell>{index + 1 + indexOfFirstItem}</CTableDataCell>
                                 <CTableDataCell>
@@ -1273,7 +1314,7 @@ const InputInventory = () => {
                         )}
                       </CTableBody>
                     </CTable>
-                    <div className="mt-3">
+                    <div className="mt-3 d-flex justify-content-center">
                       <Pagination
                         currentPage={currentPage}
                         totalPages={Math.ceil(
@@ -1333,7 +1374,7 @@ const InputInventory = () => {
               <hr />
               <CRow className="mt-4">
                 <CTable striped align="middle" responsive className="text-center">
-                  <CTableCaption>List of items</CTableCaption>
+                  <CTableCaption>List of items ready to submit</CTableCaption>
                   <CTableHead>
                     <CTableRow>
                       <CTableHeaderCell scope="col">#</CTableHeaderCell>
@@ -1346,7 +1387,7 @@ const InputInventory = () => {
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                    {items.map((item, index) => (
+                    {itemsList.map((item, index) => (
                       <CTableRow key={index}>
                         <CTableDataCell>{index + 1}</CTableDataCell>
                         <CTableDataCell>{item.materialNo}</CTableDataCell>
@@ -1397,6 +1438,14 @@ const InputInventory = () => {
                     ))}
                   </CTableBody>
                 </CTable>
+
+                <div className="d-flex justify-content-center">
+                  <Pagination
+                    currentPage={currentPage2}
+                    totalPages={items.length > 0 ? Math.ceil(items.length / itemsPerPage) : 1} // Menentukan total halaman
+                    onPageChange={(page) => setCurrentPage2(page)}
+                  />
+                </div>
               </CRow>
               <CRow className="mt-3">
                 <CCol className="d-flex justify-content-end">

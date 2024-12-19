@@ -330,6 +330,12 @@ const Material = () => {
         const formatedPrice = item.price
           ? 'Rp. ' + item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
           : null
+        const formattedCreatedAt = item.createdAt
+          ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
+          : ''
+        const formattedUpdatedAt = item.updatedAt
+          ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          : ''
         return {
           ...item,
           plant,
@@ -562,6 +568,8 @@ const Material = () => {
     })
   }
 
+  console.log('material', materials)
+
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = materials.map((item) => ({
@@ -569,14 +577,20 @@ const Material = () => {
         materialNo: item.materialNo,
         description: item.description,
         uom: item.uom,
-        price: item.price,
         type: item.type,
-        Category: item.Category.categoryName,
-        Supplier: item.Supplier.supplierName,
+        category: item.Category?.categoryName,
+        price: item.price,
+        mrpType: item.mrpType,
         minStock: item.minStock,
         maxStock: item.maxStock,
-        'Created At': item.formattedCreatedAt,
-        'Updated At': item.formattedUpdatedAt,
+        minOrder: item.minOrder,
+        packaging: item.Packaging?.packaging,
+        unitPackaging: item.Packaging?.unitPackaging,
+        supplier: item.Supplier?.supplierName,
+        storage: item.Storages[0]?.storageName,
+        plant: item.Storages[0]?.Plant?.plantName,
+        CreatedAt: item.formattedCreatedAt,
+        UpdatedAt: item.formattedUpdatedAt,
       }))
 
       // Deklarasikan worksheet hanya sekali
