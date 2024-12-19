@@ -1072,6 +1072,7 @@ const InputInventory = () => {
     setConversionRate(row.Material.Packaging?.unitPackaging)
     setBaseUom(row.Material.uom)
     quantityInputRef.current?.focus() // Focus on quantity input
+    window.scrollTo(0, 0);
   }
 
   return (
