@@ -296,22 +296,7 @@ export const updateIncoming = async (req, res) => {
     const incomingId = req.params.id;
     const actual = req.body.actual;
 
-    // Validasi untuk quantity actual tidak boleh kurang dari 0
-    if (req.body.actual < 0) {
-      return res.status(400).json({ message: "Quantity not allowed under 0" });
-    }
-
-    // Update data incoming dalam transaksi
-    await Incoming.update(
-      {
-        actual,
-      },
-      {
-        where: { id: incomingId },
-        transaction,
-      }
-    );
-
+    // Cek incomingId
     const incoming = await Incoming.findOne({
       where: { id: incomingId },
       transaction,
@@ -321,6 +306,39 @@ export const updateIncoming = async (req, res) => {
       where: { id: incoming.inventoryId },
       transaction,
     });
+
+    if (!incoming) {
+      return res.status(404).json({ message: "Incoming not found" });
+    }
+
+    if (!inventory) {
+      return res.status(404).json({ message: "Inventory not found" });
+    }
+
+    // Validasi untuk quantity actual tidak boleh kurang dari 0
+    if (req.body.actual < 0) {
+      return res.status(400).json({ message: "Quantity not allowed under 0" });
+    }
+
+    // Set status incoming
+    let status;
+    if (req.body.actual < incoming.planning) {
+      status = "partial";
+    } else {
+      status = "completed";
+    }
+
+    // Update data incoming dalam transaksi
+    await Incoming.update(
+      {
+        actual,
+        status,
+      },
+      {
+        where: { id: incomingId },
+        transaction,
+      }
+    );
 
     // Membuat log entry dalam transaksi
     await LogEntry.create(

@@ -453,6 +453,7 @@ export const uploadIncomingPlan = async (req, res) => {
         inventoryId,
         planning: row[2],
         incomingDate: req.body.importDate,
+        status: "not complete",
         logImportId,
       });
 
@@ -582,6 +583,14 @@ export const uploadIncomingActual = async (req, res) => {
           continue;
         }
 
+        // Set status
+        let status;
+        if (actualQuantity < planningQuantity) {
+          status = "partial";
+        } else {
+          status = "completed";
+        }
+
         const materialId = await getMaterialIdByMaterialNo(
           removeWhitespace(materialNo)
         );
@@ -613,6 +622,7 @@ export const uploadIncomingActual = async (req, res) => {
             planning: planningQuantity,
             actual: actualQuantity,
             inventoryId,
+            status,
             logImportId,
           });
         }

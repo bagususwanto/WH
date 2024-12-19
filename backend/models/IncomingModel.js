@@ -26,6 +26,14 @@ const Incoming = db.define(
         key: "id",
       },
     },
+    incomingDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -33,10 +41,6 @@ const Incoming = db.define(
         model: LogImport,
         key: "id",
       },
-    },
-    incomingDate: {
-      type: DataTypes.DATE,
-      allowNull: false,
     },
   },
   {

@@ -14,6 +14,9 @@ startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
 const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
+// today - 8 hours
+const today = new Date(new Date().getTime() - 8 * 60 * 60 * 1000); 
+
 export const getInventoryDashboard = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10; // Default top 10
@@ -30,7 +33,10 @@ export const getInventoryDashboard = async (req, res) => {
     let operator;
     let whereConditionPlant;
 
-    if ((!req.query.oprt && req.query.value) || (req.query.oprt && !req.query.value)) {
+    if (
+      (!req.query.oprt && req.query.value) ||
+      (req.query.oprt && !req.query.value)
+    ) {
       return res.status(400).send({
         status: "error",
         message: "Invalid operator or value",
@@ -120,7 +126,15 @@ export const getInventoryDashboard = async (req, res) => {
       include: [
         {
           model: Material,
-          attributes: ["materialNo", "uom", "description", "minStock", "maxStock", "supplierId", "type"],
+          attributes: [
+            "materialNo",
+            "uom",
+            "description",
+            "minStock",
+            "maxStock",
+            "supplierId",
+            "type",
+          ],
           include: [
             {
               model: Supplier,
@@ -140,9 +154,7 @@ export const getInventoryDashboard = async (req, res) => {
           limit: 1,
           order: [["createdAt", "DESC"]],
           where: {
-            createdAt: {
-              [Op.between]: [startOfToday, endOfToday],
-            },
+            incomingDate: { [Op.gte]: today },
           },
         },
         {
@@ -169,7 +181,10 @@ export const getInventoryDashboard = async (req, res) => {
       ],
       where: whereCondition,
       attributes: [
-        [Sequelize.literal(`LEFT("Material"."materialNO", ${dynamicLength})`), "name"], // Use dynamicLength here
+        [
+          Sequelize.literal(`LEFT("Material"."materialNO", ${dynamicLength})`),
+          "name",
+        ], // Use dynamicLength here
         [Sequelize.literal(rumus), "stock"], // Calculate stock using dynamic formula
         "quantityActualCheck",
         [Sequelize.literal(`(${rumus}) + (${rumus2})`), "estimatedStock"], // Add rumus and rumus2 to get the totalStock
