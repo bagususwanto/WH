@@ -30,6 +30,8 @@ import {
 } from '@coreui/react'
 import { CIcon } from '@coreui/icons-react'
 import { cilImagePlus, cilXCircle } from '@coreui/icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -46,19 +48,11 @@ const MySwal = withReactContent(swal)
 
 const User = () => {
   const [users, setUsers] = useState([])
-  const [supplierOptions, setSupplierOptions] = useState([])
-  const [categoryOptions, setCategoryOptions] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
   const [plantOptions, setPlantOptions] = useState([])
   const [storage, setStorage] = useState([])
-  const [type, setType] = useState()
-  const [typeOptions, setTypeOptions] = useState([])
-  const [uomOptions, setUomOptions] = useState([])
-  const [mrpTypeOptions, setMRPTypeOptions] = useState([])
-  const [packagingOptions, setPackagingOptions] = useState([])
-  const [storageOptions, setStorageOptions] = useState([])
   const [positionOptions, setPositionOptions] = useState([])
   const [roleOptions, setRoleOptions] = useState([])
   const [groupOptions, setGroupOptions] = useState([])
@@ -101,22 +95,10 @@ const User = () => {
   const [imported, setImported] = useState(false)
   const [visibleColumns, setVisibleColumns] = useState([])
   const [isClearable, setIsClearable] = useState(true)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const animatedComponents = makeAnimated()
-  const inputRef = useRef(null)
-
-  const handleAccept = (e) => {
-    let value = e.target.value
-    // Menghapus angka 0 setelah +62
-    if (value.startsWith('+62 0')) {
-      value = '+62 ' + value.slice(5)
-    }
-
-    setCurrentUser((prev) => ({
-      ...prev,
-      noHandphone: value,
-    }))
-  }
 
   const {
     getMasterData,
@@ -162,6 +144,7 @@ const User = () => {
   const apiDepartment = 'department-public'
   const apiDivision = 'division-public'
   const apiPlant = 'plant-public'
+  const apiWarehouse = 'warehouse-public'
 
   useEffect(() => {
     setLoading(false)
@@ -174,6 +157,7 @@ const User = () => {
     getDepartment()
     getDivision()
     getPlant()
+    getWarehouse()
   }, [])
 
   // useEffect(() => {
@@ -186,6 +170,27 @@ const User = () => {
       ...provided,
       height: '38px', // Sesuaikan dengan tinggi CFormInput
       minHeight: '38px', // Hindari auto-resize
+    }),
+  }
+
+  const customStylesMultiSelct = {
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999, // Pastikan dropdown selalu terlihat di atas elemen lain
+    }),
+    control: (provided) => ({
+      ...provided,
+      minHeight: '38px', // Tinggi minimum komponen Select
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      maxHeight: '200px', // Maksimum tinggi kontainer nilai
+      overflowY: 'auto', // Gulir jika tinggi melebihi batas
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      display: 'flex',
+      alignItems: 'center',
     }),
   }
 
@@ -280,7 +285,7 @@ const User = () => {
     try {
       const response = await getMasterData(apiSection)
       const sectionOptions = response.data.map((section) => ({
-        label: section.sectionName,
+        label: `${section.sectionName} - ${section.sectionCode}`,
         value: section.sectionName,
         id: section.id,
       }))
@@ -329,6 +334,20 @@ const User = () => {
       setPlantOptions(plantOptions)
     } catch (error) {
       console.error('Error fetching Plant:', error)
+    }
+  }
+
+  const getWarehouse = async () => {
+    try {
+      const response = await getMasterData(apiWarehouse)
+      const warehouseOptions = response.data.map((warehouse) => ({
+        label: warehouse.warehouseName,
+        value: warehouse.warehouseName,
+        id: warehouse.id,
+      }))
+      setWarehouseOptions(warehouseOptions)
+    } catch (error) {
+      console.error('Error fetching Warehouse:', error)
     }
   }
 
@@ -888,6 +907,36 @@ const User = () => {
     <CFormInput {...props} ref={inputRef} />
   ))
 
+  const inputRef = useRef(null) // Ref untuk input
+
+  const handleOnAcceptNoHandphone = (value) => {
+    // Menghapus angka 0 setelah +62
+    if (value.startsWith('+62 0')) {
+      value = '+62 ' + value.slice(5)
+    }
+
+    // Hanya perbarui state jika nilai berubah
+    if (currentUser.noHandphone !== value) {
+      setCurrentUser((prevState) => ({
+        ...prevState,
+        noHandphone: value,
+      }))
+
+      // Kembalikan fokus ke input setelah state diperbarui
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 0)
+    }
+  }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const togglePasswordVisibilityConfirm = () => {
+    setShowConfirmPassword(!showConfirmPassword)
+  }
+
   return (
     <CRow>
       <CCol>
@@ -1055,7 +1104,7 @@ const User = () => {
                 {/* Form User */}
                 <CCol xs={12} lg={9}>
                   <CRow className="gy-3">
-                    <CCol xs={12} md={6} lg={4}>
+                    <CCol xs={12} md={12} lg={6}>
                       <label className="mb-2 required-label" htmlFor="username">
                         Username <span>*</span>
                       </label>
@@ -1069,19 +1118,28 @@ const User = () => {
                         readOnly={isEdit}
                       />
                     </CCol>
-                    <CCol xs={12} md={6} lg={4}>
+                    <CCol xs={12} md={12} lg={6}>
                       <label className="mb-2 required-label" htmlFor="fullname">
                         Fullname <span>*</span>
                       </label>
                       <CFormInput
                         id="fullname"
                         value={currentUser.name}
-                        onChange={(e) => setCurrentUser({ ...currentUser, name: e.target.value })}
+                        onChange={(e) =>
+                          setCurrentUser({
+                            ...currentUser,
+                            name: e.target.value
+                              .toLowerCase()
+                              .split(' ')
+                              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                              .join(' '),
+                          })
+                        }
                       />
                     </CCol>
-                    <CCol className="mb-3" xs={12} md={6} lg={4}>
-                      <label className="mb-2 required-label" htmlFor="email">
-                        Email <span>*</span>
+                    <CCol className="mb-3" xs={12} md={12} lg={6}>
+                      <label className="mb-2" htmlFor="email">
+                        Email
                       </label>
                       <CFormInput
                         type="email"
@@ -1090,16 +1148,16 @@ const User = () => {
                         onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })}
                       />
                     </CCol>
-                    <CCol className="mb-3" xs={12} md={6} lg={4}>
-                      <label className="mb-2 required-label" htmlFor="noHandphone">
-                        Phone Number <span>*</span>
+                    <CCol className="mb-3" xs={12} md={12} lg={6}>
+                      <label className="mb-2" htmlFor="noHandphone">
+                        Phone Number
                       </label>
                       <CFormInputWithMask
+                        inputRef={inputRef} // Menggunakan inputRef untuk mengontrol fokus
                         mask="+{62} 000-0000-0000"
                         id="noHandphone"
                         value={currentUser.noHandphone}
-                        inputRef={inputRef} // Tetap menjaga referensi ke input
-                        onAccept={handleAccept}
+                        onAccept={(value) => handleOnAcceptNoHandphone(value)}
                       />
                     </CCol>
                   </CRow>
@@ -1108,41 +1166,55 @@ const User = () => {
 
               {/* Password & Confirmation Password */}
               <CCol xs={12}>
-                <h5>Password & Confirmation Password</h5>
+                <h5>Password</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={4}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <label className="mb-2 required-label" htmlFor="password">
                   Password <span>*</span>
                 </label>
-                <CFormInput
-                  type="password"
-                  id="password"
-                  value={''}
-                  onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
-                />
+                <div className="input-with-icon">
+                  <CFormInput
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    value={currentUser.password}
+                    onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
+                  />
+                  <CButton onClick={togglePasswordVisibility} type="button" className="icon-button">
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                  </CButton>
+                </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={4}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <label className="mb-2 required-label" htmlFor="confirmPassword">
                   Confirmation Password <span>*</span>
                 </label>
-                <CFormInput
-                  type="password"
-                  id="confirmPassword"
-                  value={''}
-                  onChange={(e) =>
-                    setCurrentUser({ ...currentUser, confirmPassword: e.target.value })
-                  }
-                />
+                <div className="input-with-icon">
+                  <CFormInput
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    value={currentUser.confirmPassword}
+                    onChange={(e) =>
+                      setCurrentUser({ ...currentUser, confirmPassword: e.target.value })
+                    }
+                  />
+                  <CButton
+                    onClick={togglePasswordVisibilityConfirm}
+                    type="button"
+                    className="icon-button"
+                  >
+                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                  </CButton>
+                </div>
               </CCol>
 
               {/* Section: Position & Role */}
               <CCol xs={12}>
                 <h5>Position & Role</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="position">
-                    Position
+                  <label className="mb-2 required-label" htmlFor="position">
+                    Position <span>*</span>
                   </label>
                   <Select
                     value={currentUser.position}
@@ -1156,10 +1228,10 @@ const User = () => {
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="role">
-                    Role
+                  <label className="mb-2 required-label" htmlFor="role">
+                    Role <span>*</span>
                   </label>
                   <Select
                     value={currentUser.roleId}
@@ -1178,10 +1250,10 @@ const User = () => {
               <CCol xs={12}>
                 <h5>Organization</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="group">
-                    Group
+                  <label className="mb-2 required-label" htmlFor="group">
+                    Group <span>*</span>
                   </label>
                   <Select
                     value={currentUser.groupId}
@@ -1195,10 +1267,10 @@ const User = () => {
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="line">
-                    Line
+                  <label className="mb-2 required-label" htmlFor="line">
+                    Line <span>*</span>
                   </label>
                   <Select
                     value={currentUser.lineId}
@@ -1212,10 +1284,10 @@ const User = () => {
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="section">
-                    Section
+                  <label className="mb-2 required-label" htmlFor="section">
+                    Section <span>*</span>
                   </label>
                   <Select
                     value={currentUser.sectionId}
@@ -1229,10 +1301,10 @@ const User = () => {
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="department">
-                    Department
+                  <label className="mb-2 required-label" htmlFor="department">
+                    Department <span>*</span>
                   </label>
                   <Select
                     value={currentUser.departmentId}
@@ -1246,10 +1318,10 @@ const User = () => {
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="division">
-                    Division
+                  <label className="mb-2 required-label" htmlFor="division">
+                    Division <span>*</span>
                   </label>
                   <Select
                     value={currentUser.divisionId}
@@ -1268,29 +1340,29 @@ const User = () => {
               <CCol xs={12}>
                 <h5>Warehouse & Plant</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="warehouseAccess">
-                    Warehouse
+                  <label className="mb-2 required-label" htmlFor="warehouseAccess">
+                    Warehouse Access (Multiple) <span>*</span>
                   </label>
                   <Select
                     components={animatedComponents}
                     isMulti
                     value={currentUser.warehouseIds}
-                    options={groupOptions}
+                    options={warehouseOptions}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="warehouseAccess"
                     onChange={(e) => setCurrentUser({ ...currentUser, warehouseIds: e })}
-                    styles={customStyles}
+                    styles={customStylesMultiSelct}
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
+              <CCol className="mb-3" sm={12} md={6} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="plant">
-                    Plant
+                  <label className="mb-2 required-label" htmlFor="plantAccess">
+                    Plant <span>*</span>
                   </label>
                   <Select
                     value={currentUser.plantId}
@@ -1311,8 +1383,8 @@ const User = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="production">
-                    Production
+                  <label className="mb-2 required-label" htmlFor="production">
+                    Production <span>*</span>
                   </label>
                   <Select
                     value={currentUser.isProduction}
@@ -1328,8 +1400,8 @@ const User = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={6}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="warehouse">
-                    Warehouse
+                  <label className="mb-2 required-label" htmlFor="warehouse">
+                    Warehouse <span>*</span>
                   </label>
                   <Select
                     value={currentUser.isWarehouse}

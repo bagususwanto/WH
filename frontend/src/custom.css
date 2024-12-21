@@ -43,3 +43,26 @@ button.p-row-editor-save.p-link {
 .required-label span {
   color: red;
 }
+
+.password-input-container {
+  position: relative;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.icon-button {
+  position: absolute;
+  right: 10px; /* Atur jarak dari kanan */
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent; /* Menghilangkan latar belakang */
+  border: none; /* Menghilangkan border */
+  cursor: pointer; /* Menunjukkan bahwa ini dapat diklik */
+  outline: none; /* Menghilangkan outline */
+}
+
+.icon-button:focus {
+  outline: none; /* Menghilangkan outline saat fokus */
+}
