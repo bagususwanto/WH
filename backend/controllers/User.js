@@ -10,6 +10,7 @@ import Division from "../models/DivisionModel.js";
 import Organization from "../models/OrganizationModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
 import db from "../utils/Database.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const getUser = async (req, res) => {
   try {
@@ -23,6 +24,8 @@ export const getUser = async (req, res) => {
         "img",
         "noHandphone",
         "email",
+        "isProduction",
+        "isWarehouse",
         "createdAt",
         "updatedAt",
       ],
@@ -38,22 +41,27 @@ export const getUser = async (req, res) => {
           include: [
             {
               model: Group,
+              required: false,
               where: { flag: 1 },
             },
             {
               model: Line,
+              required: false,
               where: { flag: 1 },
             },
             {
               model: Section,
+              required: false,
               where: { flag: 1 },
             },
             {
               model: Department,
+              required: false,
               where: { flag: 1 },
             },
             {
               model: Division,
+              required: false,
               where: { flag: 1 },
             },
             {
@@ -62,12 +70,18 @@ export const getUser = async (req, res) => {
             },
           ],
         },
+        {
+          model: Warehouse,
+          through: { attributes: [] },
+          where: { flag: 1 },
+          required: false,
+        },
       ],
     });
 
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -172,12 +186,10 @@ export const createUser = async (req, res) => {
     (!username || !password || !name || !roleId || !position,
     !organizationId || isProduction == null)
   ) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "username, password, name, roleId, position, organization and isProduction must be filled",
-      });
+    return res.status(400).json({
+      message:
+        "username, password, name, roleId, position, organization and isProduction must be filled",
+    });
   }
 
   if (password.length < 6) {
@@ -273,10 +285,10 @@ export const createUserAndOrg = async (req, res) => {
   const {
     username,
     password,
+    confirmPassword,
     name,
     roleId,
     position,
-    img,
     noHandphone,
     email,
     groupId,
@@ -284,11 +296,16 @@ export const createUserAndOrg = async (req, res) => {
     sectionId,
     departmentId,
     divisionId,
-    warehouseId,
+    warehouseIds,
     plantId,
     isProduction,
     isWarehouse,
   } = req.body;
+
+  // Validasi password
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
 
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
@@ -299,15 +316,13 @@ export const createUserAndOrg = async (req, res) => {
     !name ||
     !roleId ||
     !position ||
-    !warehouseId ||
+    !warehouseIds ||
     isProduction == null
   ) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "username, password, name, roleId, position, warehouseId and isProduction must be filled",
-      });
+    return res.status(400).json({
+      message:
+        "username, password, name, roleId, position, warehouseId and isProduction must be filled",
+    });
   }
 
   let organizationId;
@@ -376,6 +391,20 @@ export const createUserAndOrg = async (req, res) => {
       return res.status(404).json({ message: "Role not found" });
     }
 
+    // Validasi role dengan warehouse staff atau warehouse member
+    if (
+      role.roleName === "warehouse staff" ||
+      role.roleName === "warehouse member"
+    ) {
+      if (!warehouseIds) {
+        return res.status(400).json({ message: "Warehouse is required" });
+      }
+
+      if (warehouseIds.length > 1) {
+        return res.status(400).json({ message: "Warehouse must be unique" });
+      }
+    }
+
     // Create the user
     const user = await User.create(
       {
@@ -384,7 +413,6 @@ export const createUserAndOrg = async (req, res) => {
         name: name,
         roleId: roleId,
         position: position,
-        img: img,
         noHandphone: noHandphone,
         email: email,
         groupId: role.roleName === "group head" ? groupId : null,
@@ -395,32 +423,35 @@ export const createUserAndOrg = async (req, res) => {
         warehouseId:
           role.roleName === "warehouse staff" ||
           role.roleName === "warehouse member"
-            ? warehouseId
+            ? warehouseIds[0]
             : null,
         organizationId: organizationId,
         isProduction: isProduction,
         isWarehouse: isWarehouse,
-        anotherWarehouseId: warehouseId,
+        anotherWarehouseId: warehouseIds[0],
       },
       { transaction }
     ); // Pass the transaction object
 
-    const userWarehouse = await UserWarehouse.findOne({
-      where: {
-        userId: user.id,
-        warehouseId: warehouseId,
-        flag: 1,
-      },
-    });
-
-    if (!userWarehouse) {
-      await UserWarehouse.create(
-        {
+    // Create UserWarehouse entries for each warehouseId
+    for (const warehouseId of warehouseIds) {
+      const userWarehouse = await UserWarehouse.findOne({
+        where: {
           userId: user.id,
           warehouseId: warehouseId,
+          flag: 1,
         },
-        { transaction }
-      );
+      });
+
+      if (!userWarehouse) {
+        await UserWarehouse.create(
+          {
+            userId: user.id,
+            warehouseId: warehouseId,
+          },
+          { transaction }
+        );
+      }
     }
 
     // Commit the transaction

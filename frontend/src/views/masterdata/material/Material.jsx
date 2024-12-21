@@ -176,6 +176,8 @@ const Material = () => {
     { field: 'Supplier.supplierName', header: 'Supplier', sortable: true },
     { field: 'storages', header: 'Storages', sortable: true },
     { field: 'plant', header: 'Plant', sortable: true },
+    { field: 'formattedCreatedAt', header: 'Created At', sortable: true },
+    { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
   ]
 
   const onColumnToggle = (event) => {
@@ -341,6 +343,8 @@ const Material = () => {
           plant,
           storages,
           formatedPrice,
+          formattedCreatedAt,
+          formattedUpdatedAt,
           // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
           // formattedUpdateAt: item.updatedAt
           //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')

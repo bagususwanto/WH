@@ -1034,6 +1034,121 @@ export const baseUom = [
   },
 ];
 
+export const positionData = [
+  {
+    id: 1,
+    position: "Advisor",
+  },
+  {
+    id: 2,
+    position: "Associate Director",
+  },
+  {
+    id: 3,
+    position: "BOD",
+  },
+  {
+    id: 4,
+    position: "Department Head",
+  },
+  {
+    id: 5,
+    position: "Deputy Division Head",
+  },
+  {
+    id: 6,
+    position: "Deputy Division Head Pjt.",
+  },
+  {
+    id: 7,
+    position: "Director",
+  },
+  {
+    id: 8,
+    position: "Division Head",
+  },
+  {
+    id: 9,
+    position: "Executive Project Leader",
+  },
+  {
+    id: 10,
+    position: "Group Head",
+  },
+  {
+    id: 11,
+    position: "Group Leader",
+  },
+  {
+    id: 12,
+    position: "ICT",
+  },
+  {
+    id: 13,
+    position: "Line Head",
+  },
+  {
+    id: 14,
+    position: "Master",
+  },
+  {
+    id: 15,
+    position: "Operator",
+  },
+  {
+    id: 16,
+    position: "President Director",
+  },
+  {
+    id: 17,
+    position: "Project GM",
+  },
+  {
+    id: 18,
+    position: "Project Leader",
+  },
+  {
+    id: 19,
+    position: "Project Manager",
+  },
+  {
+    id: 20,
+    position: "Section Head",
+  },
+  {
+    id: 21,
+    position: "Senior Executive Advisor",
+  },
+  {
+    id: 22,
+    position: "Senior Officer",
+  },
+  {
+    id: 23,
+    position: "Senior Project Leader",
+  },
+  {
+    id: 24,
+    position: "Senior Project Leader Advisor to BOD",
+  },
+  {
+    id: 25,
+    position: "Staff",
+  },
+  {
+    id: 26,
+    position: "Team Leader",
+  },
+  {
+    id: 27,
+    position: "Team Member",
+  },
+  {
+    id: 28,
+    position: "Vice President Director",
+  },
+];
+
 export const getTypeMaterialData = async (req, res) => {
   try {
     const data = typeMaterial;
@@ -1067,6 +1182,16 @@ export const getMrpType = async (req, res) => {
 export const getUom = async (req, res) => {
   try {
     const data = baseUom;
+    return res.status(200).json(data);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getPosition = async (req, res) => {
+  try {
+    const data = positionData;
     return res.status(200).json(data);
   } catch (error) {
     console.log(error.message);

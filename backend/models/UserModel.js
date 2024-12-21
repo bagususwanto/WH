@@ -47,7 +47,7 @@ const User = db.define(
       allowNull: true,
     },
     noHandphone: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     email: {
@@ -143,8 +143,8 @@ User.belongsTo(Line, { foreignKey: "lineId", onDelete: "NO ACTION" });
 Section.hasMany(User, { foreignKey: "sectionId", onDelete: "NO ACTION" });
 User.belongsTo(Section, { foreignKey: "sectionId", onDelete: "NO ACTION" });
 
-Warehouse.hasMany(User, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
-User.belongsTo(Warehouse, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
+// Warehouse.hasMany(User, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
+// User.belongsTo(Warehouse, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
 
 Department.hasMany(User, { foreignKey: "departmentId", onDelete: "NO ACTION" });
 User.belongsTo(Department, {

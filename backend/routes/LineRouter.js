@@ -1,5 +1,11 @@
 import express from "express";
-import { getLine, getLineById, createLine, updateLine, deleteLine } from "../controllers/Line.js";
+import {
+  getLine,
+  getLineById,
+  createLine,
+  updateLine,
+  deleteLine,
+} from "../controllers/Line.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
@@ -9,5 +15,6 @@ router.get("/line/:id", checkRole(["super admin"]), getLineById);
 router.post("/line", checkRole(["super admin"]), createLine);
 router.put("/line/:id", checkRole(["super admin"]), updateLine);
 router.get("/line-delete/:id", checkRole(["super admin"]), deleteLine);
+router.get("/line-public", getLine);
 
 export default router;

@@ -17,5 +17,6 @@ router.post("/section", checkRole(["super admin"]), createSection);
 router.put("/section/:id", checkRole(["super admin"]), updateSection);
 router.get("/section-delete/:id", checkRole(["super admin"]), deleteSection);
 router.get("/section-plant/:id", getSectionByPlant);
+router.get("/section-public", getSection);
 
 export default router;
