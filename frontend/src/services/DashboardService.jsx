@@ -60,11 +60,43 @@ const useDashboardService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+  const createIncomingPlan = async (warehouseId,data) => {
+    try {
+      const response = await axiosJWT.post(
+        `/incoming/${warehouseId}`, data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching  post inventory:')
+    }
+  }
+  const updateIncoming = async (warehouseId,data) => {
+    try {
+      const response = await axiosJWT.put(
+        `/incoming/${warehouseId}`, data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching  update inventory:')
+    }
+  }
 
   return {
     getInventoryCriticalStock,
     getInventoryLowestStock,
     getInventoryOverflowStock,
+    createIncomingPlan,
+    updateIncoming
   }
 }
 
