@@ -1072,7 +1072,7 @@ const InputInventory = () => {
     setConversionRate(row.Material.Packaging?.unitPackaging)
     setBaseUom(row.Material.uom)
     quantityInputRef.current?.focus() // Focus on quantity input
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0)
   }
 
   return (
@@ -1229,6 +1229,7 @@ const InputInventory = () => {
                     onChange={handleConversionChange}
                     value={quantityConversion ? formatWithCommas(quantityConversion) : ''}
                     inputMode="numeric"
+                    autoComplete="off"
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
@@ -1243,6 +1244,7 @@ const InputInventory = () => {
                     onChange={handleQuantityChange}
                     value={quantity ? formatWithCommas(quantity) : ''}
                     inputMode="numeric"
+                    autoComplete="off"
                   />
                 </CCol>
                 <CCol
