@@ -137,7 +137,7 @@ export const getAddressIdByAddressName = async (
 
     // Cek apakah address sudah ada
     let address = await AddressRack.findOne({
-      where: { addressRackName, flag: 1 },
+      where: { addressRackName, storageId, flag: 1 },
       attributes: ["id"],
     });
 
@@ -145,11 +145,6 @@ export const getAddressIdByAddressName = async (
     if (!address) {
       address = await AddressRack.create({
         addressRackName,
-        storageId,
-        logImportId,
-      });
-    } else {
-      await address.update({
         storageId,
         logImportId,
       });
