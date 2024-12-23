@@ -1,5 +1,7 @@
 import React, { useState, useEffect, Suspense, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { format, parseISO } from 'date-fns'
+import { MultiSelect } from 'primereact/multiselect'
 import {
   CCard,
   CCardHeader,
@@ -54,6 +56,7 @@ import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 import annotationPlugin from 'chartjs-plugin-annotation'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+
 //import '../../scss/customchart.scss'
 ChartJS.register(
   CategoryScale,
@@ -107,16 +110,19 @@ const Dashboard = () => {
   const [selectedData, setSelectedData] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState({ value: 'all', label: 'All' })
   const [modalDashboard, setModalDashboard] = useState(false)
+  const [modalActual, setModalActual] = useState(false)
   const [plant, setPlant] = useState([])
   const { getMasterData, getMasterDataById } = useMasterDataService()
   const datePickerRef = useRef(null)
   const [loadingSave, setLoadingSave] = useState(false)
   const apiPlant = 'plant-public'
   const [editData, setEditData] = useState({ incomingDate: null })
+  const apiWarehousePlant = 'warehouse-plant'
   const [isReceivingEdited, setIsReceivingEdited] = useState(false)
-  const [currentMaterial, setCurrentMaterial] = useState({
+  const [fetchNow, setFetchNow] = useState(false)
+  const [visibleColumns, setVisibleColumns] = useState(['Material No', 'Supplier']) // Kolom yang terlihat
+  const [currentIncoming, setCurrentIncoming] = useState({
     planning: '',
-    actual: '',
     incomingDate: '',
   })
   //Handle change Desc,Asc
@@ -142,7 +148,7 @@ const Dashboard = () => {
     fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
     fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
     fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
-  }, [selectedChart, itemNb, lowestItemNb, overflowItemNb, order, selectedPlant])
+  }, [selectedChart, itemNb, lowestItemNb, overflowItemNb, order, selectedPlant, fetchNow])
 
   // useEffect(() => {
   //   getWarehouse() // Fetch products on mount
@@ -152,7 +158,22 @@ const Dashboard = () => {
     try {
       const response = await getInventoryCriticalStock(itemNb, order, id)
       if (response.data && response.data.length > 0) {
-        setInventoriesCritical(response.data)
+        const dataWithFormattedFields = response.data.map((item) => {
+          const incomingDate = item.Incomings[0]?.incomingDate
+            ? format(parseISO(item.Incomings[0]?.incomingDate), 'yyyy-MM-dd') // Format incomingDate
+            : ''
+          const planning = item.Incomings[0]?.planning
+          const status = item.Incomings[0]?.status
+
+          return {
+            ...item,
+            incomingDate,
+            planning,
+            status,
+          }
+        })
+        console.log('data', dataWithFormattedFields)
+        setInventoriesCritical(dataWithFormattedFields)
       } else {
         setInventoriesCritical([]) // Set empty data if no results
       }
@@ -175,7 +196,17 @@ const Dashboard = () => {
       setInventoriesLowest([]) // Set empty data on error
     }
   }
-//test
+  const getWarehouseId = async (plantValue) => {
+    const apiWarehousePlant = 'warehouse-plant'
+    try {
+      const warehouseData = await getMasterDataById(apiWarehousePlant, plantValue)
+      return warehouseData?.id || null
+    } catch (error) {
+      console.error('Error fetching warehouse ID:', error)
+      return null
+    }
+  }
+
   // Function to fetch overflow stock data and handle empty data
   const fetchInventoryOverflowStock = async (overflowItemNb, order, id) => {
     try {
@@ -499,7 +530,7 @@ const Dashboard = () => {
     setModalOpen(false)
   }
 
-  const actionBodyTemplate = (rowData) => (
+  const actionBodyIncom = (rowData) => (
     <div className="d-flex justify-content-center align-items-center">
       <Button
         icon="pi pi-pencil"
@@ -508,45 +539,30 @@ const Dashboard = () => {
       />
     </div>
   )
+  const actionBodyReceiv = (rowData) => (
+    <div className="d-flex justify-content-center align-items-center">
+      <Button
+        icon="pi pi-box" // Ikon barang dari PrimeIcons
+        className="p-row-editor-init p-link"
+        onClick={() => handleInputActual(rowData)}
+      />
+    </div>
+  )
+  const handleInputActual = (rowData) => {
+    setEditData({
+      ...rowData,
+      plantId: rowData?.Address_Rack?.Storage?.Plant?.id || null, // Ambil plantId dari struktur data
+    })
+    setModalActual(true)
+  }
 
   const handleInputInventory = (rowData) => {
-    setEditData(rowData)
+    setEditData({
+      ...rowData,
+      plantId: rowData?.Address_Rack?.Storage?.Plant?.id || null, // Ambil plantId dari struktur data
+    })
     setModalDashboard(true)
   }
-  const handleEditMaterial = (material) => {
-    const selectedUOM = uomOptions.find((option) => option.value === material.uom)
-    const selectedType = typeOptions.find((option) => option.value === material.type)
-    const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
-    const selectedMRPType = mrpTypeOptions.find((option) => option.value === material.mrpType)
-    const selectedPackaging = packagingOptions.find(
-      (option) => option?.value === material.Packaging?.packaging,
-    )
-    const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
-    const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
-    const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
-    setIsEdit(true)
-    setCurrentMaterial({
-      id: material.id,
-      materialNo: material.materialNo,
-      description: material.description,
-      uom: selectedUOM || null,
-      price: material.price,
-      type: selectedType || null,
-      mrpType: selectedMRPType || null,
-      categoryId: selectedCategory || null,
-      supplierId: selectedSupplier || null,
-      packaging: selectedPackaging || null,
-      unitPackaging: material.Packaging?.unitPackaging,
-      minStock: material.minStock,
-      maxStock: material.maxStock,
-      minOrder: material.minOrder,
-      img: material.img,
-      storageId: selectedStorage || null,
-      plantId: selectedPlant || null,
-    })
-    setModal(true)
-  }
-
 
   const customStyles = {
     control: (provided) => ({
@@ -555,24 +571,22 @@ const Dashboard = () => {
     }),
   }
 
-  const typeOptions = [
-    { value: 'not_delivery', label: '❌', icon: '❌', color: 'red' },
-    { value: 'delivery', label: '✔️', icon: '✔️', color: 'green' },
-    { value: 'partial_delay', label: '⚠️', icon: '⚠️', color: 'orange' },
-  ]
+  const renderDeliveryStatus = (type) => {
+    const typeOptions = [
+      { value: 'not complete', label: 'Not Complete', icon: '❌', color: 'red' },
+      { value: 'delivery', label: 'Delivery', icon: '✔', color: 'green' },
+      { value: 'partial', label: 'Partial Delay', icon: '⚠', color: 'orange' },
+    ]
 
-  const getStatusLabel = (type) => {
-    switch (type?.value) {
-      case 'not_delivery':
-        return 'Not Delivery'
-      case 'delivery':
-        return 'Delivery'
-      case 'partial_delay':
-        return 'Partial Delay'
-      default:
-        return ''
-    }
+    const option = typeOptions.find((option) => option.value === type)
+
+    return option ? (
+      <span style={{ color: option.color, display: 'flex', alignItems: 'center' }}>
+        <span style={{ marginRight: '5px' }}>{option.icon}</span> {option.label}
+      </span>
+    ) : null
   }
+
   const handleIconClick = () => {
     if (datePickerRef.current) {
       datePickerRef.current.setFocus() // Focus the input to trigger the calendar
@@ -587,45 +601,107 @@ const Dashboard = () => {
       actual: isReceivingEdited ? prev.actual : value, // Mirror only if not manually edited
     }))
   }
-  
-  // Handle Quantity Actual Change
-  const handleReceivingChange = (value) => {
-    setIsReceivingEdited(true) // Mark as manually edited
-    setEditData((prev) => ({
-      ...prev,
-      actual: value,
-    }))
-  }
-  
-  // Handle Form Submission
+
+
   const handleSave = async () => {
     setLoadingSave(true)
-  
+
     try {
-      // Save the incoming plan
-      await createIncomingPlan({
-        ...editData,
-        incomingDate: editData.incomingDate || new Date(),
+      console.log('Saving data:', editData)
+
+      // Validasi plantId
+      const plantId = editData?.plantId
+      if (!plantId) {
+        throw new Error('Plant ID is missing')
+      }
+
+      // Ambil warehouseId berdasarkan plantId
+      const warehouseId = await getWarehouseId(plantId)
+      if (!warehouseId) {
+        throw new Error('Warehouse ID is missing')
+      }
+
+      // Simpan data inventory menggunakan warehouseId
+      await createIncomingPlan(warehouseId, {
+        incomingDate: editData.incomingDate,
+        planning: editData.planning,
+        inventoryId: editData.id,
       })
-  
-      // Update the inventory with actual data
-      await updateIncoming({
-        id: editData.id,
-        actual: editData.actual,
-      })
-  
-      // Update the table data
-      await fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
-      await fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
-      await fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
-  
-      setModalDashboard(false) // Close the modal
+
+      // fetch ulang
+      setFetchNow(true)
+
+      // Tutup modal
+      setModalDashboard(false)
     } catch (error) {
-      console.error('Error saving inventory data:', error)
+      console.error('Error saving data:', error)
+      alert('Failed to save data.')
     } finally {
       setLoadingSave(false)
+      setFetchNow(false)
     }
   }
+  console.log('cek',)
+  const handleInpuReceive = async () => {
+    setLoadingSave(true)
+
+    try {
+      console.log('Saving data:', editData)
+
+      // Validasi plantId
+      const plantId = editData?.plantId
+      if (!plantId) {
+        throw new Error('Plant ID is missing')
+      }
+
+      // Ambil warehouseId berdasarkan plantId
+      const warehouseId = await getWarehouseId(plantId)
+      if (!warehouseId) {
+        throw new Error('Warehouse ID is missing')
+      }
+
+      // Simpan data inventory menggunakan warehouseId
+      await updateIncoming(warehouseId, {
+        actual: editData?.actual,
+      })
+
+      // fetch ulang
+      setFetchNow(true)
+
+      // Tutup modal
+      setModalActual(false)
+    } catch (error) {
+      console.error('Error saving data:', error)
+      alert('Failed to save data.')
+    } finally {
+      setLoadingSave(false)
+      setFetchNow(false)
+    }
+  }
+  //hide coloumn
+
+  const columns = [
+    { field: 'Material.materialNo', header: 'Material No' },
+    { field: 'Material.Supplier.supplierName', header: 'Supplier' },
+  ]
+
+  const onColumnToggle = (e) => {
+    const selectedColumns = e.value.map((col) => col.header)
+    setVisibleColumns(selectedColumns)
+  }
+
+  const header = () => (
+    <MultiSelect
+      value={columns.filter((col) => visibleColumns.includes(col.header))}
+      options={columns}
+      optionLabel="header"
+      onChange={onColumnToggle}
+      className="w-full sm:w-20rem mb-2 mt-2"
+      display="chip"
+      placeholder="Show/Hide Columns"
+      style={{ borderRadius: '5px' }}
+    />
+  )
 
   return (
     <CRow>
@@ -870,7 +946,9 @@ const Dashboard = () => {
                         <strong>Planning Incoming:</strong>
                       </CCol>
                       <CCol xs={9}>
-                        {selectedData.Incomings.length > 0 ? selectedData.Incomings[0].planning : 0}{' '}
+                        {selectedData.Incomings.length > 0
+                          ? selectedData.Incomings[0]?.planning
+                          : 0}{' '}
                         {selectedData.Material.uom}
                       </CCol>
                     </CRow>
@@ -899,29 +977,55 @@ const Dashboard = () => {
                 emptyMessage="Tidak ada data inventaris."
                 size="small"
                 scrollable
+                header={header} // Tambahkan header di sini
               >
-                <Column field="Material.materialNo" header="Material No" />
-                <Column field="Material.description" header="Description" sortable />
+                {visibleColumns.includes('Material No') && (
+                  <Column field="Material.materialNo" header="Material No" frozen />
+                )}
+                <Column field="Material.description" header="Description" frozen />
                 <Column field="Material.uom" header="UoM" />
-                <Column field="Material.Supplier.supplierName" header="Supplier" />
-
-                {/* Conditional rendering of minStock/maxStock based on selected chart */}
+                {visibleColumns.includes('Supplier') && (
+                  <Column field="Material.Supplier.supplierName" header="Supplier" />
+                )}
                 {selectedChart === 'critical' || selectedChart === 'lowest' ? (
                   <Column field="Material.minStock" header="Min" />
                 ) : selectedChart === 'overflow' ? (
                   <Column field="Material.maxStock" header="Max" />
                 ) : null}
-
                 <Column field="quantityActualCheck" header="Actual" />
-                <Column field="stock" header="Stock (Shift)" />
-                <Column field="Incomings[0].createdAt" header="Delivery Date" />
-                <Column field="planning" header="Qty Planning" />
-                <Column field="actual" header="Qty Receiving" />
-                <Column field="Incomings[0].planning" header="Stock Outload" />
-                <Column field="estimatedStock" header="Delivery Status" />
                 <Column
-                  header="Action"
-                  body={actionBodyTemplate}
+                  field="stock"
+                  header="Stock (Shift)"
+                  body={(rowData) =>
+                    rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.0'
+                  }
+                />
+                <Column field="incomingDate" header="Delivery Date" />
+                <Column field="planning" header="Qty Plan." />
+                <Column
+                  field="Material.minStock"
+                  header="Stock Outlock"
+                  body={(rowData) =>
+                    `${(
+                      ((parseFloat(rowData.planning || 0) +
+                        parseFloat(rowData.quantityActualCheck || 0)) /
+                        parseFloat(rowData.Material?.minStock || 1)) *
+                      4.5
+                    ).toFixed(1)} (Shift)`
+                  }
+                />
+                <Column field="status" header="Delivery Status" />
+                <Column
+                  header="Order"
+                  body={actionBodyIncom}
+                  headerStyle={{ width: '5%' }}
+                  bodyStyle={{ textAlign: 'center' }}
+                  frozen
+                  alignFrozen="right"
+                />
+                <Column
+                  header="Receiv"
+                  body={actionBodyReceiv}
                   headerStyle={{ width: '5%' }}
                   bodyStyle={{ textAlign: 'center' }}
                   frozen
@@ -1008,20 +1112,6 @@ const Dashboard = () => {
               />
             </CCol>
 
-            <CCol md={5}>
-              <CFormInput
-                type="number"
-                min="0" // Prevent negative numbers
-                value={editData?.actual || ''}
-                onChange={(e) => handleReceivingChange(e.target.value)}
-                label={
-                  <span>
-                    Quantity Receiving <span style={{ color: 'red' }}>*</span>
-                  </span>
-                }
-                className="mb-3"
-              />
-            </CCol>
             <CCol md={3}>
               <CFormInput
                 type="number"
@@ -1060,6 +1150,51 @@ const Dashboard = () => {
             }
           >
             <CButton color="primary" onClick={handleSave}>
+              {loadingSave ? (
+                <>
+                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </CButton>
+          </Suspense>
+        </CModalFooter>
+      </CModal>
+      <CModal visible={modalActual} onClose={() => setModalActual(false)}>
+        <CModalHeader>
+          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CFormInput
+            type="text"
+            value={editData?.Material?.description || ''}
+            label="Description"
+            disabled
+            className="mb-3"
+          />
+          <CRow>
+            <CCol md={3}>
+              <CFormInput
+                type="text"
+                selected={editData.actual}
+                onChange={(actual) => setEditData({ ...editData, actual })}
+                label="Qty Receiv"
+                className="mb-3"
+              />
+            </CCol>
+          </CRow>
+        </CModalBody>
+        <CModalFooter>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+            <CButton color="primary" onClick={handleInpuReceive}>
               {loadingSave ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />
