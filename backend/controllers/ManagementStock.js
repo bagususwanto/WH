@@ -12,6 +12,7 @@ import { Op } from "sequelize";
 import db from "../utils/Database.js";
 import Packaging from "../models/PackagingModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
+import { status } from "./HarcodedData.js";
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
@@ -401,6 +402,7 @@ export const createPlanIncoming = async (req, res) => {
       {
         planning,
         inventoryId,
+        status: "not complete",
         logImportId: null,
         incomingDate,
       },
