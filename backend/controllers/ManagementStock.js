@@ -401,7 +401,6 @@ export const createPlanIncoming = async (req, res) => {
       {
         planning,
         inventoryId,
-        status: "not complete",
         logImportId: null,
         incomingDate,
       },

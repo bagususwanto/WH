@@ -172,11 +172,11 @@ const InputInventory = () => {
         const rackB = b.Address_Rack?.addressRackName?.toLowerCase() || ''
         return rackA.localeCompare(rackB)
       })
-
+      setFilteredInventory([]) // Kosongkan filteredInventory
       setInventory(sortedData) // Simpan data yang sudah diurutkan
       setCurrentPage(1) // Reset halaman ke 1
     } catch (error) {
-      console.error(error)
+      console.error(error) 
     }
   }
 
