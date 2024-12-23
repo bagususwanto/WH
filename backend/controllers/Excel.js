@@ -129,19 +129,20 @@ export const getMaterialIdByMaterialNo = async (materialNo) => {
 
 export const getAddressIdByAddressName = async (
   addressRackName,
-  storageName,
+  storageCode,
   logImportId
 ) => {
   try {
+    const storageId = await getStorageIdByStorageCode(storageCode);
+
     // Cek apakah address sudah ada
     let address = await AddressRack.findOne({
-      where: { addressRackName, flag: 1 },
+      where: { addressRackName, storageId, flag: 1 },
       attributes: ["id"],
     });
 
     // Jika tidak ditemukan, buat address baru
     if (!address) {
-      const storageId = await getStorageIdByStorageName(storageName);
       address = await AddressRack.create({
         addressRackName,
         storageId,
@@ -157,15 +158,15 @@ export const getAddressIdByAddressName = async (
   }
 };
 
-export const getStorageIdByStorageName = async (storageName) => {
+export const getStorageIdByStorageCode = async (storageCode) => {
   try {
     const storage = await Storage.findOne({
-      where: { storageName, flag: 1 },
+      where: { storageCode, flag: 1 },
       attributes: ["id"],
     });
 
     if (!storage) {
-      throw new Error(`Storage not found, name: ${storageName}`);
+      throw new Error(`Storage not found, name: ${storageCode}`);
     }
 
     return storage.id;
@@ -267,7 +268,7 @@ const checkAddressRackName = async (
 
   // Jika address tidak ditemukan, buat data baru
   if (!existingAddress) {
-    const storageId = await getStorageIdByStorageName(storageName);
+    const storageId = await getStorageIdByStorageCode(storageName);
     await AddressRack.create({
       addressRackName,
       storageId,
@@ -278,9 +279,9 @@ const checkAddressRackName = async (
   return true;
 };
 
-const checkStorageName = async (storageName) => {
+const checkStorageName = async (storageCode) => {
   const existingStorage = await Storage.findOne({
-    where: { storageName, flag: 1 },
+    where: { storageCode, flag: 1 },
   });
 
   // Jika storage tidak ditemukan, return  false
@@ -297,7 +298,7 @@ const validateHeaderIncoming = (header) => {
     "addressRackName",
     "planning",
     "actual",
-    "storageName",
+    "storageCode",
   ];
   return header.every(
     (value, index) =>
@@ -425,7 +426,7 @@ export const uploadIncomingPlan = async (req, res) => {
       }
 
       // Cek apakah address rack ada
-      await checkAddressRackName(row[1], row[4], logImportId);
+      // await checkAddressRackName(row[1], row[4], logImportId);
 
       // Mendapatkan materialId dengan MaterialNo
       const materialId = await getMaterialIdByMaterialNo(
@@ -676,15 +677,15 @@ export const getCategoryIdByCategoryName = async (categoryName) => {
   }
 };
 
-export const getStorageIdByName = async (storageName) => {
+export const getStorageIdByCode = async (storageCode) => {
   try {
     const storage = await Storage.findOne({
-      where: { storageName, flag: 1 },
+      where: { storageCode, flag: 1 },
       attributes: ["id"],
     });
 
     if (!storage) {
-      console.warn(`Storage ${storageName} not found`);
+      console.warn(`Storage ${storageCode} not found`);
       return null;
     }
 
@@ -738,7 +739,7 @@ const validateHeaderMaterial = (header) => {
     "unitPackaging",
     "category",
     "supplier",
-    "storageName",
+    "storageCode",
   ];
   return header.every(
     (value, index) =>
@@ -922,17 +923,17 @@ export const uploadMasterMaterial = async (req, res) => {
         const unitPackaging = row[11];
         const category = row[12];
         const supplier = row[13];
-        const storageName = row[14];
+        const storageCode = row[14];
 
         const existingMaterial = materialMap.get(materialNo);
         const categoryId = await getCategoryIdByCategoryName(category);
-        const storageId = await getStorageIdByName(storageName);
+        const storageId = await getStorageIdByCode(storageCode);
 
         if (!categoryId)
           throw new Error(`Category: ${category} does not exist`);
 
         if (!storageId)
-          throw new Error(`Storage: ${storageName} does not exist`);
+          throw new Error(`Storage: ${storageCode} does not exist`);
 
         // Check and update Material Storage
         if (existingMaterial) {
@@ -976,7 +977,7 @@ export const uploadMasterMaterial = async (req, res) => {
           !mrpType ||
           !img ||
           !category ||
-          !storageName
+          !storageCode
         ) {
           throw new Error(`Invalid data in row ${materialNo}, ${description}`);
         }

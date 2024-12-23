@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CCard,
@@ -7,10 +7,9 @@ import {
   CCol,
   CRow,
   CFormCheck,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
+  CSpinner,
+  CInputGroupText,
+  CFormTextarea,
   CModal,
   CModalHeader,
   CModalTitle,
@@ -19,14 +18,18 @@ import {
   CButton,
   CButtonGroup,
   CBadge,
-  CFormLabel,
-  CFormSelect,
+  CFormInput,
+  CDropdown,
+  CDropdownItem,
+  CInputGroup,
 } from '@coreui/react'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import Select from 'react-select'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/themes/nano/theme.css'
 import 'primereact/resources/primereact.min.css'
-
+import CIcon from '@coreui/icons-react'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Button } from 'primereact/button'
@@ -43,7 +46,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
-
+import 'react-datepicker/dist/react-datepicker.css'
+import { cilCalendar } from '@coreui/icons'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
@@ -87,6 +91,7 @@ const Dashboard = () => {
   const { getInventoryCriticalStock } = useDashboardService() // Service
   const { getInventoryLowestStock } = useDashboardService() // Service
   const { getInventoryOverflowStock } = useDashboardService() // Service
+  const { createIncomingPlan, updateIncoming } = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
   const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
@@ -101,12 +106,19 @@ const Dashboard = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedData, setSelectedData] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState({ value: 'all', label: 'All' })
-
+  const [modalDashboard, setModalDashboard] = useState(false)
   const [plant, setPlant] = useState([])
   const { getMasterData, getMasterDataById } = useMasterDataService()
-
+  const datePickerRef = useRef(null)
+  const [loadingSave, setLoadingSave] = useState(false)
   const apiPlant = 'plant-public'
-
+  const [editData, setEditData] = useState({ incomingDate: null })
+  const [isReceivingEdited, setIsReceivingEdited] = useState(false)
+  const [currentMaterial, setCurrentMaterial] = useState({
+    planning: '',
+    actual: '',
+    incomingDate: '',
+  })
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
     setOrder(event.target.value)
@@ -492,10 +504,128 @@ const Dashboard = () => {
       <Button
         icon="pi pi-pencil"
         className="p-row-editor-init p-link"
-        onClick={() => handleInputIncoming(rowData)}
+        onClick={() => handleInputInventory(rowData)}
       />
     </div>
   )
+
+  const handleInputInventory = (rowData) => {
+    setEditData(rowData)
+    setModalDashboard(true)
+  }
+  const handleEditMaterial = (material) => {
+    const selectedUOM = uomOptions.find((option) => option.value === material.uom)
+    const selectedType = typeOptions.find((option) => option.value === material.type)
+    const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
+    const selectedMRPType = mrpTypeOptions.find((option) => option.value === material.mrpType)
+    const selectedPackaging = packagingOptions.find(
+      (option) => option?.value === material.Packaging?.packaging,
+    )
+    const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
+    const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
+    const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
+    setIsEdit(true)
+    setCurrentMaterial({
+      id: material.id,
+      materialNo: material.materialNo,
+      description: material.description,
+      uom: selectedUOM || null,
+      price: material.price,
+      type: selectedType || null,
+      mrpType: selectedMRPType || null,
+      categoryId: selectedCategory || null,
+      supplierId: selectedSupplier || null,
+      packaging: selectedPackaging || null,
+      unitPackaging: material.Packaging?.unitPackaging,
+      minStock: material.minStock,
+      maxStock: material.maxStock,
+      minOrder: material.minOrder,
+      img: material.img,
+      storageId: selectedStorage || null,
+      plantId: selectedPlant || null,
+    })
+    setModal(true)
+  }
+
+
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      borderColor: '#ccc',
+    }),
+  }
+
+  const typeOptions = [
+    { value: 'not_delivery', label: '❌', icon: '❌', color: 'red' },
+    { value: 'delivery', label: '✔️', icon: '✔️', color: 'green' },
+    { value: 'partial_delay', label: '⚠️', icon: '⚠️', color: 'orange' },
+  ]
+
+  const getStatusLabel = (type) => {
+    switch (type?.value) {
+      case 'not_delivery':
+        return 'Not Delivery'
+      case 'delivery':
+        return 'Delivery'
+      case 'partial_delay':
+        return 'Partial Delay'
+      default:
+        return ''
+    }
+  }
+  const handleIconClick = () => {
+    if (datePickerRef.current) {
+      datePickerRef.current.setFocus() // Focus the input to trigger the calendar
+    }
+  }
+
+  // Handle Form Submission
+  const handlePlanningChange = (value) => {
+    setEditData((prev) => ({
+      ...prev,
+      planning: value,
+      actual: isReceivingEdited ? prev.actual : value, // Mirror only if not manually edited
+    }))
+  }
+  
+  // Handle Quantity Actual Change
+  const handleReceivingChange = (value) => {
+    setIsReceivingEdited(true) // Mark as manually edited
+    setEditData((prev) => ({
+      ...prev,
+      actual: value,
+    }))
+  }
+  
+  // Handle Form Submission
+  const handleSave = async () => {
+    setLoadingSave(true)
+  
+    try {
+      // Save the incoming plan
+      await createIncomingPlan({
+        ...editData,
+        incomingDate: editData.incomingDate || new Date(),
+      })
+  
+      // Update the inventory with actual data
+      await updateIncoming({
+        id: editData.id,
+        actual: editData.actual,
+      })
+  
+      // Update the table data
+      await fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+      await fetchInventoryLowestStock(lowestItemNb, order, selectedPlant.value)
+      await fetchInventoryOverflowStock(overflowItemNb, order, selectedPlant.value)
+  
+      setModalDashboard(false) // Close the modal
+    } catch (error) {
+      console.error('Error saving inventory data:', error)
+    } finally {
+      setLoadingSave(false)
+    }
+  }
 
   return (
     <CRow>
@@ -783,10 +913,12 @@ const Dashboard = () => {
                 ) : null}
 
                 <Column field="quantityActualCheck" header="Actual" />
-                <Column field="stock" header="Remain Stock" />
-                <Column field="Incomings[0].createdAt" header="Incom Date" />
-                <Column field="Incomings[0].planning" header="Qty Incom" />
-                <Column field="estimatedStock" header="Estim.Stock" />
+                <Column field="stock" header="Stock (Shift)" />
+                <Column field="Incomings[0].createdAt" header="Delivery Date" />
+                <Column field="planning" header="Qty Planning" />
+                <Column field="actual" header="Qty Receiving" />
+                <Column field="Incomings[0].planning" header="Stock Outload" />
+                <Column field="estimatedStock" header="Delivery Status" />
                 <Column
                   header="Action"
                   body={actionBodyTemplate}
@@ -800,6 +932,146 @@ const Dashboard = () => {
           </CCardBody>
         </CCard>
       </CCol>
+      <CModal visible={modalDashboard} onClose={() => setModalDashboard(false)}>
+        <CModalHeader>
+          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CFormInput
+            type="text"
+            value={editData?.Material?.description || ''}
+            label="Description"
+            disabled
+            className="mb-3"
+          />
+          <CRow>
+            <CCol md={6}>
+              <CFormInput
+                type="text"
+                value={editData?.Material?.materialNo || ''}
+                label="Material No."
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormInput
+                type="text"
+                value={editData?.stock || ''}
+                disabled
+                label="Stock (Shift)"
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormInput
+                type="text"
+                value={editData?.quantityActualCheck || ''}
+                disabled
+                label="Qty Actual"
+                className="mb-3"
+              />
+            </CCol>
+          </CRow>
+          <CRow>
+            <CCol md={7}>
+              <span htmlFor="incomingDate" className="form-label">
+                Delivery Date <span style={{ color: 'red' }}>*</span>
+              </span>
+
+              <CInputGroup className="mt-2">
+                <DatePicker
+                  ref={datePickerRef} // Attach the ref to the DatePicker
+                  selected={editData.incomingDate}
+                  onChange={(date) => setEditData({ ...editData, incomingDate: date })}
+                  dateFormat="yyyy-MM-dd"
+                  className="form-control"
+                />
+
+                <CInputGroupText onClick={handleIconClick}>
+                  <CIcon icon={cilCalendar} />
+                </CInputGroupText>
+              </CInputGroup>
+            </CCol>
+            <CCol md={5}>
+              <CFormInput
+                type="number"
+                min="0" // Prevent negative numbers
+                value={editData?.planning || ''}
+                onChange={(e) => handlePlanningChange(e.target.value)}
+                label={
+                  <span>
+                    Quantity Planning <span style={{ color: 'red' }}>*</span>
+                  </span>
+                }
+                className="mb-3"
+              />
+            </CCol>
+
+            <CCol md={5}>
+              <CFormInput
+                type="number"
+                min="0" // Prevent negative numbers
+                value={editData?.actual || ''}
+                onChange={(e) => handleReceivingChange(e.target.value)}
+                label={
+                  <span>
+                    Quantity Receiving <span style={{ color: 'red' }}>*</span>
+                  </span>
+                }
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormInput
+                type="number"
+                min="0" // Prevent negative numbers
+                value={
+                  parseFloat(editData?.actual || 0) + parseFloat(editData?.quantityActualCheck || 0)
+                } // Sum of Quantity Planning and Quantity Actual
+                label="Total"
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+
+            <CCol md={4}>
+              <CFormInput
+                type="text"
+                label="Stock Outlock"
+                disabled
+                className="mb-3"
+                value={`${(
+                  ((parseFloat(editData?.planning || 0) +
+                    parseFloat(editData?.quantityActualCheck || 0)) /
+                    parseFloat(editData?.Material?.minStock || 1)) *
+                  4.5
+                ).toFixed(1)} (Shift)`} // Calculate the Stock Outlock value and format to 1 decimal place
+              />
+            </CCol>
+          </CRow>
+        </CModalBody>
+        <CModalFooter>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+            <CButton color="primary" onClick={handleSave}>
+              {loadingSave ? (
+                <>
+                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </CButton>
+          </Suspense>
+        </CModalFooter>
+      </CModal>
     </CRow>
   )
 }

@@ -632,7 +632,7 @@ const Material = () => {
           unitPackaging: '',
           category: '',
           supplier: '',
-          storageName: '',
+          storageCode: '',
         },
       ]
 
