@@ -162,9 +162,9 @@ const InputInventory = () => {
     }
   }
 
-  const getInventories = async (storageId, type) => {
+  const getInventories = async (plantIdParams, type) => {
     try {
-      const response = await getInventory(plantId, storageId, type)
+      const response = await getInventory(plantIdParams, '', type)
 
       // Urutkan data berdasarkan addressRackName secara ascending
       const sortedData = response.data.sort((a, b) => {
@@ -239,6 +239,7 @@ const InputInventory = () => {
     if (selectedPlant) {
       setPlantId(selectedPlant.value)
       setSelectedPlantVal(selectedPlant)
+      setSelectedStorageVal(null)
 
       const filteredStorages = storage
         .filter((s) => s.plantId === selectedPlant.value)
@@ -246,10 +247,17 @@ const InputInventory = () => {
           value: s.id,
           label: s.storageName,
         }))
+
+      await getInventories(selectedPlant.value, 'DIRECT')
+
+      fetchInventoryFromIndexedDB(selectedPlant.value, (inventoryData) => {
+        setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+      })
+
       setStorageOptions(filteredStorages)
       setTypeMaterialOptions([])
-      setInventory([])
-      setFilteredInventory([])
+      // setInventory([])
+      // setFilteredInventory([])
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
@@ -280,9 +288,16 @@ const InputInventory = () => {
     }
 
     if (!selectedStorage) {
+      // Urutkan data yang difilter berdasarkan addressRackName secara ASC
+      const sortedInventory = inventory.sort((a, b) => {
+        const rackA = a.Address_Rack?.addressRackName?.toLowerCase() || ''
+        const rackB = b.Address_Rack?.addressRackName?.toLowerCase() || ''
+        return rackA.localeCompare(rackB)
+      })
       // Jika dropdown di-clear
       setSelectedStorageVal(null)
-      setInventory([]) // Kosongkan inventory jika storage di-clear
+      // setInventory([]) // Kosongkan inventory jika storage di-clear
+      setFilteredInventory(sortedInventory) // Kosongkan filteredInventory jika storage di-clear
       setSelectedMaterialNo(null)
       setSelectedDescription(null)
       setSelectedAddress(null)
@@ -297,7 +312,7 @@ const InputInventory = () => {
     }
 
     if (selectedStorage) {
-      setInventory([])
+      // setInventory([])
       setQuantity('')
       setConversionUom('')
       setBaseUom('')
@@ -313,13 +328,28 @@ const InputInventory = () => {
 
       setTypeMaterialOptions(mapTypeMaterial)
       try {
-        await getInventories(selectedStorage.value, 'DIRECT')
-        const selectedTypeMaterialOpt = mapTypeMaterial.find((tm) => tm.label === 'DIRECT')
-        setSelectedTypeMaterial(selectedTypeMaterialOpt)
+        // await getInventories(selectedStorage.value, 'DIRECT')
+        // const selectedTypeMaterialOpt = mapTypeMaterial.find((tm) => tm.label === 'DIRECT')
+        // setSelectedTypeMaterial(selectedTypeMaterialOpt)
         // Fetch data yang sesuai dengan selectedStorageVal
-        fetchInventoryFromIndexedDB(selectedStorage.label, (inventoryData) => {
-          setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+        // fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
+        //   setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
+        // })
+
+        // Filter data inventory berdasarkan address code yang dipilih
+        const inventoryByStorage = inventory.filter(
+          (item) => item.Address_Rack.Storage.id === selectedStorage.value,
+        )
+
+        // Urutkan data yang difilter berdasarkan addressRackName secara ASC
+        const sortedInventory = inventoryByStorage.sort((a, b) => {
+          const rackA = a.Address_Rack?.addressRackName?.toLowerCase() || ''
+          const rackB = b.Address_Rack?.addressRackName?.toLowerCase() || ''
+          return rackA.localeCompare(rackB)
         })
+
+        setCurrentPage(1)
+        setFilteredInventory(sortedInventory) // Simpan data yang sudah difilter dan diurutkan ke state
       } catch (error) {
         console.error(error)
       } finally {
@@ -406,7 +436,7 @@ const InputInventory = () => {
       setSelectedTypeMaterial(selectedType)
       setIsLoading(true) // Aktifkan loading
       try {
-        await getInventories(selectedStorageVal.value, selectedType.label)
+        await getInventories(selectedType.label)
       } catch (error) {
         console.error(error)
       } finally {
@@ -425,7 +455,7 @@ const InputInventory = () => {
     }
   }
 
-  const fetchInventoryFromIndexedDB = (selectedStorageVal, callback) => {
+  const fetchInventoryFromIndexedDB = (selectedPlantId, callback) => {
     const request = indexedDB.open('InventoryDB', 1)
 
     request.onupgradeneeded = function (e) {
@@ -433,7 +463,7 @@ const InputInventory = () => {
       if (!db.objectStoreNames.contains('inventory')) {
         const store = db.createObjectStore('inventory', { keyPath: 'id' })
         store.createIndex('materialNo', 'materialNo', { unique: false })
-        store.createIndex('storage', 'storage', { unique: false }) // Tambahkan index untuk storage
+        store.createIndex('plantId', 'plantId', { unique: false }) // Tambahkan index untuk plantId
         store.createIndex('createdAt', 'createdAt', { unique: false })
       }
     }
@@ -443,13 +473,13 @@ const InputInventory = () => {
       const transaction = db.transaction('inventory', 'readonly')
       const store = transaction.objectStore('inventory')
 
-      // Filter data berdasarkan nilai `storage`
-      const index = store.index('storage')
-      const storageRequest = index.getAll(selectedStorageVal.label)
+      // Filter data berdasarkan nilai `plantId`
+      const index = store.index('plantId')
+      const plantIdRequest = index.getAll(selectedPlantId)
 
-      storageRequest.onsuccess = function () {
+      plantIdRequest.onsuccess = function () {
         // Urutkan hasil berdasarkan createdAt secara ascending
-        const sortedData = storageRequest.result.sort((a, b) => {
+        const sortedData = plantIdRequest.result.sort((a, b) => {
           return new Date(a.createdAt) - new Date(b.createdAt)
         })
 
@@ -457,7 +487,7 @@ const InputInventory = () => {
         callback(sortedData)
       }
 
-      storageRequest.onerror = function () {
+      plantIdRequest.onerror = function () {
         MySwal.fire({
           title: 'Error!',
           text: 'Failed to fetch data from IndexedDB.',
@@ -490,7 +520,7 @@ const InputInventory = () => {
         address: selectedAddress.label,
         uom: baseUom,
         quantity: quantity,
-        storage: selectedStorageVal.label,
+        plantId: plantId,
         createdAt: new Date().toISOString(),
       }
 
@@ -502,7 +532,7 @@ const InputInventory = () => {
         if (!db.objectStoreNames.contains('inventory')) {
           const store = db.createObjectStore('inventory', { keyPath: 'id' })
           store.createIndex('materialNo', 'materialNo', { unique: false })
-          store.createIndex('storage', 'storage', { unique: false })
+          store.createIndex('plantId', 'plantId', { unique: false })
           store.createIndex('createdAt', 'createdAt', { unique: false })
         }
       }
@@ -534,7 +564,7 @@ const InputInventory = () => {
                 icon: 'success',
               })
               // Fetch data yang sesuai dengan selectedStorageVal
-              fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+              fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
                 setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
               })
             }
@@ -614,7 +644,7 @@ const InputInventory = () => {
             MySwal.fire('Deleted!', 'Your item has been removed.', 'success')
 
             // Fetch data yang sesuai dengan selectedStorageVal
-            fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+            fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
               setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
             })
           }
@@ -758,14 +788,14 @@ const InputInventory = () => {
 
           const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
           await updateInventorySubmit(warehouseId.id, items) // Mengirimkan semua item dalam satu body
-          await getInventories(selectedStorageVal.value, selectedTypeMaterial.label)
+          await getInventories(selectedTypeMaterial.label)
           MySwal.fire('Success', 'Inventory updated successfully!', 'success')
 
           // Membersihkan IndexedDB
           clearIndexedDB()
 
           // Fetch data yang sesuai dengan selectedStorageVal
-          fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+          fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
             setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
           })
         } catch (error) {
@@ -871,7 +901,7 @@ const InputInventory = () => {
             })
 
             // Refresh data inventory setelah update
-            fetchInventoryFromIndexedDB(selectedStorageVal.label, (inventoryData) => {
+            fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
               setItems(inventoryData) // Update state dengan data terbaru
             })
 
@@ -1108,11 +1138,11 @@ const InputInventory = () => {
                     id="storage"
                     onMenuOpen={handleStorageOpen}
                     onChange={handleStorageChange}
-                    styles={customStyles}
+                    // styles={customStyles}
                     value={selectedStorageVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mt-3">
+                {/* <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="type">Type</CFormLabel>
                   <Select
                     className="basic-single"
@@ -1126,8 +1156,8 @@ const InputInventory = () => {
                     styles={customStyles}
                     value={selectedTypeMaterial}
                   />
-                </CCol>
-                <CCol xs={12} sm={6} md={3} className="mt-3">
+                </CCol> */}
+                {/* <CCol xs={12} sm={6} md={3} className="mt-3">
                   <CFormLabel htmlFor="address">Address Code</CFormLabel>
                   <Select
                     className="basic-single"
@@ -1147,7 +1177,7 @@ const InputInventory = () => {
                     onChange={handleAddressCodeChange}
                     value={selectedAddressCodeVal}
                   />
-                </CCol>
+                </CCol> */}
               </CRow>
               <CRow>
                 <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">

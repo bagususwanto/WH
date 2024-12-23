@@ -60,7 +60,7 @@ export const getStorageByPlant = async (req, res) => {
     });
 
     if (!storage) {
-        return res.status(404).json({ message: "Storage not found" });
+      return res.status(404).json({ message: "Storage not found" });
     }
 
     const response = await Storage.findAll({
@@ -78,10 +78,27 @@ export const getStorageByPlant = async (req, res) => {
 
 export const createStorage = async (req, res) => {
   try {
-    const storageName = await Storage.findOne({ where: { storageName: req.body.storageName, flag: 1 } });
+    const { storageCode, storageName, plantId } = req.body;
+    if (!storageCode || !storageName || !plantId) {
+      return res.status(400).json({
+        message: "StorageCode, StorageName, and Plant are required",
+      });
+    }
 
-    if (storageName) {
-      return res.status(400).json({ message: "Storage name already exists" });
+    const plant = await Plant.findOne({
+      where: { id: plantId, flag: 1 },
+    });
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    const storage = await Storage.findOne({
+      where: { storageCode: storageCode, plantId: plantId, flag: 1 },
+    });
+
+    if (storage) {
+      return res.status(400).json({ message: "Storage already exists" });
     }
 
     await Storage.create(req.body);
