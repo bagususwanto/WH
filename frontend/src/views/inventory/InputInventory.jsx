@@ -176,7 +176,7 @@ const InputInventory = () => {
       setInventory(sortedData) // Simpan data yang sudah diurutkan
       setCurrentPage(1) // Reset halaman ke 1
     } catch (error) {
-      console.error(error) 
+      console.error(error)
     }
   }
 
@@ -340,6 +340,17 @@ const InputInventory = () => {
         const inventoryByStorage = inventory.filter(
           (item) => item.Address_Rack.Storage.id === selectedStorage.value,
         )
+
+        // validasi jika inventoryByStorage tidak ada
+        if (inventoryByStorage.length === 0) {
+          MySwal.fire({
+            title: 'Error!',
+            text: 'No inventory data found for this storage.',
+            icon: 'error',
+          })
+          setIsLoading(false)
+          return
+        }
 
         // Urutkan data yang difilter berdasarkan addressRackName secara ASC
         const sortedInventory = inventoryByStorage.sort((a, b) => {
@@ -1113,7 +1124,7 @@ const InputInventory = () => {
           <CForm>
             <CCardBody>
               <CRow>
-                <CCol xs={12} sm={6} md={3} className="mt-3">
+                <CCol xs={12} sm={6} md={5} xl={4} className="mt-3">
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
                     className="basic-single"
@@ -1127,7 +1138,7 @@ const InputInventory = () => {
                     value={selectedPlantVal}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={3} className="mt-3">
+                <CCol xs={12} sm={6} md={5} xl={4} className="mt-3">
                   <CFormLabel htmlFor="storage">Storage</CFormLabel>
                   <Select
                     className="basic-single"
