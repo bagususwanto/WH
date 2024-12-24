@@ -164,12 +164,13 @@ const Dashboard = () => {
             : ''
           const planning = item.Incomings[0]?.planning
           const status = item.Incomings[0]?.status
-
+          const actual = item.Incomings[0]?.actual
           return {
             ...item,
             incomingDate,
             planning,
             status,
+            actual,
           }
         })
         console.log('data', dataWithFormattedFields)
@@ -573,9 +574,9 @@ const Dashboard = () => {
 
   const renderDeliveryStatus = (type) => {
     const typeOptions = [
-      { value: 'not complete', label: 'Not Complete', icon: '❌', color: 'red' },
-      { value: 'delivery', label: 'Delivery', icon: '✔', color: 'green' },
-      { value: 'partial', label: 'Partial Delay', icon: '⚠', color: 'orange' },
+      { value: 'not complete', icon: '❌', color: 'red' },
+      { value: 'completed', icon: '✔', color: 'green' },
+      { value: 'partial', icon: '⚠', color: 'orange' },
     ]
 
     const option = typeOptions.find((option) => option.value === type)
@@ -601,7 +602,6 @@ const Dashboard = () => {
       actual: isReceivingEdited ? prev.actual : value, // Mirror only if not manually edited
     }))
   }
-
 
   const handleSave = async () => {
     setLoadingSave(true)
@@ -641,8 +641,8 @@ const Dashboard = () => {
       setFetchNow(false)
     }
   }
-  console.log('cek',)
-  const handleInpuReceive = async () => {
+
+  const handleInputReceive = async () => {
     setLoadingSave(true)
 
     try {
@@ -660,12 +660,25 @@ const Dashboard = () => {
         throw new Error('Warehouse ID is missing')
       }
 
-      // Simpan data inventory menggunakan warehouseId
-      await updateIncoming(warehouseId, {
-        actual: editData?.actual,
+      // Validasi incomingId
+      const incomingId = editData.Incomings[0].id // Pastikan editData memiliki incomingId
+      if (!incomingId) {
+        throw new Error('Incoming ID is missing')
+      }
+
+      // Validasi data actual
+      if (!editData.actual || isNaN(editData.actual)) {
+        throw new Error('Qty Receiv is missing or invalid')
+      }
+
+      // Simpan data inventory menggunakan incomingId dan warehouseId
+      const response = await updateIncoming(incomingId, warehouseId, {
+        actual: editData.actual,
       })
 
-      // fetch ulang
+      console.log('Update response:', response.data)
+
+      // Fetch ulang data setelah penyimpanan berhasil
       setFetchNow(true)
 
       // Tutup modal
@@ -678,7 +691,6 @@ const Dashboard = () => {
       setFetchNow(false)
     }
   }
-  //hide coloumn
 
   const columns = [
     { field: 'Material.materialNo', header: 'Material No' },
@@ -993,6 +1005,7 @@ const Dashboard = () => {
                   <Column field="Material.maxStock" header="Max" />
                 ) : null}
                 <Column field="quantityActualCheck" header="Actual" />
+
                 <Column
                   field="stock"
                   header="Stock (Shift)"
@@ -1002,6 +1015,7 @@ const Dashboard = () => {
                 />
                 <Column field="incomingDate" header="Delivery Date" />
                 <Column field="planning" header="Qty Plan." />
+                <Column field="actual" header="Qty Receive" />
                 <Column
                   field="Material.minStock"
                   header="Stock Outlock"
@@ -1014,7 +1028,12 @@ const Dashboard = () => {
                     ).toFixed(1)} (Shift)`
                   }
                 />
-                <Column field="status" header="Delivery Status" />
+                <Column
+                  field="status"
+                  header="Status"
+                  body={(rowData) => renderDeliveryStatus(rowData.status)}
+                />
+
                 <Column
                   header="Order"
                   body={actionBodyIncom}
@@ -1179,7 +1198,7 @@ const Dashboard = () => {
               <CFormInput
                 type="text"
                 selected={editData.actual}
-                onChange={(actual) => setEditData({ ...editData, actual })}
+                onChange={(e) => setEditData({ ...editData, actual: e.target.value })}
                 label="Qty Receiv"
                 className="mb-3"
               />
@@ -1194,7 +1213,7 @@ const Dashboard = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleInpuReceive}>
+            <CButton color="primary" onClick={handleInputReceive}>
               {loadingSave ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />

@@ -75,10 +75,10 @@ const useDashboardService = () => {
       handleError(error, 'Error fetching  post inventory:')
     }
   }
-  const updateIncoming = async (warehouseId,data) => {
+  const updateIncoming = async (incomingId,warehouseId,data) => {
     try {
       const response = await axiosJWT.put(
-        `/incoming/${warehouseId}`, data,
+        `/incoming/${incomingId}/${warehouseId}`, data,
         {
           headers: {
             Authorization: `Bearer ${token}`,
