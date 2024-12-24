@@ -295,7 +295,7 @@ const Dashboard = () => {
       datasets: [
         {
           label: chartTitle,
-          
+
           data: data.map((item) => item.stock),
           backgroundColor: data.map((item) => {
             // If chart title is "Critical Stock" and stock < 1.5, color red
@@ -353,16 +353,16 @@ const Dashboard = () => {
       options: {
         animation: {
           y: {
-            duration: 0
+            duration: 0,
           },
           backgroundColor: {
-            easing: "easeInOutQuart",
-            type: "color",
-            from: "red",
-            to: "white",
+            easing: 'easeInOutQuart',
+            type: 'color',
+            from: 'red',
+            to: 'white',
             duration: 250,
-            loop: true
-          }
+            loop: true,
+          },
         },
       },
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
@@ -1208,7 +1208,7 @@ const Dashboard = () => {
                 type="text"
                 value={editData?.quantityActualCheck || ''}
                 disabled
-                label="Qty Shift"
+                label="Stock (Qty)"
                 className="mb-3"
               />
             </CCol>
@@ -1321,12 +1321,11 @@ const Dashboard = () => {
                 className="mb-3"
               />
             </CCol>
-            <CCol md={3}>
+            <CCol md={4}>
               <CFormInput
-                type="number"
-                min="0" // Prevent negative numbers
+                type="text"
                 value={editData?.Material?.uom || ''}
-                label={<span>UoM</span>}
+                label="UoM."
                 disabled
                 className="mb-3"
               />
