@@ -714,6 +714,7 @@ const Dashboard = () => {
       style={{ borderRadius: '5px' }}
     />
   )
+  
 
   return (
     <CRow>
@@ -1005,7 +1006,15 @@ const Dashboard = () => {
                   <Column field="Material.maxStock" header="Max" />
                 ) : null}
                 <Column field="quantityActualCheck" header="Actual" />
-
+                <Column field="incomingDate" header="Delivery Date" />
+                <Column field="planning" header="Qty Plan." />
+                <Column field="actual" header="Qty Receive" />
+               
+                <Column
+                  field="status"
+                  header="Status"
+                  body={(rowData) => renderDeliveryStatus(rowData.status)}
+                />
                 <Column
                   field="stock"
                   header="Stock (Shift)"
@@ -1013,27 +1022,6 @@ const Dashboard = () => {
                     rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.0'
                   }
                 />
-                <Column field="incomingDate" header="Delivery Date" />
-                <Column field="planning" header="Qty Plan." />
-                <Column field="actual" header="Qty Receive" />
-                <Column
-                  field="Material.minStock"
-                  header="Stock Outlock"
-                  body={(rowData) =>
-                    `${(
-                      ((parseFloat(rowData.planning || 0) +
-                        parseFloat(rowData.quantityActualCheck || 0)) /
-                        parseFloat(rowData.Material?.minStock || 1)) *
-                      4.5
-                    ).toFixed(1)} (Shift)`
-                  }
-                />
-                <Column
-                  field="status"
-                  header="Status"
-                  body={(rowData) => renderDeliveryStatus(rowData.status)}
-                />
-
                 <Column
                   header="Order"
                   body={actionBodyIncom}
