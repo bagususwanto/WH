@@ -1,0 +1,15 @@
+@keyframes blink {
+  0% {
+    opacity: 1; /* Fully visible */
+  }
+  50% {
+    opacity: 0; /* Fully transparent */
+  }
+  100% {
+    opacity: 1; /* Fully visible again */
+  }
+}
+
+.blinking {
+  animation: blink 2s infinite; /* Blink every 2 seconds */
+}

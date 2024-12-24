@@ -2,6 +2,9 @@ import React, { useState, useEffect, Suspense, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { MultiSelect } from 'primereact/multiselect'
+import { Row } from 'primereact/row'
+import { ColumnGroup } from 'primereact/columngroup'
+import '../../scss/chart.scss'
 import {
   CCard,
   CCardHeader,
@@ -292,37 +295,76 @@ const Dashboard = () => {
       datasets: [
         {
           label: chartTitle,
+          
           data: data.map((item) => item.stock),
           backgroundColor: data.map((item) => {
-            // Jika chart title adalah "Critical Stock" dan stok < 1.5, warnai merah
+            // If chart title is "Critical Stock" and stock < 1.5, color red
             if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
-              return '#F95454' // Merah untuk stok di bawah 1.5 (Critical)
+              return '#F95454' // Red for stock < 1.5 (Critical)
             }
 
-            // Jika chart title adalah "Overflow Stock" dan stok lebih dari 6, warnai hitam
+            // If chart title is "Overflow Stock" and stock > 5, color orange
             if (chartTitle === 'Overflow Stock' && item.stock > 5) {
-              return '#EB5B00' // Hitam untuk stok lebih dari 6 (Overflow)
+              return '#EB5B00' // Orange for stock > 5 (Overflow)
             }
 
-            // Check if incoming value is filled (>= 1) and apply forestgreen
-            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].planning > 0) {
-              return 'forestgreen' // Jika incoming >= 1, warna forestgreen
+            // Check if incoming value is filled (>= 1) and apply yellow background with blinking
+            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
+              return '#FCC737' // Yellow for incoming >= 1
             }
 
-            // Apply color based on chart title for "Low Stock" and other conditions
+            // Default color based on chart title for "Low Stock" and others
             switch (chartTitle) {
               case 'Critical Stock':
-                return '#FFAF00' // Goldenrod untuk Critical Stock
+                return '#FFAF00' // Goldenrod for Critical Stock
               case 'Low Stock':
-                return '#FF8225' // Light Coral untuk Low Stock
+                return '#FF8225' // Light Coral for Low Stock
               case 'Overflow Stock':
-                return '#FFAF00' // Goldenrod untuk Overflow Stock
+                return '#FFAF00' // Goldenrod for Overflow Stock
               default:
-                return 'gray' // Default color untuk chart lainnya
+                return 'gray' // Default color for other charts
             }
+          }),
+          borderColor: data.map((item) => {
+            // Check if incoming value is filled (>= 1) and apply green border
+            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
+              return '#7E99A3' // Green border for incoming >= 1
+            }
+
+            return 'transparent' // No border by default
+          }),
+          borderWidth: data.map((item) => {
+            // Set border width based on the condition
+            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
+              return 2 // Border width for incoming >= 1
+            }
+
+            return 0 // No border width by default
+          }),
+          // Add blinking class when the incoming value is greater than 0
+          className: data.map((item) => {
+            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
+              return 'blinking' // Apply blinking effect for incoming >= 1
+            }
+            return '' // No blinking by default
           }),
         },
       ],
+      options: {
+        animation: {
+          y: {
+            duration: 0
+          },
+          backgroundColor: {
+            easing: "easeInOutQuart",
+            type: "color",
+            from: "red",
+            to: "white",
+            duration: 250,
+            loop: true
+          }
+        },
+      },
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
     }
   }
@@ -574,9 +616,63 @@ const Dashboard = () => {
 
   const renderDeliveryStatus = (type) => {
     const typeOptions = [
-      { value: 'not complete', icon: '❌', color: 'red' },
-      { value: 'completed', icon: '✔', color: 'green' },
-      { value: 'partial', icon: '⚠', color: 'orange' },
+      {
+        value: 'not complete',
+        icon: (
+          <div
+            style={{
+              backgroundColor: 'red',
+              color: 'white',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+            }}
+          >
+            X
+          </div>
+        ),
+      },
+      {
+        value: 'completed',
+        icon: (
+          <div
+            style={{
+              backgroundColor: 'green',
+              color: 'white',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+            }}
+          >
+            ✓
+          </div>
+        ),
+      },
+      {
+        value: 'partial',
+        icon: (
+          <div
+            style={{
+              backgroundColor: 'orange',
+              color: 'white',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+            }}
+          >
+            !
+          </div>
+        ),
+      },
     ]
 
     const option = typeOptions.find((option) => option.value === type)
@@ -714,8 +810,35 @@ const Dashboard = () => {
       style={{ borderRadius: '5px' }}
     />
   )
-  
 
+  // Header Group untuk kolom
+  const headerGroup = (
+    <ColumnGroup>
+      <Row>
+        {visibleColumns.includes('Material No') && (
+          <Column header="Material No" rowSpan={2} frozen />
+        )}
+        <Column header="Description" rowSpan={2} frozen />
+        {visibleColumns.includes('Supplier') && <Column header="Supplier" rowSpan={2} />}
+        <Column header="UoM" rowSpan={2} />
+
+        <Column header="Actual Stock" colSpan={2} align="center" />
+        <Column header="Incoming" colSpan={4} align="center" />
+        <Column header="Stock (Shift)" rowSpan={2} />
+        <Column header="Follow Up By" colSpan={2} align="center" frozen />
+      </Row>
+      <Row>
+        <Column header="Min" align="center" />
+        <Column header="Actual" align="center" />
+        <Column header="Delivery Date" align="center" />
+        <Column header="Qty Plan" align="center" />
+        <Column header="Qty Receive" align="center" />
+        <Column header="Status" align="center" />
+        <Column header="Order" align="center" frozen />
+        <Column header="Receip" align="center" frozen />
+      </Row>
+    </ColumnGroup>
+  )
   return (
     <CRow>
       <CCol>
@@ -950,18 +1073,21 @@ const Dashboard = () => {
                       </CCol>
                       <CCol xs={9}>
                         {selectedData.quantityActualCheck} {selectedData.Material.uom}{' '}
-                        <span className="fw-light">({selectedData.estimatedStock} Shift)</span>
+                        <span className="fw-light">({selectedData.stock} Shift)</span>
                       </CCol>
                     </CRow>
 
                     <CRow className="mb-3">
-                      <CCol xs={3}>
-                        <strong>Planning Incoming:</strong>
-                      </CCol>
-                      <CCol xs={9}>
+                      <CCol md={6}>
+                        <strong>Planning Incoming:</strong>{' '}
                         {selectedData.Incomings.length > 0
                           ? selectedData.Incomings[0]?.planning
                           : 0}{' '}
+                        {selectedData.Material.uom}
+                      </CCol>
+                      <CCol md={6}>
+                        <strong>Receive Incoming:</strong>{' '}
+                        {selectedData.Incomings.length > 0 ? selectedData.Incomings[0]?.actual : 0}{' '}
                         {selectedData.Material.uom}
                       </CCol>
                     </CRow>
@@ -970,7 +1096,7 @@ const Dashboard = () => {
                       <CCol xs={3}>
                         <strong>Estimation Stock:</strong>
                       </CCol>
-                      <CCol xs={9}>{selectedData.estimatedStock} Shift</CCol>
+                      <CCol xs={9}>{selectedData.stock} Shift</CCol>
                     </CRow>
                   </>
                 )}
@@ -985,6 +1111,7 @@ const Dashboard = () => {
                       ? inventorieslowest
                       : inventoriesoverflow
                 }
+                headerColumnGroup={headerGroup}
                 tableStyle={{ minWidth: '30rem' }}
                 className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
                 emptyMessage="Tidak ada data inventaris."
@@ -996,10 +1123,10 @@ const Dashboard = () => {
                   <Column field="Material.materialNo" header="Material No" frozen />
                 )}
                 <Column field="Material.description" header="Description" frozen />
-                <Column field="Material.uom" header="UoM" />
                 {visibleColumns.includes('Supplier') && (
                   <Column field="Material.Supplier.supplierName" header="Supplier" />
                 )}
+                <Column field="Material.uom" header="UoM" />
                 {selectedChart === 'critical' || selectedChart === 'lowest' ? (
                   <Column field="Material.minStock" header="Min" />
                 ) : selectedChart === 'overflow' ? (
@@ -1009,12 +1136,14 @@ const Dashboard = () => {
                 <Column field="incomingDate" header="Delivery Date" />
                 <Column field="planning" header="Qty Plan." />
                 <Column field="actual" header="Qty Receive" />
-               
+
                 <Column
                   field="status"
                   header="Status"
                   body={(rowData) => renderDeliveryStatus(rowData.status)}
+                  bodyStyle={{ justifyContent: 'center', display: 'flex', alignItems: 'center' }} // Isi di tengah
                 />
+
                 <Column
                   field="stock"
                   header="Stock (Shift)"
@@ -1045,7 +1174,7 @@ const Dashboard = () => {
       </CCol>
       <CModal visible={modalDashboard} onClose={() => setModalDashboard(false)}>
         <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+          <CModalTitle id="LiveDemoExampleLabel">Order Input</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CFormInput
@@ -1079,7 +1208,7 @@ const Dashboard = () => {
                 type="text"
                 value={editData?.quantityActualCheck || ''}
                 disabled
-                label="Qty Actual"
+                label="Qty Shift"
                 className="mb-3"
               />
             </CCol>
@@ -1093,18 +1222,17 @@ const Dashboard = () => {
               <CInputGroup className="mt-2">
                 <DatePicker
                   ref={datePickerRef} // Attach the ref to the DatePicker
-                  selected={editData.incomingDate}
+                  selected={editData.incomingDate || new Date()} // Default to today if incomingDate is not set
                   onChange={(date) => setEditData({ ...editData, incomingDate: date })}
                   dateFormat="yyyy-MM-dd"
                   className="form-control"
                 />
-
                 <CInputGroupText onClick={handleIconClick}>
                   <CIcon icon={cilCalendar} />
                 </CInputGroupText>
               </CInputGroup>
             </CCol>
-            <CCol md={5}>
+            <CCol md={3}>
               <CFormInput
                 type="number"
                 min="0" // Prevent negative numbers
@@ -1112,38 +1240,19 @@ const Dashboard = () => {
                 onChange={(e) => handlePlanningChange(e.target.value)}
                 label={
                   <span>
-                    Quantity Planning <span style={{ color: 'red' }}>*</span>
+                    Qty Plan <span style={{ color: 'red' }}>*</span>
                   </span>
                 }
                 className="mb-3"
               />
             </CCol>
-
-            <CCol md={3}>
-              <CFormInput
-                type="number"
-                min="0" // Prevent negative numbers
-                value={
-                  parseFloat(editData?.actual || 0) + parseFloat(editData?.quantityActualCheck || 0)
-                } // Sum of Quantity Planning and Quantity Actual
-                label="Total"
-                disabled
-                className="mb-3"
-              />
-            </CCol>
-
-            <CCol md={4}>
+            <CCol md={2}>
               <CFormInput
                 type="text"
-                label="Stock Outlock"
+                value={editData?.Material?.uom || ''}
+                label="UoM."
                 disabled
                 className="mb-3"
-                value={`${(
-                  ((parseFloat(editData?.planning || 0) +
-                    parseFloat(editData?.quantityActualCheck || 0)) /
-                    parseFloat(editData?.Material?.minStock || 1)) *
-                  4.5
-                ).toFixed(1)} (Shift)`} // Calculate the Stock Outlock value and format to 1 decimal place
               />
             </CCol>
           </CRow>
@@ -1171,7 +1280,7 @@ const Dashboard = () => {
       </CModal>
       <CModal visible={modalActual} onClose={() => setModalActual(false)}>
         <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+          <CModalTitle id="LiveDemoExampleLabel">Receiv Input</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CFormInput
@@ -1182,12 +1291,43 @@ const Dashboard = () => {
             className="mb-3"
           />
           <CRow>
-            <CCol md={3}>
+            <CCol md={4}>
               <CFormInput
                 type="text"
+                value={editData?.Material?.materialNo || ''}
+                label="Material No."
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={8}>
+              <CFormInput
+                type="text"
+                min="0" // Prevent negative numbers
+                value={editData?.Material?.Supplier.supplierName || ''}
+                label={<span>Supplier</span>}
+                disabled
+                className="mb-3"
+              />
+            </CCol>
+          </CRow>
+          <CRow>
+            <CCol md={4}>
+              <CFormInput
+                type="number"
                 selected={editData.actual}
                 onChange={(e) => setEditData({ ...editData, actual: e.target.value })}
                 label="Qty Receiv"
+                className="mb-3"
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormInput
+                type="number"
+                min="0" // Prevent negative numbers
+                value={editData?.Material?.uom || ''}
+                label={<span>UoM</span>}
+                disabled
                 className="mb-3"
               />
             </CCol>
