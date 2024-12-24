@@ -496,6 +496,7 @@ const updateQuantitySistem = async (inventoryId, transaction) => {
       where: { inventoryId },
       attributes: ["actual"],
       order: [["createdAt", "DESC"]],
+      transaction,
     });
 
     if (!lastIncoming) {
@@ -506,6 +507,7 @@ const updateQuantitySistem = async (inventoryId, transaction) => {
     const inventoryStock = await Inventory.findOne({
       where: { id: inventoryId },
       attributes: ["quantityActualCheck"],
+      transaction,
     });
 
     if (!inventoryStock) {
@@ -531,7 +533,7 @@ const updateQuantitySistem = async (inventoryId, transaction) => {
     // Mengembalikan nilai yang dihitung untuk digunakan dalam fungsi pemanggil
     return totalIncomingQuantity;
   } catch (error) {
-    console.error("Error updating quantitySistem:", error.message);
+    console.error("Error updating quantitySistem:", error);
     throw error; // Lempar kembali error agar dapat ditangani di fungsi pemanggil
   }
 };
