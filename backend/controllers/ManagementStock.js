@@ -486,10 +486,35 @@ const updateQuantitySistem = async (inventoryId, transaction) => {
     }
 
     // Hitung jumlah total kuantitas actual dari tabel Incoming berdasarkan inventoryId
-    const totalIncomingQuantity = await Incoming.sum("actual", {
+    // const totalIncomingQuantity = await Incoming.sum("actual", {
+    //   where: { inventoryId },
+    //   transaction,
+    // });
+
+    // Last incoming quantity
+    const lastIncoming = await Incoming.findOne({
       where: { inventoryId },
-      transaction,
+      attributes: ["actual"],
+      order: [["createdAt", "DESC"]],
     });
+
+    if (!lastIncoming) {
+      throw new Error("Last incoming not found");
+    }
+
+    // Ambil nilai quantityActualCheck terbaru dari tabel Inventory berdasarkan inventoryId
+    const inventoryStock = await Inventory.findOne({
+      where: { id: inventoryId },
+      attributes: ["quantityActualCheck"],
+    });
+
+    if (!inventoryStock) {
+      throw new Error("Inventory stock not found");
+    }
+
+    const totalIncomingQuantity = lastIncoming
+      ? lastIncoming.actual + inventoryStock.quantityActualCheck
+      : null;
 
     if (totalIncomingQuantity === null) {
       throw new Error(
