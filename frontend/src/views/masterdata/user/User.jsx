@@ -948,13 +948,25 @@ const User = () => {
 
   const handleDeleteImage = async (id) => {
     try {
-      await updateMasterDataById(apiDeleteImgMaterial, id)
-      setCurrentUser({
-        ...currentUser,
-        img: '',
+      const result = await MySwal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        reverseButtons: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
       })
-      MySwal.fire('Success', 'Image deleted successfully', 'success')
-      setShouldFetch(true)
+
+      if (result.isConfirmed) {
+        await updateMasterDataById(apiDeleteImgMaterial, id)
+        setCurrentMaterial({
+          ...currentMaterial,
+          img: '',
+        })
+        MySwal.fire('Success', 'Image deleted successfully', 'success')
+        setShouldFetch(true)
+      }
     } catch (error) {
       console.error('Error deleting image:', error)
     }

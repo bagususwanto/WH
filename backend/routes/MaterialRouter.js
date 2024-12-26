@@ -10,7 +10,7 @@ import {
   deleteImage,
 } from "../controllers/Material.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
-import uploadImage from "../middleware/UploadImageMiddleware.js";
+import { uploadImageProduct } from "../middleware/UploadImageMiddleware.js";
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.get("/material-delete/:id", checkRole(["super admin"]), deleteMaterial);
 router.post(
   "/material-upload-image/:id",
   checkRole(["super admin"]),
-  uploadImage.single("image"),
+  uploadImageProduct,
   addImage
 );
 router.put(

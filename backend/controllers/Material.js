@@ -463,7 +463,7 @@ export const deleteImage = async (req, res) => {
       return res.status(404).json({ message: "Image not found" });
     }
 
-    const filePath = `.resources${material.img}`;
+    const filePath = `./resources${material.img}`;
 
     // Periksa apakah file ada sebelum dihapus
     if (fs.existsSync(filePath)) {
