@@ -156,7 +156,11 @@ const Dashboard = () => {
   // useEffect(() => {
   //   getWarehouse() // Fetch products on mount
   // }, []) // Empty dependency array ensures it only runs once
-
+  useEffect(() => {
+    if (!editData.incomingDate) {
+      setEditData((prev) => ({ ...prev, incomingDate: new Date() }))
+    }
+  }, [editData, setEditData])
   const fetchInventoryCriticalStock = async (itemNb, order, id) => {
     try {
       const response = await getInventoryCriticalStock(itemNb, order, id)
@@ -186,6 +190,16 @@ const Dashboard = () => {
       setInventoriesCritical([]) // Set empty data on error
     }
   }
+
+  const fetchData = async () => {
+    try {
+      const data = await getDataFromAPI() // Ganti dengan API fetch yang sesuai
+      setData(data) // Update state dengan data terbaru
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
+  }
+
   // Function to fetch lowest stock data and handle empty data
   const fetchInventoryLowestStock = async (lowestItemNb, order, id) => {
     try {
@@ -216,7 +230,22 @@ const Dashboard = () => {
     try {
       const response = await getInventoryOverflowStock(overflowItemNb, order, id)
       if (response.data && response.data.length > 0) {
-        setInventoriesOverflow(response.data)
+        const dataWithFormattedFields = response.data.map((item) => {
+          const incomingDate = item.Incomings[0]?.incomingDate
+            ? format(parseISO(item.Incomings[0]?.incomingDate), 'yyyy-MM-dd') // Format incomingDate
+            : ''
+          const planning = item.Incomings[0]?.planning
+          const status = item.Incomings[0]?.status
+          const actual = item.Incomings[0]?.actual
+          return {
+            ...item,
+            incomingDate,
+            planning,
+            status,
+            actual,
+          }
+        })
+        setInventoriesOverflow(dataWithFormattedFields)
       } else {
         setInventoriesOverflow([]) // Set empty data if no results
       }
@@ -295,25 +324,20 @@ const Dashboard = () => {
       datasets: [
         {
           label: chartTitle,
-
           data: data.map((item) => item.stock),
           backgroundColor: data.map((item) => {
-            // If chart title is "Critical Stock" and stock < 1.5, color red
             if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
               return '#F95454' // Red for stock < 1.5 (Critical)
             }
 
-            // If chart title is "Overflow Stock" and stock > 5, color orange
             if (chartTitle === 'Overflow Stock' && item.stock > 5) {
               return '#EB5B00' // Orange for stock > 5 (Overflow)
             }
 
-            // Check if incoming value is filled (>= 1) and apply yellow background with blinking
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
               return '#FCC737' // Yellow for incoming >= 1
             }
 
-            // Default color based on chart title for "Low Stock" and others
             switch (chartTitle) {
               case 'Critical Stock':
                 return '#FFAF00' // Goldenrod for Critical Stock
@@ -326,7 +350,6 @@ const Dashboard = () => {
             }
           }),
           borderColor: data.map((item) => {
-            // Check if incoming value is filled (>= 1) and apply green border
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
               return '#7E99A3' // Green border for incoming >= 1
             }
@@ -334,37 +357,38 @@ const Dashboard = () => {
             return 'transparent' // No border by default
           }),
           borderWidth: data.map((item) => {
-            // Set border width based on the condition
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
-              return 2 // Border width for incoming >= 1
+              return 5 // Border width for incoming >= 1
             }
 
             return 0 // No border width by default
           }),
-          // Add blinking class when the incoming value is greater than 0
           className: data.map((item) => {
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
               return 'blinking' // Apply blinking effect for incoming >= 1
             }
             return '' // No blinking by default
           }),
+          animation: data.map((item) => {
+            if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
+              return {
+                backgroundColor: {
+                  easing: 'easeInOutQuart',
+                  type: 'color',
+                  from: 'red', // Start color when stock is low
+                  to: 'transparent', // End color (transparent for other stocks)
+                  duration: 100,
+                  loop: true, // Loop the animation
+                },
+              }
+            }
+
+            // Disable animation for other stocks
+            return null
+          }),
         },
       ],
-      options: {
-        animation: {
-          y: {
-            duration: 0,
-          },
-          backgroundColor: {
-            easing: 'easeInOutQuart',
-            type: 'color',
-            from: 'red',
-            to: 'white',
-            duration: 250,
-            loop: true,
-          },
-        },
-      },
+
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
     }
   }
@@ -508,24 +532,24 @@ const Dashboard = () => {
           },
 
           // Garis untuk 6 (Max Stock Line)
-          {
-            type: 'line',
-            yMin: 8, // Garis pada nilai 6
-            yMax: 8, // Garis pada nilai 6
-            borderColor: 'orange', // Warna orange
-            borderWidth: 1,
-            borderDash: [5, 5], // Garis putus-putus
-            label: {
-              display: true,
-              content: `Overflow Stock: 8 Shift`, // Label untuk garis 6
-              position: 'end',
-              font: {
-                size: 9,
-              },
-              yAdjust: -1,
-              color: 'white',
-            },
-          },
+          // {
+          //   type: 'line',
+          //   yMin: 0, // Garis pada nilai 6
+          //   yMax: 0, // Garis pada nilai 6
+          //   borderColor: 'orange', // Warna orange
+          //   borderWidth: 1,
+          //   borderDash: [5, 5], // Garis putus-putus
+          //   label: {
+          //     display: true,
+          //     content: `Overflow Stock: 8 Shift`, // Label untuk garis 6
+          //     position: 'end',
+          //     font: {
+          //       size: 9,
+          //     },
+          //     yAdjust: -1,
+          //     color: 'white',
+          //   },
+          // },
 
           // Garis untuk 1.5 hanya muncul jika selectedChart === 'critical'
           ...(selectedChart === 'critical'
@@ -724,9 +748,6 @@ const Dashboard = () => {
         inventoryId: editData.id,
       })
 
-      // fetch ulang
-      setFetchNow(true)
-
       // Tutup modal
       setModalDashboard(false)
     } catch (error) {
@@ -734,7 +755,10 @@ const Dashboard = () => {
       alert('Failed to save data.')
     } finally {
       setLoadingSave(false)
-      setFetchNow(false)
+
+      // Fetch ulang data untuk refresh
+      setFetchNow(true)
+      await fetchData() // Pastikan fetchData adalah fungsi yang memperbarui data di state
     }
   }
 
@@ -757,7 +781,7 @@ const Dashboard = () => {
       }
 
       // Validasi incomingId
-      const incomingId = editData.Incomings[0].id // Pastikan editData memiliki incomingId
+      const incomingId = editData.Incomings[0]?.id // Pastikan editData memiliki incomingId
       if (!incomingId) {
         throw new Error('Incoming ID is missing')
       }
@@ -774,9 +798,6 @@ const Dashboard = () => {
 
       console.log('Update response:', response.data)
 
-      // Fetch ulang data setelah penyimpanan berhasil
-      setFetchNow(true)
-
       // Tutup modal
       setModalActual(false)
     } catch (error) {
@@ -784,7 +805,10 @@ const Dashboard = () => {
       alert('Failed to save data.')
     } finally {
       setLoadingSave(false)
-      setFetchNow(false)
+
+      // Fetch ulang data untuk refresh dengan retry mekanisme
+
+      await fetchData() // Pastikan fetchData adalah fungsi yang memperbarui data di state
     }
   }
 
@@ -983,8 +1007,24 @@ const Dashboard = () => {
                       >
                         <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
                       </div>
+                      {/* Elemen tambahan di sebelah kanan */}
                     </CCol>
                   )}
+                  <CCol xs="auto">
+                    <div
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: '#7E99A3', // Warna teks sesuai border
+                        padding: '4px 14px',
+                        borderRadius: '3px',
+                        border: '4px solid #7E99A3', // Border warna merah
+                        fontWeight: 'bold',
+                        fontSize: '10px',
+                      }}
+                    >
+                      Item Received
+                    </div>
+                  </CCol>
                 </>
               )}
             </CRow>
@@ -1020,7 +1060,7 @@ const Dashboard = () => {
               {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
-                  options={chartOptions(inventoriesoverflow, 0, 8, 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 9, 5)}
                   height={410}
                 />
               )}
@@ -1222,7 +1262,7 @@ const Dashboard = () => {
               <CInputGroup className="mt-2">
                 <DatePicker
                   ref={datePickerRef} // Attach the ref to the DatePicker
-                  selected={editData.incomingDate || new Date()} // Default to today if incomingDate is not set
+                  selected={editData.incomingDate} // Gunakan incomingDate dari state
                   onChange={(date) => setEditData({ ...editData, incomingDate: date })}
                   dateFormat="yyyy-MM-dd"
                   className="form-control"
