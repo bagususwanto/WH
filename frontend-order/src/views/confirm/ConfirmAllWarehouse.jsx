@@ -412,7 +412,7 @@ const ApproveAll = () => {
                 <CRow className="mt-1">
                   {console.log('coba', productsData)}
                   {productsData
-                    .filter((product) => product) // Filter hanya mengecek keberadaan produk
+                   .filter((product) => product.Detail_Orders?.length > 0) // Filter produk dengan total item lebih dari 0
                     .map((product) => (
                       <CCard className="d-block w-100 p-3 mb-2" key={product.id}>
                         <CRow className="align-items-center">

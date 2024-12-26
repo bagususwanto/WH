@@ -133,87 +133,50 @@ const Shopping = () => {
   }, [])
 
   useEffect(() => {
+    // Sort only when Confirmwarehouse.Detail_Orders changes
     if (Confirmwarehouse.Detail_Orders) {
-      const sortedOrders = [...Confirmwarehouse.Detail_Orders].sort((a, b) => {
-        const addressA = a.Inventory.Address_Rack.addressRackName
-        const addressB = b.Inventory.Address_Rack.addressRackName
-
-        const numA = parseInt(addressA.match(/^\d+/)?.[0] || 'Infinity', 10)
-        const numB = parseInt(addressB.match(/^\d+/)?.[0] || 'Infinity', 10)
-
-        if (numA !== numB) {
-          return numA - numB // Urutkan berdasarkan angka
-        }
-        return addressA.localeCompare(addressB) // Urutkan secara alfabetis
-      })
-
-      setSortedOrders(sortedOrders) // Simpan ke state
+      const sorted = [...Confirmwarehouse.Detail_Orders].sort((a, b) => {
+        const addressA = a.Inventory?.Address_Rack?.addressRackName || '';
+        const addressB = b.Inventory?.Address_Rack?.addressRackName || '';
+        const abjadCompare = addressA.localeCompare(addressB);
+        if (abjadCompare !== 0) return abjadCompare;
+  
+        const numA = parseInt(addressA.match(/\d+/)?.[0] || 'Infinity', 10);
+        const numB = parseInt(addressB.match(/\d+/)?.[0] || 'Infinity', 10);
+        return numA - numB;
+      });
+      setSortedOrders(sorted); // Set the initial sorted state
     }
-  }, [Confirmwarehouse.Detail_Orders])
-  useEffect(() => {
-    // Inisialisasi sortedOrders dengan produk asli
-    if (Confirmwarehouse.Detail_Orders) {
-      setSortedOrders(Confirmwarehouse.Detail_Orders)
-    }
-  }, [Confirmwarehouse.Detail_Orders])
-
-  // This is where currentProducts is initialized
+  }, [Confirmwarehouse.Detail_Orders]);
 
   const handleAddressCodeChange = (selectedOption) => {
-    const selectedCode = selectedOption ? selectedOption.label : ''
-    setSelectedAddressCode(selectedCode)
-
-    let filteredOrders
-
+    const selectedCode = selectedOption ? selectedOption.label : ''; // Get selected label
+    let filteredOrders;
+  
     if (selectedCode === 'All' || selectedCode === '') {
-      // Tampilkan semua produk jika "All" dipilih
-      filteredOrders = Confirmwarehouse.Detail_Orders || []
+      // Show all products if "All" is selected
+      filteredOrders = [...Confirmwarehouse.Detail_Orders]; // Use original list
     } else {
-      // Filter produk berdasarkan Address Rack Name
-      filteredOrders = [...Confirmwarehouse.Detail_Orders].filter((product) =>
-        product.Inventory.Address_Rack.addressRackName.startsWith(selectedCode),
-      )
+      filteredOrders = Confirmwarehouse.Detail_Orders.filter((product) => {
+        const addressRackName = product.Inventory?.Address_Rack?.addressRackName || '';
+        return addressRackName.slice(0, 4) === selectedCode; // Match first 4 characters
+      });
     }
-
-    // Urutkan produk agar item yang dipilih tetap di atas
-    filteredOrders.sort((a, b) => {
-      const isSelectedA = selectedItems.some((item) => item.id === a.id)
-      const isSelectedB = selectedItems.some((item) => item.id === b.id)
-
-      if (isSelectedA && !isSelectedB) return -1 // Prioritaskan yang dipilih
-      if (!isSelectedA && isSelectedB) return 1 // Prioritaskan yang lain
-      return 0 // Tetap sesuai urutan
-    })
-
-    setSortedOrders(filteredOrders) // Perbarui state
-  }
-
-  const handleCardClick = (item) => {
-    const isSelected = selectedItems.some((selected) => selected.id === item.id)
-
-    if (isSelected) {
-      // Jika item sudah dipilih, hapus dari daftar
-      setSelectedItems(selectedItems.filter((selected) => selected.id !== item.id))
-    } else {
-      // Tambahkan item ke daftar yang dipilih
-      setSelectedItems([...selectedItems, item])
-    }
-  }
-
-  const toggleSelectItem = (index, e) => {
-    // Prevent toggling if the click is on the +, - or input
-    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return
-
-    const updatedSelectedItems = [...selectedItems]
-    if (updatedSelectedItems.includes(index)) {
-      updatedSelectedItems.splice(updatedSelectedItems.indexOf(index), 1)
-    } else {
-      updatedSelectedItems.push(index)
-    }
-    setSelectedItems(updatedSelectedItems)
-    setClickedItemIndex(index) // Set the clicked index to enable the next item click
-  }
-
+  
+    // Always sort the filtered result
+    const sortedFilteredOrders = filteredOrders.sort((a, b) => {
+      const addressA = a.Inventory?.Address_Rack?.addressRackName || '';
+      const addressB = b.Inventory?.Address_Rack?.addressRackName || '';
+      const abjadCompare = addressA.localeCompare(addressB);
+      if (abjadCompare !== 0) return abjadCompare;
+  
+      const numA = parseInt(addressA.match(/\d+/)?.[0] || 'Infinity', 10);
+      const numB = parseInt(addressB.match(/\d+/)?.[0] || 'Infinity', 10);
+      return numA - numB;
+    });
+  
+    setSortedOrders(sortedFilteredOrders); // Update state
+  };
   const totalQuantity = (Confirmwarehouse.Detail_Orders || []).reduce((acc, product) => {
     // Ensure only unique Inventory items are counted
     if (!acc.some((item) => item.id === product.Inventory.id)) {
@@ -413,21 +376,28 @@ const Shopping = () => {
   // Get current items based on the current page
   const sortedItems =
     Confirmwarehouse?.Detail_Orders?.sort((a, b) => {
-      const numA = parseInt(
-        a?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
-        10,
-      )
-      const numB = parseInt(
-        b?.Inventory?.Address_Rack?.addressRackName.match(/\d+/)?.[0] || 'Infinity',
-        10,
-      )
-      return numA - numB
+      // Ambil nama alamat
+      const addressA = a?.Inventory?.Address_Rack?.addressRackName || ''
+      const addressB = b?.Inventory?.Address_Rack?.addressRackName || ''
+
+      // Urutkan berdasarkan abjad
+      const abjadCompare = addressA.localeCompare(addressB)
+      if (abjadCompare !== 0) {
+        return abjadCompare // Jika berbeda, gunakan hasil pengurutan abjad
+      }
+
+      // Jika abjad sama, urutkan berdasarkan angka
+      const numA = parseInt(addressA.match(/\d+/)?.[0] || 'Infinity', 10)
+      const numB = parseInt(addressB.match(/\d+/)?.[0] || 'Infinity', 10)
+
+      return numA - numB // Urutkan berdasarkan angka
     }) || []
 
-  const currentItems = sortedItems.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  )
+    const currentItems = sortedOrders.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+    
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber)
@@ -478,7 +448,13 @@ const Shopping = () => {
                     <label className="fw-bold mb-1 px-2 ">Total: {totalQuantity} Item</label>
                   </>
                 )}
-                <CButton className="px-1 "color="primary" size="sm" onClick={handleApprove} disabled={loading}>
+                <CButton
+                  className="px-1 "
+                  color="primary"
+                  size="sm"
+                  onClick={handleApprove}
+                  disabled={loading}
+                >
                   {loading ? <Skeleton width={100} /> : 'Deliver Now'}
                 </CButton>
               </CCardBody>
@@ -501,15 +477,10 @@ const Shopping = () => {
                     (option, index, self) =>
                       index === self.findIndex((o) => o.label === option.label), // Hilangkan duplikat
                   )
-                  // Tambahkan fungsi sorting berdasarkan angka dalam label
-                  .sort((a, b) => {
-                    const numA = parseInt(a.label.match(/\d+/)?.[0] || 'Infinity', 10)
-                    const numB = parseInt(b.label.match(/\d+/)?.[0] || 'Infinity', 10)
-                    return numA - numB // Urutkan berdasarkan angka
-                  }),
+                 
               ]}
               id="address"
-              onChange={handleAddressCodeChange}
+              onChange={handleAddressCodeChange} // Menggunakan fungsi filter yang telah diperbarui
               value={
                 selectedAddressCode
                   ? { label: selectedAddressCode, value: selectedAddressCode }
