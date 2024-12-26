@@ -131,9 +131,9 @@ const User = () => {
   })
 
   const apiStorage = 'storage-plant'
-  const apiMasterMaterial = 'material'
   const apiUser = 'user'
-  const apiMaterialDelete = 'material-delete'
+  const apiMasterUserOrg = 'user-org'
+  const apiUserDelete = 'user-delete'
   const apiUpload = 'upload-master-material'
   const apiDeleteImgMaterial = 'material-delete-image'
   const apiUploadImageMaterial = 'material-upload-image'
@@ -161,10 +161,10 @@ const User = () => {
     getWarehouse()
   }, [])
 
-  // useEffect(() => {
-  //   if (!shouldFetch) return
-  //   getMaterial()
-  // }, [plantId, storageId, type, shouldFetch, imported])
+  useEffect(() => {
+    if (!shouldFetch) return
+    getUser()
+  }, [shouldFetch])
 
   const customStyles = {
     control: (provided) => ({
@@ -394,7 +394,7 @@ const User = () => {
     }
   }
 
-  const handleAddMaterial = () => {
+  const handleAddUser = () => {
     setIsEdit(false)
     setCurrentUser({
       id: '',
@@ -425,29 +425,43 @@ const User = () => {
         label="Edit"
         icon="pi pi-pencil"
         className="p-button-success"
-        onClick={() => handleEditMaterial(rowData)}
+        onClick={() => handleEditUser(rowData)}
       />
       <Button
         label="Delete"
         icon="pi pi-trash"
         className="p-button-danger"
-        onClick={() => handleDeleteMaterial(rowData.id)}
+        onClick={() => handleDeleteUser(rowData.id)}
       />
     </div>
   )
 
-  const handleEditMaterial = (user) => {
-    const selectedRole = roleOptions.find((option) => option.value === user.role)
+  const handleEditUser = (user) => {
+    console.log('user:', user)
+    const selectedRole = roleOptions.find((option) => option.value === user.Role.roleName)
+    setRoleValid(selectedRole.value)
     const selectedPosition = positionOptions.find((option) => option.value === user.position)
-    const selectedGroup = groupOptions.find((option) => option.value === user.groupId)
-    const selectedLine = lineOptions.find((option) => option.value === user.lineId)
-    const selectedSection = sectionOptions.find((option) => option.value === user.sectionId)
-    const selectedDepartment = departmentOptions.find(
-      (option) => option.value === user.departmentId,
+    const selectedGroup = groupOptions.find(
+      (option) => option.value === user.Organization?.Group?.groupName,
     )
-    const selectedDivision = divisionOptions.find((option) => option.value === user.divisionId)
-    const selectedWarehouses = warehouseOptions.find((option) => option.value === user.warehouseId)
-    const selectedPlant = plantOptions.find((option) => option.value === user.plantId)
+    const selectedLine = lineOptions.find(
+      (option) => option.value === user.Organization?.Line?.lineName,
+    )
+    const selectedSection = sectionOptions.find(
+      (option) => option.value === user.Organization?.Section?.sectionName,
+    )
+    const selectedDepartment = departmentOptions.find(
+      (option) => option.value === user.Organization?.Department?.departmentName,
+    )
+    const selectedDivision = divisionOptions.find(
+      (option) => option.value === user.Organization?.Division?.divisionName,
+    )
+    const selectedWarehouses = warehouseOptions.filter((option) =>
+      user.warehouses.includes(option.value),
+    )
+    const selectedPlant = plantOptions.find(
+      (option) => option.value === user.Organization?.Plant?.plantName,
+    )
     const selectedIsProduction = isProductionOptions.find(
       (option) => option.value === user.isProduction,
     )
@@ -459,8 +473,8 @@ const User = () => {
     setCurrentUser({
       id: user.id,
       username: user.username,
-      password: password,
-      confirmPassword: confirmPassword,
+      password: user.password,
+      confirmPassword: user.confirmPassword,
       name: user.name,
       roleId: selectedRole || null,
       position: selectedPosition || null,
@@ -471,7 +485,7 @@ const User = () => {
       sectionId: selectedSection || null,
       departmentId: selectedDepartment || null,
       divisionId: selectedDivision || null,
-      warehouseIds: user.warehouses,
+      warehouseIds: selectedWarehouses || null,
       plantId: selectedPlant || null,
       isProduction: selectedIsProduction || null,
       isWarehouse: selectedIsWarehouse || null,
@@ -479,10 +493,10 @@ const User = () => {
     setModal(true)
   }
 
-  const handleDeleteMaterial = (materialId) => {
+  const handleDeleteUser = (userId) => {
     MySwal.fire({
-      title: 'Apakah Anda yakin?',
-      text: 'This material cannot be recovered!',
+      title: 'Are you sure?',
+      text: 'This user cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -490,36 +504,119 @@ const User = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(materialId)
+        confirmDelete(userId)
       }
     })
   }
 
-  const confirmDelete = async (materialId) => {
+  const confirmDelete = async (userId) => {
     try {
-      await deleteMasterDataById(apiMaterialDelete, materialId)
+      await deleteMasterDataById(apiUserDelete, userId)
       MySwal.fire('Deleted!', 'User deleted successfully.', 'success')
-      await getMaterial() // Refresh the list after deletion
+      setShouldFetch(true)
     } catch (error) {
-      console.error('Error menghapus material:', error)
+      console.error('Error menghapus user:', error)
     }
   }
 
-  const validateMaterial = (material) => {
-    const requiredFields = [
-      { field: 'materialNo', message: 'User No. is required' },
-      { field: 'description', message: 'Description is required' },
-      { field: 'uom', message: 'UOM is required' },
-      { field: 'price', message: 'Price is required' },
-      { field: 'type', message: 'Type is required' },
-      { field: 'categoryId', message: 'Category is required' },
-      { field: 'supplierId', message: 'Supplier is required' },
-      { field: 'minStock', message: 'Minimum Stock is required' },
-      { field: 'maxStock', message: 'Maximum Stock is required' },
-    ]
+  const validateUser = (user) => {
+    if (!isEdit) {
+      // validasi password dan confirm password
+      if (user.password !== user.confirmPassword) {
+        MySwal.fire('Error', 'Password and Confirm Password must be the same', 'error')
+        return false
+      }
+    }
+
+    // validasi untuk role warehouse member dan warehouse staff hanya bisa 1 warehouseIds
+    if (['warehouse member', 'warehouse staff'].includes(roleValid)) {
+      if (user.warehouseIds.length > 1) {
+        MySwal.fire('Error', 'Warehouse Access can only be 1 for this role', 'error')
+        return false
+      }
+    }
+
+    let requiredFields = []
+    if (roleValid.includes('group head')) {
+      requiredFields = [
+        { field: 'username', message: 'Username is required' },
+        { field: 'name', message: 'Fullname is required' },
+        { field: 'roleId', message: 'Role is required' },
+        { field: 'position', message: 'Position is required' },
+        { field: 'groupId', message: 'Group is required' },
+        { field: 'lineId', message: 'Line is required' },
+        { field: 'sectionId', message: 'Section is required' },
+        { field: 'departmentId', message: 'Department is required' },
+        { field: 'divisionId', message: 'Division is required' },
+        { field: 'warehouseIds', message: 'Warehouse Access are required' },
+        { field: 'plantId', message: 'Plant is required' },
+        { field: 'isProduction', message: 'Production is required' },
+        { field: 'isWarehouse', message: 'Warehouse is required' },
+      ]
+    } else if (roleValid.includes('line head')) {
+      requiredFields = [
+        { field: 'username', message: 'Username is required' },
+        { field: 'name', message: 'Fullname is required' },
+        { field: 'roleId', message: 'Role is required' },
+        { field: 'position', message: 'Position is required' },
+        { field: 'lineId', message: 'Line is required' },
+        { field: 'sectionId', message: 'Section is required' },
+        { field: 'departmentId', message: 'Department is required' },
+        { field: 'divisionId', message: 'Division is required' },
+        { field: 'warehouseIds', message: 'Warehouse Access are required' },
+        { field: 'plantId', message: 'Plant is required' },
+        { field: 'isProduction', message: 'Production is required' },
+        { field: 'isWarehouse', message: 'Warehouse is required' },
+      ]
+    } else if (roleValid.includes('section head')) {
+      requiredFields = [
+        { field: 'username', message: 'Username is required' },
+        { field: 'name', message: 'Fullname is required' },
+        { field: 'roleId', message: 'Role is required' },
+        { field: 'position', message: 'Position is required' },
+        { field: 'sectionId', message: 'Section is required' },
+        { field: 'departmentId', message: 'Department is required' },
+        { field: 'divisionId', message: 'Division is required' },
+        { field: 'warehouseIds', message: 'Warehouse Access are required' },
+        { field: 'plantId', message: 'Plant is required' },
+        { field: 'isProduction', message: 'Production is required' },
+        { field: 'isWarehouse', message: 'Warehouse is required' },
+      ]
+    } else if (roleValid.includes('department head')) {
+      requiredFields = [
+        { field: 'username', message: 'Username is required' },
+        { field: 'name', message: 'Fullname is required' },
+        { field: 'roleId', message: 'Role is required' },
+        { field: 'position', message: 'Position is required' },
+        { field: 'departmentId', message: 'Department is required' },
+        { field: 'divisionId', message: 'Division is required' },
+        { field: 'warehouseIds', message: 'Warehouse Access are required' },
+        { field: 'plantId', message: 'Plant is required' },
+        { field: 'isProduction', message: 'Production is required' },
+        { field: 'isWarehouse', message: 'Warehouse is required' },
+      ]
+    } else {
+      requiredFields = [
+        { field: 'username', message: 'Username is required' },
+        { field: 'name', message: 'Fullname is required' },
+        { field: 'roleId', message: 'Role is required' },
+        { field: 'position', message: 'Position is required' },
+        { field: 'warehouseIds', message: 'Warehouse Access are required' },
+        { field: 'isProduction', message: 'Production is required' },
+        { field: 'isWarehouse', message: 'Warehouse is required' },
+      ]
+    }
+
+    // Tambahkan password dan confirmPassword ke requiredFields jika isEdit adalah false
+    if (!isEdit) {
+      requiredFields.push(
+        { field: 'password', message: 'Password is required' },
+        { field: 'confirmPassword', message: 'Confirm Password is required' },
+      )
+    }
 
     for (const { field, message } of requiredFields) {
-      if (!material[field]) {
+      if (!user[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -527,27 +624,27 @@ const User = () => {
     return true
   }
 
-  const handleSaveMaterial = async () => {
+  const handleSaveUser = async () => {
     setLoading(true)
 
-    if (!validateMaterial(currentUser)) {
+    if (!validateUser(currentUser)) {
       setLoading(false)
       return
     }
 
     try {
-      const materialToSave = { ...currentUser }
+      const userToSave = { ...currentUser }
 
       if (isEdit) {
-        await updateMasterDataById(apiMasterMaterial, currentUser.id, materialToSave)
+        await updateMasterDataById(apiMasterUserOrg, currentUser.id, userToSave)
         MySwal.fire('Updated!', 'User has been updated.', 'success')
       } else {
-        delete materialToSave.id
-        await postMasterData(apiMasterMaterial, materialToSave)
+        delete userToSave.id
+        await postMasterData(apiMasterUserOrg, userToSave)
         MySwal.fire('Added!', 'User has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving material:', error)
+      console.error('Error saving user:', error)
     } finally {
       setLoading(false)
       setModal(false)
@@ -938,8 +1035,6 @@ const User = () => {
     setShowConfirmPassword(!showConfirmPassword)
   }
 
-  const defaultRole = roleOptions.find((option) => option.id === currentUser.roleId)
-
   return (
     <CRow>
       <CCol>
@@ -959,7 +1054,7 @@ const User = () => {
                         icon="pi pi-plus"
                         severity="primary"
                         className="rounded-5 me-2 mb-2"
-                        onClick={handleAddMaterial}
+                        onClick={handleAddUser}
                         data-pr-tooltip="XLS"
                       />
                       <Button
@@ -1168,47 +1263,57 @@ const User = () => {
               </div>
 
               {/* Password & Confirmation Password */}
-              <CCol xs={12}>
-                <h5>Password</h5>
-              </CCol>
-              <CCol className="mb-3" sm={12} md={12} lg={6}>
-                <label className="mb-2 required-label" htmlFor="password">
-                  Password <span>*</span>
-                </label>
-                <div className="input-with-icon">
-                  <CFormInput
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    value={currentUser.password}
-                    onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
-                  />
-                  <CButton onClick={togglePasswordVisibility} type="button" className="icon-button">
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-                  </CButton>
-                </div>
-              </CCol>
-              <CCol className="mb-3" sm={12} md={12} lg={6}>
-                <label className="mb-2 required-label" htmlFor="confirmPassword">
-                  Confirmation Password <span>*</span>
-                </label>
-                <div className="input-with-icon">
-                  <CFormInput
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    value={currentUser.confirmPassword}
-                    onChange={(e) =>
-                      setCurrentUser({ ...currentUser, confirmPassword: e.target.value })
-                    }
-                  />
-                  <CButton
-                    onClick={togglePasswordVisibilityConfirm}
-                    type="button"
-                    className="icon-button"
-                  >
-                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
-                  </CButton>
-                </div>
-              </CCol>
+              {!isEdit && (
+                <>
+                  <CCol xs={12}>
+                    <h5>Password</h5>
+                  </CCol>
+                  <CCol className="mb-3" sm={12} md={12} lg={6}>
+                    <label className="mb-2 required-label" htmlFor="password">
+                      Password <span>*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <CFormInput
+                        type={showPassword ? 'text' : 'password'}
+                        id="password"
+                        value={currentUser.password}
+                        onChange={(e) =>
+                          setCurrentUser({ ...currentUser, password: e.target.value })
+                        }
+                      />
+                      <CButton
+                        onClick={togglePasswordVisibility}
+                        type="button"
+                        className="icon-button"
+                      >
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                      </CButton>
+                    </div>
+                  </CCol>
+                  <CCol className="mb-3" sm={12} md={12} lg={6}>
+                    <label className="mb-2 required-label" htmlFor="confirmPassword">
+                      Confirmation Password <span>*</span>
+                    </label>
+                    <div className="input-with-icon">
+                      <CFormInput
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        id="confirmPassword"
+                        value={currentUser.confirmPassword}
+                        onChange={(e) =>
+                          setCurrentUser({ ...currentUser, confirmPassword: e.target.value })
+                        }
+                      />
+                      <CButton
+                        onClick={togglePasswordVisibilityConfirm}
+                        type="button"
+                        className="icon-button"
+                      >
+                        <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                      </CButton>
+                    </div>
+                  </CCol>
+                </>
+              )}
 
               {/* Section: Position & Role */}
               <CCol xs={12}>
@@ -1245,7 +1350,7 @@ const User = () => {
                     id="role"
                     onChange={(e) => {
                       setCurrentUser({ ...currentUser, roleId: e })
-                      setRoleValid(e.value || defaultRole.value)
+                      setRoleValid(e.value)
                     }}
                     styles={customStyles}
                   />
@@ -1361,12 +1466,36 @@ const User = () => {
                   />
                 </div>
               </CCol>
-
-              {/* Section: Warehouse & Plant */}
-              <CCol xs={12}>
-                <h5>Warehouse & Plant</h5>
-              </CCol>
               <CCol className="mb-3" sm={12} md={12} lg={6}>
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="plant">
+                    Plant{' '}
+                    {['group head', 'line head', 'section head', 'department head'].includes(
+                      roleValid,
+                    ) ? (
+                      <span>*</span>
+                    ) : (
+                      ''
+                    )}
+                  </label>
+                  <Select
+                    value={currentUser.plantId}
+                    options={plantOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="plant"
+                    onChange={(e) => setCurrentUser({ ...currentUser, plantId: e })}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+
+              {/* Section: Warehouse */}
+              <CCol xs={12}>
+                <h5>Warehouse</h5>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={12} lg={12}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="warehouseAccess">
                     Warehouse Access (Multiple) <span>*</span>
@@ -1382,23 +1511,6 @@ const User = () => {
                     id="warehouseAccess"
                     onChange={(e) => setCurrentUser({ ...currentUser, warehouseIds: e })}
                     styles={customStylesMultiSelct}
-                  />
-                </div>
-              </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={6}>
-                <div className="form-group">
-                  <label className="mb-2 required-label" htmlFor="plantAccess">
-                    Plant <span>*</span>
-                  </label>
-                  <Select
-                    value={currentUser.plantId}
-                    options={plantOptions}
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isClearable={isClearable}
-                    id="plant"
-                    onChange={(e) => setCurrentUser({ ...currentUser, plantId: e })}
-                    styles={customStyles}
                   />
                 </div>
               </CCol>
@@ -1455,7 +1567,7 @@ const User = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleSaveMaterial}>
+            <CButton color="primary" onClick={handleSaveUser}>
               {loading ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />

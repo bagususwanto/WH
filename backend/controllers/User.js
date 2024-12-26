@@ -302,6 +302,106 @@ export const createUserAndOrg = async (req, res) => {
     isWarehouse,
   } = req.body;
 
+  // cari roleName dari roleId
+  const role = await Role.findOne({
+    where: {
+      id: roleId.id,
+      flag: 1,
+    },
+    attributes: ["roleName"],
+  });
+
+  if (!role) {
+    return res.status(404).json({ message: "Role not found" });
+  }
+
+  // validasi field yang wajib diisi
+  let requiredFields = [];
+  if (role.roleName.includes("group head")) {
+    requiredFields = [
+      { field: "username", message: "Username is required" },
+      { field: "password", message: "Password is required" },
+      { field: "confirmPassword", message: "Confirm Password is required" },
+      { field: "name", message: "Fullname is required" },
+      { field: "roleId", message: "Role is required" },
+      { field: "position", message: "Position is required" },
+      { field: "groupId", message: "Group is required" },
+      { field: "lineId", message: "Line is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else if (role.roleName.includes("line head")) {
+    requiredFields = [
+      { field: "username", message: "Username is required" },
+      { field: "password", message: "Password is required" },
+      { field: "confirmPassword", message: "Confirm Password is required" },
+      { field: "name", message: "Fullname is required" },
+      { field: "roleId", message: "Role is required" },
+      { field: "position", message: "Position is required" },
+      { field: "lineId", message: "Line is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else if (role.roleName.includes("section head")) {
+    requiredFields = [
+      { field: "username", message: "Username is required" },
+      { field: "password", message: "Password is required" },
+      { field: "confirmPassword", message: "Confirm Password is required" },
+      { field: "name", message: "Fullname is required" },
+      { field: "position", message: "Position is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else if (role.roleName.includes("department head")) {
+    requiredFields = [
+      { field: "username", message: "Username is required" },
+      { field: "password", message: "Password is required" },
+      { field: "confirmPassword", message: "Confirm Password is required" },
+      { field: "name", message: "Fullname is required" },
+      { field: "position", message: "Position is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else {
+    requiredFields = [
+      { field: "username", message: "Username is required" },
+      { field: "password", message: "Password is required" },
+      { field: "confirmPassword", message: "Confirm Password is required" },
+      { field: "name", message: "Fullname is required" },
+      { field: "position", message: "Position is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  }
+
+  for (const field of requiredFields) {
+    if (!req.body[field.field]) {
+      return res.status(400).json({
+        message: field.message,
+      });
+    }
+  }
+
   // Validasi password
   if (password !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
@@ -309,21 +409,6 @@ export const createUserAndOrg = async (req, res) => {
 
   const salt = await bcrypt.genSalt();
   const hashPassword = await bcrypt.hash(password, salt);
-
-  if (
-    !username ||
-    !password ||
-    !name ||
-    !roleId ||
-    !position ||
-    !warehouseIds ||
-    isProduction == null
-  ) {
-    return res.status(400).json({
-      message:
-        "username, password, name, roleId, position, warehouseId and isProduction must be filled",
-    });
-  }
 
   let organizationId;
 
@@ -334,12 +419,12 @@ export const createUserAndOrg = async (req, res) => {
     // Check if organization exists
     const organization = await Organization.findOne({
       where: {
-        groupId: groupId || null,
-        lineId: lineId || null,
-        sectionId: sectionId || null,
-        departmentId: departmentId || null,
-        divisionId: divisionId || null,
-        plantId: plantId || null,
+        groupId: groupId.id || null,
+        lineId: lineId.id || null,
+        sectionId: sectionId.id || null,
+        departmentId: departmentId.id || null,
+        divisionId: divisionId.id || null,
+        plantId: plantId.id || null,
         flag: 1,
       },
       transaction, // Pass the transaction object
@@ -350,12 +435,12 @@ export const createUserAndOrg = async (req, res) => {
     } else {
       const newOrganization = await Organization.create(
         {
-          groupId: groupId,
-          lineId: lineId,
-          sectionId: sectionId,
-          departmentId: departmentId,
-          divisionId: divisionId,
-          plantId: plantId,
+          groupId: groupId.id,
+          lineId: lineId.id,
+          sectionId: sectionId.id,
+          departmentId: departmentId.id,
+          divisionId: divisionId.id,
+          plantId: plantId.id,
         },
         { transaction }
       ); // Pass the transaction object
@@ -380,17 +465,6 @@ export const createUserAndOrg = async (req, res) => {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    const role = await Role.findOne({
-      where: {
-        id: roleId,
-      },
-      transaction, // Pass the transaction object
-    });
-
-    if (!role) {
-      return res.status(404).json({ message: "Role not found" });
-    }
-
     // Validasi role dengan warehouse staff atau warehouse member
     if (
       role.roleName === "warehouse staff" ||
@@ -401,7 +475,9 @@ export const createUserAndOrg = async (req, res) => {
       }
 
       if (warehouseIds.length > 1) {
-        return res.status(400).json({ message: "Warehouse must be unique" });
+        return res.status(400).json({
+          message: "There can only be 1 warehouse access for this role",
+        });
       }
     }
 
@@ -411,24 +487,25 @@ export const createUserAndOrg = async (req, res) => {
         username: username,
         password: hashPassword,
         name: name,
-        roleId: roleId,
-        position: position,
+        roleId: roleId.id,
+        position: position.value,
         noHandphone: noHandphone,
         email: email,
-        groupId: role.roleName === "group head" ? groupId : null,
-        lineId: role.roleName === "line head" ? lineId : null,
-        sectionId: role.roleName === "section head" ? sectionId : null,
-        departmentId: role.roleName === "department head" ? departmentId : null,
-        divisionId: role.roleName === "division head" ? divisionId : null,
+        groupId: role.roleName === "group head" ? groupId.id : null,
+        lineId: role.roleName === "line head" ? lineId.id : null,
+        sectionId: role.roleName === "section head" ? sectionId.id : null,
+        departmentId:
+          role.roleName === "department head" ? departmentId.id : null,
+        divisionId: role.roleName === "division head" ? divisionId.id : null,
         warehouseId:
           role.roleName === "warehouse staff" ||
           role.roleName === "warehouse member"
-            ? warehouseIds[0]
+            ? warehouseIds[0].id
             : null,
         organizationId: organizationId,
-        isProduction: isProduction,
-        isWarehouse: isWarehouse,
-        anotherWarehouseId: warehouseIds[0],
+        isProduction: isProduction.value,
+        isWarehouse: isWarehouse.value,
+        anotherWarehouseId: warehouseIds[0].id,
       },
       { transaction }
     ); // Pass the transaction object
@@ -438,7 +515,7 @@ export const createUserAndOrg = async (req, res) => {
       const userWarehouse = await UserWarehouse.findOne({
         where: {
           userId: user.id,
-          warehouseId: warehouseId,
+          warehouseId: warehouseId.id,
           flag: 1,
         },
       });
@@ -447,7 +524,7 @@ export const createUserAndOrg = async (req, res) => {
         await UserWarehouse.create(
           {
             userId: user.id,
-            warehouseId: warehouseId,
+            warehouseId: warehouseId.id,
           },
           { transaction }
         );
@@ -461,6 +538,285 @@ export const createUserAndOrg = async (req, res) => {
     // Rollback the transaction in case of an error
     await transaction.rollback();
     console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateUserAndOrg = async (req, res) => {
+  const {
+    name,
+    roleId,
+    position,
+    noHandphone,
+    email,
+    groupId,
+    lineId,
+    sectionId,
+    departmentId,
+    divisionId,
+    warehouseIds,
+    plantId,
+    isProduction,
+    isWarehouse,
+  } = req.body;
+
+  const userId = req.params.id;
+
+  // Validasi user ID
+  const user = await User.findOne({
+    where: {
+      id: userId,
+      flag: 1,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Cari roleName dari roleId
+  const role = await Role.findOne({
+    where: {
+      id: roleId.id,
+      flag: 1,
+    },
+    attributes: ["roleName"],
+  });
+
+  if (!role) {
+    return res.status(404).json({ message: "Role not found" });
+  }
+
+  // Validasi field yang wajib diisi
+  let requiredFields = [];
+  if (role.roleName.includes("group head")) {
+    requiredFields = [
+      { field: "name", message: "Fullname is required" },
+      { field: "roleId", message: "Role is required" },
+      { field: "position", message: "Position is required" },
+      { field: "groupId", message: "Group is required" },
+      { field: "lineId", message: "Line is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else if (role.roleName.includes("line head")) {
+    requiredFields = [
+      { field: "name", message: "Fullname is required" },
+      { field: "roleId", message: "Role is required" },
+      { field: "position", message: "Position is required" },
+      { field: "lineId", message: "Line is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else if (role.roleName.includes("section head")) {
+    requiredFields = [
+      { field: "name", message: "Fullname is required" },
+      { field: "position", message: "Position is required" },
+      { field: "sectionId", message: "Section is required" },
+      { field: "departmentId", message: "Department is required" },
+      { field: "divisionId", message: "Division is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "plantId", message: "Plant is required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  } else {
+    requiredFields = [
+      { field: "name", message: "Fullname is required" },
+      { field: "position", message: "Position is required" },
+      { field: "warehouseIds", message: "Warehouse Access are required" },
+      { field: "isProduction", message: "Production is required" },
+      { field: "isWarehouse", message: "Warehouse is required" },
+    ];
+  }
+
+  for (const field of requiredFields) {
+    if (!req.body[field.field]) {
+      return res.status(400).json({
+        message: field.message,
+      });
+    }
+  }
+
+  let organizationId;
+
+  // Start a transaction
+  const transaction = await db.transaction();
+
+  try {
+    // Check if organization exists
+    const organization = await Organization.findOne({
+      where: {
+        groupId: groupId?.id || null,
+        lineId: lineId?.id || null,
+        sectionId: sectionId?.id || null,
+        departmentId: departmentId?.id || null,
+        divisionId: divisionId?.id || null,
+        plantId: plantId?.id || null,
+        flag: 1,
+      },
+      transaction, // Pass the transaction object
+    });
+
+    if (organization) {
+      organizationId = organization.id;
+    } else {
+      const newOrganization = await Organization.create(
+        {
+          groupId: groupId?.id,
+          lineId: lineId?.id,
+          sectionId: sectionId?.id,
+          departmentId: departmentId?.id,
+          divisionId: divisionId?.id,
+          plantId: plantId?.id,
+        },
+        { transaction }
+      ); // Pass the transaction object
+      organizationId = newOrganization.id;
+    }
+
+    // Update the user
+    await user.update(
+      {
+        name: name,
+        roleId: roleId.id,
+        position: position.value,
+        noHandphone: noHandphone,
+        email: email,
+        groupId: role.roleName === "group head" ? groupId?.id : null,
+        lineId: role.roleName === "line head" ? lineId?.id : null,
+        sectionId: role.roleName === "section head" ? sectionId?.id : null,
+        departmentId:
+          role.roleName === "department head" ? departmentId?.id : null,
+        divisionId: role.roleName === "division head" ? divisionId?.id : null,
+        warehouseId:
+          role.roleName === "warehouse staff" ||
+          role.roleName === "warehouse member"
+            ? warehouseIds[0]?.id
+            : null,
+        organizationId: organizationId,
+        isProduction: isProduction.value,
+        isWarehouse: isWarehouse.value,
+      },
+      { transaction }
+    );
+
+    // Update UserWarehouse entries
+    await UserWarehouse.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
+
+    for (const warehouseId of warehouseIds) {
+      await UserWarehouse.create(
+        {
+          userId: user.id,
+          warehouseId: warehouseId.id,
+        },
+        { transaction }
+      );
+    }
+
+    // Commit the transaction
+    await transaction.commit();
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    // Rollback the transaction in case of an error
+    await transaction.rollback();
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const addImage = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const image = req.file;
+
+    if (!image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    const user = await User.findOne({
+      where: { id: userId, flag: 1 },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const imagePath = `/uploads/profiles/${user.username}${path.extname(
+      image.originalname
+    )}`;
+
+    // Simpan path gambar ke database
+    await User.update(
+      { img: imagePath },
+      {
+        where: {
+          id: userId,
+          flag: 1,
+        },
+      }
+    );
+
+    res
+      .status(200)
+      .json({ message: "Image upload successfully", imgPath: imagePath });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteImage = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findOne({
+      where: { id: userId, flag: 1 },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.img) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+
+    const filePath = `.resources${user.img}`;
+
+    // Periksa apakah file ada sebelum dihapus
+    if (fs.existsSync(filePath)) {
+      await fsp.unlink(filePath);
+    } else {
+      console.log("File not found:", filePath);
+    }
+
+    await User.update(
+      { img: null },
+      {
+        where: {
+          id: userId,
+          flag: 1,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Image deleted successfully" });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

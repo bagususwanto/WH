@@ -276,16 +276,16 @@ const InputInventory = () => {
   }
 
   const handleStorageChange = async (selectedStorage) => {
-    if (!navigator.onLine) {
-      // Jika jaringan offline, tampilkan notifikasi
-      MySwal.fire({
-        title: 'Offline!',
-        text: 'You are currently offline. Please check your internet connection.',
-        icon: 'warning',
-      })
-      setSelectedStorageVal(selectedStorageVal)
-      return // Hentikan aksi jika offline
-    }
+    // if (!navigator.onLine) {
+    //   // Jika jaringan offline, tampilkan notifikasi
+    //   MySwal.fire({
+    //     title: 'Offline!',
+    //     text: 'You are currently offline. Please check your internet connection.',
+    //     icon: 'warning',
+    //   })
+    //   setSelectedStorageVal(selectedStorageVal)
+    //   return // Hentikan aksi jika offline
+    // }
 
     if (!selectedStorage) {
       // Urutkan data yang difilter berdasarkan addressRackName secara ASC
@@ -1147,7 +1147,7 @@ const InputInventory = () => {
                     isClearable={isClearable}
                     options={storageOptions}
                     id="storage"
-                    onMenuOpen={handleStorageOpen}
+                    // onMenuOpen={handleStorageOpen}
                     onChange={handleStorageChange}
                     // styles={customStyles}
                     value={selectedStorageVal}

@@ -437,7 +437,7 @@ const Material = () => {
 
   const handleDeleteMaterial = (materialId) => {
     MySwal.fire({
-      title: 'Apakah Anda yakin?',
+      title: 'Are you sure?',
       text: 'This material cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
