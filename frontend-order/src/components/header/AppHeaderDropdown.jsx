@@ -33,7 +33,8 @@ const AppHeaderDropdown = () => {
   const MySwal = withReactContent(swal)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false) // Tambahkan state untuk mengontrol dropdown
   const dropdownRef = useRef(null)
-
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
 
   const handleHistory = () => {
     navigate('/history')
@@ -127,7 +128,12 @@ const AppHeaderDropdown = () => {
          autoClose="outside"
       visible={isDropdownOpen}
       ref={dropdownRef}
-      onMouseEnter={() => setIsDropdownOpen(true)} // Buka saat hover
+      onMouseEnter={() => {s
+       // Buka saat hover
+      setIsDropdownOpen(true)
+      setIsCartOpen(false) 
+      setIsNotifOpen(false) 
+    }}
       onMouseLeave={() => setIsDropdownOpen("outside")} // Tutup saat keluar
     >
       <CDropdownToggle

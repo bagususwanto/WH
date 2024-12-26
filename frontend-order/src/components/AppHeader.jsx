@@ -748,10 +748,11 @@ const AppHeader = () => {
           <CDropdown
             variant="nav-item"
             autoClose="outside"
-            visible={isCartOpen && !isNotifOpen} // Hanya tampilkan Cart jika Notif tertutup
+            visible={isCartOpen  && !isNotifOpen && !isDropdownOpen} // Hanya tampilkan Cart jika Notif tertutup
             onMouseEnter={() => {
               setIsCartOpen(true)
               setIsNotifOpen(false) // Tutup Notif
+              setIsDropdownOpen(false) // Tutup Notif
             }}
             onMouseLeave={() => setIsCartOpen('outside')}
           >
@@ -857,6 +858,7 @@ const AppHeader = () => {
             onMouseEnter={() => {
               setIsNotifOpen(true)
               setIsCartOpen(false) // Tutup Cart
+              setIsDropdownOpen(false) // Tutup Cart
             }}
             onMouseLeave={() => setIsNotifOpen("outside")}
           >
