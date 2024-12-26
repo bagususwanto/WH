@@ -852,7 +852,12 @@ const Dashboard = () => {
         <Column header="Follow Up By" colSpan={2} align="center" frozen />
       </Row>
       <Row>
-        <Column header="Min" align="center" />
+        {selectedChart === 'critical' ? (
+          <Column field="Material.minStock" header="Min" align="center" />
+        ) : selectedChart === 'overflow' ? (
+          <Column field="Material.maxStock" header="Max" align="center" />
+        ) : null}
+
         <Column header="Actual" align="center" />
         <Column header="Delivery Date" align="center" />
         <Column header="Qty Plan" align="center" />
