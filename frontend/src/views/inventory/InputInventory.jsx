@@ -799,7 +799,7 @@ const InputInventory = () => {
 
           const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
           await updateInventorySubmit(warehouseId.id, items) // Mengirimkan semua item dalam satu body
-          await getInventories(selectedTypeMaterial.label)
+          await getInventories('DIRECT')
           MySwal.fire('Success', 'Inventory updated successfully!', 'success')
 
           // Membersihkan IndexedDB
