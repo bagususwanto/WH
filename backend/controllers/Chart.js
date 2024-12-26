@@ -155,10 +155,7 @@ export const getInventoryDashboard = async (req, res) => {
           order: [["createdAt", "DESC"]],
           where: {
             incomingDate: {
-              [Op.between]: [
-                new Date(today.setHours(0, 0, 0, 0)), // Hari ini jam 00:00:00
-                new Date(today.setHours(23, 59, 59, 999)), // Hari ini jam 23:59:59
-              ],
+              [Op.gte]: today,
             },
           },
         },

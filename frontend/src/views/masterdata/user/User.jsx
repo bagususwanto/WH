@@ -97,6 +97,7 @@ const User = () => {
   const [isClearable, setIsClearable] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [roleValid, setRoleValid] = useState([])
 
   const animatedComponents = makeAnimated()
 
@@ -937,6 +938,8 @@ const User = () => {
     setShowConfirmPassword(!showConfirmPassword)
   }
 
+  const defaultRole = roleOptions.find((option) => option.id === currentUser.roleId)
+
   return (
     <CRow>
       <CCol>
@@ -1240,7 +1243,10 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="role"
-                    onChange={(e) => setCurrentUser({ ...currentUser, roleId: e })}
+                    onChange={(e) => {
+                      setCurrentUser({ ...currentUser, roleId: e })
+                      setRoleValid(e.value || defaultRole.value)
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1253,7 +1259,8 @@ const User = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="group">
-                    Group <span>*</span>
+                    Group
+                    {['group head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
                     value={currentUser.groupId}
@@ -1270,7 +1277,7 @@ const User = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="line">
-                    Line <span>*</span>
+                    Line {['group head', 'line head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
                     value={currentUser.lineId}
@@ -1287,7 +1294,12 @@ const User = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="section">
-                    Section <span>*</span>
+                    Section{' '}
+                    {['group head', 'line head', 'section head'].includes(roleValid) ? (
+                      <span>*</span>
+                    ) : (
+                      ''
+                    )}
                   </label>
                   <Select
                     value={currentUser.sectionId}
@@ -1304,7 +1316,14 @@ const User = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="department">
-                    Department <span>*</span>
+                    Department{' '}
+                    {['group head', 'line head', 'section head', 'department head'].includes(
+                      roleValid,
+                    ) ? (
+                      <span>*</span>
+                    ) : (
+                      ''
+                    )}
                   </label>
                   <Select
                     value={currentUser.departmentId}
@@ -1321,7 +1340,14 @@ const User = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="division">
-                    Division <span>*</span>
+                    Division{' '}
+                    {['group head', 'line head', 'section head', 'department head'].includes(
+                      roleValid,
+                    ) ? (
+                      <span>*</span>
+                    ) : (
+                      ''
+                    )}
                   </label>
                   <Select
                     value={currentUser.divisionId}
