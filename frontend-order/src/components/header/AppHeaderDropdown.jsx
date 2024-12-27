@@ -18,7 +18,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
-import React, { useEffect, useState, useContext,useRef } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import config from '../../utils/Config'
 import { useNavigate } from 'react-router-dom'
 import useVerify from '../../hooks/UseVerify'
@@ -27,7 +27,7 @@ import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../services/AuthService'
 
 const AppHeaderDropdown = () => {
-  const { name, roleName, isWarehouse } = useVerify() // Pastikan roleName disertakan di sini
+  const { name, roleName, isWarehouse, imgProfile } = useVerify() // Pastikan roleName disertakan di sini
   const navigate = useNavigate()
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
@@ -125,23 +125,24 @@ const AppHeaderDropdown = () => {
   return (
     <CDropdown
       variant="nav-item"
-         autoClose="outside"
+      autoClose="outside"
       visible={isDropdownOpen}
       ref={dropdownRef}
-      onMouseEnter={() => {s
-       // Buka saat hover
-      setIsDropdownOpen(true)
-      setIsCartOpen(false) 
-      setIsNotifOpen(false) 
-    }}
-      onMouseLeave={() => setIsDropdownOpen("outside")} // Tutup saat keluar
+      onMouseEnter={() => {
+        s
+        // Buka saat hover
+        setIsDropdownOpen(true)
+        setIsCartOpen(false)
+        setIsNotifOpen(false)
+      }}
+      onMouseLeave={() => setIsDropdownOpen('outside')} // Tutup saat keluar
     >
       <CDropdownToggle
         className="py-0 pe-0 d-flex align-items-center"
         caret={false}
         onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
       >
-        <CAvatar src={profile} size="md" />
+        <CAvatar src={imgProfile ? `${config.BACKEND_URL}${imgProfile}` : profile} size="md" />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
           <span style={{ fontSize: '1em' }}>
