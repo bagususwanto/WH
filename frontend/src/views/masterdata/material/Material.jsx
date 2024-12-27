@@ -193,7 +193,7 @@ const Material = () => {
     try {
       const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
-        label: plant.plantName,
+        label: `${plant.plantName} - ${plant.plantCode}`,
         value: plant.plantName,
         id: plant.id,
       }))
@@ -306,7 +306,7 @@ const Material = () => {
     try {
       const response = await getMasterData(apiStorages)
       const storageOptions = response.data.map((storage) => ({
-        label: storage.storageName,
+        label: `${storage.storageName} - ${storage.storageCode}`,
         value: storage.storageName,
         id: storage.id,
       }))
