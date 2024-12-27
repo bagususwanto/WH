@@ -14,6 +14,7 @@ const useVerify = () => {
   const [token, setToken] = useState('')
   const [expire, setExpire] = useState(0)
   const [isWarehouse, setIsWarehouse] = useState(0)
+  const [imgProfile, setImgProfile] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const useVerify = () => {
       setWarehouseId(decoded.anotherWarehouseId)
       setExpire(decoded.exp)
       setIsWarehouse(decoded.isWarehouse)
+      setImgProfile(decoded.img)
     } catch (error) {
       console.error('Error refreshing token:', error)
       MySwal.fire({
@@ -57,6 +59,7 @@ const useVerify = () => {
           setWarehouseId(decoded.anotherWarehouseId)
           setExpire(decoded.exp)
           setIsWarehouse(decoded.isWarehouse)
+          setImgProfile(decoded.img)
         } catch (error) {
           console.error('Error refreshing token in interceptor:', error)
           MySwal.fire({
@@ -76,7 +79,7 @@ const useVerify = () => {
     },
   )
 
-  return { name, roleName, warehouseId, token, isWarehouse, axiosJWT }
+  return { name, roleName, warehouseId, token, isWarehouse, imgProfile, axiosJWT }
 }
 
 export default useVerify

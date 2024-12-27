@@ -66,6 +66,12 @@ app.use(
   express.static(path.join(__dirname, "resources/uploads/products"))
 );
 
+// Mengatur path untuk gambar profile user
+app.use(
+  "/uploads/profiles",
+  express.static(path.join(__dirname, "resources/uploads/profiles"))
+);
+
 // Mengambil sertifikat dan kunci
 const privateKey = fs.readFileSync(
   path.join(__dirname, "certificates", "server.key"),

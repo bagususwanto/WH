@@ -12,7 +12,8 @@ const generateTokens = (
   isProduction,
   isWarehouse,
   roleName,
-  anotherWarehouseId
+  anotherWarehouseId,
+  img
 ) => {
   const accessToken = jwt.sign(
     {
@@ -23,6 +24,7 @@ const generateTokens = (
       isWarehouse,
       roleName,
       anotherWarehouseId,
+      img,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -38,6 +40,7 @@ const generateTokens = (
       isWarehouse,
       roleName,
       anotherWarehouseId,
+      img,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
@@ -87,7 +90,14 @@ export const login = async (req, res) => {
         .json({ message: "Username atau password tidak sesuai" });
     }
 
-    const { id: userId, name, isProduction, isWarehouse, anotherWarehouseId } = user;
+    const {
+      id: userId,
+      name,
+      isProduction,
+      isWarehouse,
+      anotherWarehouseId,
+      img,
+    } = user;
     const roleName = user.Role.roleName;
 
     const { accessToken, refreshToken } = generateTokens(
@@ -97,7 +107,8 @@ export const login = async (req, res) => {
       isProduction,
       isWarehouse,
       roleName,
-      anotherWarehouseId
+      anotherWarehouseId,
+      img
     );
 
     await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
@@ -174,6 +185,7 @@ export const refreshToken = async (req, res) => {
           isProduction,
           isWarehouse,
           anotherWarehouseId,
+          img,
         } = user;
         const roleName = user.Role.roleName;
         const { accessToken } = generateTokens(
@@ -183,7 +195,8 @@ export const refreshToken = async (req, res) => {
           isProduction,
           isWarehouse,
           roleName,
-          anotherWarehouseId
+          anotherWarehouseId,
+          img
         );
 
         res.json({ accessToken });

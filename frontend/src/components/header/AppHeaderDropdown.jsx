@@ -17,11 +17,12 @@ import useVerify from '../../hooks/UseVerify'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../services/AuthService'
+import config from '../../utils/Config'
 
 const AppHeaderDropdown = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  const { name } = useVerify()
+  const { name, imgProfile } = useVerify()
   const navigate = useNavigate()
   const { logout } = useAuthService()
   const MySwal = withReactContent(swal)
@@ -68,7 +69,7 @@ const AppHeaderDropdown = () => {
         caret={false}
         onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
       >
-        <CAvatar src={profile} size="md" />
+        <CAvatar src={imgProfile ? `${config.BACKEND_URL}${imgProfile}` : profile} size="md" />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
           <span style={{ fontSize: '1em' }}>

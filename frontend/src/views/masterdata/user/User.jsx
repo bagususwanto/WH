@@ -74,6 +74,7 @@ const User = () => {
     position: '',
     noHandphone: '',
     email: '',
+    img: '',
     groupId: '',
     lineId: '',
     sectionId: '',
@@ -135,8 +136,8 @@ const User = () => {
   const apiMasterUserOrg = 'user-org'
   const apiUserDelete = 'user-delete'
   const apiUpload = 'upload-master-material'
-  const apiDeleteImgMaterial = 'material-delete-image'
-  const apiUploadImageMaterial = 'material-upload-image'
+  const apiDeleteImgUser = 'user-delete-image'
+  const apiUploadImageUser = 'user-upload-image'
   const apiPosition = 'position'
   const apiRole = 'role-public'
   const apiGroup = 'group-public'
@@ -406,6 +407,7 @@ const User = () => {
       position: '',
       noHandphone: '',
       email: '',
+      img: '',
       groupId: '',
       lineId: '',
       sectionId: '',
@@ -480,6 +482,7 @@ const User = () => {
       position: selectedPosition || null,
       noHandphone: user.noHandphone,
       email: user.email,
+      img: user.img,
       groupId: selectedGroup || null,
       lineId: selectedLine || null,
       sectionId: selectedSection || null,
@@ -959,9 +962,9 @@ const User = () => {
       })
 
       if (result.isConfirmed) {
-        await updateMasterDataById(apiDeleteImgMaterial, id)
-        setCurrentMaterial({
-          ...currentMaterial,
+        await updateMasterDataById(apiDeleteImgUser, id)
+        setCurrentUser({
+          ...currentUser,
           img: '',
         })
         MySwal.fire('Success', 'Image deleted successfully', 'success')
@@ -992,7 +995,7 @@ const User = () => {
 
         try {
           // Melakukan request POST ke endpoint backend
-          const response = await uploadImageMaterial(apiUploadImageMaterial, id, formData)
+          const response = await uploadImageMaterial(apiUploadImageUser, id, formData)
           console.log('Image uploaded successfully:', response.data)
 
           setCurrentUser({
