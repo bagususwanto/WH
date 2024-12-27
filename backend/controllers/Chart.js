@@ -6,6 +6,7 @@ import Incoming from "../models/IncomingModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
+import LogEntry from "../models/LogEntryModel.js";
 
 const { Op } = Sequelize;
 const startOfToday = new Date();
@@ -179,6 +180,13 @@ export const getInventoryDashboard = async (req, res) => {
               ],
             },
           ],
+        },
+        {
+          model: LogEntry,
+          attributes: ["createdAt"],
+          limit: 1,
+          order: [["createdAt", "DESC"]],
+          required: false,
         },
       ],
       where: whereCondition,

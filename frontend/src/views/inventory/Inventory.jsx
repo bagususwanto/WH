@@ -80,7 +80,7 @@ const Inventory = () => {
       sortable: true,
     },
     {
-      field: 'formattedUpdateAt',
+      field: 'lastUpdate',
       header: 'Update At',
       sortable: true,
     },
@@ -203,6 +203,7 @@ const Inventory = () => {
         storageId ? storageId : '',
         type ? type : '',
       )
+
       const dataWithFormattedFields = response.data.map((item) => {
         // Evaluasi untuk menentukan status inventory
         const evaluation =
@@ -219,8 +220,8 @@ const Inventory = () => {
           discrepancy,
           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
           formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          formattedUpdateAt: item.updatedAt
-            ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          lastUpdate: item.Log_Entries?.[0].createdAt
+            ? format(parseISO(item.Log_Entries?.[0].createdAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
         }
       })
@@ -253,7 +254,7 @@ const Inventory = () => {
   //           discrepancy,
   //           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
   //           formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-  //           formattedUpdateAt: item.updatedAt
+  //           lastUpdate: item.updatedAt
   //             ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
   //             : '',
   //         }
@@ -490,7 +491,7 @@ const Inventory = () => {
 
         return {
           'Material No': Material.materialNo,
-          // Description: Material.description,
+          Description: Material.description,
           // Address: item.Address_Rack.addressRackName,
           UoM: Material.uom,
           // 'Min Stock': Material.minStock,
@@ -504,7 +505,7 @@ const Inventory = () => {
           // Plant: item.Address_Rack.Storage.Plant.plantName,
           // Storage: item.Address_Rack.Storage.storageName,
           // 'Update By': item.Log_Entries[0]?.User?.username || '',
-          // 'Update At': format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss'),
+          'Update At': format(parseISO(item.lastUpdate), 'yyyy-MM-dd HH:mm:ss'),
         }
       })
 
@@ -513,8 +514,10 @@ const Inventory = () => {
       const downloadAtRow = [
         {
           'Material No': `downloadAt: ${downloadTimestamp}`,
+          Description: '',
           UoM: '',
           Stock: '',
+          'Update At': '',
         },
       ]
 
@@ -522,8 +525,10 @@ const Inventory = () => {
       const headerRow = [
         {
           'Material No': 'Material No',
+          Description: 'Description',
           UoM: 'UoM',
           Stock: 'Stock',
+          'Update At': 'Update At',
         },
       ]
 
