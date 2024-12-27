@@ -576,8 +576,8 @@ const Material = () => {
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = materials.map((item) => ({
-        id: item.id,
+      const mappedData = materials.map((item, index) => ({
+        no: index + 1,
         materialNo: item.materialNo,
         description: item.description,
         uom: item.uom,

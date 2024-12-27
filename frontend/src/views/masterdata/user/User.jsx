@@ -715,34 +715,34 @@ const User = () => {
       supplierId: selectedOption ? selectedOption.value : '',
     })
   }
-
+  console.log('users:', users)
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = users.map((item) => ({
-        id: item.id,
-        materialNo: item.materialNo,
-        description: item.description,
-        uom: item.uom,
-        type: item.type,
-        category: item.Category?.categoryName,
-        price: item.price,
-        mrpType: item.mrpType,
-        minStock: item.minStock,
-        maxStock: item.maxStock,
-        minOrder: item.minOrder,
-        packaging: item.Packaging?.packaging,
-        unitPackaging: item.Packaging?.unitPackaging,
-        supplier: item.Supplier?.supplierName,
-        storage: item.Storages[0]?.storageName,
-        plant: item.Storages[0]?.Plant?.plantName,
-        CreatedAt: item.formattedCreatedAt,
-        UpdatedAt: item.formattedUpdatedAt,
+      const mappedData = users.map((item, index) => ({
+        No: index + 1,
+        Username: item.username,
+        Name: item.name,
+        Email: item.email,
+        'Phone Number': item.noHandphone,
+        Position: item.position,
+        Role: item.Role?.roleName,
+        Group: item.Organization?.Group?.groupName,
+        Line: item.Organization?.Line?.lineName,
+        Section: item.Organization?.Section?.sectionName,
+        Department: item.Organization?.Department?.departmentName,
+        Division: item.Organization?.Division?.divisionName,
+        Plant: item.Organization?.Plant?.plantName,
+        'Warehouse Access': item.warehouses,
+        Production: item.isProduction == 1 ? 'Production' : 'Non Production',
+        Warehouse: item.isWarehouse == 1 ? 'Warehouse' : 'Non Warehouse',
+        'Created At': item.formattedCreatedAt,
+        'Updated At': item.formattedUpdatedAt,
       }))
 
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'material')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'user')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -751,7 +751,7 @@ const User = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_material')
+      saveAsExcelFile(excelBuffer, 'master_data_user')
     })
   }
 
