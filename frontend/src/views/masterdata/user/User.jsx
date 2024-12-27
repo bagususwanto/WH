@@ -939,7 +939,7 @@ const User = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading material data...</p>
+      <p>Loading user data...</p>
     </div>
   )
 
