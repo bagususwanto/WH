@@ -180,6 +180,7 @@ const Material = () => {
     { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
     { field: 'createdBy', header: 'Created By', sortable: true },
     { field: 'updatedBy', header: 'Updated By', sortable: true },
+    { field: 'importBy', header: 'Import By', sortable: true },
   ]
 
   const onColumnToggle = (event) => {
@@ -342,6 +343,7 @@ const Material = () => {
           : ''
         const createdBy = item.createdBy?.[0]?.User?.username || ''
         const updatedBy = item.updatedBy?.[0]?.User?.username || ''
+        const importBy = item.Log_Import?.User?.username || ''
 
         return {
           ...item,
@@ -352,10 +354,7 @@ const Material = () => {
           formattedUpdatedAt,
           createdBy,
           updatedBy,
-          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          // formattedUpdateAt: item.updatedAt
-          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-          //   : '',
+          importBy,
         }
       })
       setMaterials(dataWithFormattedFields)
