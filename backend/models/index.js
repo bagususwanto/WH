@@ -44,6 +44,10 @@ import LogMaster from "./LogMasterModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 import Redpost from "./RedpostModel.js";
 
+// Association
+import logMasterAssociations from "./LogMasterAssociatios.js";
+logMasterAssociations();
+
 (async () => {
   try {
     // await db.sync();
