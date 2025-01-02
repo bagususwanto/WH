@@ -6,6 +6,7 @@ const logMasterAssociations = () => {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
   LogMaster.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
+  // Material master
   Material.hasMany(LogMaster, {
     as: "createdBy",
     foreignKey: "masterId",
@@ -17,6 +18,23 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Material, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // User master
+  User.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  User.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(User, {
+    as: "userLog",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

@@ -1016,7 +1016,7 @@ export const uploadMasterMaterial = async (req, res) => {
               supplierId,
               logImportId,
             },
-            { transaction }
+            { individualHooks: true, userId: req.user.userId, transaction }
           );
         } else {
           newMaterials.push({

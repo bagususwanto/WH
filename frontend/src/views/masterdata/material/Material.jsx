@@ -359,7 +359,7 @@ const Material = () => {
       })
       setMaterials(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching incoming:', error)
+      console.error('Error fetching material:', error)
     } finally {
       setShouldFetch(false)
       setLoading(false) // Set loading to false after data is fetched

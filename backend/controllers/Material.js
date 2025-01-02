@@ -488,6 +488,8 @@ export const addImage = async (req, res) => {
           id: materialId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 
@@ -532,6 +534,8 @@ export const deleteImage = async (req, res) => {
           id: materialId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 
