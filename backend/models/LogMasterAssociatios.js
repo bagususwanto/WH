@@ -5,10 +5,12 @@ import Division from "./DivisionModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Packaging from "./PackagingModel.js";
+import ServiceHours from "./ServiceHoursModel.js";
 import Shift from "./ShiftModel.js";
 import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
+import Warehouse from "./WarehouseModel.js";
 
 const logMasterAssociations = () => {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
@@ -171,6 +173,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Division, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // ServiceHours->LogMaster
+  ServiceHours.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  ServiceHours.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(ServiceHours, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Warehouse->LogMaster
+  Warehouse.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Warehouse.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Warehouse, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });
