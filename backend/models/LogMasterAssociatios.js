@@ -8,6 +8,7 @@ import Group from "./GroupModel.js";
 import Line from "./LineModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
+import MaterialStorage from "./MaterialStorageModel.js";
 import Organization from "./OrganizationModel.js";
 import Packaging from "./PackagingModel.js";
 import Plant from "./PlantModel.js";
@@ -18,6 +19,7 @@ import Shift from "./ShiftModel.js";
 import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
+import UserWarehouse from "./UserWarehouseModel.js";
 import Warehouse from "./WarehouseModel.js";
 import WBS from "./WBSModel.js";
 
@@ -358,6 +360,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Role, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // UserWarehouse->LogMaster
+  UserWarehouse.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  UserWarehouse.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(UserWarehouse, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // MaterialStorage->LogMaster
+  MaterialStorage.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  MaterialStorage.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(MaterialStorage, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

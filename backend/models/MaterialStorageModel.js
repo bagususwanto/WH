@@ -3,6 +3,7 @@ import db from "../utils/Database.js";
 import Storage from "./StorageModel.js";
 import Material from "./MaterialModel.js";
 import LogImport from "./LogImportModel.js";
+import LogMaster from "./LogMasterModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -60,6 +61,52 @@ LogImport.hasMany(MaterialStorage, {
 MaterialStorage.belongsTo(LogImport, {
   foreignKey: "logImportId",
   onDelete: "NO ACTION",
+});
+
+// HOOKS
+MaterialStorage.addHook("afterCreate", async (ms, options) => {
+  await LogMaster.create({
+    masterType: "MaterialStorage",
+    masterId: ms.id,
+    action: "create",
+    changes: JSON.stringify(ms),
+    userId: options.userId,
+  });
+});
+
+MaterialStorage.addHook("afterUpdate", async (ms, options) => {
+  // Ambil perubahan yang terjadi
+  const changes = ms._previousDataValues;
+
+  // Bandingkan nilai lama (sebelumnya) dengan nilai baru (sekarang)
+  const updatedData = ms.dataValues;
+
+  // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
+  if (changes.flag === 1 && updatedData.flag === 0) {
+    // Catat log untuk soft delete
+    await LogMaster.create({
+      masterType: "MaterialStorage",
+      masterId: ms.id,
+      action: "softDelete",
+      changes: JSON.stringify({
+        old: changes,
+        new: updatedData, // Menyertakan data setelah update
+      }),
+      userId: options.userId,
+    });
+  } else {
+    // Catat log untuk update biasa
+    await LogMaster.create({
+      masterType: "MaterialStorage",
+      masterId: ms.id,
+      action: "update",
+      changes: JSON.stringify({
+        old: changes, // Data sebelum update
+        new: updatedData, // Data setelah update
+      }),
+      userId: options.userId,
+    });
+  }
 });
 
 export default MaterialStorage;

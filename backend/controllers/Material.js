@@ -288,10 +288,13 @@ export const createMaterial = async (req, res) => {
     );
 
     // Hubungkan material dengan storage
-    await MaterialStorage.create({
-      materialId: newMaterial.id,
-      storageId: storageId.id,
-    });
+    await MaterialStorage.create(
+      {
+        materialId: newMaterial.id,
+        storageId: storageId.id,
+      },
+      { userId: req.user.userId }
+    );
 
     res
       .status(201)
@@ -401,10 +404,13 @@ export const updateMaterial = async (req, res) => {
       where: { materialId: materialId, storageId: storageId.id, flag: 1 },
     });
     if (!materialStorage) {
-      MaterialStorage.create({
-        materialId: materialId,
-        storageId: storageId.id,
-      });
+      MaterialStorage.create(
+        {
+          materialId: materialId,
+          storageId: storageId.id,
+        },
+        { userId: req.user.userId }
+      );
     }
 
     await Material.update(

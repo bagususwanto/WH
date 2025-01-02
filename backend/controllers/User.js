@@ -572,7 +572,7 @@ export const createUserAndOrg = async (req, res) => {
             userId: user.id,
             warehouseId: warehouseId.id,
           },
-          { transaction }
+          { userId: req.user.userId, transaction }
         );
       }
     }
@@ -773,7 +773,7 @@ export const updateUserAndOrg = async (req, res) => {
           userId: user.id,
           warehouseId: warehouseId.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       );
     }
 
