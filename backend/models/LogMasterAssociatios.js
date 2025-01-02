@@ -1,8 +1,10 @@
 import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
+import Department from "./DepartmentModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Packaging from "./PackagingModel.js";
+import Shift from "./ShiftModel.js";
 import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
@@ -120,6 +122,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Storage, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Department->LogMaster
+  Department.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Department.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Department, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Shift->LogMaster
+  Shift.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Shift.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Shift, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });
