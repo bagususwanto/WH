@@ -46,10 +46,11 @@ import Redpost from "./RedpostModel.js";
 
 // Association
 import logMasterAssociations from "./LogMasterAssociatios.js";
-logMasterAssociations();
+
 
 (async () => {
   try {
+    logMasterAssociations();
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });

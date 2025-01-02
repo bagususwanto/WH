@@ -1,6 +1,7 @@
 import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
 import Department from "./DepartmentModel.js";
+import Division from "./DivisionModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Packaging from "./PackagingModel.js";
@@ -154,6 +155,22 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Shift, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Division->LogMaster
+  Division.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Division.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Division, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

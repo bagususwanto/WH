@@ -1,5 +1,6 @@
 import LogMaster from "../models/LogMasterModel.js";
 import Shift from "../models/ShiftModel.js";
+import User from "../models/UserModel.js";
 
 export const getShift = async (req, res) => {
   try {
