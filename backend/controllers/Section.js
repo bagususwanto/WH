@@ -1,11 +1,45 @@
+import LogMaster from "../models/LogMasterModel.js";
 import Organization from "../models/OrganizationModel.js";
 import Plant from "../models/PlantModel.js";
 import Section from "../models/SectionModel.js";
+import User from "../models/UserModel.js";
 
 export const getSection = async (req, res) => {
   try {
     const response = await Section.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Section", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Section" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -49,7 +83,7 @@ export const createSection = async (req, res) => {
       return res.status(400).json({ message: "Section already exists" });
     }
 
-    await Section.create(req.body);
+    await Section.create(req.body, { userId: require.user.userId });
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
     console.log(error.message);
@@ -74,6 +108,8 @@ export const updateSection = async (req, res) => {
         id: sectionId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: require.user.userId,
     });
     res.status(200).json({ message: "Section Updated" });
   } catch (error) {
@@ -94,7 +130,14 @@ export const deleteSection = async (req, res) => {
       return res.status(404).json({ message: "Section not found" });
     }
 
-    await Section.update({ flag: 0 }, { where: { id: sectionId, flag: 1 } });
+    await Section.update(
+      { flag: 0 },
+      {
+        where: { id: sectionId, flag: 1 },
+        individualHooks: true,
+        userId: require.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Section deleted" });
   } catch (error) {

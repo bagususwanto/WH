@@ -6,8 +6,10 @@ import Division from "./DivisionModel.js";
 import GIC from "./GICModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
+import Organization from "./OrganizationModel.js";
 import Packaging from "./PackagingModel.js";
 import Plant from "./PlantModel.js";
+import Section from "./SectionModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import Shift from "./ShiftModel.js";
 import Storage from "./StorageModel.js";
@@ -273,6 +275,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(WBS, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Organization->LogMaster
+  Organization.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Organization.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Organization, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Section->LogMaster
+  Section.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Section.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Section, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

@@ -2,9 +2,11 @@ import Department from "../models/DepartmentModel.js";
 import Division from "../models/DivisionModel.js";
 import Group from "../models/GroupModel.js";
 import Line from "../models/LineModel.js";
+import LogMaster from "../models/LogMasterModel.js";
 import Organization from "../models/OrganizationModel.js";
 import Plant from "../models/PlantModel.js";
 import Section from "../models/SectionModel.js";
+import User from "../models/UserModel.js";
 
 export const getOrganization = async (req, res) => {
   try {
@@ -34,6 +36,36 @@ export const getOrganization = async (req, res) => {
         {
           model: Plant,
           where: { flag: 1 },
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Organization", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Organization" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
         },
       ],
     });
@@ -114,7 +146,7 @@ export const createOrganization = async (req, res) => {
       return res.status(400).json({ message: "Organization already exists" });
     }
 
-    await Organization.create(req.body);
+    await Organization.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Organization Created" });
   } catch (error) {
     console.log(error.message);
@@ -139,6 +171,8 @@ export const updateOrganization = async (req, res) => {
         id: shiftId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Organization Updated" });
   } catch (error) {
@@ -159,7 +193,14 @@ export const deleteOrganization = async (req, res) => {
       return res.status(404).json({ message: "Organization not found" });
     }
 
-    await Organization.update({ flag: 0 }, { where: { id: shiftId, flag: 1 } });
+    await Organization.update(
+      { flag: 0 },
+      {
+        where: { id: shiftId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Organization deleted" });
   } catch (error) {
