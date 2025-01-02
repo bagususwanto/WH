@@ -1,9 +1,56 @@
+import LogImport from "../models/LogImportModel.js";
+import LogMaster from "../models/LogMasterModel.js";
 import Supplier from "../models/SupplierModel.js";
+import User from "../models/UserModel.js";
 
 export const getSupplier = async (req, res) => {
   try {
     const response = await Supplier.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Supplier", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Supplier" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+        {
+          model: LogImport,
+          attributes: ["id", "createdAt", "userId"],
+          required: false,
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+      ],
     });
 
     res.status(200).json(response);

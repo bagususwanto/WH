@@ -1,12 +1,15 @@
+import AddressRack from "./AddressRackModel.js";
+import Category from "./CategoryModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
+import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
 
 const logMasterAssociations = () => {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
   LogMaster.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
-  // Material master
+  // Material->LogMaster
   Material.hasMany(LogMaster, {
     as: "createdBy",
     foreignKey: "masterId",
@@ -22,7 +25,7 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
 
-  // User master
+  // User->LogMaster
   User.hasMany(LogMaster, {
     as: "createdBy",
     foreignKey: "masterId",
@@ -35,6 +38,54 @@ const logMasterAssociations = () => {
   });
   LogMaster.belongsTo(User, {
     as: "userLog",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Category->LogMaster
+  Category.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Category.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Category, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Supplier->LogMaster
+  Supplier.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Supplier.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Supplier, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // AddressRack->LogMaster
+  AddressRack.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  AddressRack.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(AddressRack, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

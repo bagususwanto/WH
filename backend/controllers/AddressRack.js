@@ -4,6 +4,8 @@ import Plant from "../models/PlantModel.js";
 import Material from "../models/MaterialModel.js";
 import Warehouse from "../models/WarehouseModel.js";
 import User from "../models/UserModel.js";
+import LogMaster from "../models/LogMasterModel.js";
+import LogImport from "../models/LogImportModel.js";
 
 export const getAddressRack = async (req, res) => {
   try {
@@ -23,6 +25,48 @@ export const getAddressRack = async (req, res) => {
                   where: { flag: 1 },
                 },
               ],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "AddressRack", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "AddressRack" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+        {
+          model: LogImport,
+          attributes: ["id", "createdAt", "userId"],
+          required: false,
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
             },
           ],
         },
@@ -91,7 +135,7 @@ export const createAddressRack = async (req, res) => {
       return res.status(404).json({ message: "AddressRack already exist" });
     }
 
-    await AddressRack.create(req.body);
+    await AddressRack.create(req.body, { userid: req.user.userId });
     res.status(201).json({ message: "AddressRack Created" });
   } catch (error) {
     console.log(error.message);
@@ -116,6 +160,8 @@ export const updateAddressRack = async (req, res) => {
         id: addressRackId,
         flag: 1,
       },
+      individualHooks: true,
+      userid: req.user.userId,
     });
     res.status(200).json({ message: "AddressRack Updated" });
   } catch (error) {
@@ -136,7 +182,14 @@ export const deleteAddressRack = async (req, res) => {
       return res.status(404).json({ message: "AddressRack not found" });
     }
 
-    await AddressRack.update({ flag: 0 }, { where: { id: addressRackId, flag: 1 } });
+    await AddressRack.update(
+      { flag: 0 },
+      {
+        where: { id: addressRackId, flag: 1 },
+        individualHooks: true,
+        userid: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "AddressRack deleted" });
   } catch (error) {
