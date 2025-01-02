@@ -2,6 +2,8 @@ import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
+import Packaging from "./PackagingModel.js";
+import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
 
@@ -86,6 +88,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(AddressRack, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Packaging->LogMaster
+  Packaging.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Packaging.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Packaging, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Storage->LogMaster
+  Storage.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Storage.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Storage, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });

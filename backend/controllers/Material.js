@@ -246,10 +246,13 @@ export const createMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
@@ -371,10 +374,13 @@ export const updateMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
