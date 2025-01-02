@@ -3,6 +3,7 @@ import Category from "./CategoryModel.js";
 import CostCenter from "./CostCenterModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
+import GIC from "./GICModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Packaging from "./PackagingModel.js";
@@ -13,6 +14,7 @@ import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
 import Warehouse from "./WarehouseModel.js";
+import WBS from "./WBSModel.js";
 
 const logMasterAssociations = () => {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
@@ -239,6 +241,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(CostCenter, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // GIC->LogMaster
+  GIC.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  GIC.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(GIC, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // WBS->LogMaster
+  WBS.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  WBS.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(WBS, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });
