@@ -4,11 +4,14 @@ import CostCenter from "./CostCenterModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
 import GIC from "./GICModel.js";
+import Group from "./GroupModel.js";
+import Line from "./LineModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Organization from "./OrganizationModel.js";
 import Packaging from "./PackagingModel.js";
 import Plant from "./PlantModel.js";
+import Role from "./RoleModel.js";
 import Section from "./SectionModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import Shift from "./ShiftModel.js";
@@ -307,6 +310,54 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Section, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Line->LogMaster
+  Line.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Line.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Line, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Group->LogMaster
+  Group.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Group.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Group, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Role->LogMaster
+  Role.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Role.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Role, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });
