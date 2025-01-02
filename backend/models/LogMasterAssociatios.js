@@ -1,10 +1,12 @@
 import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
+import CostCenter from "./CostCenterModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
 import LogMaster from "./LogMasterModel.js";
 import Material from "./MaterialModel.js";
 import Packaging from "./PackagingModel.js";
+import Plant from "./PlantModel.js";
 import ServiceHours from "./ServiceHoursModel.js";
 import Shift from "./ShiftModel.js";
 import Storage from "./StorageModel.js";
@@ -205,6 +207,38 @@ const logMasterAssociations = () => {
     onDelete: "NO ACTION",
   });
   LogMaster.belongsTo(Warehouse, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // Plant->LogMaster
+  Plant.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  Plant.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(Plant, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+
+  // CostCenter->LogMaster
+  CostCenter.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  CostCenter.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+  });
+  LogMaster.belongsTo(CostCenter, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
   });
