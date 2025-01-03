@@ -213,6 +213,8 @@ const User = () => {
     { field: 'Organization.Division.divisionName', header: 'Division', sortable: true },
     { field: 'formattedCreatedAt', header: 'Created At', sortable: true },
     { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
+    { field: 'createdBy', header: 'Created By', sortable: true },
+    { field: 'updatedBy', header: 'Updated By', sortable: true },
   ]
 
   const onColumnToggle = (event) => {
@@ -367,6 +369,7 @@ const User = () => {
     setLoading(true)
     try {
       const response = await getMasterData(apiUser)
+      console.log('response:', response)
       const dataWithFormattedFields = response.data.map((item) => {
         const production = item.isProduction == 1 ? 'Production' : 'Non Production'
         const warehouse = item.warehouse == 1 ? 'Warehouse' : 'Non Warehouse'
@@ -377,6 +380,8 @@ const User = () => {
         const formattedUpdatedAt = item.updatedAt
           ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
           : ''
+        const createdBy = item.createdBy?.[0]?.User?.username
+        const updatedBy = item.updatedBy?.[0]?.User?.username
         return {
           ...item,
           production,
@@ -384,11 +389,13 @@ const User = () => {
           warehouses,
           formattedCreatedAt,
           formattedUpdatedAt,
+          createdBy,
+          updatedBy,
         }
       })
       setUsers(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching incoming:', error)
+      console.error('Error fetching user:', error)
     } finally {
       setShouldFetch(false)
       setLoading(false) // Set loading to false after data is fetched
@@ -939,7 +946,7 @@ const User = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading material data...</p>
+      <p>Loading user data...</p>
     </div>
   )
 

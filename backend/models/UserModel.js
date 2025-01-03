@@ -8,6 +8,7 @@ import Warehouse from "./WarehouseModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
 import Organization from "./OrganizationModel.js";
+import LogMaster from "./LogMasterModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -168,6 +169,52 @@ User.belongsTo(Warehouse, {
   as: "alternateWarehouse",
   foreignKey: "anotherWarehouseId",
   constraints: false,
+});
+
+// HOOKS
+User.addHook("afterCreate", async (user, options) => {
+  await LogMaster.create({
+    masterType: "User",
+    masterId: user.id,
+    action: "create",
+    changes: JSON.stringify(user),
+    userId: options.userId,
+  });
+});
+
+User.addHook("afterUpdate", async (user, options) => {
+  // Ambil perubahan yang terjadi
+  const changes = user._previousDataValues;
+
+  // Bandingkan nilai lama (sebelumnya) dengan nilai baru (sekarang)
+  const updatedData = user.dataValues;
+
+  // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
+  if (changes.flag === 1 && updatedData.flag === 0) {
+    // Catat log untuk soft delete
+    await LogMaster.create({
+      masterType: "User",
+      masterId: user.id,
+      action: "softDelete",
+      changes: JSON.stringify({
+        old: changes,
+        new: updatedData, // Menyertakan data setelah update
+      }),
+      userId: options.userId,
+    });
+  } else {
+    // Catat log untuk update biasa
+    await LogMaster.create({
+      masterType: "User",
+      masterId: user.id,
+      action: "update",
+      changes: JSON.stringify({
+        old: changes, // Data sebelum update
+        new: updatedData, // Data setelah update
+      }),
+      userId: options.userId,
+    });
+  }
 });
 
 export default User;

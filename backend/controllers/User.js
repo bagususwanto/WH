@@ -14,6 +14,7 @@ import Warehouse from "../models/WarehouseModel.js";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
+import LogMaster from "../models/LogMasterModel.js";
 
 export const getUser = async (req, res) => {
   try {
@@ -78,6 +79,36 @@ export const getUser = async (req, res) => {
           through: { attributes: [] },
           where: { flag: 1 },
           required: false,
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "User", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "User" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
         },
       ],
     });
@@ -213,24 +244,27 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    await User.create({
-      username: username,
-      password: hashPassword,
-      name: name,
-      roleId: roleId,
-      position: position,
-      img: img,
-      noHandphone: noHandphone,
-      email: email,
-      groupId: groupId,
-      lineId: lineId,
-      sectionId: sectionId,
-      departmentId: departmentId,
-      divisionId: divisionId,
-      warehouseId: warehouseId,
-      organizationId: organizationId,
-      isProduction: isProduction,
-    });
+    await User.create(
+      {
+        username: username,
+        password: hashPassword,
+        name: name,
+        roleId: roleId,
+        position: position,
+        img: img,
+        noHandphone: noHandphone,
+        email: email,
+        groupId: groupId,
+        lineId: lineId,
+        sectionId: sectionId,
+        departmentId: departmentId,
+        divisionId: divisionId,
+        warehouseId: warehouseId,
+        organizationId: organizationId,
+        isProduction: isProduction,
+      },
+      { userId: req.user.userId }
+    );
     res.status(201).json({ message: "User Created" });
   } catch (error) {
     console.log(error.message);
@@ -255,6 +289,8 @@ export const updateUser = async (req, res) => {
         id: userId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "User Updated" });
   } catch (error) {
@@ -275,7 +311,14 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await User.update({ flag: 0 }, { where: { id: userId, flag: 1 } });
+    await User.update(
+      { flag: 0 },
+      {
+        where: { id: userId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "User deleted" });
   } catch (error) {
@@ -445,7 +488,7 @@ export const createUserAndOrg = async (req, res) => {
           divisionId: divisionId.id,
           plantId: plantId.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       ); // Pass the transaction object
       organizationId = newOrganization.id;
     }
@@ -510,7 +553,7 @@ export const createUserAndOrg = async (req, res) => {
         isWarehouse: isWarehouse.value,
         anotherWarehouseId: warehouseIds[0].id,
       },
-      { transaction }
+      { userId: req.user.userId, transaction }
     ); // Pass the transaction object
 
     // Create UserWarehouse entries for each warehouseId
@@ -529,7 +572,7 @@ export const createUserAndOrg = async (req, res) => {
             userId: user.id,
             warehouseId: warehouseId.id,
           },
-          { transaction }
+          { userId: req.user.userId, transaction }
         );
       }
     }
@@ -683,7 +726,7 @@ export const updateUserAndOrg = async (req, res) => {
           divisionId: divisionId?.id,
           plantId: plantId?.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       ); // Pass the transaction object
       organizationId = newOrganization.id;
     }
@@ -711,7 +754,11 @@ export const updateUserAndOrg = async (req, res) => {
         isProduction: isProduction.value,
         isWarehouse: isWarehouse.value,
       },
-      { transaction }
+      {
+        individualHooks: true,
+        userId: req.user.userId,
+        transaction,
+      }
     );
 
     // Update UserWarehouse entries
@@ -726,7 +773,7 @@ export const updateUserAndOrg = async (req, res) => {
           userId: user.id,
           warehouseId: warehouseId.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       );
     }
 
@@ -770,6 +817,8 @@ export const addImage = async (req, res) => {
           id: userId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 
@@ -814,6 +863,8 @@ export const deleteImage = async (req, res) => {
           id: userId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 

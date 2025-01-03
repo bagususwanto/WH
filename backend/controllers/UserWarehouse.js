@@ -1,11 +1,44 @@
 import UserWarehouse from "../models/UserWarehouseModel.js";
 import User from "../models/UserModel.js";
 import Warehouse from "../models/WarehouseModel.js";
+import LogMaster from "../models/LogMasterModel.js";
 
 export const getUserWarehouse = async (req, res) => {
   try {
     const response = await UserWarehouse.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "UserWarehouse", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "UserWarehouse" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -73,7 +106,7 @@ export const createUserWarehouse = async (req, res) => {
       return res.status(400).json({ message: "UserWarehouse already exists" });
     }
 
-    await UserWarehouse.create(req.body);
+    await UserWarehouse.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "UserWarehouse Created" });
   } catch (error) {
     console.log(error.message);
@@ -124,13 +157,19 @@ export const deleteUserWarehouse = async (req, res) => {
     });
 
     if (!userWarehouse) {
-      return res.status(404).json({ message: "UserWarehouse relation not found or already deleted" });
+      return res.status(404).json({
+        message: "UserWarehouse relation not found or already deleted",
+      });
     }
 
     // Update flag menjadi 0 (soft delete)
     await UserWarehouse.update(
       { flag: 0 }, // Mengubah flag menjadi 0 (menandai sebagai "dihapus")
-      { where: { userId: userId, warehouseId: warehouseId, flag: 1 } }
+      {
+        where: { userId: userId, warehouseId: warehouseId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      } // Hanya mengupdate relasi yang aktif (flag = 1)
     );
 
     res.status(200).json({ message: "UserWarehouse relation deleted" });

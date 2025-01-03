@@ -1,9 +1,43 @@
 import Category from "../models/CategoryModel.js";
+import LogMaster from "../models/LogMasterModel.js";
+import User from "../models/UserModel.js";
 
 export const getCategory = async (req, res) => {
   try {
     const response = await Category.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Category", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Category" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -47,7 +81,7 @@ export const createCategory = async (req, res) => {
       return res.status(400).json({ message: "Category already exists" });
     }
 
-    await Category.create(req.body);
+    await Category.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Category Created" });
   } catch (error) {
     console.log(error.message);
@@ -72,6 +106,8 @@ export const updateCategory = async (req, res) => {
         id: categoryId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Category Updated" });
   } catch (error) {
@@ -92,7 +128,14 @@ export const deleteCategory = async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    await Category.update({ flag: 0 }, { where: { id: categoryId, flag: 1 } });
+    await Category.update(
+      { flag: 0 },
+      {
+        where: { id: categoryId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Category deleted" });
   } catch (error) {

@@ -1,9 +1,43 @@
+import LogMaster from "../models/LogMasterModel.js";
 import Role from "../models/RoleModel.js";
+import User from "../models/UserModel.js";
 
 export const getRole = async (req, res) => {
   try {
     const response = await Role.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Role", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Role" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -48,7 +82,7 @@ export const createRole = async (req, res) => {
       return res.status(400).json({ message: "Role already exists" });
     }
 
-    await Role.create(req.body);
+    await Role.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Role Created" });
   } catch (error) {
     console.log(error.message);
@@ -73,6 +107,8 @@ export const updateRole = async (req, res) => {
         id: roleId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Role Updated" });
   } catch (error) {
@@ -93,7 +129,14 @@ export const deleteRole = async (req, res) => {
       return res.status(404).json({ message: "Role not found" });
     }
 
-    await Role.update({ flag: 0 }, { where: { id: roleId, flag: 1 } });
+    await Role.update(
+      { flag: 0 },
+      {
+        where: { id: roleId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Role deleted" });
   } catch (error) {

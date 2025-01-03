@@ -8,6 +8,9 @@ import MaterialStorage from "../models/MaterialStorageModel.js";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
+import LogMaster from "../models/LogMasterModel.js";
+import User from "../models/UserModel.js";
+import LogImport from "../models/LogImportModel.js";
 
 export const getMaterial = async (req, res) => {
   try {
@@ -64,6 +67,48 @@ export const getMaterial = async (req, res) => {
                 model: Plant,
                 where: whereConditionPlant,
                 required: true,
+              },
+            ],
+          },
+          {
+            model: LogMaster,
+            required: false,
+            as: "createdBy",
+            attributes: ["id", "createdAt", "userId"],
+            where: { masterType: "Material", action: "create" },
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
+              },
+            ],
+          },
+          {
+            model: LogMaster,
+            required: false,
+            as: "updatedBy",
+            attributes: ["id", "createdAt", "userId"],
+            where: { masterType: "Material" },
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
+              },
+            ],
+            order: [["createdAt", "DESC"]],
+            limit: 1,
+          },
+          {
+            model: LogImport,
+            attributes: ["id", "createdAt", "userId"],
+            required: false,
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
               },
             ],
           },
@@ -163,8 +208,6 @@ export const createMaterial = async (req, res) => {
       !materialNo ||
       !description ||
       !uom ||
-      !price ||
-      price === 0 ||
       !type ||
       !mrpType ||
       !minStock ||
@@ -203,10 +246,13 @@ export const createMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
@@ -223,26 +269,32 @@ export const createMaterial = async (req, res) => {
     }
 
     // Buat material baru
-    const newMaterial = await Material.create({
-      materialNo,
-      description,
-      uom: uom.value,
-      price,
-      type: type.value,
-      mrpType: mrpType.value,
-      minStock,
-      maxStock,
-      categoryId: categoryId.id,
-      supplierId: supplierId.id,
-      packagingId: packagingRes?.id,
-      minOrder,
-    });
+    const newMaterial = await Material.create(
+      {
+        materialNo,
+        description,
+        uom: uom.value,
+        price,
+        type: type.value,
+        mrpType: mrpType.value,
+        minStock,
+        maxStock,
+        categoryId: categoryId.id,
+        supplierId: supplierId.id,
+        packagingId: packagingRes?.id,
+        minOrder,
+      },
+      { userId: req.user.userId }
+    );
 
     // Hubungkan material dengan storage
-    await MaterialStorage.create({
-      materialId: newMaterial.id,
-      storageId: storageId.id,
-    });
+    await MaterialStorage.create(
+      {
+        materialId: newMaterial.id,
+        storageId: storageId.id,
+      },
+      { userId: req.user.userId }
+    );
 
     res
       .status(201)
@@ -279,8 +331,6 @@ export const updateMaterial = async (req, res) => {
     if (
       !description ||
       !uom ||
-      !price ||
-      price === 0 ||
       !type ||
       !mrpType ||
       !minStock ||
@@ -327,10 +377,13 @@ export const updateMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
@@ -351,10 +404,13 @@ export const updateMaterial = async (req, res) => {
       where: { materialId: materialId, storageId: storageId.id, flag: 1 },
     });
     if (!materialStorage) {
-      MaterialStorage.create({
-        materialId: materialId,
-        storageId: storageId.id,
-      });
+      MaterialStorage.create(
+        {
+          materialId: materialId,
+          storageId: storageId.id,
+        },
+        { userId: req.user.userId }
+      );
     }
 
     await Material.update(
@@ -376,6 +432,8 @@ export const updateMaterial = async (req, res) => {
           id: materialId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
     res.status(200).json({ message: "Material Updated" });
@@ -397,7 +455,14 @@ export const deleteMaterial = async (req, res) => {
       return res.status(404).json({ message: "Material not found" });
     }
 
-    await Material.update({ flag: 0 }, { where: { id: materialId, flag: 1 } });
+    await Material.update(
+      { flag: 0 },
+      {
+        where: { id: materialId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Material deleted" });
   } catch (error) {
@@ -435,6 +500,8 @@ export const addImage = async (req, res) => {
           id: materialId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 
@@ -479,6 +546,8 @@ export const deleteImage = async (req, res) => {
           id: materialId,
           flag: 1,
         },
+        individualHooks: true,
+        userId: req.user.userId,
       }
     );
 

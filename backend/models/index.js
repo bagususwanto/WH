@@ -38,14 +38,20 @@ import Wishlist from "./WishlistModel.js";
 import Order from "./OrderModel.js";
 import DetailOrder from "./DetailOrderModel.js";
 import Cart from "./CartModel.js";
-import LogApproval from "./LogApprovalModel.js";
-import LogEntry from "./LogEntryModel.js";
-import LogMaster from "./LogMasterModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 import Redpost from "./RedpostModel.js";
 
+// log
+import LogApproval from "./LogApprovalModel.js";
+import LogEntry from "./LogEntryModel.js";
+import LogMaster from "./LogMasterModel.js";
+
+// Association
+import logMasterAssociations from "./LogMasterAssociatios.js";
+
 (async () => {
   try {
+    logMasterAssociations();
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });

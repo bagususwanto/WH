@@ -19,6 +19,7 @@ router.get(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",
@@ -34,6 +35,7 @@ router.put(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",
@@ -50,6 +52,7 @@ router.put(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",
@@ -72,6 +75,7 @@ router.get(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",
@@ -87,6 +91,7 @@ router.get(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",
@@ -102,6 +107,7 @@ router.post(
     [
       "super admin",
       "warehouse member",
+      "warehouse staff",
       "group head",
       "line head",
       "section head",

@@ -1,3 +1,4 @@
+import LogMaster from "../models/LogMasterModel.js";
 import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
@@ -7,6 +8,38 @@ export const getWarehouse = async (req, res) => {
   try {
     const response = await Warehouse.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Warehouse", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Warehouse" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -51,7 +84,7 @@ export const createWarehouse = async (req, res) => {
       return res.status(400).json({ message: "Warehouse already exists" });
     }
 
-    await Warehouse.create(req.body);
+    await Warehouse.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Warehouse Created" });
   } catch (error) {
     console.log(error.message);
@@ -76,6 +109,8 @@ export const updateWarehouse = async (req, res) => {
         id: warehouseId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Warehouse Updated" });
   } catch (error) {
@@ -96,7 +131,14 @@ export const deleteWarehouse = async (req, res) => {
       return res.status(404).json({ message: "Warehouse not found" });
     }
 
-    await Warehouse.update({ flag: 0 }, { where: { id: warehouseId, flag: 1 } });
+    await Warehouse.update(
+      { flag: 0 },
+      {
+        where: { id: warehouseId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Warehouse deleted" });
   } catch (error) {

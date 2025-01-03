@@ -1,5 +1,7 @@
 import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
+import LogMaster from "../models/LogMasterModel.js";
+import User from "../models/UserModel.js";
 
 export const getStorage = async (req, res) => {
   try {
@@ -9,6 +11,36 @@ export const getStorage = async (req, res) => {
         {
           model: Plant,
           where: { flag: 1 },
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Storage", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Storage" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
         },
       ],
     });
@@ -101,7 +133,7 @@ export const createStorage = async (req, res) => {
       return res.status(400).json({ message: "Storage already exists" });
     }
 
-    await Storage.create(req.body);
+    await Storage.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Storage Created" });
   } catch (error) {
     console.log(error.message);
@@ -126,6 +158,8 @@ export const updateStorage = async (req, res) => {
         id: storageId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Storage Updated" });
   } catch (error) {
@@ -146,7 +180,14 @@ export const deleteStorage = async (req, res) => {
       return res.status(404).json({ message: "Storage not found" });
     }
 
-    await Storage.update({ flag: 0 }, { where: { id: storageId, flag: 1 } });
+    await Storage.update(
+      { flag: 0 },
+      {
+        where: { id: storageId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Storage deleted" });
   } catch (error) {

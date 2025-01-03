@@ -65,7 +65,7 @@ const Material = () => {
     materialNo: '',
     description: '',
     uom: '',
-    price: '',
+    price: 0,
     type: '',
     mrpType: '',
     categoryId: '',
@@ -178,6 +178,9 @@ const Material = () => {
     { field: 'plant', header: 'Plant', sortable: true },
     { field: 'formattedCreatedAt', header: 'Created At', sortable: true },
     { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
+    { field: 'createdBy', header: 'Created By', sortable: true },
+    { field: 'updatedBy', header: 'Updated By', sortable: true },
+    { field: 'importBy', header: 'Import By', sortable: true },
   ]
 
   const onColumnToggle = (event) => {
@@ -193,7 +196,7 @@ const Material = () => {
     try {
       const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
-        label: plant.plantName,
+        label: `${plant.plantName} - ${plant.plantCode}`,
         value: plant.plantName,
         id: plant.id,
       }))
@@ -306,7 +309,7 @@ const Material = () => {
     try {
       const response = await getMasterData(apiStorages)
       const storageOptions = response.data.map((storage) => ({
-        label: storage.storageName,
+        label: `${storage.storageName} - ${storage.storageCode}`,
         value: storage.storageName,
         id: storage.id,
       }))
@@ -338,6 +341,10 @@ const Material = () => {
         const formattedUpdatedAt = item.updatedAt
           ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
           : ''
+        const createdBy = item.createdBy?.[0]?.User?.username || ''
+        const updatedBy = item.updatedBy?.[0]?.User?.username || ''
+        const importBy = item.Log_Import?.User?.username || ''
+
         return {
           ...item,
           plant,
@@ -345,15 +352,14 @@ const Material = () => {
           formatedPrice,
           formattedCreatedAt,
           formattedUpdatedAt,
-          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          // formattedUpdateAt: item.updatedAt
-          //   ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
-          //   : '',
+          createdBy,
+          updatedBy,
+          importBy,
         }
       })
       setMaterials(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching incoming:', error)
+      console.error('Error fetching material:', error)
     } finally {
       setShouldFetch(false)
       setLoading(false) // Set loading to false after data is fetched
@@ -367,7 +373,7 @@ const Material = () => {
       materialNo: '',
       description: '',
       uom: '',
-      price: '',
+      price: 0,
       type: '',
       mrpType: '',
       categoryId: '',
@@ -466,7 +472,7 @@ const Material = () => {
       { field: 'materialNo', message: 'Material No. is required' },
       { field: 'description', message: 'Description is required' },
       { field: 'uom', message: 'UOM is required' },
-      { field: 'price', message: 'Price is required' },
+      // { field: 'price', message: 'Price is required' },
       { field: 'type', message: 'Type is required' },
       { field: 'categoryId', message: 'Category is required' },
       { field: 'supplierId', message: 'Supplier is required' },
@@ -485,7 +491,6 @@ const Material = () => {
 
   const handleSaveMaterial = async () => {
     setLoading(true)
-
     if (!validateMaterial(currentMaterial)) {
       setLoading(false)
       return
@@ -621,7 +626,7 @@ const Material = () => {
           materialNo: '',
           description: '',
           uom: '',
-          price: '',
+          price: 0,
           type: '',
           mrpType: '',
           minStock: '',
@@ -750,7 +755,7 @@ const Material = () => {
     try {
       const response = await getMasterDataById(apiStorage, id)
       const storageOptions = response.map((storage) => ({
-        label: storage.storageName,
+        label: `${storage.storageName} - ${storage.storageCode}`,
         value: storage.storageName,
         id: storage.id,
       }))
