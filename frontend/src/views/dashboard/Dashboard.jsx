@@ -60,7 +60,6 @@ import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 import annotationPlugin from 'chartjs-plugin-annotation'
-import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 //import '../../scss/customchart.scss'
 ChartJS.register(
