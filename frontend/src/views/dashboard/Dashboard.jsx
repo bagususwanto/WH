@@ -175,7 +175,7 @@ const Dashboard = () => {
           const status = item.Incomings[0]?.status
           const actual = item.Incomings[0]?.actual
           const createdAt = item.Log_Entries?.[0]?.createdAt
-            ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd') // Format incomingDate
+            ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss') // Format incomingDate
             : ''
           console.log('apa', createdAt)
           return {
