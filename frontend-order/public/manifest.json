@@ -1,9 +1,9 @@
 {
-  "short_name": "E-WOS",
-  "name": "E-Warehouse Order Stock",
+  "short_name": "TWIIS",
+  "name": "Toyota Warehouse Inventory Integrated System",
   "icons": [
     {
-      "src": "../src/assets/brand/eWosLogo.png",
+      "src": "../assets/brand/TWIISLOGO-NEW.png",
       "sizes": "100x100",
       "type": "image/png"
     }
