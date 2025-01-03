@@ -74,11 +74,11 @@ app.use(
 
 // Mengambil sertifikat dan kunci
 const privateKey = fs.readFileSync(
-  path.join(__dirname, "certificates", "10.64.14.100-key.pem"),
+  path.join(__dirname, "certificates", "server.key"),
   "utf8"
 );
 const certificate = fs.readFileSync(
-  path.join(__dirname, "certificates", "10.64.14.100.pem"),
+  path.join(__dirname, "certificates", "server.crt"),
   "utf8"
 );
 const credentials = { key: privateKey, cert: certificate };
