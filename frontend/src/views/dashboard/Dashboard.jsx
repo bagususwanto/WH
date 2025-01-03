@@ -5,7 +5,7 @@ import { id } from 'date-fns/locale'
 import { MultiSelect } from 'primereact/multiselect'
 import { Row } from 'primereact/row'
 import { ColumnGroup } from 'primereact/columngroup'
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import ChartDataLabels from 'chartjs-plugin-datalabels'
 import '../../scss/chart.scss'
 import {
   CCard,
@@ -1036,59 +1036,60 @@ const Dashboard = () => {
                 inventoriesoverflow.length > 0) && (
                 <>
                   {/* Incoming Item (Green) */}
-                  <CCol xs="auto">
-                    <div
-                      style={{
-                        backgroundColor: '#FFAF00',
-                        color: 'black',
-
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        fontWeight: 'bold', // Menambahkan teks menjadi bold
-                      }}
-                    >
-                      <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
-                    </div>
-                  </CCol>
-
-                  {/* Not Yet Incoming (Red) */}
-                  {selectedChart === 'critical' && (
+                  <CRow style={{ justifyContent: 'flex-start' }}>
                     <CCol xs="auto">
                       <div
                         style={{
-                          backgroundColor: '#F95454',
-                          color: 'white',
+                          backgroundColor: '#FFAF00',
+                          color: 'black',
                           padding: '5px 10px',
                           borderRadius: '4px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '1px',
-                          fontWeight: 'bold',
+                          gap: '5px',
+                          fontWeight: 'bold', // Menambahkan teks menjadi bold
                         }}
                       >
-                        <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
+                        <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
                       </div>
-                      {/* Elemen tambahan di sebelah kanan */}
                     </CCol>
-                  )}
-                  <CCol xs="auto">
-                    <div
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: '#7E99A3', // Warna teks sesuai border
-                        padding: '4px 14px',
-                        borderRadius: '3px',
-                        border: '4px solid #7E99A3', // Border warna merah
-                        fontWeight: 'bold',
-                        fontSize: '10px',
-                      }}
-                    >
-                      Item Received
-                    </div>
-                  </CCol>
+
+                    {/* Not Yet Incoming (Red) */}
+                    {selectedChart === 'critical' && (
+                      <CCol xs="auto">
+                        <div
+                          style={{
+                            backgroundColor: '#F95454',
+                            color: 'white',
+                            padding: '5px 10px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
+                        </div>
+                      </CCol>
+                    )}
+
+                    <CCol xs="auto">
+                      <div
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: '#7E99A3', // Warna teks sesuai border
+                          padding: '2px 10px',
+                          borderRadius: '3px',
+                          border: '3px solid #7E99A3', // Border warna merah
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Item Received
+                      </div>
+                    </CCol>
+                  </CRow>
                 </>
               )}
             </CRow>
@@ -1246,15 +1247,16 @@ const Dashboard = () => {
                   field="status"
                   header="Status"
                   body={(rowData) => renderDeliveryStatus(rowData.status)}
-                  bodyStyle={{ justifyContent: 'center', display: 'flex', alignItems: 'center' }} // Isi di tengah
+                  bodyStyle={{ justifyContent: 'center', alignItems: 'center' }} // Isi di tengah
                 />
 
                 <Column
                   field="stock"
                   header="Stock (Shift)"
                   body={(rowData) =>
-                    rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.0'
+                    rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.00'
                   }
+                  bodyStyle={{ textAlign: 'center' }} // Center the content
                 />
 
                 <Column
