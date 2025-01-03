@@ -4,11 +4,45 @@ import Section from "../models/SectionModel.js";
 import Department from "../models/DepartmentModel.js";
 import Division from "../models/DivisionModel.js";
 import Plant from "../models/PlantModel.js";
+import LogMaster from "../models/LogMasterModel.js";
+import User from "../models/UserModel.js";
 
 export const getGroup = async (req, res) => {
   try {
     const response = await Group.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Group", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Group" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -52,7 +86,7 @@ export const createGroup = async (req, res) => {
       return res.status(400).json({ message: "Group already exists" });
     }
 
-    await Group.create(req.body);
+    await Group.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Group Created" });
   } catch (error) {
     console.log(error.message);
@@ -77,6 +111,8 @@ export const updateGroup = async (req, res) => {
         id: groupId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Group Updated" });
   } catch (error) {
@@ -97,7 +133,14 @@ export const deleteGroup = async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    await Group.update({ flag: 0 }, { where: { id: groupId, flag: 1 } });
+    await Group.update(
+      { flag: 0 },
+      {
+        where: { id: groupId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Group deleted" });
   } catch (error) {

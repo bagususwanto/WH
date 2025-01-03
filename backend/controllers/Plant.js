@@ -1,9 +1,43 @@
+import LogMaster from "../models/LogMasterModel.js";
 import Plant from "../models/PlantModel.js";
+import User from "../models/UserModel.js";
 
 export const getPlant = async (req, res) => {
   try {
     const response = await Plant.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Plant", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Plant" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -48,7 +82,7 @@ export const createPlant = async (req, res) => {
       return res.status(400).json({ message: "Plant Code already exist" });
     }
 
-    await Plant.create(req.body);
+    await Plant.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Plant Created" });
   } catch (error) {
     console.log(error.message);
@@ -73,6 +107,8 @@ export const updatePlant = async (req, res) => {
         id: plantId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "Plant Updated" });
   } catch (error) {
@@ -93,7 +129,14 @@ export const deletePlant = async (req, res) => {
       return res.status(404).json({ message: "Plant not found" });
     }
 
-    await Plant.update({ flag: 0 }, { where: { id: plantId, flag: 1 } });
+    await Plant.update(
+      { flag: 0 },
+      {
+        where: { id: plantId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "Plant deleted" });
   } catch (error) {

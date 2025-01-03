@@ -246,10 +246,13 @@ export const createMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
@@ -285,10 +288,13 @@ export const createMaterial = async (req, res) => {
     );
 
     // Hubungkan material dengan storage
-    await MaterialStorage.create({
-      materialId: newMaterial.id,
-      storageId: storageId.id,
-    });
+    await MaterialStorage.create(
+      {
+        materialId: newMaterial.id,
+        storageId: storageId.id,
+      },
+      { userId: req.user.userId }
+    );
 
     res
       .status(201)
@@ -371,10 +377,13 @@ export const updateMaterial = async (req, res) => {
       });
 
       if (!existPackaging) {
-        packagingRes = await Packaging.create({
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-        });
+        packagingRes = await Packaging.create(
+          {
+            packaging: packaging.value,
+            unitPackaging: unitPackaging,
+          },
+          { userId: req.user.userId }
+        );
       } else {
         packagingRes = existPackaging;
       }
@@ -395,10 +404,13 @@ export const updateMaterial = async (req, res) => {
       where: { materialId: materialId, storageId: storageId.id, flag: 1 },
     });
     if (!materialStorage) {
-      MaterialStorage.create({
-        materialId: materialId,
-        storageId: storageId.id,
-      });
+      MaterialStorage.create(
+        {
+          materialId: materialId,
+          storageId: storageId.id,
+        },
+        { userId: req.user.userId }
+      );
     }
 
     await Material.update(

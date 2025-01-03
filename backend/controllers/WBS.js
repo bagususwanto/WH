@@ -1,9 +1,43 @@
+import LogMaster from "../models/LogMasterModel.js";
+import User from "../models/UserModel.js";
 import WBS from "../models/WBSModel.js";
 
 export const getWBS = async (req, res) => {
   try {
     const response = await WBS.findAll({
       where: { flag: 1 },
+      include: [
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "WBS", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "WBS" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
     });
 
     res.status(200).json(response);
@@ -41,13 +75,17 @@ export const getWBSById = async (req, res) => {
 export const createWBS = async (req, res) => {
   try {
     const wbsNumber = await WBS.findOne({
-      where: { wbsNumber: req.body.wbsNumber, wbsYear: req.body.wbsYear, flag: 1 },
+      where: {
+        wbsNumber: req.body.wbsNumber,
+        wbsYear: req.body.wbsYear,
+        flag: 1,
+      },
     });
     if (wbsNumber) {
       return res.status(400).json({ message: "WBS already exists" });
     }
 
-    await WBS.create(req.body);
+    await WBS.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "WBS Created" });
   } catch (error) {
     console.log(error.message);
@@ -72,6 +110,8 @@ export const updateWBS = async (req, res) => {
         id: wbsId,
         flag: 1,
       },
+      individualHooks: true,
+      userId: req.user.userId,
     });
     res.status(200).json({ message: "WBS Updated" });
   } catch (error) {
@@ -92,7 +132,14 @@ export const deleteWBS = async (req, res) => {
       return res.status(404).json({ message: "WBS not found" });
     }
 
-    await WBS.update({ flag: 0 }, { where: { id: wbsId, flag: 1 } });
+    await WBS.update(
+      { flag: 0 },
+      {
+        where: { id: wbsId, flag: 1 },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
 
     res.status(200).json({ message: "WBS deleted" });
   } catch (error) {

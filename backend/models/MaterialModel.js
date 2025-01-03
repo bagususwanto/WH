@@ -112,6 +112,7 @@ Material.belongsTo(LogImport, {
   onDelete: "NO ACTION",
 });
 
+// HOOKS
 Material.addHook("afterCreate", async (material, options) => {
   await LogMaster.create({
     masterType: "Material",

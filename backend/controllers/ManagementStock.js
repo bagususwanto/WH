@@ -678,23 +678,20 @@ export const submitInventory = async (req, res) => {
   const transaction = await db.transaction();
   try {
     // Ambil semua data Inventory yang diperlukan sekaligus untuk optimasi
-    const inventories = await Promise.all(
-      items.map((item) =>
-        Inventory.findOne({
-          where: { id: item.id },
-          transaction,
-        })
-      )
-    );
+    const inventories = await Inventory.findAll({
+      where: { id: items.map((item) => item.id) },
+      transaction,
+    });
 
     // Update quantityActual untuk setiap item
-    const updatePromises = items.map((item) =>
-      Inventory.update(
-        { quantityActual: item.quantity },
-        { where: { id: item.id }, transaction }
+    await Promise.all(
+      items.map((item) =>
+        Inventory.update(
+          { quantityActual: item.quantity },
+          { where: { id: item.id }, transaction }
+        )
       )
     );
-    await Promise.all(updatePromises);
 
     // Buat log entries untuk setiap update
     const logEntries = items.map((item) => ({
@@ -707,16 +704,16 @@ export const submitInventory = async (req, res) => {
     }));
     await LogEntry.bulkCreate(logEntries, { transaction });
 
-    // Update quantityActualCheck dengan for...of dan await, menggunakan transaksi
-    for (const inventory of inventories) {
-      if (inventory) {
-        await setQuantityActualCheck(
+    // Update quantityActualCheck dengan Promise.all
+    await Promise.all(
+      inventories.map((inventory) =>
+        setQuantityActualCheck(
           inventory.materialId,
           inventory.addressId,
           transaction
-        );
-      }
-    }
+        )
+      )
+    );
 
     await transaction.commit();
     return res.status(200).json({ message: "Inventory updated successfully!" });

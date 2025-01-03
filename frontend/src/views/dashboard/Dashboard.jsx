@@ -1,9 +1,11 @@
 import React, { useState, useEffect, Suspense, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
+import { id } from 'date-fns/locale'
 import { MultiSelect } from 'primereact/multiselect'
 import { Row } from 'primereact/row'
 import { ColumnGroup } from 'primereact/columngroup'
+import ChartDataLabels from 'chartjs-plugin-datalabels'
 import '../../scss/chart.scss'
 import {
   CCard,
@@ -58,7 +60,6 @@ import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 import annotationPlugin from 'chartjs-plugin-annotation'
-import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 //import '../../scss/customchart.scss'
 ChartJS.register(
@@ -128,6 +129,7 @@ const Dashboard = () => {
     planning: '',
     incomingDate: '',
   })
+  const today = `${format(new Date(), 'EEEE, dd MMMM yyyy', { locale: id })}`
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
     setOrder(event.target.value)
@@ -172,15 +174,21 @@ const Dashboard = () => {
           const planning = item.Incomings[0]?.planning
           const status = item.Incomings[0]?.status
           const actual = item.Incomings[0]?.actual
+          const createdAt = item.Log_Entries?.[0]?.createdAt
+            ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd') // Format incomingDate
+            : ''
+          console.log('apa', createdAt)
           return {
             ...item,
             incomingDate,
             planning,
             status,
             actual,
+            createdAt,
           }
         })
         console.log('data', dataWithFormattedFields)
+
         setInventoriesCritical(dataWithFormattedFields)
       } else {
         setInventoriesCritical([]) // Set empty data if no results
@@ -314,7 +322,9 @@ const Dashboard = () => {
       label: plant.plantName,
     })),
   ]
-
+  const handleChartChange = (selectedOption) => {
+    setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
+  }
   const prepareChartData = (data, chartTitle, shiftLevel) => {
     return {
       labels: data.map(
@@ -363,38 +373,26 @@ const Dashboard = () => {
 
             return 0 // No border width by default
           }),
-          className: data.map((item) => {
-            if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
-              return 'blinking' // Apply blinking effect for incoming >= 1
-            }
-            return '' // No blinking by default
-          }),
           animation: data.map((item) => {
             if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
               return {
                 backgroundColor: {
                   easing: 'easeInOutQuart',
-                  type: 'color',
                   from: 'red', // Start color when stock is low
-                  to: 'transparent', // End color (transparent for other stocks)
-                  duration: 100,
+                  to: 'transparent', // End color
+                  duration: 1000, // Animation duration
                   loop: true, // Loop the animation
                 },
               }
             }
 
-            // Disable animation for other stocks
+            // No animation for other stocks
             return null
           }),
         },
       ],
-
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
     }
-  }
-
-  const handleChartChange = (selectedOption) => {
-    setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
   }
 
   const chartOptions = (data, minValue, maxValue, referenceLineValue) => ({
@@ -453,7 +451,7 @@ const Dashboard = () => {
         display: false,
         labels: {
           font: {
-            size: 14,
+            size: 15,
           },
         },
       },
@@ -814,6 +812,7 @@ const Dashboard = () => {
 
   const columns = [
     { field: 'Material.materialNo', header: 'Material No' },
+    { field: 'Log_Entries?.[0]?.createdAt', header: 'lastUpdate' },
     { field: 'Material.Supplier.supplierName', header: 'Supplier' },
   ]
 
@@ -846,9 +845,10 @@ const Dashboard = () => {
         {visibleColumns.includes('Supplier') && <Column header="Supplier" rowSpan={2} />}
         <Column header="UoM" rowSpan={2} />
 
-        <Column header="Actual Stock" colSpan={2} align="center" />
+        <Column header="Actual Stock" colSpan={3} align="center" />
         <Column header="Incoming" colSpan={4} align="center" />
         <Column header="Stock (Shift)" rowSpan={2} />
+
         <Column header="Follow Up By" colSpan={2} align="center" frozen />
       </Row>
       <Row>
@@ -859,6 +859,7 @@ const Dashboard = () => {
         ) : null}
 
         <Column header="Actual" align="center" />
+        <Column header="lastUpdate" align="center" />
         <Column header="Delivery Date" align="center" />
         <Column header="Qty Plan" align="center" />
         <Column header="Qty Receive" align="center" />
@@ -875,65 +876,123 @@ const Dashboard = () => {
           <CCardHeader>Filter Dashboard</CCardHeader>
           <CCardBody>
             <div className="mb-1" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <CButtonGroup>
-                <CFormCheck
-                  button={{ color: 'primary', variant: 'outline' }}
-                  type="radio"
-                  name="options-outlined"
-                  id="primary-outlined"
-                  autoComplete="off"
-                  label="Lowest"
-                  value="ASC"
-                  checked={order === 'ASC'}
-                  onChange={handleOrderChange}
+              <div className="form-group">
+                <label
+                  htmlFor="filter-options"
+                  className="form-label"
+                  style={{
+                    fontSize: '0.7rem', // Ukuran font
+                    fontWeight: 500, // Ketebalan font
+                    marginBottom: '0.1rem', // Jarak bawah
+                    display: 'block', // Pastikan label muncul di atas elemen Select
+                  }}
+                >
+                  Sort By:
+                </label>
+                <CButtonGroup id="filter-options">
+                  <CFormCheck
+                    button={{ color: 'primary', variant: 'outline' }}
+                    type="radio"
+                    name="options-outlined"
+                    id="primary-outlined"
+                    autoComplete="off"
+                    label="Lowest"
+                    value="ASC"
+                    checked={order === 'ASC'}
+                    onChange={handleOrderChange}
+                  />
+                  <CFormCheck
+                    button={{ color: 'primary', variant: 'outline' }}
+                    type="radio"
+                    name="options-outlined"
+                    id="second-outlined"
+                    autoComplete="off"
+                    label="Highest"
+                    value="DESC"
+                    checked={order === 'DESC'}
+                    onChange={handleOrderChange}
+                  />
+                </CButtonGroup>
+              </div>
+
+              <div className="form-group">
+                <label
+                  htmlFor="plant"
+                  className="form-label"
+                  style={{
+                    fontSize: '0.7rem', // Ukuran font
+                    fontWeight: 500, // Ketebalan font
+
+                    marginBottom: '0.1rem', // Jarak bawah
+                    display: 'block', // Pastikan label muncul di atas elemen Select
+                  }}
+                >
+                  Plant:
+                </label>
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  isClearable
+                  options={plantOptions} // plantOptions termasuk "All"
+                  value={selectedPlant} // Menetapkan state sebagai value yang dipilih
+                  id="plant"
+                  onChange={handlePlantChange} // Event handler saat memilih plant
                 />
-                <CFormCheck
-                  button={{ color: 'primary', variant: 'outline' }}
-                  type="radio"
-                  name="options-outlined"
-                  id="second-outlined"
-                  autoComplete="off"
-                  label="Highest"
-                  value="DESC"
-                  checked={order === 'DESC'}
-                  onChange={handleOrderChange}
+              </div>
+              <div className="form-group">
+                <label
+                  htmlFor="status"
+                  className="form-label"
+                  style={{
+                    fontSize: '0.7rem', // Ukuran font
+                    fontWeight: 500, // Ketebalan font
+
+                    marginBottom: '0.1rem', // Jarak bawah
+                    display: 'block', // Pastikan label muncul di atas elemen Select
+                  }}
+                >
+                  Status By:
+                </label>
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  options={chartvalue.filter((option) => option.value !== 'lowest')} // Sembunyikan opsi "Lowest"
+                  value={chartvalue.find((option) => option.value === selectedChart)} // Tetap tetapkan value berdasarkan state
+                  onChange={handleChartChange} // Tetap gunakan fungsi onChange
+                  isClearable={false} // Non-clearable
+                  id="status"
+                  placeholder="Select Status"
                 />
-              </CButtonGroup>
+              </div>
+              <div className="form-group">
+                <label
+                  htmlFor="hide"
+                  className="form-label"
+                  style={{
+                    fontSize: '0.7rem', // Ukuran font
+                    fontWeight: 500, // Ketebalan font
 
-              <Select
-                className="basic-single"
-                classNamePrefix="select"
-                isClearable
-                options={plantOptions} // plantOptions termasuk "All"
-                value={selectedPlant} // Menetapkan state sebagai value yang dipilih
-                id="plant"
-                onChange={handlePlantChange} // Event handler saat memilih plant
-              />
-
-              <Select
-                className="basic-single"
-                classNamePrefix="select"
-                options={chartvalue.filter((option) => option.value !== 'lowest')} // Sembunyikan opsi "Lowest"
-                value={chartvalue.find((option) => option.value === selectedChart)} // Tetap tetapkan value berdasarkan state
-                onChange={handleChartChange} // Tetap gunakan fungsi onChange
-                isClearable={false} // Non-clearable
-                placeholder="Select Status"
-              />
-
-              <CButton
-                className="ms-2"
-                color="secondary"
-                onClick={() => setIsTableVisible(!isTableVisible)}
-              >
-                {isTableVisible ? 'Hide Table' : 'Show Table'}
-              </CButton>
-
+                    marginBottom: '0.1rem', // Jarak bawah
+                    display: 'block', // Pastikan label muncul di atas elemen Select
+                  }}
+                >
+                  Table
+                </label>
+                <CButton
+                  className="ms-2"
+                  color="secondary"
+                  onClick={() => setIsTableVisible(!isTableVisible)}
+                  id="hide"
+                >
+                  {isTableVisible ? 'Hide Table' : 'Show Table'}
+                </CButton>
+              </div>
               {/* Adding the green and red boxes with labels */}
 
               <div style={{ marginLeft: 'auto' }}>
                 <Link to="/dashboardall" style={{ textDecoration: 'none' }}>
                   <CButton color="black" variant="outline">
-                    ALWAYS DISPLAY
+                    {today}
                   </CButton>
                 </Link>
               </div>
@@ -977,59 +1036,60 @@ const Dashboard = () => {
                 inventoriesoverflow.length > 0) && (
                 <>
                   {/* Incoming Item (Green) */}
-                  <CCol xs="auto">
-                    <div
-                      style={{
-                        backgroundColor: '#FFAF00',
-                        color: 'black',
-
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        fontWeight: 'bold', // Menambahkan teks menjadi bold
-                      }}
-                    >
-                      <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
-                    </div>
-                  </CCol>
-
-                  {/* Not Yet Incoming (Red) */}
-                  {selectedChart === 'critical' && (
+                  <CRow style={{ justifyContent: 'flex-start' }}>
                     <CCol xs="auto">
                       <div
                         style={{
-                          backgroundColor: '#F95454',
-                          color: 'white',
+                          backgroundColor: '#FFAF00',
+                          color: 'black',
                           padding: '5px 10px',
                           borderRadius: '4px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '1px',
-                          fontWeight: 'bold',
+                          gap: '5px',
+                          fontWeight: 'bold', // Menambahkan teks menjadi bold
                         }}
                       >
-                        <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
+                        <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
                       </div>
-                      {/* Elemen tambahan di sebelah kanan */}
                     </CCol>
-                  )}
-                  <CCol xs="auto">
-                    <div
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: '#7E99A3', // Warna teks sesuai border
-                        padding: '4px 14px',
-                        borderRadius: '3px',
-                        border: '4px solid #7E99A3', // Border warna merah
-                        fontWeight: 'bold',
-                        fontSize: '10px',
-                      }}
-                    >
-                      Item Received
-                    </div>
-                  </CCol>
+
+                    {/* Not Yet Incoming (Red) */}
+                    {selectedChart === 'critical' && (
+                      <CCol xs="auto">
+                        <div
+                          style={{
+                            backgroundColor: '#F95454',
+                            color: 'white',
+                            padding: '5px 10px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          <div style={{ fontSize: '12px' }}>Follow Up by SH Up</div>
+                        </div>
+                      </CCol>
+                    )}
+
+                    <CCol xs="auto">
+                      <div
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: '#7E99A3', // Warna teks sesuai border
+                          padding: '2px 10px',
+                          borderRadius: '3px',
+                          border: '3px solid #7E99A3', // Border warna merah
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Item Received
+                      </div>
+                    </CCol>
+                  </CRow>
                 </>
               )}
             </CRow>
@@ -1178,6 +1238,7 @@ const Dashboard = () => {
                   <Column field="Material.maxStock" header="Max" />
                 ) : null}
                 <Column field="quantityActualCheck" header="Actual" />
+                <Column field="createdAt" header="lastUpdate" />
                 <Column field="incomingDate" header="Delivery Date" />
                 <Column field="planning" header="Qty Plan." />
                 <Column field="actual" header="Qty Receive" />
@@ -1186,16 +1247,18 @@ const Dashboard = () => {
                   field="status"
                   header="Status"
                   body={(rowData) => renderDeliveryStatus(rowData.status)}
-                  bodyStyle={{ justifyContent: 'center', display: 'flex', alignItems: 'center' }} // Isi di tengah
+                  bodyStyle={{ justifyContent: 'center', alignItems: 'center' }} // Isi di tengah
                 />
 
                 <Column
                   field="stock"
                   header="Stock (Shift)"
                   body={(rowData) =>
-                    rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.0'
+                    rowData.stock !== undefined ? parseFloat(rowData.stock).toFixed(1) : '0.00'
                   }
+                  bodyStyle={{ textAlign: 'center' }} // Center the content
                 />
+
                 <Column
                   header="Order"
                   body={actionBodyIncom}

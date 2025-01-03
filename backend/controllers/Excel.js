@@ -748,7 +748,12 @@ const validateHeaderMaterial = (header) => {
 };
 
 // Fungsi checkSupplierName yang diperbarui untuk menggunakan cache
-const upsertSuppliers = async (supplierNames, logImportId, transaction) => {
+const upsertSuppliers = async (
+  supplierNames,
+  logImportId,
+  userId,
+  transaction
+) => {
   // Find all suppliers that already exist in the database
   const existingSuppliers = await Supplier.findAll({
     where: { supplierName: Array.from(supplierNames), flag: 1 },
@@ -786,22 +791,33 @@ const upsertSuppliers = async (supplierNames, logImportId, transaction) => {
   return supplierIds; // Return a map of supplier names to their IDs
 };
 
-const checkMaterialStorage = async (materialId, storageId, logImportId) => {
+const checkMaterialStorage = async (
+  materialId,
+  storageId,
+  logImportId,
+  userId
+) => {
   const materialStorage = await MaterialStorage.findOne({
     where: { materialId, storageId, flag: 1 },
   });
   if (materialStorage) {
-    await materialStorage.update({
-      storageId: storageId,
-      materialId: materialId,
-      logImportId: logImportId,
-    });
+    await materialStorage.update(
+      {
+        storageId: storageId,
+        materialId: materialId,
+        logImportId: logImportId,
+      },
+      { userId: userId }
+    );
   } else {
-    await MaterialStorage.create({
-      storageId: storageId,
-      materialId: materialId,
-      logImportId: logImportId,
-    });
+    await MaterialStorage.create(
+      {
+        storageId: storageId,
+        materialId: materialId,
+        logImportId: logImportId,
+      },
+      { userId: userId }
+    );
   }
 };
 
@@ -903,6 +919,7 @@ export const uploadMasterMaterial = async (req, res) => {
     const supplierMap = await upsertSuppliers(
       supplierNames,
       logImportId,
+      req.user.userId,
       transaction
     );
 
@@ -940,7 +957,8 @@ export const uploadMasterMaterial = async (req, res) => {
           await checkMaterialStorage(
             existingMaterial.id,
             storageId,
-            logImportId
+            logImportId,
+            req.user.userId
           );
         }
 

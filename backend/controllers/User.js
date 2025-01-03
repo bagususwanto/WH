@@ -488,7 +488,7 @@ export const createUserAndOrg = async (req, res) => {
           divisionId: divisionId.id,
           plantId: plantId.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       ); // Pass the transaction object
       organizationId = newOrganization.id;
     }
@@ -572,7 +572,7 @@ export const createUserAndOrg = async (req, res) => {
             userId: user.id,
             warehouseId: warehouseId.id,
           },
-          { transaction }
+          { userId: req.user.userId, transaction }
         );
       }
     }
@@ -726,7 +726,7 @@ export const updateUserAndOrg = async (req, res) => {
           divisionId: divisionId?.id,
           plantId: plantId?.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       ); // Pass the transaction object
       organizationId = newOrganization.id;
     }
@@ -773,7 +773,7 @@ export const updateUserAndOrg = async (req, res) => {
           userId: user.id,
           warehouseId: warehouseId.id,
         },
-        { transaction }
+        { userId: req.user.userId, transaction }
       );
     }
 
