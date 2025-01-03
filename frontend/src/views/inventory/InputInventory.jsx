@@ -799,7 +799,7 @@ const InputInventory = () => {
 
           const warehouseId = await getMasterDataById(apiWarehousePlant, plantId)
           await updateInventorySubmit(warehouseId.id, items) // Mengirimkan semua item dalam satu body
-          await getInventories('DIRECT')
+          await getInventories(plantId, 'DIRECT')
           MySwal.fire('Success', 'Inventory updated successfully!', 'success')
 
           // Membersihkan IndexedDB
@@ -809,6 +809,8 @@ const InputInventory = () => {
           fetchInventoryFromIndexedDB(plantId, (inventoryData) => {
             setItems(inventoryData) // Update state `items` dengan data terbaru yang difilter
           })
+
+          setSelectedStorageVal(null)
         } catch (error) {
           console.error('Error updating items:', error)
         }

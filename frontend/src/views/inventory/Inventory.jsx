@@ -131,10 +131,6 @@ const Inventory = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
     'Material.type': { value: null, matchMode: FilterMatchMode.EQUALS },
-    'Address_Rack.Storage.storageName': {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
   })
 
   const initFilters = () => {
@@ -220,8 +216,8 @@ const Inventory = () => {
           discrepancy,
           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
           formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          lastUpdate: item.Log_Entries?.[0].createdAt
-            ? format(parseISO(item.Log_Entries?.[0].createdAt), 'yyyy-MM-dd HH:mm:ss')
+          lastUpdate: item.Log_Entries?.[0]?.createdAt
+            ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss')
             : '',
         }
       })
@@ -337,7 +333,6 @@ const Inventory = () => {
     const selectedStorageName = e.value
     const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
     const storageId = selectedStorage?.id // Dapatkan storage.id
-    console.log('Storage ID:', storageId)
 
     setStorageId(storageId)
     setShouldFetch(true)
