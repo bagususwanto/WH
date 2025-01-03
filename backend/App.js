@@ -74,11 +74,11 @@ app.use(
 
 // Mengambil sertifikat dan kunci
 const privateKey = fs.readFileSync(
-  path.join(__dirname, "certificates", "server.key"),
+  path.join(__dirname, "certificates", "10.64.14.100-key.pem"),
   "utf8"
 );
 const certificate = fs.readFileSync(
-  path.join(__dirname, "certificates", "server.crt"),
+  path.join(__dirname, "certificates", "10.64.14.100.pem"),
   "utf8"
 );
 const credentials = { key: privateKey, cert: certificate };
@@ -175,3 +175,8 @@ app.use("/api", notificationRouter);
 https.createServer(credentials, app).listen(port, () => {
   console.log(`Server running at https://${host}:${port}`);
 });
+
+// Membuat server HTTP
+// app.listen(port, () => {
+//   console.log(`Server running at http://${host}:${port}`);
+// });
