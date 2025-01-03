@@ -927,7 +927,7 @@ const Dashboard = () => {
                     display: 'block', // Pastikan label muncul di atas elemen Select
                   }}
                 >
-                  Plant
+                  Plant:
                 </label>
                 <Select
                   className="basic-single"
@@ -951,7 +951,7 @@ const Dashboard = () => {
                     display: 'block', // Pastikan label muncul di atas elemen Select
                   }}
                 >
-                  Status By
+                  Status By:
                 </label>
                 <Select
                   className="basic-single"
@@ -1069,7 +1069,7 @@ const Dashboard = () => {
                             fontWeight: 'bold',
                           }}
                         >
-                          <div style={{ fontSize: '12px' }}>Follow Up by Dph Up</div>
+                          <div style={{ fontSize: '12px' }}>Follow Up by SH Up</div>
                         </div>
                       </CCol>
                     )}
