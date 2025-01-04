@@ -1,7 +1,6 @@
 import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
-import Material from "../models/MaterialModel.js";
 import Warehouse from "../models/WarehouseModel.js";
 import User from "../models/UserModel.js";
 import LogMaster from "../models/LogMasterModel.js";
@@ -9,69 +8,98 @@ import LogImport from "../models/LogImportModel.js";
 
 export const getAddressRack = async (req, res) => {
   try {
-    const response = await AddressRack.findAll({
-      where: { flag: 1 },
-      include: [
-        {
-          model: Storage,
-          where: { flag: 1 },
-          include: [
-            {
-              model: Plant,
-              where: { flag: 1 },
-              include: [
-                {
-                  model: Warehouse,
-                  where: { flag: 1 },
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "createdBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "AddressRack", action: "create" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "updatedBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "AddressRack" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-          order: [["createdAt", "DESC"]],
-          limit: 1,
-        },
-        {
-          model: LogImport,
-          attributes: ["id", "createdAt", "userId"],
-          required: false,
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-      ],
-    });
+    let response = [];
+    let offset = 0;
+    const limit = 1000;
+    let batch;
+    const { storageId, plantId } = req.query;
+
+    let whereConditionStorage = { flag: 1 };
+    let whereConditionPlant = { flag: 1 };
+
+    if (storageId) {
+      whereConditionStorage.id = storageId;
+    }
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    do {
+      // Fetch a batch of 1000 records
+      batch = await AddressRack.findAll({
+        limit,
+        offset,
+        where: { flag: 1 },
+        subQuery: false,
+        include: [
+          {
+            model: Storage,
+            where: whereConditionStorage,
+            required: true,
+            include: [
+              {
+                model: Plant,
+                where: whereConditionPlant,
+                required: true,
+              },
+            ],
+          },
+          {
+            model: LogMaster,
+            required: false,
+            as: "createdBy",
+            attributes: ["id", "createdAt", "userId"],
+            where: { masterType: "AddressRack", action: "create" },
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
+              },
+            ],
+          },
+          {
+            model: LogMaster,
+            required: false,
+            as: "updatedBy",
+            attributes: ["id", "createdAt", "userId"],
+            where: { masterType: "AddressRack" },
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
+              },
+            ],
+            order: [["createdAt", "DESC"]],
+            limit: 1,
+          },
+          {
+            model: LogImport,
+            attributes: ["id", "createdAt", "userId"],
+            required: false,
+            include: [
+              {
+                model: User,
+                required: false,
+                attributes: ["id", "username"],
+              },
+            ],
+          },
+        ],
+      });
+
+      // Add the batch to the response array
+      response = response.concat(batch);
+
+      // Update offset for the next batch
+      offset += limit;
+    } while (batch.length === limit); // Continue fetching until we get less than 1000 records
+
+    if (!response || response.length === 0) {
+      return res.status(404).json({ message: "Address Racks not found" });
+    }
 
     res.status(200).json(response);
   } catch (error) {
