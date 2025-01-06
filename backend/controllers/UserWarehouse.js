@@ -9,6 +9,16 @@ export const getUserWarehouse = async (req, res) => {
       where: { flag: 1 },
       include: [
         {
+          model: User,
+          required: true,
+          attributes: ["id", "username"],
+        },
+        {
+          model: Warehouse,
+          required: true,
+          attributes: ["id", "warehouseName"],
+        },
+        {
           model: LogMaster,
           required: false,
           as: "createdBy", // Alias sesuai dengan hook "afterCreate"
