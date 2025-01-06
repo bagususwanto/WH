@@ -173,13 +173,16 @@ User.belongsTo(Warehouse, {
 
 // HOOKS
 User.addHook("afterCreate", async (user, options) => {
-  await LogMaster.create({
-    masterType: "User",
-    masterId: user.id,
-    action: "create",
-    changes: JSON.stringify(user),
-    userId: options.userId,
-  });
+  await LogMaster.create(
+    {
+      masterType: "User",
+      masterId: user.id,
+      action: "create",
+      changes: JSON.stringify(user),
+      userId: options.userId,
+    },
+    { transaction: options.transaction }
+  );
 });
 
 User.addHook("afterUpdate", async (user, options) => {
@@ -196,24 +199,30 @@ User.addHook("afterUpdate", async (user, options) => {
       masterType: "User",
       masterId: user.id,
       action: "softDelete",
-      changes: JSON.stringify({
-        old: changes,
-        new: updatedData, // Menyertakan data setelah update
-      }),
+      changes: JSON.stringify(
+        {
+          old: changes,
+          new: updatedData, // Menyertakan data setelah update
+        },
+        { transaction: options.transaction }
+      ),
       userId: options.userId,
     });
   } else {
     // Catat log untuk update biasa
-    await LogMaster.create({
-      masterType: "User",
-      masterId: user.id,
-      action: "update",
-      changes: JSON.stringify({
-        old: changes, // Data sebelum update
-        new: updatedData, // Data setelah update
-      }),
-      userId: options.userId,
-    });
+    await LogMaster.create(
+      {
+        masterType: "User",
+        masterId: user.id,
+        action: "update",
+        changes: JSON.stringify({
+          old: changes, // Data sebelum update
+          new: updatedData, // Data setelah update
+        }),
+        userId: options.userId,
+      },
+      { transaction: options.transaction }
+    );
   }
 });
 
