@@ -5,6 +5,7 @@ import Warehouse from "../models/WarehouseModel.js";
 import User from "../models/UserModel.js";
 import LogMaster from "../models/LogMasterModel.js";
 import LogImport from "../models/LogImportModel.js";
+import db from "../utils/Database.js";
 
 export const getAddressRack = async (req, res) => {
   try {
@@ -154,46 +155,198 @@ export const getAddressRackById = async (req, res) => {
 };
 
 export const createAddressRack = async (req, res) => {
+  const transaction = await db.transaction();
   try {
-    const addressRackName = await AddressRack.findOne({
-      where: { addressRackName: req.body.addressRackName, flag: 1 },
-    });
+    // Body
+    const { addressRackName, storageId, plantId } = req.body;
 
-    if (addressRackName) {
-      return res.status(404).json({ message: "AddressRack already exist" });
+    // Validasi data tersedia
+    if (!addressRackName || !storageId || !plantId) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
     }
 
-    await AddressRack.create(req.body, { userid: req.user.userId });
+    // Cek storage
+    const storage = await Storage.findOne({
+      where: { id: storageId.id, flag: 1 },
+      transaction,
+    });
+    if (!storage) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Storage not found",
+      });
+    }
+
+    // cek plant
+    const plant = await Plant.findOne({
+      where: { id: plantId.id, flag: 1 },
+      transaction,
+    });
+    if (!plant) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Plant not found",
+      });
+    }
+
+    // Validasi exist address
+    const existAddress = await AddressRack.findOne({
+      where: {
+        addressRackName,
+        storageId: storageId.id,
+        flag: 1,
+      },
+      transaction,
+    });
+    if (existAddress) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "AddressRack already exist",
+      });
+    }
+
+    let idStorage;
+    // cek storage plant
+    const storagePlant = await Storage.findOne({
+      where: {
+        id: storageId.id,
+        plantId: plantId.id,
+        flag: 1,
+      },
+      transaction,
+    });
+    if (!storagePlant) {
+      idStorage = await Storage.create(
+        {
+          id: storageId.id,
+          plantId: plantId.id,
+        },
+        { transaction, userId: req.user.userId }
+      );
+    } else {
+      idStorage = storagePlant;
+    }
+
+    await AddressRack.create(
+      {
+        addressRackName,
+        storageId: idStorage.id,
+      },
+      { transaction, userId: req.user.userId }
+    );
+
+    await transaction.commit();
     res.status(201).json({ message: "AddressRack Created" });
   } catch (error) {
+    await transaction.rollback();
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const updateAddressRack = async (req, res) => {
+  const transaction = await db.transaction();
   try {
-    const addressRackId = req.params.id;
+    // Params dan Body
+    const { id } = req.params;
+    const { addressRackName, storageId, plantId } = req.body;
 
-    const addressRack = await AddressRack.findOne({
-      where: { id: addressRackId, flag: 1 },
-    });
-
-    if (!addressRack) {
-      return res.status(404).json({ message: "AddressRack not found" });
+    // Validasi data tersedia
+    if (!id || !addressRackName || !storageId || !plantId) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
     }
 
-    await AddressRack.update(req.body, {
+    // Cek AddressRack
+    const addressRack = await AddressRack.findOne({
+      where: { id, flag: 1 },
+      transaction,
+    });
+    if (!addressRack) {
+      await transaction.rollback();
+      return res.status(404).json({
+        message: "AddressRack not found",
+      });
+    }
+
+    // Cek storage
+    const storage = await Storage.findOne({
+      where: { id: storageId.id, flag: 1 },
+      transaction,
+    });
+    if (!storage) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Storage not found",
+      });
+    }
+
+    // Cek plant
+    const plant = await Plant.findOne({
+      where: { id: plantId, id, flag: 1 },
+      transaction,
+    });
+    if (!plant) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Plant not found",
+      });
+    }
+
+    // Validasi exist address (cek jika nama baru sudah ada di storage yang sama)
+    const existAddress = await AddressRack.findOne({
       where: {
-        id: addressRackId,
+        addressRackName,
+        storageId: storageId.id,
         flag: 1,
       },
-      individualHooks: true,
-      userid: req.user.userId,
+      transaction,
     });
-    res.status(200).json({ message: "AddressRack Updated" });
+    if (existAddress) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "AddressRack with this name already exists",
+      });
+    }
+
+    let idStorage;
+    // cek storage plant
+    const storagePlant = await Storage.findOne({
+      where: {
+        id: storageId.id,
+        plantId: plantId.id,
+        flag: 1,
+      },
+      transaction,
+    });
+    if (!storagePlant) {
+      idStorage = await Storage.create(
+        {
+          id: storageId.id,
+          plantId: plantId.id,
+        },
+        { transaction, userId: req.user.userId }
+      );
+    } else {
+      idStorage = storagePlant;
+    }
+
+    // Perbarui data AddressRack
+    await addressRack.update(
+      {
+        storageId: idStorage.id,
+      },
+      { transaction, userId: req.user.userId }
+    );
+
+    await transaction.commit();
+    res.status(200).json({ message: "AddressRack updated successfully" });
   } catch (error) {
-    console.log(error.message);
+    await transaction.rollback();
+    console.error(error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -215,7 +368,7 @@ export const deleteAddressRack = async (req, res) => {
       {
         where: { id: addressRackId, flag: 1 },
         individualHooks: true,
-        userid: req.user.userId,
+        userId: req.user.userId,
       }
     );
 

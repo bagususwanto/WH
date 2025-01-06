@@ -53,29 +53,29 @@ AddressRack.belongsTo(LogImport, {
 });
 
 // HOOKS
-AddressRack.addHook("afterCreate", async (user, options) => {
+AddressRack.addHook("afterCreate", async (address, options) => {
   await LogMaster.create({
     masterType: "AddressRack",
-    masterId: user.id,
+    masterId: address.id,
     action: "create",
-    changes: JSON.stringify(user),
+    changes: JSON.stringify(address),
     userId: options.userId,
   });
 });
 
-AddressRack.addHook("afterUpdate", async (user, options) => {
+AddressRack.addHook("afterUpdate", async (address, options) => {
   // Ambil perubahan yang terjadi
-  const changes = user._previousDataValues;
+  const changes = address._previousDataValues;
 
   // Bandingkan nilai lama (sebelumnya) dengan nilai baru (sekarang)
-  const updatedData = user.dataValues;
+  const updatedData = address.dataValues;
 
   // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
   if (changes.flag === 1 && updatedData.flag === 0) {
     // Catat log untuk soft delete
     await LogMaster.create({
       masterType: "AddressRack",
-      masterId: user.id,
+      masterId: address.id,
       action: "softDelete",
       changes: JSON.stringify({
         old: changes,
@@ -87,7 +87,7 @@ AddressRack.addHook("afterUpdate", async (user, options) => {
     // Catat log untuk update biasa
     await LogMaster.create({
       masterType: "AddressRack",
-      masterId: user.id,
+      masterId: address.id,
       action: "update",
       changes: JSON.stringify({
         old: changes, // Data sebelum update
