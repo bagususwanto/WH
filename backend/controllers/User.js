@@ -499,7 +499,7 @@ export const createUserAndOrg = async (req, res) => {
           divisionId: divisionId?.id,
           plantId: plantId?.id,
         },
-        { transaction }
+        { transaction, userId: req.user.userId }
       );
       organizationId = newOrganization.id;
     }
@@ -556,7 +556,7 @@ export const createUserAndOrg = async (req, res) => {
         isProduction: isProduction.value,
         isWarehouse: isWarehouse.value,
       },
-      { transaction }
+      { transaction, userId: req.user.userId }
     );
 
     // Create UserWarehouse entries
@@ -576,7 +576,7 @@ export const createUserAndOrg = async (req, res) => {
             userId: user.id,
             warehouseId: warehouseId.id,
           },
-          { transaction }
+          { transaction, userId: req.user.userId }
         );
       }
     }
