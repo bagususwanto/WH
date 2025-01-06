@@ -11,9 +11,17 @@ export const getUserWarehouse = async (req, res) => {
         {
           model: LogMaster,
           required: false,
-          as: "createdBy",
+          as: "createdBy", // Alias sesuai dengan hook "afterCreate"
           attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "UserWarehouse", action: "create" },
+          where: {
+            masterType: "UserWarehouse",
+            action: "create",
+            [Op.and]: [
+              {
+                masterId: Sequelize.literal(`CONCAT(userId, '-', warehouseId)`),
+              }, // Kombinasikan userId dan warehouseId untuk masterId
+            ],
+          },
           include: [
             {
               model: User,
@@ -25,9 +33,16 @@ export const getUserWarehouse = async (req, res) => {
         {
           model: LogMaster,
           required: false,
-          as: "updatedBy",
+          as: "updatedBy", // Alias sesuai dengan hook "afterUpdate"
           attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "UserWarehouse" },
+          where: {
+            masterType: "UserWarehouse",
+            [Op.and]: [
+              {
+                masterId: Sequelize.literal(`CONCAT(userId, '-', warehouseId)`),
+              }, // Kombinasikan userId dan warehouseId untuk masterId
+            ],
+          },
           include: [
             {
               model: User,

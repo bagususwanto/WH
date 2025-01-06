@@ -587,7 +587,7 @@ export const createUserAndOrg = async (req, res) => {
   } catch (error) {
     // Rollback the transaction in case of an error
     await transaction.rollback();
-    console.error(error.message);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
