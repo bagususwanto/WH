@@ -712,7 +712,7 @@ const Address = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={6} lg={6} xl={4}>
                 <Dropdown
                   value={filters['plant'].value}
                   options={plantOptions}
@@ -723,7 +723,7 @@ const Address = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={4}>
+              <CCol xs={12} sm={6} md={6} lg={6} xl={4}>
                 <Dropdown
                   value={filters['storage'].value}
                   options={storage}
@@ -847,9 +847,9 @@ const Address = () => {
                 <h5>Address Information</h5>
               </CCol>
               {/* Form Address */}
-              <CCol xs={12} md={6} lg={4} className="mb-3">
+              <CCol xs={12} md={12} lg={6} className="mb-3">
                 <label className="mb-2 required-label" htmlFor="addressRackName">
-                  Address <span>*</span>
+                  Address {isEdit ? '' : <span>*</span>}
                 </label>
                 <CFormInput
                   value={currentAddress.addressRackName}
@@ -863,7 +863,7 @@ const Address = () => {
                   readOnly={isEdit}
                 />
               </CCol>
-              <CCol xs={12} md={6} lg={4} className="mb-3">
+              <CCol xs={12} md={12} lg={6} className="mb-3">
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="storageId">
                     Storage <span>*</span>
@@ -880,7 +880,7 @@ const Address = () => {
                   />
                 </div>
               </CCol>
-              <CCol xs={12} md={6} lg={4} className="mb-3">
+              <CCol xs={12} md={12} lg={6} className="mb-3">
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="plantId">
                     Plant <span>*</span>

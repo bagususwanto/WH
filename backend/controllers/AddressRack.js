@@ -286,29 +286,13 @@ export const updateAddressRack = async (req, res) => {
 
     // Cek plant
     const plant = await Plant.findOne({
-      where: { id: plantId, id, flag: 1 },
+      where: { id: plantId.id, flag: 1 },
       transaction,
     });
     if (!plant) {
       await transaction.rollback();
       return res.status(400).json({
         message: "Plant not found",
-      });
-    }
-
-    // Validasi exist address (cek jika nama baru sudah ada di storage yang sama)
-    const existAddress = await AddressRack.findOne({
-      where: {
-        addressRackName,
-        storageId: storageId.id,
-        flag: 1,
-      },
-      transaction,
-    });
-    if (existAddress) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "AddressRack with this name already exists",
       });
     }
 
@@ -332,6 +316,22 @@ export const updateAddressRack = async (req, res) => {
       );
     } else {
       idStorage = storagePlant;
+    }
+
+    // Validasi exist address (cek jika nama baru sudah ada di storage yang sama)
+    const existAddress = await AddressRack.findOne({
+      where: {
+        addressRackName,
+        storageId: storageId.id,
+        flag: 1,
+      },
+      transaction,
+    });
+    if (existAddress && storagePlant) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "AddressRack with this name already exists",
+      });
     }
 
     // Perbarui data AddressRack
