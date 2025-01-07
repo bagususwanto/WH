@@ -132,6 +132,7 @@ const Incoming = () => {
     setPlantId(null)
     setStorageId(null)
     setSelectedDate(null)
+    setDates([null, null])
     setIncoming([])
   }
 
