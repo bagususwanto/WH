@@ -37,7 +37,7 @@ export const getIncoming = async (req, res) => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      whereCondition.createdAt = {
+      whereCondition.incomingDate = {
         [Op.between]: [start, end],
       };
     }
@@ -100,7 +100,7 @@ export const getIncoming = async (req, res) => {
               {
                 model: User,
                 where: { flag: 1 },
-                attributes: ["id", "username", "createdAt", "updatedAt"],
+                attributes: ["id", "username"],
               },
             ],
           },
@@ -114,7 +114,7 @@ export const getIncoming = async (req, res) => {
               {
                 model: User,
                 where: { flag: 1 },
-                attributes: ["id", "username", "createdAt", "updatedAt"],
+                attributes: ["id", "username"],
                 required: false,
               },
             ],
