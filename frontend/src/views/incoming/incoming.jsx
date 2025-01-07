@@ -694,7 +694,7 @@ const Incoming = () => {
                     bodyStyle={{ textAlign: 'center' }}
                     sortable
                   ></Column>
-                  <Column field="Log_Import.importDate" header="Date" sortable></Column>
+                  <Column field="incomingDate" header="Incoming Date" sortable></Column>
                   <Column field="Log_Import.User.username" header="Import By" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column

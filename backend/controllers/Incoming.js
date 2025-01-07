@@ -47,6 +47,7 @@ export const getIncoming = async (req, res) => {
       batch = await Incoming.findAll({
         limit,
         offset,
+        order: [["incomingDate", "ASC"]],
         where: whereCondition,
         include: [
           {
