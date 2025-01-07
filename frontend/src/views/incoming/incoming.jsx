@@ -174,15 +174,15 @@ const Incoming = () => {
       let startDate
       let endDate
 
+      if (dates[0] && dates[1]) {
+        startDate = format(dates[0], 'yyyy-MM-dd')
+        endDate = format(dates[1], 'yyyy-MM-dd')
+      }
+
       if (!startDate && !endDate && !plantId && !storageId) {
         setIncoming([])
         setLoading(false)
         return
-      }
-
-      if (dates[0] && dates[1]) {
-        startDate = format(dates[0], 'yyyy-MM-dd')
-        endDate = format(dates[1], 'yyyy-MM-dd')
       }
 
       const response = await getIncoming(
