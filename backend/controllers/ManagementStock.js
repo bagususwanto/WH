@@ -674,9 +674,21 @@ export const getAllInventory = async (req, res) => {
 
 export const submitInventory = async (req, res) => {
   const items = req.body; // Menerima array items
+  let transaction;
 
-  const transaction = await db.transaction();
   try {
+    // Pastikan transaksi dimulai
+    transaction = await db.transaction();
+    console.log('Transaction started:', transaction);
+
+    // Pastikan item.quantity diubah menjadi number
+    items.forEach((item) => {
+      item.quantity = Number(item.quantity); // Mengubah quantity menjadi number
+      if (isNaN(item.quantity)) {
+        throw new Error(`Invalid quantity for item ID ${item.id}`);
+      }
+    });
+
     // Ambil semua data Inventory yang diperlukan sekaligus untuk optimasi
     const inventories = await Inventory.findAll({
       where: { id: items.map((item) => item.id) },
@@ -715,11 +727,19 @@ export const submitInventory = async (req, res) => {
       )
     );
 
+    // Commit transaksi setelah semua operasi berhasil
+    console.log('Committing transaction');
     await transaction.commit();
     return res.status(200).json({ message: "Inventory updated successfully!" });
   } catch (error) {
-    await transaction.rollback();
-    console.error("Error updating inventory:", error);
+    // Pastikan hanya rollback jika transaksi belum selesai
+    console.error('Error occurred, rolling back:', error);
+
+    if (transaction && transaction.finished !== 'rollback') {
+      console.log('Rolling back transaction');
+      await transaction.rollback();
+    }
+    
     return res.status(500).json({ message: "Failed to update inventory" });
   }
 };
