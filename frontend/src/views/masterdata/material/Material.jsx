@@ -563,22 +563,6 @@ const Material = () => {
     />
   )
 
-  const handleCategoryChange = (selectedOption) => {
-    setCurrentMaterial({
-      ...currentMaterial,
-      categoryId: selectedOption ? selectedOption.value : '',
-    })
-  }
-
-  const handleSupplierChange = (selectedOption) => {
-    setCurrentMaterial({
-      ...currentMaterial,
-      supplierId: selectedOption ? selectedOption.value : '',
-    })
-  }
-
-  console.log('material', materials)
-
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = materials.map((item, index) => ({
@@ -598,8 +582,10 @@ const Material = () => {
         supplier: item.Supplier?.supplierName,
         storage: item.Storages[0]?.storageName,
         plant: item.Storages[0]?.Plant?.plantName,
-        CreatedAt: item.formattedCreatedAt,
-        UpdatedAt: item.formattedUpdatedAt,
+        createdAt: item.formattedCreatedAt,
+        updatedAt: item.formattedUpdatedAt,
+        createdBy: item.createdBy,
+        updatedBy: item.updatedBy,
       }))
 
       // Deklarasikan worksheet hanya sekali
@@ -936,7 +922,7 @@ const Material = () => {
           </CCardBody>
         </CCard>
 
-        <CCard>
+        <CCard className="mb-4">
           <CCardHeader>Master Data Material</CCardHeader>
           <CCardBody>
             {loading ? (
@@ -998,6 +984,9 @@ const Material = () => {
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     header="No"

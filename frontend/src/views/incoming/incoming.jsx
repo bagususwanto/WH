@@ -659,6 +659,9 @@ const Incoming = () => {
                   onRowEditComplete={onRowEditComplete}
                   removableSort
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     field="Inventory.Material.materialNo"
