@@ -1223,6 +1223,9 @@ const Dashboard = () => {
                 size="small"
                 scrollable
                 header={header} // Tambahkan header di sini
+                onMouseDownCapture={(e) => {
+                  e.stopPropagation()
+                }}
               >
                 {visibleColumns.includes('Material No') && (
                   <Column field="Material.materialNo" header="Material No" frozen />

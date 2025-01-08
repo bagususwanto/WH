@@ -44,18 +44,11 @@ const MySwal = withReactContent(swal)
 
 const Address = () => {
   const [address, setAddress] = useState([])
-  const [supplierOptions, setSupplierOptions] = useState([])
-  const [categoryOptions, setCategoryOptions] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
   const [plantOptions, setPlantOptions] = useState([])
   const [storage, setStorage] = useState([])
-  const [type, setType] = useState()
-  const [typeOptions, setTypeOptions] = useState([])
-  const [uomOptions, setUomOptions] = useState([])
-  const [mrpTypeOptions, setMRPTypeOptions] = useState([])
-  const [packagingOptions, setPackagingOptions] = useState([])
   const [storageOptions, setStorageOptions] = useState([])
   const [storageId, setStorageId] = useState()
   const [plantId, setPlantOptionsId] = useState()
@@ -106,13 +99,8 @@ const Address = () => {
   const apiStorage = 'storage-plant'
   const apiMasterAddress = 'address-rack'
   const apiAddress = `address-rack?plantId=${plantId ? plantId : ''}&storageId=${storageId ? storageId : ''}`
-  const apiUOMS = 'uom'
-  const apiMRPType = 'mrp-type'
-  const apiAddressDelete = 'address-delete'
-  const apiSupplier = 'supplier'
+  const apiAddressDelete = 'address-rack-delete'
   const apiStorages = 'storage'
-  const apiCategory = 'category'
-  const apiPackaging = 'packaging'
   const apiUpload = 'upload-master-address'
   const apiDeleteImgMaterial = 'address-delete-image'
   const apiUploadImageMaterial = 'address-upload-image'
@@ -262,7 +250,7 @@ const Address = () => {
     setModal(true)
   }
 
-  const handleDeleteAddress = (materialId) => {
+  const handleDeleteAddress = (addressId) => {
     MySwal.fire({
       title: 'Are you sure?',
       text: 'This address cannot be recovered!',
@@ -273,14 +261,14 @@ const Address = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(materialId)
+        confirmDelete(addressId)
       }
     })
   }
 
-  const confirmDelete = async (materialId) => {
+  const confirmDelete = async (addressId) => {
     try {
-      await deleteMasterDataById(apiAddressDelete, materialId)
+      await deleteMasterDataById(apiAddressDelete, addressId)
       MySwal.fire('Deleted!', 'Address deleted successfully.', 'success')
       await getAddress() // Refresh the list after deletion
     } catch (error) {
@@ -378,41 +366,17 @@ const Address = () => {
     />
   )
 
-  const handleCategoryChange = (selectedOption) => {
-    setCurrentAddress({
-      ...currentAddress,
-      categoryId: selectedOption ? selectedOption.value : '',
-    })
-  }
-
-  const handleSupplierChange = (selectedOption) => {
-    setCurrentAddress({
-      ...currentAddress,
-      supplierId: selectedOption ? selectedOption.value : '',
-    })
-  }
-
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = address.map((item, index) => ({
         no: index + 1,
-        materialNo: item.materialNo,
-        description: item.description,
-        uom: item.uom,
-        type: item.type,
-        category: item.Category?.categoryName,
-        price: item.price,
-        mrpType: item.mrpType,
-        minStock: item.minStock,
-        maxStock: item.maxStock,
-        minOrder: item.minOrder,
-        packaging: item.Packaging?.packaging,
-        unitPackaging: item.Packaging?.unitPackaging,
-        supplier: item.Supplier?.supplierName,
-        storage: item.Storages[0]?.storageName,
-        plant: item.Storages[0]?.Plant?.plantName,
-        CreatedAt: item.formattedCreatedAt,
-        UpdatedAt: item.formattedUpdatedAt,
+        address: item.addressRackName,
+        storage: item.Storage.storageName,
+        plant: item.Storage.Plant.plantName,
+        createdAt: item.formattedCreatedAt,
+        updatedAt: item.formattedUpdatedAt,
+        createdBy: item.createdBy,
+        updatedBy: item.updatedBy,
       }))
 
       // Deklarasikan worksheet hanya sekali
@@ -427,7 +391,7 @@ const Address = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_material')
+      saveAsExcelFile(excelBuffer, 'master_data_address')
     })
   }
 
@@ -436,21 +400,8 @@ const Address = () => {
       // Mapping data untuk ekspor
       const mappedData = [
         {
-          materialNo: '',
-          description: '',
-          uom: '',
-          price: 0,
-          type: '',
-          mrpType: '',
-          minStock: '',
-          maxStock: '',
-          img: '',
-          minOrder: '',
-          packaging: '',
-          unitPackaging: '',
-          category: '',
-          supplier: '',
-          storageCode: '',
+          address: '',
+          storage: '',
         },
       ]
 
@@ -461,7 +412,7 @@ const Address = () => {
         type: 'array',
       })
 
-      saveAsExcelFile(excelBuffer, 'template_master_data_material')
+      saveAsExcelFile(excelBuffer, 'template_master_data_address')
     })
   }
 
@@ -603,94 +554,12 @@ const Address = () => {
     setFilters(_filters)
   }
 
-  const handleTypeChange = (e) => {
-    const selectedTypeName = e.value
-    setType(selectedTypeName)
-    setShouldFetch(true)
-    let _filters = { ...filters }
-    _filters['type'].value = e.value
-    setFilters(_filters)
-  }
-
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
       <p>Loading address data...</p>
     </div>
   )
-
-  const imageBodyTemplate = (rowData) => {
-    return (
-      <img src={`${config.BACKEND_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
-    )
-  }
-
-  const handleDeleteImage = async (id) => {
-    try {
-      const result = await MySwal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        reverseButtons: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!',
-      })
-
-      if (result.isConfirmed) {
-        await updateMasterDataById(apiDeleteImgMaterial, id)
-        setCurrentAddress({
-          ...currentAddress,
-          img: '',
-        })
-        MySwal.fire('Success', 'Image deleted successfully', 'success')
-        setShouldFetch(true)
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error)
-    }
-  }
-
-  const handleAddImage = async (id) => {
-    try {
-      // Membuat elemen input file secara dinamis
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = 'image/*' // Hanya menerima file gambar
-
-      // Menangani pemilihan file
-      input.onchange = async (event) => {
-        const file = event.target.files[0]
-        if (!file) {
-          return MySwal.fire('Error', 'No file selected', 'error')
-        }
-
-        // Membuat FormData untuk mengirim file ke backend
-        const formData = new FormData()
-        formData.append('image', file)
-
-        try {
-          // Melakukan request POST ke endpoint backend
-          const response = await uploadImageMaterial(apiUploadImageMaterial, id, formData)
-          console.log('Image uploaded successfully:', response.data)
-
-          setCurrentAddress({
-            ...currentAddress,
-            img: response.data.imgPath,
-          })
-          MySwal.fire('Success', 'Image added successfully', 'success')
-          setShouldFetch(true) // Memperbarui data setelah upload sukses
-        } catch (error) {
-          console.error('Error uploading image:', error)
-        }
-      }
-
-      // Memicu dialog pemilihan file
-      input.click()
-    } catch (error) {
-      console.error('Error adding image:', error)
-    }
-  }
 
   return (
     <CRow>
@@ -738,7 +607,7 @@ const Address = () => {
           </CCardBody>
         </CCard>
 
-        <CCard>
+        <CCard className="mb-4">
           <CCardHeader>Master Data Address</CCardHeader>
           <CCardBody>
             {loading ? (
@@ -800,6 +669,9 @@ const Address = () => {
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     header="No"

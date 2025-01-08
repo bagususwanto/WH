@@ -25,7 +25,6 @@ import {
   CFormInput,
   CForm,
   CSpinner,
-  CFormLabel,
   CImage,
 } from '@coreui/react'
 import { CIcon } from '@coreui/icons-react'
@@ -38,9 +37,7 @@ import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
 import makeAnimated from 'react-select/animated'
 import { format, parseISO } from 'date-fns'
-import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
-import { Dropdown } from 'primereact/dropdown'
 import config from '../../../utils/Config'
 import { IMaskMixin } from 'react-imask'
 
@@ -52,7 +49,6 @@ const User = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
   const [plantOptions, setPlantOptions] = useState([])
-  const [storage, setStorage] = useState([])
   const [positionOptions, setPositionOptions] = useState([])
   const [roleOptions, setRoleOptions] = useState([])
   const [groupOptions, setGroupOptions] = useState([])
@@ -61,8 +57,6 @@ const User = () => {
   const [departmentOptions, setDepartmentOptions] = useState([])
   const [divisionOptions, setDivisionOptions] = useState([])
   const [warehouseOptions, setWarehouseOptions] = useState([])
-  const [storageId, setStorageId] = useState()
-  const [plantId, setPlantOptionsId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentUser, setCurrentUser] = useState({
     id: '',
@@ -86,14 +80,6 @@ const User = () => {
     isWarehouse: '',
   })
   const [loading, setLoading] = useState(true)
-  const [loadingImport, setLoadingImport] = useState(false)
-  const [modalUpload, setModalUpload] = useState(false)
-  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
-  const [uploadData, setUploadData] = useState({
-    importDate: date,
-    file: null,
-  })
-  const [imported, setImported] = useState(false)
   const [visibleColumns, setVisibleColumns] = useState([])
   const [isClearable, setIsClearable] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
@@ -104,11 +90,9 @@ const User = () => {
 
   const {
     getMasterData,
-    getMasterDataById,
     deleteMasterDataById,
     updateMasterDataById,
     postMasterData,
-    uploadMasterData,
     uploadImageMaterial,
   } = useMasterDataService()
 
@@ -131,11 +115,9 @@ const User = () => {
     },
   })
 
-  const apiStorage = 'storage-plant'
   const apiUser = 'user'
   const apiMasterUserOrg = 'user-org'
   const apiUserDelete = 'user-delete'
-  const apiUpload = 'upload-master-material'
   const apiDeleteImgUser = 'user-delete-image'
   const apiUploadImageUser = 'user-upload-image'
   const apiPosition = 'position'
@@ -709,20 +691,6 @@ const User = () => {
     />
   )
 
-  const handleCategoryChange = (selectedOption) => {
-    setCurrentUser({
-      ...currentUser,
-      categoryId: selectedOption ? selectedOption.value : '',
-    })
-  }
-
-  const handleSupplierChange = (selectedOption) => {
-    setCurrentUser({
-      ...currentUser,
-      supplierId: selectedOption ? selectedOption.value : '',
-    })
-  }
-  console.log('users:', users)
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = users.map((item, index) => ({
@@ -744,6 +712,8 @@ const User = () => {
         Warehouse: item.isWarehouse == 1 ? 'Warehouse' : 'Non Warehouse',
         'Created At': item.formattedCreatedAt,
         'Updated At': item.formattedUpdatedAt,
+        'Created By': item.createdBy,
+        'Updated By': item.updatedBy,
       }))
 
       // Deklarasikan worksheet hanya sekali
@@ -759,40 +729,6 @@ const User = () => {
 
       // Panggil fungsi untuk menyimpan file Excel
       saveAsExcelFile(excelBuffer, 'master_data_user')
-    })
-  }
-
-  const downloadTemplate = () => {
-    import('xlsx').then((xlsx) => {
-      // Mapping data untuk ekspor
-      const mappedData = [
-        {
-          materialNo: '',
-          description: '',
-          uom: '',
-          price: '',
-          type: '',
-          mrpType: '',
-          minStock: '',
-          maxStock: '',
-          img: '',
-          minOrder: '',
-          packaging: '',
-          unitPackaging: '',
-          category: '',
-          supplier: '',
-          storageName: '',
-        },
-      ]
-
-      const worksheet = xlsx.utils.json_to_sheet(mappedData)
-      const workbook = { Sheets: { template: worksheet }, SheetNames: ['template'] }
-      const excelBuffer = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
-      })
-
-      saveAsExcelFile(excelBuffer, 'template_master_data_material')
     })
   }
 
@@ -819,128 +755,6 @@ const User = () => {
         }
       }
     })
-  }
-
-  const handleImport = async () => {
-    setLoadingImport(true)
-    try {
-      if (!uploadData.file) {
-        MySwal.fire('Error', 'Please select a file', 'error')
-        return
-      }
-
-      await uploadMasterData(apiUpload, uploadData)
-      MySwal.fire('Success', 'File uploaded successfully', 'success')
-
-      setImported(true)
-      setShouldFetch(true)
-    } catch (error) {
-      console.error('Error during import:', error)
-    } finally {
-      setLoadingImport(false)
-      setModalUpload(false)
-    }
-  }
-
-  const handleDateChange = (selectedDate) => {
-    setDate(selectedDate[0])
-    setUploadData((prevData) => ({
-      ...prevData,
-      importDate: selectedDate[0],
-    }))
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    setUploadData((prevData) => ({
-      ...prevData,
-      file: file,
-    }))
-  }
-
-  const showModalUpload = () => {
-    setModalUpload(true)
-  }
-
-  const initFilters = () => {
-    setFilters({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-      plant: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-
-      storage: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-
-      type: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-    })
-    setGlobalFilterValue('')
-    setPlantOptionsId(null)
-    setStorageId(null)
-    setType(null)
-    setUsers([])
-  }
-
-  const clearFilter = () => {
-    initFilters()
-  }
-
-  const getStorageByPlantId = async (id) => {
-    if (!id) {
-      return
-    }
-    try {
-      const response = await getMasterDataById(apiStorage, id)
-      const storageOptions = response.map((storage) => ({
-        label: storage.storageName,
-        value: storage.storageName,
-        id: storage.id,
-      }))
-      setStorage(storageOptions)
-    } catch (error) {
-      console.error('Error fetching storage by ID:', error)
-    }
-  }
-
-  const handlePlantChange = (e) => {
-    const selectedPlantName = e.value
-    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
-    const plantId = selectedPlant?.id // Dapatkan plant.id
-
-    setPlantOptionsId(plantId)
-    getStorageByPlantId(plantId)
-
-    let _filters = { ...filters }
-    _filters['plant'].value = selectedPlantName
-    setFilters(_filters)
-    setShouldFetch(true)
-  }
-
-  const handleStorageChange = (e) => {
-    const selectedStorageName = e.value
-    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
-    const storageId = selectedStorage?.id // Dapatkan storage.id
-    setStorageId(storageId)
-    setShouldFetch(true)
-    let _filters = { ...filters }
-    _filters['storage'].value = e.value
-    setFilters(_filters)
-  }
-
-  const handleTypeChange = (e) => {
-    const selectedTypeName = e.value
-    setType(selectedTypeName)
-    setShouldFetch(true)
-    let _filters = { ...filters }
-    _filters['type'].value = e.value
-    setFilters(_filters)
   }
 
   const LoadingComponent = () => (
@@ -1060,7 +874,7 @@ const User = () => {
   return (
     <CRow>
       <CCol>
-        <CCard>
+        <CCard className="mb-4">
           <CCardHeader>Master Data User</CCardHeader>
           <CCardBody>
             {loading ? (
@@ -1104,6 +918,9 @@ const User = () => {
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     header="No"
@@ -1597,56 +1414,6 @@ const User = () => {
                 </>
               ) : (
                 <>{isEdit ? 'Update' : 'Save'}</>
-              )}
-            </CButton>
-          </Suspense>
-        </CModalFooter>
-      </CModal>
-
-      <CModal visible={modalUpload} onClose={() => setModalUpload(false)}>
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Upload Master User</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <div className="mb-3">
-            <CFormLabel>Date</CFormLabel>
-            <Flatpickr
-              value={date}
-              options={{
-                dateFormat: 'Y-m-d',
-                maxDate: new Date(),
-                allowInput: true,
-              }}
-              onChange={handleDateChange}
-              className="form-control"
-              placeholder="Select a date"
-            />
-          </div>
-          <div className="mb-3">
-            <CFormInput
-              onChange={handleFileChange} // Handle perubahan file
-              type="file"
-              label="Excel File"
-              accept=".xlsx" // Hanya menerima file Excel
-            />
-          </div>
-        </CModalBody>
-        <CModalFooter>
-          <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
-          >
-            <CButton color="primary" onClick={() => handleImport()}>
-              {loadingImport ? (
-                <>
-                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
-                  Importing...
-                </>
-              ) : (
-                'Import'
               )}
             </CButton>
           </Suspense>
