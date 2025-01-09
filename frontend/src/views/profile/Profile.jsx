@@ -176,7 +176,7 @@ const Profile = () => {
                       </CCol>
                       <CCol xs={3}>
                         <CButton color="primary" type="submit" className="mb-2">
-                          Confirm 
+                          Confirm
                         </CButton>
                       </CCol>
                     </CRow>
@@ -216,7 +216,7 @@ const Profile = () => {
                               <label className="py-2">Line</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 ">{user.Organization.Line.lineName}</label>
+                              <label className="py-2 ">{user.Organization?.Line?.lineName}</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -306,7 +306,7 @@ const Profile = () => {
                                   <CCol xs="9 ">
                                     <label className="py-2 ">
                                       {' '}
-                                      {user.Organization.Line.lineName},{' '}
+                                      {user.Organization?.Line?.lineName},{' '}
                                     </label>
                                   </CCol>
                                 </CRow>

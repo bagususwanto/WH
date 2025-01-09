@@ -878,3 +878,153 @@ export const deleteImage = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await User.findOne({
+      where: { id: userId, flag: 1 },
+      attributes: [
+        "id",
+        "username",
+        "name",
+        "position",
+        "img",
+        "noHandphone",
+        "email",
+        "isProduction",
+        "isWarehouse",
+        "createdAt",
+        "updatedAt",
+      ],
+      include: [
+        {
+          model: Role,
+          where: { flag: 1 },
+        },
+        {
+          model: Organization,
+          required: false,
+          where: { flag: 1 },
+          include: [
+            {
+              model: Group,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Line,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Section,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Department,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Division,
+              required: false,
+              where: { flag: 1 },
+            },
+            {
+              model: Plant,
+              where: { flag: 1 },
+            },
+          ],
+        },
+        {
+          model: Warehouse,
+          through: { attributes: [] },
+          where: { flag: 1 },
+          required: false,
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getStructureApproval = async (req, res) => {
+  try {
+    const groupId = req.user.groupId;
+    const lineId = req.user.lineId;
+    const sectionId = req.user.sectionId;
+    const departmentId = req.user.departmentId;
+
+    const whereCondition = {
+      flag: 1,
+    };
+
+    if (groupId) whereCondition.groupId = groupId;
+    if (lineId) whereCondition.lineId = lineId;
+    if (sectionId) whereCondition.sectionId = sectionId;
+    if (departmentId) whereCondition.departmentId = departmentId;
+
+    const structureApproval = await Organization.findAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Line,
+          required: false,
+          where: { flag: 1 },
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "name", "position", "img"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
+        {
+          model: Section,
+          required: false,
+          where: { flag: 1 },
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "name", "position", "img"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
+        {
+          model: Department,
+          required: false,
+          where: { flag: 1 },
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "name", "position", "img"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!structureApproval) {
+      return res.status(404).json({ message: "Structure approval not found" });
+    }
+    res.status(200).json(structureApproval);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
