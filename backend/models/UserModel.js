@@ -183,37 +183,51 @@ User.addHook("afterCreate", async (user, options) => {
 });
 
 User.addHook("afterUpdate", async (user, options) => {
-  // Ambil perubahan yang terjadi
-  const changes = user._previousDataValues;
+  try {
+    // Ambil perubahan yang terjadi
+    const changes = user._previousDataValues;
+    const updatedData = user.dataValues;
 
-  // Bandingkan nilai lama (sebelumnya) dengan nilai baru (sekarang)
-  const updatedData = user.dataValues;
-
-  // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
-  if (changes.flag === 1 && updatedData.flag === 0) {
-    // Catat log untuk soft delete
-    await LogMaster.create({
-      masterType: "User",
-      masterId: user.id,
-      action: "softDelete",
-      changes: JSON.stringify({
-        old: changes,
-        new: updatedData, // Menyertakan data setelah update
-      }),
-      userId: options.userId,
-    });
-  } else {
-    // Catat log untuk update biasa
-    await LogMaster.create({
-      masterType: "User",
-      masterId: user.id,
-      action: "update",
-      changes: JSON.stringify({
-        old: changes, // Data sebelum update
-        new: updatedData, // Data setelah update
-      }),
-      userId: options.userId,
-    });
+    // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
+    if (changes.flag === 1 && updatedData.flag === 0) {
+      // Catat log untuk soft delete
+      await LogMaster.create({
+        masterType: "User",
+        masterId: user.id,
+        action: "softDelete",
+        changes: JSON.stringify({
+          old: changes,
+          new: updatedData, // Menyertakan data setelah update
+        }),
+        userId: options.userId,
+      });
+    } else if (user.changed("password")) {
+      // Catat log untuk perubahan password
+      await LogMaster.create({
+        masterType: "User",
+        masterId: user.id,
+        action: "passwordChange",
+        changes: JSON.stringify({
+          old: changes,
+          new: updatedData,
+        }),
+        userId: options.userId,
+      });
+    } else {
+      // Catat log untuk update biasa
+      await LogMaster.create({
+        masterType: "User",
+        masterId: user.id,
+        action: "update",
+        changes: JSON.stringify({
+          old: changes, // Data sebelum update
+          new: updatedData, // Data setelah update
+        }),
+        userId: options.userId,
+      });
+    }
+  } catch (error) {
+    console.error("Error dalam afterUpdate hook:", error);
   }
 });
 
