@@ -56,10 +56,34 @@ const Profile = () => {
 
   const apiUser = 'user-public'
 
+  const fetchUserData = async () => {
+    try {
+      const response = await getMasterData('user-public')
+      if (response && response.data) {
+        const loggedInUserId = 2 // Replace with a dynamic ID based on your authentication system
+        const user = response.data.find((user) => user.id === loggedInUserId)
+        if (user) {
+          setUserData(user)
+          setSelectedImage(user.img || null) // Set the selected image
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchUserData()
+  }, [])
   const getNotifDesc = async () => {
     try {
       const response = await getNotification(warehouse.id)
-      setnotifProfile(response)
+      console.log('Notification response:', response)
+      if (Array.isArray(response)) {
+        setnotifProfile(response)
+      } else {
+        console.error('Expected an array but received:', response)
+      }
     } catch (error) {
       console.error('Error fetching notif:', error)
     }
@@ -67,37 +91,35 @@ const Profile = () => {
 
   const getNotifCount = (notifications) => {
     if (notifications && Array.isArray(notifications)) {
-      const unreadCount = notifications.filter((notif) => notif.isRead === 0).length;
-      setNotifCount(unreadCount); // Update state with unread count
+      const unreadCount = notifications.filter((notif) => notif.isRead === 0).length
+      setNotifCount(unreadCount) // Update state with unread count
     } else {
-      console.error("Notifications data is not in the expected format.");
-      setNotifCount(0); // Default to 0 if notifications is not an array
+      console.error('Notifications data is not in the expected format.')
+      setNotifCount(0) // Default to 0 if notifications is not an array
     }
-  };
-  
+  }
 
   const getusers = async () => {
     try {
-      const response = await getMasterData(apiUser);
-      
+      const response = await getMasterData(apiUser)
+
       // Check if response.data is not undefined and is an array before calling filter()
       if (response && response.data && Array.isArray(response.data)) {
-        const filteredUserData = response.data.filter((user) => user.id === 3);
-        setUserData(filteredUserData);
-  
+        const filteredUserData = response.data.filter((user) => user.id === 3)
+        setUserData(filteredUserData)
+
         // Check if image data exists in the filtered response and update states
         if (filteredUserData.length > 0 && filteredUserData[0].img) {
-          setApiImage(filteredUserData[0].img); // Store the image from API in state
-          setSelectedImage(filteredUserData[0].img); // Set the selected image to the API image initially
+          setApiImage(filteredUserData[0].img) // Store the image from API in state
+          setSelectedImage(filteredUserData[0].img) // Set the selected image to the API image initially
         }
       } else {
-        console.error("API response is not in the expected format or is missing data.");
+        console.error('API response is not in the expected format or is missing data.')
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('Error fetching user data:', error)
     }
-  };
-  
+  }
 
   useEffect(() => {
     getusers()
@@ -105,14 +127,20 @@ const Profile = () => {
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
-      getNotifDesc(); // Get notifications first
-      const interval = setInterval(() => {
-        getNotifCount(notifProfile); // Pass the notifications data
-      }, 5000);
-      return () => clearInterval(interval); // Clear interval on component unmount
+      const fetchAndCountNotifications = async () => {
+        const notifications = await getNotification(warehouse.id)
+        if (Array.isArray(notifications)) {
+          setnotifProfile(notifications)
+          const unreadCount = notifications.filter((notif) => notif.isRead === 0).length
+          setNotifCount(unreadCount)
+        }
+      }
+      fetchAndCountNotifications()
+      const interval = setInterval(fetchAndCountNotifications, 5000)
+      return () => clearInterval(interval)
     }
-  }, [warehouse, cartCount, notifProfile]); // Make sure notifProfile is updated properly
-  
+  }, [warehouse, cartCount])
+
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -156,9 +184,9 @@ const Profile = () => {
           Profile
         </CTab>
 
-        <CTab aria-controls="profile-tab-pane" itemKey={'structure'}>
+        {/* <CTab aria-controls="profile-tab-pane" itemKey={'structure'}>
           Structure Approval
-        </CTab>
+        </CTab> */}
       </CTabList>
       <CTabContent>
         <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'notifikasi'}>
@@ -170,24 +198,25 @@ const Profile = () => {
               <CCard>
                 <CAccordionHeader className="mt-2 fs-6">Transaction Info</CAccordionHeader>
                 <hr className="my-1" />
-                {notifProfile.slice(0, visibleNotifCount).map((notif, index) => (
-                  <CCardBody key={index} className="p-1">
-                    <CRow className="align-items-center mb-1">
-                      <CCol xs={1} className="d-flex justify-content-center">
-                        <CIcon icon={cilEnvelopeOpen} size="lg" />
-                      </CCol>
-                      <CCol xs={11}>
-                        <div>
-                          <div className="mb-0 fw-light text-muted">Message for you</div>
-                          <div>{notif.description}</div>
-                        </div>
-                      </CCol>
-                    </CRow>
-                    {index < visibleNotifCount - 1 && index < notifProfile.length - 1 && (
-                      <hr className="my-1" />
-                    )}
-                  </CCardBody>
-                ))}
+                {Array.isArray(notifProfile) &&
+                  notifProfile.slice(0, visibleNotifCount).map((notif, index) => (
+                    <CCardBody key={index} className="p-1">
+                      <CRow className="align-items-center mb-1">
+                        <CCol xs={1} className="d-flex justify-content-center">
+                          <CIcon icon={cilEnvelopeOpen} size="lg" />
+                        </CCol>
+                        <CCol xs={11}>
+                          <div>
+                            <div className="mb-0 fw-light text-muted">Message for you</div>
+                            <div>{notif.description}</div>
+                          </div>
+                        </CCol>
+                      </CRow>
+                      {index < visibleNotifCount - 1 && index < notifProfile.length - 1 && (
+                        <hr className="my-1" />
+                      )}
+                    </CCardBody>
+                  ))}
               </CCard>
               {visibleNotifCount < notifProfile.length && (
                 <div className="text-center my-3">
@@ -290,11 +319,11 @@ const Profile = () => {
                 <CRow className="g-2">
                   <CCard className="h-80">
                     <CCardBody className="d-flex flex-column justify-content-between">
-                      {userData.map((user, index) => (
-                        <div key={index}>
+                      {userData ? (
+                        <>
                           <CRow className="text-start">
                             <CCol xs="12">
-                              <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
+                              <label className="fw-bold py-2 text-muted">Personal Data</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -302,7 +331,7 @@ const Profile = () => {
                               <label className="py-2">Name</label>
                             </CCol>
                             <CCol xs="8">
-                              <label className="py-2">{user.name}</label>
+                              <label className="py-2">{userData.name}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -310,7 +339,7 @@ const Profile = () => {
                               <label className="py-2">Position</label>
                             </CCol>
                             <CCol xs="8">
-                              <label className="py-2 "> {user.position}</label>
+                              <label className="py-2 "> {userData.position}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -318,7 +347,7 @@ const Profile = () => {
                               <label className="py-2">Line</label>
                             </CCol>
                             <CCol xs="8">
-                              <label className="py-2 ">{user.Organization.Line.lineName}</label>
+                              <label className="py-2 ">{userData.Organization.Line.lineName}</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -327,7 +356,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="8">
                               <label className="py-2 ">
-                                {user.Organization.Section.sectionName},{' '}
+                                {userData.Organization.Section.sectionName},{' '}
                               </label>
                             </CCol>
                           </CRow>
@@ -337,13 +366,13 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="8">
                               <label className="py-2 ">
-                                {user.Organization.Department.departmentName}
+                                {userData.Organization.Department.departmentName}
                               </label>
                             </CCol>
                           </CRow>
                           <CRow>
                             <CCol xs="12">
-                              <label className="fw-bold py-2 text-muted">Change Contact</label>
+                              <label className="fw-bold py-2 text-muted">Personal Contact</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -351,16 +380,21 @@ const Profile = () => {
                               <label className="py-2">Email</label>
                             </CCol>
                             <CCol xs="8">
-                              <label className="py-2">{user.email}</label>
+                              <label className="py-2">{userData.email}</label>
                             </CCol>
                           </CRow>
                           <CRow>
                             <CCol xs="3">
                               <label className="py-2">Phone Number</label>
                             </CCol>
+                            <CCol xs="8">
+                              <label className="py-2">{userData.noHandphone}</label>
+                            </CCol>
                           </CRow>
-                        </div>
-                      ))}
+                        </>
+                      ) : (
+                        <div>Loading user data...</div>
+                      )}
                     </CCardBody>
                   </CCard>
                 </CRow>
@@ -369,7 +403,7 @@ const Profile = () => {
           </CContainer>
         </CTabPanel>
 
-        <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={'structure'}>
+        {/* <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={'structure'}>
           <CContainer>
             <CRow>
               <CCol xs={5}>
@@ -490,7 +524,7 @@ const Profile = () => {
               </CCol>
             </CRow>
           </CContainer>
-        </CTabPanel>
+        </CTabPanel> */}
       </CTabContent>
     </CTabs>
   )

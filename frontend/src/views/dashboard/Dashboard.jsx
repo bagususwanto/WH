@@ -339,9 +339,15 @@ const Dashboard = () => {
             if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
               return '#F95454' // Red for stock < 1.5 (Critical)
             }
+            if (chartTitle === 'Critical Stock' && item.stock < 2.5) {
+              return '#EB5B00' // Red for stock < 1.5 (Critical)
+            }
+            if (chartTitle === 'Critical Stock' && item.stock < 4.5) {
+              return '#638C6D' // Red for stock < 1.5 (Critical)
+            }
 
             if (chartTitle === 'Overflow Stock' && item.stock > 5) {
-              return '#EB5B00' // Orange for stock > 5 (Overflow)
+              return '#F95454' // Orange for stock > 5 (Overflow)
             }
 
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
@@ -522,7 +528,7 @@ const Dashboard = () => {
               content:
                 selectedChart === 'overflow'
                   ? `Max Stock: ${referenceLineValue} Shift`
-                  : `Min Stock: ${referenceLineValue} Shift`,
+                  : `Max Stock: ${referenceLineValue} Shift`,
               position: 'end',
               yAdjust: -16,
               color: 'white',
@@ -554,17 +560,35 @@ const Dashboard = () => {
             ? [
                 {
                   type: 'line',
+                  yMin: 2.5, // Garis pada nilai 1.5
+                  yMax: 2.5, // Garis pada nilai 1.5
+                  borderColor: 'orange', // Warna merah
+                  borderWidth: 1.3,
+                  borderDash: [5, 5], // Garis putus-putus
+                  label: {
+                    display: true, // Menampilkan label
+                    content: 'Min Stock 2.5 Shift', // Isi label
+                    position: 'start', // Menentukan posisi label di akhir garis
+                    font: {
+                      size: 8,
+                    },
+                    yAdjust: -10, // Menyesuaikan posisi label di sumbu Y
+                    color: 'white', // Warna label
+                  },
+                },
+                {
+                  type: 'line',
                   yMin: 1.5, // Garis pada nilai 1.5
                   yMax: 1.5, // Garis pada nilai 1.5
                   borderColor: 'red', // Warna merah
-                  borderWidth: 0.5,
+                  borderWidth: 0.9,
                   borderDash: [5, 5], // Garis putus-putus
                   label: {
                     display: true, // Menampilkan label
                     content: 'Critical Stock 1.5 Shift', // Isi label
                     position: 'end', // Menentukan posisi label di akhir garis
                     font: {
-                      size: 9,
+                      size: 8,
                     },
                     yAdjust: -6, // Menyesuaikan posisi label di sumbu Y
                     color: 'white', // Warna label
@@ -869,6 +893,12 @@ const Dashboard = () => {
       </Row>
     </ColumnGroup>
   )
+
+  const backgroundColor =
+    selectedChart === 'critical' ? '#FFAF00' : selectedChart === 'overflow' ? '#F95454' : 'white'
+     const color =
+    selectedChart === 'critical' ? 'black' : selectedChart === 'overflow' ? 'white' : 'white'
+
   return (
     <CRow>
       <CCol>
@@ -1038,19 +1068,22 @@ const Dashboard = () => {
                   {/* Incoming Item (Green) */}
                   <CRow style={{ justifyContent: 'flex-start' }}>
                     <CCol xs="auto">
-                      <div
-                        style={{
-                          backgroundColor: '#FFAF00',
-                          color: 'black',
-                          padding: '5px 10px',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontWeight: 'bold', // Menambahkan teks menjadi bold
-                        }}
-                      >
-                        <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
+                      <div>
+                        <div
+                          style={{
+                            backgroundColor: backgroundColor,
+                            color: color,
+                            padding: '5px 10px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
+                        </div>
+                      
                       </div>
                     </CCol>
 
@@ -1109,7 +1142,7 @@ const Dashboard = () => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 4.9, 4.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
+                  options={chartOptions(inventoriescritical, 0, 4.9, 4.5, 2.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
                   height={410}
                 />
               )}
