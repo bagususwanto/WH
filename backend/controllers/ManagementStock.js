@@ -55,6 +55,8 @@ export const getInventory = async (req, res) => {
               "id",
               "materialNo",
               "description",
+              "minStock",
+              "maxStock",
               "uom",
               "type",
               "packagingId",
@@ -679,7 +681,6 @@ export const submitInventory = async (req, res) => {
   try {
     // Pastikan transaksi dimulai
     transaction = await db.transaction();
-    console.log('Transaction started:', transaction);
 
     // Pastikan item.quantity diubah menjadi number
     items.forEach((item) => {
@@ -728,18 +729,17 @@ export const submitInventory = async (req, res) => {
     );
 
     // Commit transaksi setelah semua operasi berhasil
-    console.log('Committing transaction');
     await transaction.commit();
     return res.status(200).json({ message: "Inventory updated successfully!" });
   } catch (error) {
     // Pastikan hanya rollback jika transaksi belum selesai
-    console.error('Error occurred, rolling back:', error);
+    console.error("Error occurred, rolling back:", error);
 
-    if (transaction && transaction.finished !== 'rollback') {
-      console.log('Rolling back transaction');
+    if (transaction && transaction.finished !== "rollback") {
+      console.log("Rolling back transaction");
       await transaction.rollback();
     }
-    
+
     return res.status(500).json({ message: "Failed to update inventory" });
   }
 };
