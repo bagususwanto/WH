@@ -80,7 +80,12 @@ const useNavigation = () => {
       },
     ]
     // NAV DASHBOARD
-    if (roleName === 'super admin' || roleName === 'line head' || roleName === 'section head') {
+    if (
+      (isWarehouse == 1 && roleName === 'super admin') ||
+      (isWarehouse == 1 && roleName === 'group head') ||
+      (isWarehouse == 1 && roleName === 'line head') ||
+      (isWarehouse == 1 && roleName === 'section head')
+    ) {
       baseNav.push({
         component: CNavItem,
         name: 'Dasboard',

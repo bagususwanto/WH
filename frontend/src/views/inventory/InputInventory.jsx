@@ -740,18 +740,38 @@ const InputInventory = () => {
       const db = e.target.result
       const transaction = db.transaction('inventory', 'readwrite')
       const store = transaction.objectStore('inventory')
+      const index = store.index('plantId')
 
-      // Menghapus seluruh data dalam object store 'inventory'
-      const clearRequest = store.clear()
+      // Ambil semua data dengan plantId tertentu
+      const getRequest = index.getAll(plantId)
 
-      clearRequest.onsuccess = function () {
-        console.log('IndexedDB cleared successfully.')
+      getRequest.onsuccess = function () {
+        const items = getRequest.result
+
+        // Loop untuk menghapus setiap item berdasarkan keyPath (id)
+        items.forEach((item) => {
+          const deleteRequest = store.delete(item.id)
+
+          deleteRequest.onsuccess = function () {
+            console.log(`Item with id ${item.id} deleted successfully.`)
+          }
+
+          deleteRequest.onerror = function () {
+            console.error(`Failed to delete item with id ${item.id}.`)
+          }
+        })
+
+        // MySwal.fire({
+        //   title: 'Success!',
+        //   text: 'IndexedDB cleared successfully for the selected plant.',
+        //   icon: 'success',
+        // })
       }
 
-      clearRequest.onerror = function () {
+      getRequest.onerror = function () {
         MySwal.fire({
           title: 'Error!',
-          text: 'Failed to clear IndexedDB.',
+          text: 'Failed to fetch data from IndexedDB.',
           icon: 'error',
         })
       }
@@ -1121,7 +1141,7 @@ const InputInventory = () => {
   return (
     <CRow>
       <CCol>
-        <CCard>
+        <CCard className="mb-4">
           <CCardHeader>Form Input</CCardHeader>
           <CForm>
             <CCardBody>

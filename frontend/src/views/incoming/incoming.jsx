@@ -132,6 +132,7 @@ const Incoming = () => {
     setPlantId(null)
     setStorageId(null)
     setSelectedDate(null)
+    setDates([null, null])
     setIncoming([])
   }
 
@@ -174,15 +175,15 @@ const Incoming = () => {
       let startDate
       let endDate
 
+      if (dates[0] && dates[1]) {
+        startDate = format(dates[0], 'yyyy-MM-dd')
+        endDate = format(dates[1], 'yyyy-MM-dd')
+      }
+
       if (!startDate && !endDate && !plantId && !storageId) {
         setIncoming([])
         setLoading(false)
         return
-      }
-
-      if (dates[0] && dates[1]) {
-        startDate = format(dates[0], 'yyyy-MM-dd')
-        endDate = format(dates[1], 'yyyy-MM-dd')
       }
 
       const response = await getIncoming(
@@ -658,6 +659,9 @@ const Incoming = () => {
                   onRowEditComplete={onRowEditComplete}
                   removableSort
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     field="Inventory.Material.materialNo"
@@ -694,7 +698,7 @@ const Incoming = () => {
                     bodyStyle={{ textAlign: 'center' }}
                     sortable
                   ></Column>
-                  <Column field="Log_Import.importDate" header="Date" sortable></Column>
+                  <Column field="incomingDate" header="Incoming Date" sortable></Column>
                   <Column field="Log_Import.User.username" header="Import By" sortable></Column>
                   {visibleColumns.map((col, index) => (
                     <Column

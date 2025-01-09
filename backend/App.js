@@ -46,6 +46,7 @@ import orderHistoryRouter from "./routes/OrderHistoryRouter.js";
 import goodIssueRouter from "./routes/GoodIssueRouter.js";
 import packagingRouter from "./routes/PackagingRouter.js";
 import redpostRouter from "./routes/RedpostRouter.js";
+import materialStorageRouter from "./routes/MaterialStorageRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -74,11 +75,11 @@ app.use(
 
 // Mengambil sertifikat dan kunci
 const privateKey = fs.readFileSync(
-  path.join(__dirname, "certificates", "10.64.14.100-key.pem"),
+  path.join(__dirname, "certificates", "key.pem"),
   "utf8"
 );
 const certificate = fs.readFileSync(
-  path.join(__dirname, "certificates", "10.64.14.100.pem"),
+  path.join(__dirname, "certificates", "cert.pem"),
   "utf8"
 );
 const credentials = { key: privateKey, cert: certificate };
@@ -129,6 +130,7 @@ app.use("/api", organizationRouter);
 app.use("/api", serviceHoursRouter);
 app.use("/api", userPlantRouter);
 app.use("/api", userWarehouseRouter);
+app.use("/api", materialStorageRouter);
 app.use("/api", packagingRouter);
 
 // Harcoded router

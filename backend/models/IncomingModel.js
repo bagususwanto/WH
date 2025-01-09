@@ -27,7 +27,7 @@ const Incoming = db.define(
       },
     },
     incomingDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     status: {

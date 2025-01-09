@@ -11,6 +11,7 @@ import path from "path";
 import LogMaster from "../models/LogMasterModel.js";
 import User from "../models/UserModel.js";
 import LogImport from "../models/LogImportModel.js";
+import db from "../utils/Database.js";
 
 export const getMaterial = async (req, res) => {
   try {
@@ -183,6 +184,7 @@ export const getMaterialIdByMaterialNo = async (req, res) => {
 };
 
 export const createMaterial = async (req, res) => {
+  const transaction = await db.transaction();
   try {
     // Body
     const {
@@ -243,6 +245,7 @@ export const createMaterial = async (req, res) => {
           unitPackaging: unitPackaging,
           flag: 1,
         },
+        transaction,
       });
 
       if (!existPackaging) {
@@ -251,7 +254,7 @@ export const createMaterial = async (req, res) => {
             packaging: packaging.value,
             unitPackaging: unitPackaging,
           },
-          { userId: req.user.userId }
+          { userId: req.user.userId, transaction }
         );
       } else {
         packagingRes = existPackaging;
@@ -261,8 +264,10 @@ export const createMaterial = async (req, res) => {
     // Cek storageId dan plantId
     const storagePlant = await Storage.findOne({
       where: { id: storageId.id, plantId: plantId.id, flag: 1 },
+      transaction,
     });
     if (!storagePlant) {
+      await transaction.rollback();
       return res.status(400).json({
         message: "Storage or Plant not found, please check storage and plant",
       });
@@ -284,7 +289,7 @@ export const createMaterial = async (req, res) => {
         packagingId: packagingRes?.id,
         minOrder,
       },
-      { userId: req.user.userId }
+      { userId: req.user.userId, transaction }
     );
 
     // Hubungkan material dengan storage
@@ -293,19 +298,22 @@ export const createMaterial = async (req, res) => {
         materialId: newMaterial.id,
         storageId: storageId.id,
       },
-      { userId: req.user.userId }
+      { userId: req.user.userId, transaction }
     );
 
+    await transaction.commit();
     res
       .status(201)
       .json({ message: "Material Created", material: newMaterial });
   } catch (error) {
+    await transaction.rollback();
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const updateMaterial = async (req, res) => {
+  const transaction = await db.transaction();
   try {
     const materialId = req.params.id;
 
@@ -359,9 +367,11 @@ export const updateMaterial = async (req, res) => {
 
     const material = await Material.findOne({
       where: { id: materialId, flag: 1 },
+      transaction,
     });
 
     if (!material) {
+      await transaction.rollback();
       return res.status(404).json({ message: "Material not found" });
     }
 
@@ -374,6 +384,7 @@ export const updateMaterial = async (req, res) => {
           unitPackaging: unitPackaging,
           flag: 1,
         },
+        transaction,
       });
 
       if (!existPackaging) {
@@ -382,7 +393,7 @@ export const updateMaterial = async (req, res) => {
             packaging: packaging.value,
             unitPackaging: unitPackaging,
           },
-          { userId: req.user.userId }
+          { userId: req.user.userId, transaction }
         );
       } else {
         packagingRes = existPackaging;
@@ -392,8 +403,10 @@ export const updateMaterial = async (req, res) => {
     // Cek storageId dan plantId
     const storagePlant = await Storage.findOne({
       where: { id: storageId.id, plantId: plantId.id, flag: 1 },
+      transaction,
     });
     if (!storagePlant) {
+      await transaction.rollback();
       return res.status(400).json({
         message: "Storage or Plant not found, please check storage and plant",
       });
@@ -402,14 +415,15 @@ export const updateMaterial = async (req, res) => {
     // Cek materialId dan storageId
     const materialStorage = await MaterialStorage.findOne({
       where: { materialId: materialId, storageId: storageId.id, flag: 1 },
+      transaction,
     });
     if (!materialStorage) {
-      MaterialStorage.create(
+      await MaterialStorage.create(
         {
           materialId: materialId,
           storageId: storageId.id,
         },
-        { userId: req.user.userId }
+        { userId: req.user.userId, transaction }
       );
     }
 
@@ -434,10 +448,14 @@ export const updateMaterial = async (req, res) => {
         },
         individualHooks: true,
         userId: req.user.userId,
+        transaction,
       }
     );
+
+    await transaction.commit();
     res.status(200).json({ message: "Material Updated" });
   } catch (error) {
+    await transaction.rollback();
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }

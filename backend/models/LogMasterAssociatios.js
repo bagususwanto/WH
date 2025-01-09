@@ -23,7 +23,7 @@ import UserWarehouse from "./UserWarehouseModel.js";
 import Warehouse from "./WarehouseModel.js";
 import WBS from "./WBSModel.js";
 
-const logMasterAssociations = () => {
+export default function logMasterAssociations() {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
   LogMaster.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
@@ -32,15 +32,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Material.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Material, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // User->LogMaster
@@ -48,16 +51,19 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   User.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(User, {
     as: "userLog",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Category->LogMaster
@@ -65,15 +71,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Category.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Category, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Supplier->LogMaster
@@ -81,15 +90,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Supplier.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Supplier, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // AddressRack->LogMaster
@@ -97,15 +109,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   AddressRack.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(AddressRack, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Packaging->LogMaster
@@ -113,15 +128,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Packaging.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Packaging, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Storage->LogMaster
@@ -129,15 +147,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Storage.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Storage, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Department->LogMaster
@@ -145,15 +166,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Department.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Department, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Shift->LogMaster
@@ -161,15 +185,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Shift.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Shift, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Division->LogMaster
@@ -177,15 +204,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Division.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Division, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // ServiceHours->LogMaster
@@ -193,15 +223,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   ServiceHours.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(ServiceHours, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Warehouse->LogMaster
@@ -209,15 +242,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Warehouse.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Warehouse, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Plant->LogMaster
@@ -225,15 +261,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Plant.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Plant, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // CostCenter->LogMaster
@@ -241,15 +280,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   CostCenter.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(CostCenter, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // GIC->LogMaster
@@ -257,15 +299,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   GIC.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(GIC, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // WBS->LogMaster
@@ -273,15 +318,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   WBS.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(WBS, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Organization->LogMaster
@@ -289,15 +337,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Organization.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Organization, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Section->LogMaster
@@ -305,15 +356,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Section.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Section, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Line->LogMaster
@@ -321,15 +375,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Line.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Line, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Group->LogMaster
@@ -337,15 +394,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Group.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Group, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // Role->LogMaster
@@ -353,15 +413,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   Role.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(Role, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // UserWarehouse->LogMaster
@@ -369,15 +432,18 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   UserWarehouse.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(UserWarehouse, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
 
   // MaterialStorage->LogMaster
@@ -385,16 +451,17 @@ const logMasterAssociations = () => {
     as: "createdBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   MaterialStorage.hasMany(LogMaster, {
     as: "updatedBy",
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
   LogMaster.belongsTo(MaterialStorage, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
+    constraints: false,
   });
-};
-
-export default logMasterAssociations;
+}

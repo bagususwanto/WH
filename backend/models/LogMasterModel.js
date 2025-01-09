@@ -11,7 +11,7 @@ const LogMaster = db.define(
       allowNull: false,
     },
     masterId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     action: {

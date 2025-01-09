@@ -36,14 +36,19 @@ const UserWarehouse = db.define(
   }
 );
 
-Warehouse.belongsToMany(User, { through: UserWarehouse, foreignKey: "warehouseId" });
+Warehouse.belongsToMany(User, {
+  through: UserWarehouse,
+  foreignKey: "warehouseId",
+});
 User.belongsToMany(Warehouse, { through: UserWarehouse, foreignKey: "userId" });
 
 // HOOKS
 UserWarehouse.addHook("afterCreate", async (uw, options) => {
+  const masterId = `${uw.userId}-${uw.warehouseId}`; // Gabungkan userId dan warehouseId
+
   await LogMaster.create({
     masterType: "UserWarehouse",
-    masterId: uw.id,
+    masterId: masterId, // Gunakan masterId yang baru
     action: "create",
     changes: JSON.stringify(uw),
     userId: options.userId,
@@ -51,34 +56,30 @@ UserWarehouse.addHook("afterCreate", async (uw, options) => {
 });
 
 UserWarehouse.addHook("afterUpdate", async (uw, options) => {
-  // Ambil perubahan yang terjadi
-  const changes = uw._previousDataValues;
+  const masterId = `${uw.userId}-${uw.warehouseId}`; // Gabungkan userId dan warehouseId
 
-  // Bandingkan nilai lama (sebelumnya) dengan nilai baru (sekarang)
+  const changes = uw._previousDataValues;
   const updatedData = uw.dataValues;
 
-  // Periksa apakah hanya perubahan pada field `flag` menjadi 0 (soft delete)
   if (changes.flag === 1 && updatedData.flag === 0) {
-    // Catat log untuk soft delete
     await LogMaster.create({
       masterType: "UserWarehouse",
-      masterId: uw.id,
+      masterId: masterId, // Gunakan masterId yang baru
       action: "softDelete",
       changes: JSON.stringify({
         old: changes,
-        new: updatedData, // Menyertakan data setelah update
+        new: updatedData,
       }),
       userId: options.userId,
     });
   } else {
-    // Catat log untuk update biasa
     await LogMaster.create({
       masterType: "UserWarehouse",
-      masterId: uw.id,
+      masterId: masterId, // Gunakan masterId yang baru
       action: "update",
       changes: JSON.stringify({
-        old: changes, // Data sebelum update
-        new: updatedData, // Data setelah update
+        old: changes,
+        new: updatedData,
       }),
       userId: options.userId,
     });

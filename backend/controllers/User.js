@@ -348,132 +348,143 @@ export const createUserAndOrg = async (req, res) => {
     isWarehouse,
   } = req.body;
 
-  // cari roleName dari roleId
-  const role = await Role.findOne({
-    where: {
-      id: roleId.id,
-      flag: 1,
-    },
-    attributes: ["roleName"],
-  });
-
-  if (!role) {
-    return res.status(404).json({ message: "Role not found" });
-  }
-
-  // validasi field yang wajib diisi
-  let requiredFields = [];
-  if (role.roleName.includes("group head")) {
-    requiredFields = [
-      { field: "username", message: "Username is required" },
-      { field: "password", message: "Password is required" },
-      { field: "confirmPassword", message: "Confirm Password is required" },
-      { field: "name", message: "Fullname is required" },
-      { field: "roleId", message: "Role is required" },
-      { field: "position", message: "Position is required" },
-      { field: "groupId", message: "Group is required" },
-      { field: "lineId", message: "Line is required" },
-      { field: "sectionId", message: "Section is required" },
-      { field: "departmentId", message: "Department is required" },
-      { field: "divisionId", message: "Division is required" },
-      { field: "warehouseIds", message: "Warehouse Access are required" },
-      { field: "plantId", message: "Plant is required" },
-      { field: "isProduction", message: "Production is required" },
-      { field: "isWarehouse", message: "Warehouse is required" },
-    ];
-  } else if (role.roleName.includes("line head")) {
-    requiredFields = [
-      { field: "username", message: "Username is required" },
-      { field: "password", message: "Password is required" },
-      { field: "confirmPassword", message: "Confirm Password is required" },
-      { field: "name", message: "Fullname is required" },
-      { field: "roleId", message: "Role is required" },
-      { field: "position", message: "Position is required" },
-      { field: "lineId", message: "Line is required" },
-      { field: "sectionId", message: "Section is required" },
-      { field: "departmentId", message: "Department is required" },
-      { field: "divisionId", message: "Division is required" },
-      { field: "warehouseIds", message: "Warehouse Access are required" },
-      { field: "plantId", message: "Plant is required" },
-      { field: "isProduction", message: "Production is required" },
-      { field: "isWarehouse", message: "Warehouse is required" },
-    ];
-  } else if (role.roleName.includes("section head")) {
-    requiredFields = [
-      { field: "username", message: "Username is required" },
-      { field: "password", message: "Password is required" },
-      { field: "confirmPassword", message: "Confirm Password is required" },
-      { field: "name", message: "Fullname is required" },
-      { field: "position", message: "Position is required" },
-      { field: "sectionId", message: "Section is required" },
-      { field: "departmentId", message: "Department is required" },
-      { field: "divisionId", message: "Division is required" },
-      { field: "warehouseIds", message: "Warehouse Access are required" },
-      { field: "plantId", message: "Plant is required" },
-      { field: "isProduction", message: "Production is required" },
-      { field: "isWarehouse", message: "Warehouse is required" },
-    ];
-  } else if (role.roleName.includes("department head")) {
-    requiredFields = [
-      { field: "username", message: "Username is required" },
-      { field: "password", message: "Password is required" },
-      { field: "confirmPassword", message: "Confirm Password is required" },
-      { field: "name", message: "Fullname is required" },
-      { field: "position", message: "Position is required" },
-      { field: "departmentId", message: "Department is required" },
-      { field: "divisionId", message: "Division is required" },
-      { field: "warehouseIds", message: "Warehouse Access are required" },
-      { field: "plantId", message: "Plant is required" },
-      { field: "isProduction", message: "Production is required" },
-      { field: "isWarehouse", message: "Warehouse is required" },
-    ];
-  } else {
-    requiredFields = [
-      { field: "username", message: "Username is required" },
-      { field: "password", message: "Password is required" },
-      { field: "confirmPassword", message: "Confirm Password is required" },
-      { field: "name", message: "Fullname is required" },
-      { field: "position", message: "Position is required" },
-      { field: "warehouseIds", message: "Warehouse Access are required" },
-      { field: "isProduction", message: "Production is required" },
-      { field: "isWarehouse", message: "Warehouse is required" },
-    ];
-  }
-
-  for (const field of requiredFields) {
-    if (!req.body[field.field]) {
-      return res.status(400).json({
-        message: field.message,
-      });
-    }
-  }
-
-  // Validasi password
-  if (password !== confirmPassword) {
-    return res.status(400).json({ message: "Passwords do not match" });
-  }
-
-  const salt = await bcrypt.genSalt();
-  const hashPassword = await bcrypt.hash(password, salt);
-
-  let organizationId;
-
   // Start a transaction
   const transaction = await db.transaction();
 
   try {
-    // Check if organization exists
-    const organization = await Organization.findOne({
+    // Fetch role information
+    const role = await Role.findOne({
       where: {
-        groupId: groupId.id || null,
-        lineId: lineId.id || null,
-        sectionId: sectionId.id || null,
-        departmentId: departmentId.id || null,
-        divisionId: divisionId.id || null,
-        plantId: plantId.id || null,
+        id: roleId.id,
         flag: 1,
       },
-      transaction, // Pass the transaction object
+      attributes: ["roleName"],
+      transaction, // Pass transaction
+    });
+
+    if (!role) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Role not found" });
+    }
+
+    // Validate required fields
+    let requiredFields = [];
+    if (role.roleName.includes("group head")) {
+      requiredFields = [
+        { field: "username", message: "Username is required" },
+        { field: "password", message: "Password is required" },
+        { field: "confirmPassword", message: "Confirm Password is required" },
+        { field: "name", message: "Fullname is required" },
+        { field: "roleId", message: "Role is required" },
+        { field: "position", message: "Position is required" },
+        { field: "groupId", message: "Group is required" },
+        { field: "lineId", message: "Line is required" },
+        { field: "sectionId", message: "Section is required" },
+        { field: "departmentId", message: "Department is required" },
+        { field: "divisionId", message: "Division is required" },
+        { field: "warehouseIds", message: "Warehouse Access are required" },
+        { field: "plantId", message: "Plant is required" },
+        { field: "isProduction", message: "Production is required" },
+        { field: "isWarehouse", message: "Warehouse is required" },
+      ];
+    } else if (role.roleName.includes("line head")) {
+      requiredFields = [
+        { field: "username", message: "Username is required" },
+        { field: "password", message: "Password is required" },
+        { field: "confirmPassword", message: "Confirm Password is required" },
+        { field: "name", message: "Fullname is required" },
+        { field: "roleId", message: "Role is required" },
+        { field: "position", message: "Position is required" },
+        { field: "lineId", message: "Line is required" },
+        { field: "sectionId", message: "Section is required" },
+        { field: "departmentId", message: "Department is required" },
+        { field: "divisionId", message: "Division is required" },
+        { field: "warehouseIds", message: "Warehouse Access are required" },
+        { field: "plantId", message: "Plant is required" },
+        { field: "isProduction", message: "Production is required" },
+        { field: "isWarehouse", message: "Warehouse is required" },
+      ];
+    } else if (role.roleName.includes("section head")) {
+      requiredFields = [
+        { field: "username", message: "Username is required" },
+        { field: "password", message: "Password is required" },
+        { field: "confirmPassword", message: "Confirm Password is required" },
+        { field: "name", message: "Fullname is required" },
+        { field: "position", message: "Position is required" },
+        { field: "sectionId", message: "Section is required" },
+        { field: "departmentId", message: "Department is required" },
+        { field: "divisionId", message: "Division is required" },
+        { field: "warehouseIds", message: "Warehouse Access are required" },
+        { field: "plantId", message: "Plant is required" },
+        { field: "isProduction", message: "Production is required" },
+        { field: "isWarehouse", message: "Warehouse is required" },
+      ];
+    } else if (role.roleName.includes("department head")) {
+      requiredFields = [
+        { field: "username", message: "Username is required" },
+        { field: "password", message: "Password is required" },
+        { field: "confirmPassword", message: "Confirm Password is required" },
+        { field: "name", message: "Fullname is required" },
+        { field: "position", message: "Position is required" },
+        { field: "departmentId", message: "Department is required" },
+        { field: "divisionId", message: "Division is required" },
+        { field: "warehouseIds", message: "Warehouse Access are required" },
+        { field: "plantId", message: "Plant is required" },
+        { field: "isProduction", message: "Production is required" },
+        { field: "isWarehouse", message: "Warehouse is required" },
+      ];
+    } else {
+      requiredFields = [
+        { field: "username", message: "Username is required" },
+        { field: "password", message: "Password is required" },
+        { field: "confirmPassword", message: "Confirm Password is required" },
+        { field: "name", message: "Fullname is required" },
+        { field: "position", message: "Position is required" },
+        { field: "warehouseIds", message: "Warehouse Access are required" },
+        { field: "isProduction", message: "Production is required" },
+        { field: "isWarehouse", message: "Warehouse is required" },
+      ];
+    }
+
+    for (const field of requiredFields) {
+      if (!req.body[field.field]) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: field.message,
+        });
+      }
+    }
+
+    // Validate passwords
+    if (password !== confirmPassword) {
+      await transaction.rollback();
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    if (password.length < 6) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    let organizationId;
+
+    // Check if organization exists or create one
+    const organization = await Organization.findOne({
+      where: {
+        groupId: groupId?.id || null,
+        lineId: lineId?.id || null,
+        sectionId: sectionId?.id || null,
+        departmentId: departmentId?.id || null,
+        divisionId: divisionId?.id || null,
+        plantId: plantId?.id || null,
+        flag: 1,
+      },
+      transaction,
     });
 
     if (organization) {
@@ -481,46 +492,39 @@ export const createUserAndOrg = async (req, res) => {
     } else {
       const newOrganization = await Organization.create(
         {
-          groupId: groupId.id,
-          lineId: lineId.id,
-          sectionId: sectionId.id,
-          departmentId: departmentId.id,
-          divisionId: divisionId.id,
-          plantId: plantId.id,
+          groupId: groupId?.id,
+          lineId: lineId?.id,
+          sectionId: sectionId?.id,
+          departmentId: departmentId?.id,
+          divisionId: divisionId?.id,
+          plantId: plantId?.id,
         },
-        { userId: req.user.userId, transaction }
-      ); // Pass the transaction object
+        { transaction, userId: req.user.userId }
+      );
       organizationId = newOrganization.id;
     }
 
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
-    }
-
+    // Check for existing user
     const existingUser = await User.findOne({
       where: {
         username,
         flag: 1,
       },
-      transaction, // Pass the transaction object
+      transaction,
     });
 
     if (existingUser) {
+      await transaction.rollback();
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    // Validasi role dengan warehouse staff atau warehouse member
+    // Validate role-specific warehouse access
     if (
       role.roleName === "warehouse staff" ||
       role.roleName === "warehouse member"
     ) {
-      if (!warehouseIds) {
-        return res.status(400).json({ message: "Warehouse is required" });
-      }
-
-      if (warehouseIds.length > 1) {
+      if (!warehouseIds || warehouseIds.length > 1) {
+        await transaction.rollback();
         return res.status(400).json({
           message: "There can only be 1 warehouse access for this role",
         });
@@ -530,33 +534,32 @@ export const createUserAndOrg = async (req, res) => {
     // Create the user
     const user = await User.create(
       {
-        username: username,
+        username,
         password: hashPassword,
-        name: name,
+        name,
         roleId: roleId.id,
         position: position.value,
-        noHandphone: noHandphone,
-        email: email,
-        groupId: role.roleName === "group head" ? groupId.id : null,
-        lineId: role.roleName === "line head" ? lineId.id : null,
-        sectionId: role.roleName === "section head" ? sectionId.id : null,
+        noHandphone,
+        email,
+        groupId: role.roleName === "group head" ? groupId?.id : null,
+        lineId: role.roleName === "line head" ? lineId?.id : null,
+        sectionId: role.roleName === "section head" ? sectionId?.id : null,
         departmentId:
-          role.roleName === "department head" ? departmentId.id : null,
-        divisionId: role.roleName === "division head" ? divisionId.id : null,
+          role.roleName === "department head" ? departmentId?.id : null,
+        divisionId: role.roleName === "division head" ? divisionId?.id : null,
         warehouseId:
           role.roleName === "warehouse staff" ||
           role.roleName === "warehouse member"
             ? warehouseIds[0].id
             : null,
-        organizationId: organizationId,
+        organizationId,
         isProduction: isProduction.value,
         isWarehouse: isWarehouse.value,
-        anotherWarehouseId: warehouseIds[0].id,
       },
-      { userId: req.user.userId, transaction }
-    ); // Pass the transaction object
+      { transaction, userId: req.user.userId }
+    );
 
-    // Create UserWarehouse entries for each warehouseId
+    // Create UserWarehouse entries
     for (const warehouseId of warehouseIds) {
       const userWarehouse = await UserWarehouse.findOne({
         where: {
@@ -564,6 +567,7 @@ export const createUserAndOrg = async (req, res) => {
           warehouseId: warehouseId.id,
           flag: 1,
         },
+        transaction,
       });
 
       if (!userWarehouse) {
@@ -572,7 +576,7 @@ export const createUserAndOrg = async (req, res) => {
             userId: user.id,
             warehouseId: warehouseId.id,
           },
-          { userId: req.user.userId, transaction }
+          { transaction, userId: req.user.userId }
         );
       }
     }
@@ -583,7 +587,7 @@ export const createUserAndOrg = async (req, res) => {
   } catch (error) {
     // Rollback the transaction in case of an error
     await transaction.rollback();
-    console.log(error.message);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

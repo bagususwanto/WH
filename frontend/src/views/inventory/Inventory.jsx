@@ -799,6 +799,9 @@ const Inventory = () => {
                   scrollable
                   removableSort
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     field="Material.materialNo"

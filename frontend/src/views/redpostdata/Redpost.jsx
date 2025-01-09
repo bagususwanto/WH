@@ -540,6 +540,9 @@ const Redpost = () => {
                   editMode="row"
                   removableSort
                   header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
                   <Column
                     header="No"

@@ -65,9 +65,10 @@ MaterialStorage.belongsTo(LogImport, {
 
 // HOOKS
 MaterialStorage.addHook("afterCreate", async (ms, options) => {
+  const masterId = `${ms.materialId}-${ms.storageId}`;
   await LogMaster.create({
     masterType: "MaterialStorage",
-    masterId: ms.id,
+    masterId: masterId,
     action: "create",
     changes: JSON.stringify(ms),
     userId: options.userId,
@@ -75,6 +76,8 @@ MaterialStorage.addHook("afterCreate", async (ms, options) => {
 });
 
 MaterialStorage.addHook("afterUpdate", async (ms, options) => {
+  const masterId = `${ms.materialId}-${ms.storageId}`;
+
   // Ambil perubahan yang terjadi
   const changes = ms._previousDataValues;
 
@@ -86,7 +89,7 @@ MaterialStorage.addHook("afterUpdate", async (ms, options) => {
     // Catat log untuk soft delete
     await LogMaster.create({
       masterType: "MaterialStorage",
-      masterId: ms.id,
+      masterId: masterId,
       action: "softDelete",
       changes: JSON.stringify({
         old: changes,
@@ -98,7 +101,7 @@ MaterialStorage.addHook("afterUpdate", async (ms, options) => {
     // Catat log untuk update biasa
     await LogMaster.create({
       masterType: "MaterialStorage",
-      masterId: ms.id,
+      masterId: masterId,
       action: "update",
       changes: JSON.stringify({
         old: changes, // Data sebelum update
