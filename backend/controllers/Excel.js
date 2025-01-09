@@ -1100,3 +1100,124 @@ export const uploadMasterMaterial = async (req, res) => {
     });
   }
 };
+
+const validateHeaderAddress = (header) => {
+  const expectedHeader = ["materialNo", "storageCode"];
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
+};
+
+export const uploadMasterAddress = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+    const header = rows.shift();
+
+    if (rows.length > 5000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    if (!validateHeaderAddress(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImport = await LogImport.create(
+      {
+        typeLog: "master address",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    // Process each row directly
+    for (const row of rows) {
+      const address = row[0];
+      const storageCode = row[1];
+
+      const storageId = await getStorageIdByCode(storageCode);
+
+      if (!storageId) throw new Error(`Storage: ${storageCode} does not exist`);
+
+      if (!address || !storageCode) {
+        throw new Error(`Invalid data in row ${address}`);
+      }
+
+      if (typeof storageCode !== "number") {
+        throw new Error(`Data must be number in row ${address}`);
+      }
+
+      // Cek Storage
+      const storage = await Storage.findOne({
+        where: {
+          id: storageId,
+          flag: 1,
+        },
+      });
+      if (!storage) {
+        throw new Error(`Storage: ${storageCode} does not exist`);
+      }
+
+      // Jika address sudah ada lakukan update dulu
+      const existingAddress = await AddressRack.findOne({
+        where: { addressRackName: address, flag: 1 },
+      });
+      if (existingAddress) {
+        existingAddress.update({
+          storageId,
+        }),
+          { transaction };
+      }
+
+      // Cek address storage
+      const existAddressStorage = await AddressRack.findOne(
+        {
+          where: { addressRackName: address, storageId, flag: 1 },
+        },
+        { transaction }
+      );
+
+      if (existAddressStorage) {
+        throw new Error(
+          `Address ${address} already exist in storage ${storageCode}`
+        );
+      } else {
+        await AddressRack.create(
+          {
+            addressRackName: address,
+            storageId,
+            logImport: logImport.id,
+          },
+          { transaction }
+        );
+      }
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};

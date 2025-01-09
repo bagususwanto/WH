@@ -84,7 +84,8 @@ const useNavigation = () => {
       (isWarehouse == 1 && roleName === 'super admin') ||
       (isWarehouse == 1 && roleName === 'group head') ||
       (isWarehouse == 1 && roleName === 'line head') ||
-      (isWarehouse == 1 && roleName === 'section head')
+      (isWarehouse == 1 && roleName === 'section head') ||
+      roleName === 'warehouse staff'
     ) {
       baseNav.push({
         component: CNavItem,

@@ -401,7 +401,7 @@ const Address = () => {
       const mappedData = [
         {
           address: '',
-          storage: '',
+          storageCode: '',
         },
       ]
 

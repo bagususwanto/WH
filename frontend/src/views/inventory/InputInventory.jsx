@@ -51,6 +51,7 @@ const InputInventory = () => {
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [quantity, setQuantity] = useState('') // State untuk quantity
   const [quantityConversion, setQuantityConversion] = useState('') // State untuk quantity
+  const [quantityOver, setQuantityOver] = useState('')
   const [items, setItems] = useState([]) // State untuk menyimpan item yang ditambahkan
   const [plantId, setPlantId] = useState()
   const [filteredInventory, setFilteredInventory] = useState([])
@@ -109,6 +110,23 @@ const InputInventory = () => {
     getStorage()
     getMaterialType()
   }, [])
+
+  useEffect(() => {
+    let total
+
+    // Pastikan semua nilai memiliki default 0 jika tidak valid
+    const conversion = parseFloat(quantityConversion) || 0
+    const over = parseFloat(quantityOver) || 0
+    const rate = parseFloat(conversionRate) || 0
+
+    if (rate) {
+      total = conversion * rate + over
+    } else {
+      total = conversion + over
+    }
+
+    setQuantity(total)
+  }, [quantityConversion, quantityOver, conversionRate])
 
   useEffect(() => {
     const inventoryData = filteredInventory.length > 0 ? filteredInventory : inventory
@@ -225,6 +243,7 @@ const InputInventory = () => {
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -265,6 +284,7 @@ const InputInventory = () => {
       setSelectedStorageVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -304,6 +324,7 @@ const InputInventory = () => {
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -314,6 +335,7 @@ const InputInventory = () => {
     if (selectedStorage) {
       // setInventory([])
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -370,6 +392,7 @@ const InputInventory = () => {
         setSelectedAddress(null)
         setSelectedAddressCodeVal(null)
         setQuantity('')
+        setQuantityOver('')
         setConversionUom('')
         setBaseUom('')
         setConversionRate(0)
@@ -428,6 +451,7 @@ const InputInventory = () => {
       setSelectedAddressCodeVal(null)
       setSelectedTypeMaterial(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -440,6 +464,7 @@ const InputInventory = () => {
       setFilteredInventory([])
       setSelectedAddressCodeVal(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -456,6 +481,7 @@ const InputInventory = () => {
         setSelectedDescription(null)
         setSelectedAddress(null)
         setQuantity('')
+        setQuantityOver('')
         setConversionUom('')
         setBaseUom('')
         setConversionRate(0)
@@ -612,6 +638,7 @@ const InputInventory = () => {
       setSelectedDescription(null)
       setSelectedAddress(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -848,6 +875,7 @@ const InputInventory = () => {
       setSelectedDescription(null)
       setSelectedAddress(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -861,6 +889,7 @@ const InputInventory = () => {
       setSelectedDescription(null)
       setSelectedAddress(null)
       setQuantity('')
+      setQuantityOver('')
       setConversionUom('')
       setBaseUom('')
       setConversionRate(0)
@@ -1090,17 +1119,20 @@ const InputInventory = () => {
 
   const handleConversionChange = (e) => {
     const value = e.target.value.replace(/,/g, '')
-
-    // Cek apakah nilai yang dimasukkan valid
-    if (!isNaN(value)) {
-      // Konversi
-      setQuantityConversion(value)
-      if (conversionRate) {
-        setQuantity(value * conversionRate)
-      } else {
-        setQuantity(value)
-      }
-    }
+    setQuantityConversion(value)
+    // // Cek apakah nilai yang dimasukkan valid
+    // if (!isNaN(value)) {
+    //   const numericValue = parseFloat(value) || 0
+    //   setQuantityConversion(numericValue)
+    //   if (conversionRate) {
+    //     const convertedValue = numericValue * conversionRate + quantityOver
+    //     setQuantity(convertedValue)
+    //     setInitialQuantity(convertedValue) // Simpan nilai awal
+    //   } else {
+    //     setQuantity(numericValue + quantityOver)
+    //     setInitialQuantity(numericValue + quantityOver) // Simpan nilai awal
+    //   }
+    // }
   }
 
   const handleQuantityChange = (e) => {
@@ -1108,10 +1140,24 @@ const InputInventory = () => {
 
     // Cek apakah nilai yang dimasukkan valid
     if (!isNaN(value)) {
-      setQuantity(value)
+      const numericValue = parseFloat(value) || 0
+      setQuantity(numericValue)
+      setInitialQuantity(numericValue) // Simpan nilai awal
     }
   }
 
+  const handleQuantityOverChange = (e) => {
+    const value = e.target.value.replace(/,/g, '')
+    setQuantityOver(value)
+    // // Cek apakah nilai yang dimasukkan valid
+    // if (!isNaN(value)) {
+    //   const numericValue = parseFloat(value) || 0
+    //   const initQty = parseFloat(initialQuantity) || 0
+
+    //   setQuantityOver(numericValue)
+    //   setQuantity(initQty + numericValue)
+    // }
+  }
   const handleQtyInputChange = (e) => {
     // Menghapus koma dari nilai input
     const value = e.target.value.replace(/,/g, '')
@@ -1213,7 +1259,7 @@ const InputInventory = () => {
                 </CCol> */}
               </CRow>
               <CRow>
-                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
+                <CCol xs={12} sm={12} md={12} xl={12} className="mt-3">
                   <CFormLabel htmlFor="description">Description</CFormLabel>
                   <Select
                     className="basic-single"
@@ -1231,7 +1277,7 @@ const InputInventory = () => {
                     value={selectedDescription}
                   />
                 </CCol>
-                <CCol xs={12} sm={6} md={6} xl={4} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={6} className="mt-3">
                   <CFormLabel htmlFor="materialNo">Material No</CFormLabel>
                   <CInputGroup className="flex-nowrap" style={{ width: '100%' }}>
                     <Select
@@ -1260,7 +1306,7 @@ const InputInventory = () => {
                     </CInputGroupText>
                   </CInputGroup>
                 </CCol>
-                <CCol xs={12} sm={6} md={3} xl={4} className="mt-3">
+                <CCol xs={12} sm={6} md={6} xl={6} className="mt-3">
                   <CFormLabel htmlFor="address">Address</CFormLabel>
                   <Select
                     className="basic-single"
@@ -1298,16 +1344,32 @@ const InputInventory = () => {
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
                   <CFormInput
                     type="text"
-                    id="quantityBase"
-                    label={`Quantity (${baseUom})`}
+                    id="quantityOver"
+                    label={`Quantity Over (${baseUom})`}
                     placeholder="Input.."
                     text="Must be number."
+                    aria-describedby="quantity"
+                    required
+                    onChange={handleQuantityOverChange}
+                    value={quantityOver ? formatWithCommas(quantityOver) : ''}
+                    inputMode="numeric"
+                    autoComplete="off"
+                  />
+                </CCol>
+                <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">
+                  <CFormInput
+                    type="text"
+                    id="quantityBase"
+                    label={`Total (${baseUom})`}
+                    // placeholder="Input.."
+                    // text="Must be number."
                     aria-describedby="quantity"
                     required
                     onChange={handleQuantityChange}
                     value={quantity ? formatWithCommas(quantity) : ''}
                     inputMode="numeric"
                     autoComplete="off"
+                    disabled={true}
                   />
                 </CCol>
                 <CCol
