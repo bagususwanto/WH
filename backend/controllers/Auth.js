@@ -116,7 +116,7 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true, // Set to true if using HTTPS
-      sameSite: "none",
+      sameSite: "None",
       maxAge: 12 * 60 * 60 * 1000, // 12 jam
     });
 
