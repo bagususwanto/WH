@@ -78,8 +78,8 @@ export const getInventoryDashboard = async (req, res) => {
       
     )`;
     if (status === "critical") {
-      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 4.5), 2)`;
-      rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 4.5), 2)`;
+      rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2.5), 2)`;
+      rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2.5), 2)`;
     } else if (status === "lowest") {
       rumus = `ROUND((CAST(quantityActualCheck AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0)), 2)`;
       rumus2 = `ROUND((CAST((${incoming_plan}) AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0)), 2)`;
