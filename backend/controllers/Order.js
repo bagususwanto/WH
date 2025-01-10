@@ -496,6 +496,11 @@ export const generateOrderNumber = async (isApproval) => {
 
 export const getCheckoutData = async (cartIds) => {
   try {
+    // Hitung tahun dengan pengurangan 3 bulan
+    const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() - 3); // Kurangi 3 bulan
+    const wbsYear = currentDate.getFullYear(); // Ambil tahun hasil perhitungan
+
     return await Cart.findAll({
       where: {
         id: cartIds,
@@ -565,7 +570,7 @@ export const getCheckoutData = async (cartIds) => {
                   include: [
                     {
                       model: WBS,
-                      where: { wbsYear: new Date().getFullYear(), flag: 1 },
+                      where: { wbsYear: wbsYear, flag: 1 },
                       required: false,
                     },
                     {

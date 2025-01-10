@@ -26,10 +26,7 @@ import {
   CForm,
   CSpinner,
   CFormLabel,
-  CImage,
 } from '@coreui/react'
-import { CIcon } from '@coreui/icons-react'
-import { cilImagePlus, cilXCircle } from '@coreui/icons'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -38,7 +35,6 @@ import { format, parseISO } from 'date-fns'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import { Dropdown } from 'primereact/dropdown'
-import config from '../../../utils/Config'
 
 const MySwal = withReactContent(swal)
 
@@ -78,7 +74,6 @@ const Address = () => {
     updateMasterDataById,
     postMasterData,
     uploadMasterData,
-    uploadImageMaterial,
   } = useMasterDataService()
 
   const [filters, setFilters] = useState({
@@ -102,8 +97,6 @@ const Address = () => {
   const apiAddressDelete = 'address-rack-delete'
   const apiStorages = 'storage'
   const apiUpload = 'upload-master-address'
-  const apiDeleteImgMaterial = 'address-delete-image'
-  const apiUploadImageMaterial = 'address-upload-image'
 
   useEffect(() => {
     setLoading(false)
@@ -441,6 +434,53 @@ const Address = () => {
     })
   }
 
+  // SWAL DENGAN VALIDASI ERROR
+  const handleUploadResponse = (response) => {
+    let showAllErrors = false // State untuk toggle menampilkan semua error
+
+    const displayErrors = () => {
+      const errorsToDisplay = showAllErrors
+        ? response.data.errors
+        : response.data.errors.slice(0, 3)
+
+      return errorsToDisplay.map((err) => `<li>Row ${err.row}: ${err.error}</li>`).join('')
+    }
+
+    MySwal.fire({
+      title: 'Success',
+      html: `
+        <p>${response.data.message}</p>
+        ${
+          response.data.errors?.length > 0
+            ? `
+              <p>Errors:</p>
+              <ul id="error-list">
+                ${displayErrors()}
+              </ul>
+              ${
+                response.data.errors.length > 3
+                  ? `<button id="load-more-errors" style="margin-top: 10px;">Load More</button>`
+                  : ''
+              }
+            `
+            : ''
+        }
+      `,
+      icon: 'success',
+      didOpen: () => {
+        const loadMoreButton = document.getElementById('load-more-errors')
+        if (loadMoreButton) {
+          loadMoreButton.addEventListener('click', () => {
+            showAllErrors = true // Ubah state untuk menampilkan semua error
+            const errorList = document.getElementById('error-list')
+            errorList.innerHTML = displayErrors() // Update daftar error
+            loadMoreButton.style.display = 'none' // Sembunyikan tombol "Load More"
+          })
+        }
+      },
+    })
+  }
+
   const handleImport = async () => {
     setLoadingImport(true)
     try {
@@ -449,8 +489,8 @@ const Address = () => {
         return
       }
 
-      await uploadMasterData(apiUpload, uploadData)
-      MySwal.fire('Success', 'File uploaded successfully', 'success')
+      const response = await uploadMasterData(apiUpload, uploadData)
+      handleUploadResponse(response) // Tangani respons sukses
 
       setImported(true)
       setShouldFetch(true)

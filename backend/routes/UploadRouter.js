@@ -3,6 +3,7 @@ import {
   uploadIncomingPlan,
   uploadIncomingActual,
   uploadMasterMaterial,
+  uploadMasterAddress,
 } from "../controllers/Excel.js";
 import uploadFile from "../middleware/UploadMiddleware.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
@@ -29,6 +30,12 @@ router.post(
   checkRole(["super admin"]),
   uploadFile.single("file"),
   uploadMasterMaterial
+);
+router.post(
+  "/upload-master-address",
+  checkRole(["super admin"]),
+  uploadFile.single("file"),
+  uploadMasterAddress
 );
 
 export default router;
