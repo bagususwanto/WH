@@ -50,80 +50,46 @@ const Profile = () => {
   const [modalPassVisible, setModalPassVisible] = useState(false)
   const { getNotification, getNotificationCount } = useNotificationService()
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
-  const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
   const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
+  const { roleName, userId } = useVerify(); // Pastikan `userId` diperoleh dari konteks atau props
+   const apiUser = 'profile'
 
-  const apiUser = 'user-public'
-
-  const fetchUserData = async () => {
-    try {
-      const response = await getMasterData('user-public')
-      if (response && response.data) {
-        const loggedInUserId = 2 // Replace with a dynamic ID based on your authentication system
-        const user = response.data.find((user) => user.id === loggedInUserId)
-        if (user) {
-          setUserData(user)
-          setSelectedImage(user.img || null) // Set the selected image
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error)
-    }
-  }
-
-  useEffect(() => {
-    fetchUserData()
-  }, [])
-  const getNotifDesc = async () => {
-    try {
-      const response = await getNotification(warehouse.id)
-      console.log('Notification response:', response)
-      if (Array.isArray(response)) {
-        setnotifProfile(response)
-      } else {
-        console.error('Expected an array but received:', response)
-      }
-    } catch (error) {
-      console.error('Error fetching notif:', error)
-    }
-  }
-
-  const getNotifCount = (notifications) => {
-    if (notifications && Array.isArray(notifications)) {
-      const unreadCount = notifications.filter((notif) => notif.isRead === 0).length
-      setNotifCount(unreadCount) // Update state with unread count
-    } else {
-      console.error('Notifications data is not in the expected format.')
-      setNotifCount(0) // Default to 0 if notifications is not an array
-    }
-  }
-
+  
   const getusers = async () => {
     try {
-      const response = await getMasterData(apiUser)
-
-      // Check if response.data is not undefined and is an array before calling filter()
-      if (response && response.data && Array.isArray(response.data)) {
-        const filteredUserData = response.data.filter((user) => user.id === 3)
-        setUserData(filteredUserData)
-
-        // Check if image data exists in the filtered response and update states
-        if (filteredUserData.length > 0 && filteredUserData[0].img) {
-          setApiImage(filteredUserData[0].img) // Store the image from API in state
-          setSelectedImage(filteredUserData[0].img) // Set the selected image to the API image initially
+      const response = await getMasterData(apiUser);
+  
+      // Validasi apakah response memiliki data yang diharapkan
+      if (response?.data && Array.isArray(response.data)) {
+        // Filter data berdasarkan userId
+        const filteredUserData = response.data.find((user) => user.id === userId);
+  
+        if (filteredUserData) {
+          // Set data user tunggal
+          setUserData(filteredUserData);
+  
+          // Jika gambar ada di data user, set ke state
+          if (filteredUserData.img) {
+            setApiImage(filteredUserData.img); // Gambar dari API
+            setSelectedImage(filteredUserData.img); // Gambar terpilih default dari API
+          }
+        } else {
+          console.warn(`User dengan ID ${userId} tidak ditemukan.`);
+          setUserData(null); // Pastikan state direset jika user tidak ditemukan
         }
       } else {
-        console.error('API response is not in the expected format or is missing data.')
+        console.error('Format response API tidak sesuai atau data tidak ditemukan.');
       }
     } catch (error) {
-      console.error('Error fetching user data:', error)
+      console.error('Terjadi kesalahan saat mengambil data user:', error);
     }
-  }
+  };
+  
 
   useEffect(() => {
-    getusers()
-  }, [])
+    getusers();
+  }, [userId]);
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
@@ -347,7 +313,7 @@ const Profile = () => {
                               <label className="py-2">Line</label>
                             </CCol>
                             <CCol xs="8">
-                              <label className="py-2 ">{userData.Organization.Line.lineName}</label>
+                              <label className="py-2 ">{userData.Organization?.Line?.lineName}</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -356,7 +322,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="8">
                               <label className="py-2 ">
-                                {userData.Organization.Section.sectionName},{' '}
+                                {userData.Organization?.Section?.sectionName},{' '}
                               </label>
                             </CCol>
                           </CRow>
@@ -366,7 +332,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="8">
                               <label className="py-2 ">
-                                {userData.Organization.Department.departmentName}
+                                {userData.Organization?.Department?.departmentName}
                               </label>
                             </CCol>
                           </CRow>

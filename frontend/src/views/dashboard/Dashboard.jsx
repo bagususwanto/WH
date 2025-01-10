@@ -340,7 +340,7 @@ const Dashboard = () => {
               return '#F95454' // Red for stock < 1.5 (Critical)
             }
             if (chartTitle === 'Critical Stock' && item.stock < 2.5) {
-              return '#EB5B00' // Red for stock < 1.5 (Critical)
+              return '#FFAF00' // Red for stock < 1.5 (Critical)
             }
             if (chartTitle === 'Critical Stock' && item.stock < 4.5) {
               return '#638C6D' // Red for stock < 1.5 (Critical)
@@ -530,11 +530,18 @@ const Dashboard = () => {
                   ? `Max Stock: ${referenceLineValue} Shift`
                   : `Max Stock: ${referenceLineValue} Shift`,
               position: 'end',
+              font: {
+                size: 13,
+                weight: 'bold', // Menambah ketebalan font jika diperlukan
+                color: 'red', // Mengubah warna teks menjadi merah
+              },
               yAdjust: -16,
-              color: 'white',
+              backgroundColor: 'rgba(0,0,0,0)', // Transparan
+              color: 'black',
+
             },
           },
-
+         
           // Garis untuk 6 (Max Stock Line)
           // {
           //   type: 'line',
@@ -560,42 +567,49 @@ const Dashboard = () => {
             ? [
                 {
                   type: 'line',
-                  yMin: 2.5, // Garis pada nilai 1.5
-                  yMax: 2.5, // Garis pada nilai 1.5
-                  borderColor: 'orange', // Warna merah
+                  yMin: 2.5, // Garis pada nilai 2.5
+                  yMax: 2.5, // Garis pada nilai 2.5
+                  borderColor: 'orange', // Warna garis orange
                   borderWidth: 1.3,
                   borderDash: [5, 5], // Garis putus-putus
                   label: {
                     display: true, // Menampilkan label
                     content: 'Min Stock 2.5 Shift', // Isi label
-                    position: 'start', // Menentukan posisi label di akhir garis
+                    position: 'start', // Posisi label di awal garis
                     font: {
                       size: 8,
+                      weight: 'bold', // Menambah ketebalan font jika diperlukan
+                      color: 'red', // Mengubah warna teks menjadi merah
                     },
-                    yAdjust: -10, // Menyesuaikan posisi label di sumbu Y
-                    color: 'white', // Warna label
+                    yAdjust: -12, // Menyesuaikan posisi label di sumbu Y
+                    backgroundColor: '#FFAF00', // Transparan
+                    color: 'black', // Warna teks menjadi merah
                   },
                 },
                 {
                   type: 'line',
                   yMin: 1.5, // Garis pada nilai 1.5
                   yMax: 1.5, // Garis pada nilai 1.5
-                  borderColor: 'red', // Warna merah
+                  borderColor: 'red', // Warna garis merah
                   borderWidth: 0.9,
                   borderDash: [5, 5], // Garis putus-putus
                   label: {
                     display: true, // Menampilkan label
                     content: 'Critical Stock 1.5 Shift', // Isi label
-                    position: 'end', // Menentukan posisi label di akhir garis
+                    position: 'end', // Posisi label di akhir garis
                     font: {
                       size: 8,
+                      weight: 'bold', // Menambah ketebalan font jika diperlukan
+                      color: 'red', // Mengubah warna teks menjadi merah
                     },
-                    yAdjust: -6, // Menyesuaikan posisi label di sumbu Y
-                    color: 'white', // Warna label
+                    yAdjust: -12, // Menyesuaikan posisi label di sumbu Y
+                    backgroundColor: 'red', // Transparan
+                    color: 'white', // Warna teks menjadi merah
                   },
                 },
               ]
             : []), // Jika bukan Critical Stock, tidak akan menambahkan garis ini
+          
         ],
       },
     },
@@ -1158,7 +1172,7 @@ const Dashboard = () => {
               {selectedChart === 'overflow' && inventoriesoverflow.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriesoverflow, 'Overflow Stock', 5)}
-                  options={chartOptions(inventoriesoverflow, 0, 9, 5)}
+                  options={chartOptions(inventoriesoverflow, 0, 9, 5.5)}
                   height={410}
                 />
               )}

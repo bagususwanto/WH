@@ -63,7 +63,7 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
-
+  console.log('aa', verifiedCartItems)
   const [loading, setLoading] = useState(false) // To control the loading overlay
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {
@@ -330,19 +330,20 @@ const Confirm = () => {
                     )}
                     <hr />
                     <label className="fw-bold mb-2">GI Method</label>
+
                     {verifiedCartItems.length > 0 && (
                       <>
                         <CFormCheck
                           type="radio"
                           id="payment1"
-                          label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : ''}`}
+                          label={`WBS: ${verifiedCartItems[0].User.Organization.Section ? (verifiedCartItems[0].User.Organization.Section.WB ? verifiedCartItems[0].User.Organization.Section.WB.wbsNumber : '') : ''}`}
                           checked={!iswbs}
                           onChange={() => setIswbs(false)}
                         />
                         <CFormCheck
                           type="radio"
                           id="payment2"
-                          label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section.GIC.gicNumber : ''}`}
+                          label={`GIC: ${verifiedCartItems[0].User.Organization.Section ? verifiedCartItems[0].User.Organization.Section?.GIC.gicNumber : ''}`}
                           checked={iswbs}
                           onChange={() => setIswbs(true)}
                         />
