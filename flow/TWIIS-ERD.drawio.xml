@@ -5162,6 +5162,15 @@
         <mxCell id="QAoV8fjZA45luB7PuLk8-3" value="Input Data Kedatangan (DN Number)" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#F2CC8F;strokeColor=#E07A5F;fontColor=#393C56;" vertex="1" parent="1">
           <mxGeometry x="270" y="1290" width="140" height="60" as="geometry" />
         </mxCell>
+        <mxCell id="rUbfZ-OU6P3NdR4W8PnS-1" value="Output Data Dashboard" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#F2CC8F;strokeColor=#E07A5F;fontColor=#393C56;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rUbfZ-OU6P3NdR4W8PnS-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=none;strokeColor=#E07A5F;fontColor=default;" edge="1" parent="1" source="QAoV8fjZA45luB7PuLk8-3" target="rUbfZ-OU6P3NdR4W8PnS-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="215" y="1330" as="sourcePoint" />
+            <mxPoint x="280" y="1330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
