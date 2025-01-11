@@ -120,7 +120,7 @@ const InputInventory = () => {
     const rate = parseFloat(conversionRate) || 0
 
     if (rate) {
-      total = conversion * rate + over
+      total = parseFloat((conversion * rate + over).toFixed(2))
     } else {
       total = conversion + over
     }
