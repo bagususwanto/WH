@@ -739,7 +739,7 @@ const validateHeaderMaterial = (header) => {
     "unitPackaging",
     "category",
     "supplier",
-    "storageCode",
+    // "storageCode",
   ];
   return header.every(
     (value, index) =>
@@ -940,27 +940,27 @@ export const uploadMasterMaterial = async (req, res) => {
         const unitPackaging = row[11];
         const category = row[12];
         const supplier = row[13];
-        const storageCode = row[14];
+        // const storageCode = row[14];
 
         const existingMaterial = materialMap.get(materialNo);
         const categoryId = await getCategoryIdByCategoryName(category);
-        const storageId = await getStorageIdByCode(storageCode);
+        // const storageId = await getStorageIdByCode(storageCode);
 
         if (!categoryId)
           throw new Error(`Category: ${category} does not exist`);
 
-        if (!storageId)
-          throw new Error(`Storage: ${storageCode} does not exist`);
+        // if (!storageId)
+        //   throw new Error(`Storage: ${storageCode} does not exist`);
 
         // Check and update Material Storage
-        if (existingMaterial) {
-          await checkMaterialStorage(
-            existingMaterial.id,
-            storageId,
-            logImportId,
-            req.user.userId
-          );
-        }
+        // if (existingMaterial) {
+        //   await checkMaterialStorage(
+        //     existingMaterial.id,
+        //     storageId,
+        //     logImportId,
+        //     req.user.userId
+        //   );
+        // }
 
         // Check and update Packaging
         const packagingRes = await checkPackaging(
@@ -994,8 +994,9 @@ export const uploadMasterMaterial = async (req, res) => {
           !typeMat ||
           !mrpType ||
           !img ||
-          !category ||
-          !storageCode
+          !category
+          // ||
+          // !storageCode
         ) {
           throw new Error(`Invalid data in row ${materialNo}, ${description}`);
         }
@@ -1052,7 +1053,7 @@ export const uploadMasterMaterial = async (req, res) => {
             categoryId,
             supplierId,
             logImportId,
-            storageId,
+            // storageId,
           });
         }
       } catch (error) {
@@ -1065,26 +1066,27 @@ export const uploadMasterMaterial = async (req, res) => {
 
     if (newMaterials.length > 0) {
       // Bulk create materials
-      const createdMaterials = await Material.bulkCreate(newMaterials, {
+      // const createdMaterials =
+      await Material.bulkCreate(newMaterials, {
         transaction,
-        returning: true,
+        // returning: true,
       });
 
       // Ambil ID dari createdMaterials
-      const materialIds = createdMaterials.map(
-        (material) => material.dataValues.id
-      );
-      const storageIds = newMaterials.map((material) => material.storageId);
+      // const materialIds = createdMaterials.map(
+      //   (material) => material.dataValues.id
+      // );
+      // const storageIds = newMaterials.map((material) => material.storageId);
 
-      // Siapkan data untuk Material_Storage
-      const materialStorageData = materialIds.map((materialId, index) => ({
-        materialId,
-        storageId: storageIds[index],
-        logImportId,
-      }));
+      // // Siapkan data untuk Material_Storage
+      // const materialStorageData = materialIds.map((materialId, index) => ({
+      //   materialId,
+      //   storageId: storageIds[index],
+      //   logImportId,
+      // }));
 
-      // Insert ke tabel Material_Storage
-      await MaterialStorage.bulkCreate(materialStorageData, { transaction });
+      // // Insert ke tabel Material_Storage
+      // await MaterialStorage.bulkCreate(materialStorageData, { transaction });
     }
 
     await transaction.commit();

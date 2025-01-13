@@ -201,8 +201,8 @@ export const createMaterial = async (req, res) => {
       packaging,
       unitPackaging,
       minOrder,
-      storageId,
-      plantId,
+      // storageId,
+      // plantId,
     } = req.body;
 
     // Validasi data tersedia
@@ -219,9 +219,10 @@ export const createMaterial = async (req, res) => {
       !categoryId ||
       !supplierId ||
       !minOrder ||
-      minOrder === 0 ||
-      !storageId ||
-      !plantId
+      minOrder === 0
+      // ||
+      // !storageId ||
+      // !plantId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
@@ -262,16 +263,16 @@ export const createMaterial = async (req, res) => {
     }
 
     // Cek storageId dan plantId
-    const storagePlant = await Storage.findOne({
-      where: { id: storageId.id, plantId: plantId.id, flag: 1 },
-      transaction,
-    });
-    if (!storagePlant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Storage or Plant not found, please check storage and plant",
-      });
-    }
+    // const storagePlant = await Storage.findOne({
+    //   where: { id: storageId.id, plantId: plantId.id, flag: 1 },
+    //   transaction,
+    // });
+    // if (!storagePlant) {
+    //   await transaction.rollback();
+    //   return res.status(400).json({
+    //     message: "Storage or Plant not found, please check storage and plant",
+    //   });
+    // }
 
     // Buat material baru
     const newMaterial = await Material.create(
@@ -293,13 +294,13 @@ export const createMaterial = async (req, res) => {
     );
 
     // Hubungkan material dengan storage
-    await MaterialStorage.create(
-      {
-        materialId: newMaterial.id,
-        storageId: storageId.id,
-      },
-      { userId: req.user.userId, transaction }
-    );
+    // await MaterialStorage.create(
+    //   {
+    //     materialId: newMaterial.id,
+    //     storageId: storageId.id,
+    //   },
+    //   { userId: req.user.userId, transaction }
+    // );
 
     await transaction.commit();
     res
@@ -331,8 +332,8 @@ export const updateMaterial = async (req, res) => {
       packaging,
       unitPackaging,
       minOrder,
-      storageId,
-      plantId,
+      // storageId,
+      // plantId,
     } = req.body;
 
     // validasi data tersedia
@@ -348,9 +349,10 @@ export const updateMaterial = async (req, res) => {
       !categoryId ||
       !supplierId ||
       !minOrder ||
-      minOrder === 0 ||
-      !storageId ||
-      !plantId
+      minOrder === 0 
+      // ||
+      // !storageId ||
+      // !plantId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
@@ -401,31 +403,31 @@ export const updateMaterial = async (req, res) => {
     }
 
     // Cek storageId dan plantId
-    const storagePlant = await Storage.findOne({
-      where: { id: storageId.id, plantId: plantId.id, flag: 1 },
-      transaction,
-    });
-    if (!storagePlant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Storage or Plant not found, please check storage and plant",
-      });
-    }
+    // const storagePlant = await Storage.findOne({
+    //   where: { id: storageId.id, plantId: plantId.id, flag: 1 },
+    //   transaction,
+    // });
+    // if (!storagePlant) {
+    //   await transaction.rollback();
+    //   return res.status(400).json({
+    //     message: "Storage or Plant not found, please check storage and plant",
+    //   });
+    // }
 
     // Cek materialId dan storageId
-    const materialStorage = await MaterialStorage.findOne({
-      where: { materialId: materialId, storageId: storageId.id, flag: 1 },
-      transaction,
-    });
-    if (!materialStorage) {
-      await MaterialStorage.create(
-        {
-          materialId: materialId,
-          storageId: storageId.id,
-        },
-        { userId: req.user.userId, transaction }
-      );
-    }
+    // const materialStorage = await MaterialStorage.findOne({
+    //   where: { materialId: materialId, storageId: storageId.id, flag: 1 },
+    //   transaction,
+    // });
+    // if (!materialStorage) {
+    //   await MaterialStorage.create(
+    //     {
+    //       materialId: materialId,
+    //       storageId: storageId.id,
+    //     },
+    //     { userId: req.user.userId, transaction }
+    //   );
+    // }
 
     await Material.update(
       {
