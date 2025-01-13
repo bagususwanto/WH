@@ -129,12 +129,10 @@ export const getMaterialIdByMaterialNo = async (materialNo) => {
 
 export const getAddressIdByAddressName = async (
   addressRackName,
-  storageCode,
+  storageId,
   logImportId
 ) => {
   try {
-    const storageId = await getStorageIdByStorageCode(storageCode);
-
     // Cek apakah address sudah ada
     let address = await AddressRack.findOne({
       where: { addressRackName, storageId, flag: 1 },
@@ -436,10 +434,15 @@ export const uploadIncomingPlan = async (req, res) => {
         throw new Error(`Material with MaterialNo ${row[0]} not found`);
       }
 
+      const storageId = await getStorageIdByStorageCode(row[4]);
+      if (!storageId) {
+        throw new Error(`Storage with name ${row[4]} not found`);
+      }
+
       // Mendapatkan addressId
       const addressId = await getAddressIdByAddressName(
         removeWhitespace(row[1]),
-        row[4],
+        storageId,
         logImportId
       );
 
@@ -592,14 +595,27 @@ export const uploadIncomingActual = async (req, res) => {
           status = "completed";
         }
 
+        const storageId = getStorageIdByStorageCode(storage);
+        if (!storageId) {
+          throw new Error(`Storage: ${storage} not found in database`);
+        }
+
         const materialId = await getMaterialIdByMaterialNo(
           removeWhitespace(materialNo)
         );
+        if (!materialId) {
+          throw new Error(`Material No: ${materialNo} not found in database`);
+        }
+
         const addressId = await getAddressIdByAddressName(
           removeWhitespace(address),
-          storage,
+          storageId,
           logImportId
         );
+        if (!addressId) {
+          throw new Error(`Address: ${address} not found in database`);
+        }
+
         const inventoryId = await getInventoryIdByMaterialIdAndAddressId(
           materialId,
           addressId

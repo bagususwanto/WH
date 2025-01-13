@@ -291,21 +291,6 @@ export const updateAddressRack = async (req, res) => {
     }
 
     // Validasi exist address (cek jika nama baru sudah ada di storage yang sama)
-    const existAddress = await AddressRack.findOne({
-      where: {
-        addressRackName,
-        storageId: storageId.id,
-        flag: 1,
-      },
-      transaction,
-    });
-    if (existAddress) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "AddressRack with this name already exists",
-      });
-    }
-
     // cek storage plant
     const storagePlant = await Storage.findOne({
       where: {
@@ -322,12 +307,27 @@ export const updateAddressRack = async (req, res) => {
       });
     }
 
+    const existAddress = await AddressRack.findOne({
+      where: {
+        addressRackName,
+        storageId: storageId.id,
+        flag: 1,
+      },
+      transaction,
+    });
+    if (existAddress) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "AddressRack with this name already exists",
+      });
+    }
+
     // Perbarui data AddressRack
     await addressRack.update(
       {
         storageId: storageId.id,
       },
-      { transaction, userId: req.user.userId }
+      { where: { id }, transaction, userId: req.user.userId }
     );
 
     await transaction.commit();
