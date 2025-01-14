@@ -94,17 +94,18 @@ export const getInventoryDashboard = async (req, res) => {
     // Determining whereCondition based on status
     if (status === "critical" || status === "lowest") {
       whereCondition = {
-        [Op.and]: [
+        [Op.or]: [
+          { quantityActualCheck: 0 }, // Include if quantityActualCheck is 0
           {
-            quantityActualCheck: {
-              [Op.ne]: null, // Ensure quantityActualCheck is not NULL
-              [Op.or]: [
-                { [Op.eq]: 0 }, // Include if quantityActualCheck is 0
-                { [Op.lt]: Sequelize.col("Material.minStock") }, // Include if quantityActualCheck is less than minStock
-              ],
-            },
+            [Op.and]: [
+              {
+                quantityActualCheck: {
+                  [Op.lt]: Sequelize.col("Material.minStock"), // Include if quantityActualCheck < minStock
+                },
+              },
+              Sequelize.literal(`${rumus} ${operator} ${value}`),
+            ],
           },
-          Sequelize.literal(`${rumus} ${operator} ${value}`), // Dynamic condition
         ],
       };
     } else if (status === "overflow") {
@@ -147,6 +148,7 @@ export const getInventoryDashboard = async (req, res) => {
             minStock: {
               [Op.ne]: null, // Ensure minStock is not NULL
             },
+            type: "direct",
           },
         },
         {
