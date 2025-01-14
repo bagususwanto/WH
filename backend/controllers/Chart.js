@@ -157,9 +157,7 @@ export const getInventoryDashboard = async (req, res) => {
           limit: 1,
           order: [["createdAt", "DESC"]],
           where: {
-            incomingDate: {
-              [Op.gte]: today,
-            },
+            incomingDate: today,
           },
         },
         {
