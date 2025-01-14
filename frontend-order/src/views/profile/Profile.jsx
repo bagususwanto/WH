@@ -37,13 +37,15 @@ import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
 import { cilEnvelopeOpen } from '@coreui/icons'
 import useMasterDataService from '../../services/MasterDataService'
+
 import useNotificationService from '../../services/NotificationService'
 import { GlobalContext } from '../../context/GlobalProvider'
 
 const Profile = () => {
-  const { getMasterData } = useMasterDataService()
+  const { getMasterData, postMasterData } = useMasterDataService()
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
+  const [structureData, setStructureData] = useState([])
   const [notifProfile, setnotifProfile] = useState([])
   const [notifCount, setNotifCount] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
@@ -52,44 +54,44 @@ const Profile = () => {
   const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
   const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
-  const { roleName, userId } = useVerify(); // Pastikan `userId` diperoleh dari konteks atau props
-   const apiUser = 'profile'
+  const { roleName, userId } = useVerify() // Pastikan `userId` diperoleh dari konteks atau props
+  const apiProfile = 'profile'
+  const apiStructure = 'structure-approval'
+  const apiPassword = 'change-password'
+  // Fetch user profile
 
-  
-  const getusers = async () => {
+  const fetchProfileData = async () => {
     try {
-      const response = await getMasterData(apiUser);
-  
-      // Validasi apakah response memiliki data yang diharapkan
-      if (response?.data && Array.isArray(response.data)) {
-        // Filter data berdasarkan userId
-        const filteredUserData = response.data.find((user) => user.id === userId);
-  
-        if (filteredUserData) {
-          // Set data user tunggal
-          setUserData(filteredUserData);
-  
-          // Jika gambar ada di data user, set ke state
-          if (filteredUserData.img) {
-            setApiImage(filteredUserData.img); // Gambar dari API
-            setSelectedImage(filteredUserData.img); // Gambar terpilih default dari API
-          }
-        } else {
-          console.warn(`User dengan ID ${userId} tidak ditemukan.`);
-          setUserData(null); // Pastikan state direset jika user tidak ditemukan
-        }
-      } else {
-        console.error('Format response API tidak sesuai atau data tidak ditemukan.');
+      // Mengambil data profil menggunakan API
+      const profileData = await getMasterData(apiProfile)
+      console.log('Profile data fetched successfully:', profileData)
+
+      if (profileData) {
+        setUserData(profileData) // Set data profil ke state userData
       }
     } catch (error) {
-      console.error('Terjadi kesalahan saat mengambil data user:', error);
+      console.error('Error fetching profile data:', error)
     }
-  };
-  
+  }
 
+  // Memanggil fetchProfileData saat komponen di-mount
   useEffect(() => {
-    getusers();
-  }, [userId]);
+    fetchProfileData()
+  }, [])
+
+  // Personal Data and Contact Data Arrays
+  const personalData = [
+    { label: 'Name', value: userData.name },
+    { label: 'Position', value: userData.position },
+    { label: 'Line', value: userData.Organization?.Line?.lineName || '-' },
+    { label: 'Section', value: userData.Organization?.Section?.sectionName || '-' },
+    { label: 'Department', value: userData.Organization?.Department?.departmentName || '-' },
+  ]
+
+  const contactData = [
+    { label: 'Email', value: userData.email || '-' },
+    { label: 'Phone Number', value: userData.noHandphone || '-' },
+  ]
 
   useEffect(() => {
     if (warehouse && warehouse.id) {
@@ -287,76 +289,39 @@ const Profile = () => {
                     <CCardBody className="d-flex flex-column justify-content-between">
                       {userData ? (
                         <>
+                          {/* Personal Data */}
                           <CRow className="text-start">
                             <CCol xs="12">
                               <label className="fw-bold py-2 text-muted">Personal Data</label>
                             </CCol>
                           </CRow>
-                          <CRow className="text-start">
-                            <CCol xs="4">
-                              <label className="py-2">Name</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2">{userData.name}</label>
-                            </CCol>
-                          </CRow>
-                          <CRow className="text-start">
-                            <CCol xs="4">
-                              <label className="py-2">Position</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2 "> {userData.position}</label>
-                            </CCol>
-                          </CRow>
-                          <CRow className="text-start">
-                            <CCol xs="4">
-                              <label className="py-2">Line</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2 ">{userData.Organization?.Line?.lineName}</label>
-                            </CCol>
-                          </CRow>
-                          <CRow>
-                            <CCol xs="4">
-                              <label className="py-2">Section</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2 ">
-                                {userData.Organization?.Section?.sectionName},{' '}
-                              </label>
-                            </CCol>
-                          </CRow>
-                          <CRow className="">
-                            <CCol xs="4">
-                              <label className="py-2">Departement</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2 ">
-                                {userData.Organization?.Department?.departmentName}
-                              </label>
-                            </CCol>
-                          </CRow>
+                          {personalData.map((data, index) => (
+                            <CRow className="text-start" key={index}>
+                              <CCol xs="4">
+                                <label className="py-2">{data.label}</label>
+                              </CCol>
+                              <CCol xs="8">
+                                <label className="py-2">{data.value}</label>
+                              </CCol>
+                            </CRow>
+                          ))}
+
+                          {/* Personal Contact */}
                           <CRow>
                             <CCol xs="12">
                               <label className="fw-bold py-2 text-muted">Personal Contact</label>
                             </CCol>
                           </CRow>
-                          <CRow>
-                            <CCol xs="4">
-                              <label className="py-2">Email</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2">{userData.email}</label>
-                            </CCol>
-                          </CRow>
-                          <CRow>
-                            <CCol xs="3">
-                              <label className="py-2">Phone Number</label>
-                            </CCol>
-                            <CCol xs="8">
-                              <label className="py-2">{userData.noHandphone}</label>
-                            </CCol>
-                          </CRow>
+                          {contactData.map((data, index) => (
+                            <CRow key={index}>
+                              <CCol xs="4">
+                                <label className="py-2">{data.label}</label>
+                              </CCol>
+                              <CCol xs="8">
+                                <label className="py-2">{data.value}</label>
+                              </CCol>
+                            </CRow>
+                          ))}
                         </>
                       ) : (
                         <div>Loading user data...</div>

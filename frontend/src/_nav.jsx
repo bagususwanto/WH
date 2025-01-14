@@ -419,7 +419,20 @@ const useNavigation = () => {
         },
       )
     }
-
+    if (roleName === 'super admin') {
+      baseNav.push(
+        {
+          component: CNavTitle,
+          name: 'Form Request',
+        },
+        {
+          component: CNavItem,
+          name: 'Request',
+          to: '/request',
+          icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+        },
+      )
+    }
     baseNav.push(
       {
         component: CNavTitle,
