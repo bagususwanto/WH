@@ -482,7 +482,7 @@ const Dashboard = () => {
         },
         formatter: (value, context) => {
           // Display "Remain Stock" for the top label
-          return context.dataset.label === 'Remain Stock' ? value?.toLocaleString() : ''
+          return context.dataset.label === 'Remain Stock' ? value.toLocaleString() : ''
         },
         // Second label configuration
         backgroundColor: 'white', // Background color for better visibility
