@@ -36,12 +36,12 @@ import {
   sectionData,
   plantData,
   storageData,
-} from "./DummyDB.js";
+} from "./data/dummy/DummyDB.js";
 
-import { materialData, organizationData } from "./DummyDB2.js";
-import { addressRackData, serviceHoursData } from "./DummyDB3.js";
-import { materialPlantData } from "./DummyDB4.js";
-import { inventoryData } from "./DummyDB5.js";
+import { materialData, organizationData } from "./data/dummy/DummyDB2.js";
+import { addressRackData, serviceHoursData } from "./data/dummy/DummyDB3.js";
+import { materialPlantData } from "./data/dummy/DummyDB4.js";
+import { inventoryData } from "./data/dummy/DummyDB5.js";
 
 const generateCategories = async () => {
   try {

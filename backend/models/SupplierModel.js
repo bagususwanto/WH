@@ -8,6 +8,10 @@ const { DataTypes } = Sequelize;
 const Supplier = db.define(
   "Supplier",
   {
+    supplierCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     supplierName: {
       type: DataTypes.STRING,
       allowNull: false,

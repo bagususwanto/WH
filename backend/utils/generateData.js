@@ -1,5 +1,10 @@
 import fs from "fs";
+import { fileURLToPath } from "url";
 import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import Supplier from "../models/SupplierModel.js";
 
 // Fungsi untuk membaca file JSON
@@ -56,6 +61,6 @@ const updateData = async (filePath) => {
 
 (async () => {
   const filePath = path.join(__dirname, "data", "suppliers.json"); // Sesuaikan path file JSON
-  //   await createData(filePath);
-  await updateData(filePath);
+  await createData(filePath);
+  //   await updateData(filePath);
 })();
