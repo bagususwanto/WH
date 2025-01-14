@@ -28,6 +28,7 @@ import ServiceHours from "./ServiceHoursModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
 import MaterialStorage from "./MaterialStorageModel.js";
 import AddressRack from "./AddressRackModel.js";
+import DeliverySchedule from "./DeliverySchedule.js";
 
 // transaksi
 import Inventory from "./InventoryModel.js";
@@ -40,6 +41,7 @@ import DetailOrder from "./DetailOrderModel.js";
 import Cart from "./CartModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 import Redpost from "./RedpostModel.js";
+import DeliveryNote from "./DeliveryNoteModel.js";
 
 // log
 import LogApproval from "./LogApprovalModel.js";
