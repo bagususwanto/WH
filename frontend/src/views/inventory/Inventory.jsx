@@ -487,20 +487,23 @@ const Inventory = () => {
         return {
           'Material No': Material.materialNo,
           Description: Material.description,
-          // Address: item.Address_Rack.addressRackName,
+          Address: item.Address_Rack.addressRackName,
+          Type: Material.type,
           UoM: Material.uom,
-          // 'Min Stock': Material.minStock,
-          // 'Max Stock': Material.maxStock,
+          'Min. Stock': Material.minStock,
+          'Max. Stock': Material.maxStock,
           // 'Stock System': item.quantitySistem,
           // 'Stock Inventory': item.quantityActual,
           // Discrepancy: item.discrepancy,
           Stock: quantityActualCheck,
           // Evaluation: evaluation,
           // Remarks: item.remarks,
-          // Plant: item.Address_Rack.Storage.Plant.plantName,
-          // Storage: item.Address_Rack.Storage.storageName,
+          Storage: item.Address_Rack.Storage.storageName,
+          Plant: item.Address_Rack.Storage.Plant.plantName,
           // 'Update By': item.Log_Entries[0]?.User?.username || '',
-          'Update At': format(parseISO(item.lastUpdate), 'yyyy-MM-dd HH:mm:ss'),
+          'Update At': item?.lastUpdate
+            ? format(parseISO(item.lastUpdate), 'yyyy-MM-dd HH:mm:ss')
+            : '', // Kosongkan jika lastUpdate tidak valid
         }
       })
 
@@ -510,8 +513,14 @@ const Inventory = () => {
         {
           'Material No': `downloadAt: ${downloadTimestamp}`,
           Description: '',
+          Address: '',
+          Type: '',
           UoM: '',
+          'Min. Stock': '',
+          'Max. Stock': '',
           Stock: '',
+          Storage: '',
+          Plant: '',
           'Update At': '',
         },
       ]
@@ -521,8 +530,14 @@ const Inventory = () => {
         {
           'Material No': 'Material No',
           Description: 'Description',
+          Address: 'Address',
+          Type: 'Type',
           UoM: 'UoM',
+          'Min. Stock': 'Min. Stock',
+          'Max. Stock': 'Max. Stock',
           Stock: 'Stock',
+          Storage: 'Storage',
+          Plant: 'Plant',
           'Update At': 'Update At',
         },
       ]

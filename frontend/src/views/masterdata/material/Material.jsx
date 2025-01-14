@@ -76,8 +76,8 @@ const Material = () => {
     maxStock: '',
     minOrder: '',
     img: '',
-    storageId: '',
-    plantId: '',
+    // storageId: '',
+    // plantId: '',
   })
   const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
@@ -384,8 +384,8 @@ const Material = () => {
       maxStock: '',
       minOrder: '',
       img: '',
-      storageId: '',
-      plantId: '',
+      // storageId: '',
+      // plantId: '',
     })
     setModal(true)
   }
@@ -416,8 +416,8 @@ const Material = () => {
       (option) => option?.value === material.Packaging?.packaging,
     )
     const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
-    const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
-    const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
+    // const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
+    // const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
     setIsEdit(true)
     setCurrentMaterial({
       id: material.id,
@@ -435,8 +435,8 @@ const Material = () => {
       maxStock: material.maxStock,
       minOrder: material.minOrder,
       img: material.img,
-      storageId: selectedStorage || null,
-      plantId: selectedPlant || null,
+      // storageId: selectedStorage || null,
+      // plantId: selectedPlant || null,
     })
     setModal(true)
   }
@@ -468,17 +468,26 @@ const Material = () => {
   }
 
   const validateMaterial = (material) => {
-    const requiredFields = [
+    let requiredFields = [
       { field: 'materialNo', message: 'Material No. is required' },
       { field: 'description', message: 'Description is required' },
       { field: 'uom', message: 'UOM is required' },
       // { field: 'price', message: 'Price is required' },
       { field: 'type', message: 'Type is required' },
+      { field: 'mrpType', message: 'MRP Type is required' },
       { field: 'categoryId', message: 'Category is required' },
       { field: 'supplierId', message: 'Supplier is required' },
       { field: 'minStock', message: 'Minimum Stock is required' },
       { field: 'maxStock', message: 'Maximum Stock is required' },
     ]
+
+    if (currentMaterial.packaging && !currentMaterial.unitPackaging) {
+      requiredFields.push({ field: 'packaging', message: 'Packaging is required' })
+    }
+
+    if (currentMaterial.unitPackaging && !currentMaterial.packaging) {
+      requiredFields.push({ field: 'unitPackaging', message: 'Unit Packaging is required' })
+    }
 
     for (const { field, message } of requiredFields) {
       if (!material[field]) {
@@ -612,7 +621,7 @@ const Material = () => {
           materialNo: '',
           description: '',
           uom: '',
-          price: 0,
+          price: '',
           type: '',
           mrpType: '',
           minStock: '',
@@ -623,7 +632,7 @@ const Material = () => {
           unitPackaging: '',
           category: '',
           supplier: '',
-          storageCode: '',
+          // storageCode: '',
         },
       ]
 
@@ -845,7 +854,6 @@ const Material = () => {
         try {
           // Melakukan request POST ke endpoint backend
           const response = await uploadImageMaterial(apiUploadImageMaterial, id, formData)
-          console.log('Image uploaded successfully:', response.data)
 
           setCurrentMaterial({
             ...currentMaterial,
@@ -1273,8 +1281,11 @@ const Material = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
                 <div className="form-group">
-                  <label className="mb-2" htmlFor="packaging">
-                    Packaging
+                  <label htmlFor="packaging" className="mb-2 required-label">
+                    Packaging{' '}
+                    {currentMaterial?.unitPackaging || currentMaterial?.packaging ? (
+                      <span>*</span>
+                    ) : null}
                   </label>
                   <Select
                     value={currentMaterial.packaging}
@@ -1289,9 +1300,15 @@ const Material = () => {
                 </div>
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
+                <label htmlFor="unitPackaging" className="mb-2 required-label">
+                  Unit Of Packaging ({currentMaterial?.uom.label}){' '}
+                  {currentMaterial?.packaging || currentMaterial?.unitPackaging ? (
+                    <span>*</span>
+                  ) : null}
+                </label>
                 <CFormInput
-                  label="Unit of Packaging"
                   type="number"
+                  id="unitPackaging"
                   value={currentMaterial.unitPackaging}
                   onChange={(e) =>
                     setCurrentMaterial({ ...currentMaterial, unitPackaging: e.target.value })
@@ -1317,7 +1334,7 @@ const Material = () => {
               </CCol>
 
               {/* Section: Informasi Tambahan */}
-              <CCol xs={12}>
+              {/*  <CCol xs={12}>
                 <h5>Other Information</h5>
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={6}>
@@ -1353,7 +1370,7 @@ const Material = () => {
                     styles={customStyles}
                   />
                 </div>
-              </CCol>
+             </CCol> */}
             </CRow>
           </CForm>
         </CModalBody>
