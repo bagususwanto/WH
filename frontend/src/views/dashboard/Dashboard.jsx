@@ -504,7 +504,7 @@ const Dashboard = () => {
           },
         },
 
-        formatter: (value) => value.toLocaleString(), // Format the label value
+        formatter: (value) => value?.toLocaleString(), // Format the label value
         background: {
           color: 'yellow', // Background color of the label
           padding: 6, // Padding around the label
