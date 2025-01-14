@@ -128,24 +128,29 @@ export const getMaterialIdByMaterialNo = async (materialNo) => {
 };
 
 export const getAddressIdByAddressName = async (
-  addressRackName,
-  storageId,
-  logImportId
+  addressRackName
+  // storageId,
+  // logImportId
 ) => {
   try {
     // Cek apakah address sudah ada
     let address = await AddressRack.findOne({
-      where: { addressRackName, storageId, flag: 1 },
+      where: {
+        addressRackName,
+        // storageId,
+        flag: 1,
+      },
       attributes: ["id"],
     });
 
     // Jika tidak ditemukan, buat address baru
     if (!address) {
-      address = await AddressRack.create({
-        addressRackName,
-        storageId,
-        logImportId,
-      });
+      return false;
+      // address = await AddressRack.create({
+      //   addressRackName,
+      //   storageId,
+      //   logImportId,
+      // });
     }
 
     // Kembalikan id dari address yang ditemukan atau yang baru dibuat
@@ -207,36 +212,33 @@ export const getLastLogImportIdByUserId = async (
 
 export const getInventoryIdByMaterialIdAndAddressId = async (
   materialId,
-  addressId
+  addressId,
+  inventoryCache
 ) => {
   try {
-    // Cari data berdasarkan materialId
-    const inventory = await Inventory.findOne({
+    // Cari data di cache lokal terlebih dahulu
+    const cacheKey = `${materialId}-${addressId}`;
+    if (inventoryCache[cacheKey]) {
+      return inventoryCache[cacheKey];
+    }
+
+    // Jika tidak ada di cache, cari di database
+    let inventory = await Inventory.findOne({
       where: { materialId },
     });
 
     if (!inventory) {
-      // Jika inventory tidak ditemukan, buat data baru
-      const newInventory = await Inventory.create({ materialId, addressId });
-      return newInventory.id;
-    }
-
-    // Jika materialId ditemukan dan addressId berbeda, perbarui addressId
-    if (
-      inventory.materialId === materialId &&
-      inventory.addressId !== addressId
-    ) {
+      // Jika tidak ditemukan, buat data baru
+      inventory = await Inventory.create({ materialId, addressId });
+    } else if (inventory.addressId !== addressId) {
+      // Jika ditemukan tetapi addressId berbeda, perbarui addressId
       await inventory.update({ addressId });
-      return inventory.id;
     }
 
-    // Jika materialId ditemukan dan addressId sama, kembalikan id yang sudah ada
-    if (
-      inventory.materialId === materialId &&
-      inventory.addressId === addressId
-    ) {
-      return inventory.id;
-    }
+    // Simpan hasil di cache
+    inventoryCache[cacheKey] = inventory.id;
+
+    return inventory.id;
   } catch (error) {
     console.error(error.message);
     throw new Error("Failed to retrieve, update, or create inventory ID");
@@ -296,7 +298,7 @@ const validateHeaderIncoming = (header) => {
     "addressRackName",
     "planning",
     "actual",
-    "storageCode",
+    // "storageCode",
   ];
   return header.every(
     (value, index) =>
@@ -339,22 +341,21 @@ export const uploadIncomingPlan = async (req, res) => {
     return res.status(400).send({ message: "Please upload an excel file!" });
   }
 
-  let logImportTransaction;
-  let mainTransaction;
+  let transaction;
 
   try {
-    // Cek import log actual dan log plan
-    const logImportActual = await checkIncomingActualImport(
-      req.body.importDate
-    );
+    const [logImportActual, logImportPlan] = await Promise.all([
+      checkIncomingActualImport(req.body.importDate),
+      checkIncomingPlanImport(req.body.importDate),
+    ]);
+
     if (logImportActual) {
       return res
         .status(400)
         .send({ message: "Incoming actual already imported!" });
     }
 
-    const logImportPlan = await checkIncomingPlanImport(req.body.importDate);
-    if (logImportPlan && !logImportActual) {
+    if (logImportPlan) {
       const logImportId = await getLastLogImportIdByUserId(
         req.user.userId,
         "incoming plan",
@@ -363,23 +364,6 @@ export const uploadIncomingPlan = async (req, res) => {
       await Incoming.destroy({ where: { logImportId } });
     }
 
-    // Membuat transaksi untuk LogImport
-    logImportTransaction = await db.transaction();
-    const logImport = await LogImport.create(
-      {
-        typeLog: "incoming plan",
-        fileName: req.file.originalname,
-        userId: req.user.userId,
-        importDate: req.body.importDate,
-      },
-      { transaction: logImportTransaction }
-    );
-
-    // Commit transaksi LogImport
-    await logImportTransaction.commit();
-    const logImportId = logImport.id;
-
-    // Proses file excel
     const path = `./resources/uploads/excel/${req.file.filename}`;
     const sheetName = "incoming";
     const rows = await readXlsxFile(path, { sheet: sheetName });
@@ -395,97 +379,69 @@ export const uploadIncomingPlan = async (req, res) => {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
-    // Membuat transaksi utama untuk data Incoming
-    mainTransaction = await db.transaction();
+    const materials = await Material.findAll({
+      where: { flag: 1 },
+      attributes: ["id", "materialNo"],
+    });
+    const addresses = await AddressRack.findAll({
+      where: { flag: 1 },
+      attributes: ["id", "addressRackName"],
+    });
 
-    const incomingPlan = [];
+    transaction = await db.transaction();
 
-    // Proses setiap baris data
+    const logImport = await LogImport.create(
+      {
+        typeLog: "incoming plan",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportId = logImport.id;
+    const inventoryCache = {};
+    const materialMap = new Map(materials.map((m) => [m.materialNo, m]));
+    const addressMap = new Map(addresses.map((a) => [a.addressRackName, a]));
+    const allIncomingPlans = [];
+
     for (const row of rows) {
-      const materialNo = row[0];
-      if (!row[0] || !row[1] || !row[4] || typeof row[2] !== "number") {
-        throw new Error(`Invalid data in row with Material No: ${materialNo}`);
+      const materialNo = row[0]?.trim();
+      const addressName = row[1]?.trim();
+
+      const material = materialMap.get(materialNo);
+      const address = addressMap.get(addressName);
+
+      if (!material || !address) {
+        throw new Error(
+          `Invalid material or address: ${materialNo}, ${addressName}`
+        );
       }
 
-      if (!row[0]) {
-        throw new Error("Material number is missing or invalid.");
-      }
-
-      // Cek apakah material ada
-      const materialNoExists = await checkMaterialNo(row[0]);
-      if (!materialNoExists) {
-        throw new Error(`Material No: ${row[0]} does not exist`);
-      }
-
-      // Cek apakah storage name ada
-      const storageExists = await checkStorageName(row[4]);
-      if (!storageExists) {
-        throw new Error(`Storage Name: ${row[4]} does not exist`);
-      }
-
-      // Cek apakah address rack ada
-      // await checkAddressRackName(row[1], row[4], logImportId);
-
-      // Mendapatkan materialId dengan MaterialNo
-      const materialId = await getMaterialIdByMaterialNo(
-        removeWhitespace(row[0])
-      );
-      if (!materialId) {
-        throw new Error(`Material with MaterialNo ${row[0]} not found`);
-      }
-
-      const storageId = await getStorageIdByStorageCode(row[4]);
-      if (!storageId) {
-        throw new Error(`Storage with name ${row[4]} not found`);
-      }
-
-      // Mendapatkan addressId
-      const addressId = await getAddressIdByAddressName(
-        removeWhitespace(row[1]),
-        storageId,
-        logImportId
-      );
-
-      // Mendapatkan inventoryId
       const inventoryId = await getInventoryIdByMaterialIdAndAddressId(
-        materialId,
-        addressId
+        material.id,
+        address.id,
+        inventoryCache
       );
 
-      // Menambahkan ke incomingPlan
-      incomingPlan.push({
+      allIncomingPlans.push({
         inventoryId,
         planning: row[2],
         incomingDate: req.body.importDate,
         status: "not complete",
         logImportId,
       });
-
-      // Jika jumlah data sudah mencapai batas batch size, simpan data
-      if (incomingPlan.length === BATCH_SIZE) {
-        await Incoming.bulkCreate(incomingPlan, {
-          transaction: mainTransaction,
-        });
-        incomingPlan.length = 0; // Reset array
-      }
     }
 
-    // Simpan data yang tersisa jika ada
-    if (incomingPlan.length > 0) {
-      await Incoming.bulkCreate(incomingPlan, { transaction: mainTransaction });
-    }
-
-    // Commit transaksi utama
-    await mainTransaction.commit();
+    await Incoming.bulkCreate(allIncomingPlans, { transaction });
+    await transaction.commit();
 
     res.status(200).send({
       message: `Uploaded the file successfully: ${req.file.originalname}`,
     });
   } catch (error) {
-    // Rollback transaksi jika terjadi error
-    if (logImportTransaction) await logImportTransaction.rollback();
-    if (mainTransaction) await mainTransaction.rollback();
-
+    if (transaction) await transaction.rollback();
     console.error("File processing error:", error);
     res.status(500).send({
       message: `Could not process the file: ${req.file?.originalname}. ${error.message}`,
@@ -535,11 +491,13 @@ export const uploadIncomingActual = async (req, res) => {
   }
 
   try {
+    // Check if logImportId exists for the given date
     const logImportId = await getLogImportIdByDate(req.body.importDate);
     if (!logImportId) {
       return res.status(400).json({ message: "Upload incoming plan first" });
     }
 
+    // Retrieve existing incoming records for validation and updates
     const incomings = await getIncomingByLogImportId(logImportId);
     const existingIncomingMap = new Map(
       incomings.map((incoming) => [incoming.inventoryId, incoming])
@@ -556,6 +514,7 @@ export const uploadIncomingActual = async (req, res) => {
 
     const transaction = await db.transaction();
     try {
+      // Log the file import
       const logImport = await LogImport.create(
         {
           typeLog: "incoming actual",
@@ -566,40 +525,31 @@ export const uploadIncomingActual = async (req, res) => {
         { transaction }
       );
 
-      const logImportId = logImport.id;
+      const newLogImportId = logImport.id;
       rows.shift(); // Skip header row
 
       const rowsToInsert = [];
       const rowsToUpdate = [];
 
       for (const row of rows) {
-        const [materialNo, address, planningQuantity, actualQuantity, storage] =
-          row;
+        const [materialNo, address, planningQuantity, actualQuantity] = row;
 
+        // Validate row data
         if (
           !materialNo ||
           !address ||
           typeof planningQuantity !== "number" ||
-          typeof actualQuantity !== "number" ||
-          !storage
+          typeof actualQuantity !== "number"
         ) {
           console.error(`Invalid row data for Material No: ${materialNo}`);
           continue;
         }
 
-        // Set status
-        let status;
-        if (actualQuantity < planningQuantity) {
-          status = "partial";
-        } else {
-          status = "completed";
-        }
+        // Determine status based on quantities
+        const status =
+          actualQuantity < planningQuantity ? "partial" : "completed";
 
-        const storageId = getStorageIdByStorageCode(storage);
-        if (!storageId) {
-          throw new Error(`Storage: ${storage} not found in database`);
-        }
-
+        // Fetch IDs for material and address
         const materialId = await getMaterialIdByMaterialNo(
           removeWhitespace(materialNo)
         );
@@ -608,9 +558,7 @@ export const uploadIncomingActual = async (req, res) => {
         }
 
         const addressId = await getAddressIdByAddressName(
-          removeWhitespace(address),
-          storageId,
-          logImportId
+          removeWhitespace(address)
         );
         if (!addressId) {
           throw new Error(`Address: ${address} not found in database`);
@@ -621,18 +569,21 @@ export const uploadIncomingActual = async (req, res) => {
           addressId
         );
 
-        if (!materialId || !addressId || !inventoryId) {
+        if (!inventoryId) {
           console.error(
-            `Failed to get necessary IDs for Material No: ${materialNo}`
+            `Failed to find inventory for Material No: ${materialNo}`
           );
           continue;
         }
 
+        // Update stock quantity
         await updateStock(materialId, addressId, actualQuantity, "incoming");
 
+        // Prepare rows for insertion or update
         if (existingIncomingMap.has(inventoryId)) {
           const existingIncoming = existingIncomingMap.get(inventoryId);
           existingIncoming.actual = actualQuantity;
+          existingIncoming.status = status;
           rowsToUpdate.push(existingIncoming);
         } else {
           rowsToInsert.push({
@@ -640,26 +591,29 @@ export const uploadIncomingActual = async (req, res) => {
             actual: actualQuantity,
             inventoryId,
             status,
-            logImportId,
+            logImportId: newLogImportId,
           });
         }
       }
 
-      // Batch update existing records
+      // Perform batch updates for existing records
       for (const incoming of rowsToUpdate) {
         await incoming.save({ transaction });
       }
 
-      // Batch insert new records
+      // Perform batch inserts for new records
       if (rowsToInsert.length > 0) {
         await Incoming.bulkCreate(rowsToInsert, { transaction });
       }
 
+      // Commit transaction
       await transaction.commit();
+
       res.status(200).json({
         message: `Uploaded the file successfully: ${req.file.originalname}`,
       });
     } catch (error) {
+      // Rollback transaction on error
       await transaction.rollback();
       console.error("Transaction error:", error);
       res.status(500).json({
@@ -837,30 +791,38 @@ const checkMaterialStorage = async (
   }
 };
 
-const checkPackaging = async (packaging, unitPackaging, logImportId) => {
+const checkPackaging = async (
+  packaging,
+  unitPackaging,
+  logImportId,
+  userId
+) => {
   if (!packaging || !unitPackaging) {
     return null;
   }
 
   try {
-    const [packagingRecord, created] = await Packaging.findOrCreate({
-      where: { packaging, unitPackaging, flag: 1 },
-      defaults: {
-        logImportId,
+    const packagingRes = await Packaging.findOne(
+      {
+        where: { packaging, unitPackaging, flag: 1 },
       },
-    });
-
-    // if (!created) {
-    //   console.log(
-    //     `Packaging with ${packaging} and ${unitPackaging} already exists.`
-    //   );
-    // } else {
-    //   console.log(
-    //     `Created new packaging with ${packaging} and ${unitPackaging}.`
-    //   );
-    // }
-
-    return packagingRecord.id;
+      { userId: userId }
+    );
+    if (packagingRes) {
+      return packagingRes.id;
+    } else {
+      const packagingData = await Packaging.create(
+        {
+          packaging,
+          unitPackaging,
+          logImportId,
+        },
+        {
+          userId: userId,
+        }
+      );
+      return packagingData.id;
+    }
   } catch (error) {
     console.error(`Error in checkPackaging: ${error.message}`);
     throw new Error("Failed to process packaging data.");
@@ -869,11 +831,10 @@ const checkPackaging = async (packaging, unitPackaging, logImportId) => {
 
 export const uploadMasterMaterial = async (req, res) => {
   let transaction;
-  let materialsCache = null;
 
   try {
     if (!req.file) {
-      return res.status(400).send({ message: "Please upload an excel file!" });
+      return res.status(400).send({ message: "Please upload an Excel file!" });
     }
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
@@ -900,108 +861,52 @@ export const uploadMasterMaterial = async (req, res) => {
         fileName: req.file.originalname,
         userId: req.user.userId,
         importDate: req.body.importDate,
-      }
-      // { transaction }
+      },
+      { transaction }
     );
 
     const logImportId = logImport.id;
 
-    let materialMap;
-    if (materialsCache) {
-      materialMap = new Map(
-        materialsCache.map((material) => [material.materialNo, material])
-      );
-    } else {
-      const existingMaterials = await Material.findAll({ where: { flag: 1 } });
-      materialsCache = existingMaterials;
-      materialMap = new Map(
-        existingMaterials.map((material) => [material.materialNo, material])
-      );
-    }
+    // Pre-fetch necessary data
+    const [existingMaterials, existingCategories, existingSuppliers] =
+      await Promise.all([
+        Material.findAll({ where: { flag: 1 }, transaction }),
+        Category.findAll({ where: { flag: 1 }, transaction }),
+        Supplier.findAll({ where: { flag: 1 }, transaction }),
+      ]);
+
+    const materialMap = new Map(
+      existingMaterials.map((mat) => [mat.materialNo, mat])
+    );
+    const categoryMap = new Map(
+      existingCategories.map((cat) => [cat.categoryName, cat.id])
+    );
+    const supplierMap = new Map(
+      existingSuppliers.map((sup) => [sup.supplierName.toUpperCase(), sup.id])
+    );
 
     const newMaterials = [];
+    const updatedMaterials = [];
+    const validationErrors = [];
 
-    // Gather unique supplier names from rows
-    const supplierNames = new Set(
-      rows.map((row) => {
-        const supplier = row[13];
-        if (!supplier || supplier === "" || supplier === 0)
-          throw new Error(`Supplier ${supplier} not found`);
-        return supplier.trim().toUpperCase();
-      })
-    );
-
-    // Upsert all suppliers at once and get a map of supplier IDs
-    const supplierMap = await upsertSuppliers(
-      supplierNames,
-      logImportId,
-      req.user.userId,
-      transaction
-    );
-
-    // Process each row directly
     for (const row of rows) {
       try {
-        const materialNo = row[0];
-        const description = row[1];
-        const uom = row[2];
-        const price = row[3];
-        const typeMat = row[4];
-        const mrpType = row[5];
-        const minStock = row[6];
-        const maxStock = row[7];
-        const img = row[8];
-        const minOrder = row[9];
-        const packaging = row[10];
-        const unitPackaging = row[11];
-        const category = row[12];
-        const supplier = row[13];
-        // const storageCode = row[14];
-
-        const existingMaterial = materialMap.get(materialNo);
-        const categoryId = await getCategoryIdByCategoryName(category);
-        // const storageId = await getStorageIdByCode(storageCode);
-
-        if (!categoryId)
-          throw new Error(`Category: ${category} does not exist`);
-
-        // if (!storageId)
-        //   throw new Error(`Storage: ${storageCode} does not exist`);
-
-        // Check and update Material Storage
-        // if (existingMaterial) {
-        //   await checkMaterialStorage(
-        //     existingMaterial.id,
-        //     storageId,
-        //     logImportId,
-        //     req.user.userId
-        //   );
-        // }
-
-        // Check and update Packaging
-        const packagingRes = await checkPackaging(
+        const [
+          materialNo,
+          description,
+          uom,
+          price,
+          typeMat,
+          mrpType,
+          minStock,
+          maxStock,
+          img,
+          minOrder,
           packaging,
           unitPackaging,
-          logImportId
-        );
-
-        // Check type material
-        const typeMaterialData = typeMaterial.map((item) => item.type);
-        if (!typeMaterialData.includes(typeMat)) {
-          throw new Error(`Type Material: ${typeMat} does not exist`);
-        }
-
-        // Check MRPTYPE
-        const mrp = mrpTypeData.map((item) => item.type);
-        if (!mrp.includes(mrpType)) {
-          throw new Error(`MRP Type: ${mrpType} does not exist`);
-        }
-
-        // Check UOM
-        const uoms = baseUom.map((item) => item.uom);
-        if (!uoms.includes(uom)) {
-          throw new Error(`UOM: ${uom} does not exist`);
-        }
+          categoryName,
+          supplierName,
+        ] = row;
 
         if (
           !materialNo ||
@@ -1010,105 +915,71 @@ export const uploadMasterMaterial = async (req, res) => {
           !typeMat ||
           !mrpType ||
           !img ||
-          !category
-          // ||
-          // !storageCode
+          !categoryName
         ) {
-          throw new Error(`Invalid data in row ${materialNo}, ${description}`);
+          throw new Error(`Invalid data in row: ${materialNo}`);
         }
 
-        if (
-          typeof price !== "number" ||
-          typeof minStock !== "number" ||
-          typeof maxStock !== "number" ||
-          typeof minOrder !== "number"
-        ) {
-          throw new Error(
-            `Data must be number in row ${materialNo}, ${description}`
-          );
-        }
+        // Validate and get category ID
+        const categoryId = categoryMap.get(categoryName);
+        if (!categoryId) throw new Error(`Category not found: ${categoryName}`);
 
-        if (!supplier || supplier == 0)
-          throw new Error(`Supplier ${supplier} not found`);
+        // Validate and get supplier ID
+        const supplierId = supplierMap.get(supplierName?.trim().toUpperCase());
+        if (!supplierId) throw new Error(`Supplier not found: ${supplierName}`);
 
-        const supplierName = supplier.trim().toUpperCase();
-        const supplierId = supplierMap.get(supplierName);
+        const existingMaterial = materialMap.get(materialNo);
+
+        const materialData = {
+          materialNo,
+          description,
+          uom,
+          price,
+          type: typeMat,
+          mrpType,
+          minStock,
+          maxStock,
+          img,
+          minOrder,
+          packagingId: await checkPackaging(
+            packaging,
+            unitPackaging,
+            logImportId,
+            req.user.userId
+          ),
+          categoryId,
+          supplierId,
+          logImportId,
+        };
 
         if (existingMaterial) {
-          await existingMaterial.update(
-            {
-              description: description,
-              uom: uom,
-              price: price,
-              type: typeMat,
-              mrpType: mrpType,
-              minStock: minStock,
-              maxStock: maxStock,
-              img: img,
-              minOrder: minOrder,
-              packagingId: packagingRes,
-              categoryId,
-              supplierId,
-              logImportId,
-            },
-            { individualHooks: true, userId: req.user.userId, transaction }
-          );
+          updatedMaterials.push({ ...materialData, id: existingMaterial.id });
         } else {
-          newMaterials.push({
-            materialNo: materialNo,
-            description: description,
-            uom: uom,
-            price: price,
-            type: typeMat,
-            mrpType: mrpType,
-            minStock: minStock,
-            maxStock: maxStock,
-            img: img,
-            minOrder: minOrder,
-            packagingId: packagingRes,
-            categoryId,
-            supplierId,
-            logImportId,
-            // storageId,
-          });
+          newMaterials.push(materialData);
         }
       } catch (error) {
-        console.error(
-          `Error processing row with materialNo ${row[0]}: ${error.message}`
-        );
-        throw error;
+        validationErrors.push({ row, error: error.message });
       }
     }
 
+    // Bulk insert new materials
     if (newMaterials.length > 0) {
-      // Bulk create materials
-      // const createdMaterials =
-      await Material.bulkCreate(newMaterials, {
-        transaction,
-        // returning: true,
-      });
+      await Material.bulkCreate(newMaterials, { transaction });
+    }
 
-      // Ambil ID dari createdMaterials
-      // const materialIds = createdMaterials.map(
-      //   (material) => material.dataValues.id
-      // );
-      // const storageIds = newMaterials.map((material) => material.storageId);
-
-      // // Siapkan data untuk Material_Storage
-      // const materialStorageData = materialIds.map((materialId, index) => ({
-      //   materialId,
-      //   storageId: storageIds[index],
-      //   logImportId,
-      // }));
-
-      // // Insert ke tabel Material_Storage
-      // await MaterialStorage.bulkCreate(materialStorageData, { transaction });
+    // Bulk update existing materials
+    if (updatedMaterials.length > 0) {
+      const updatePromises = updatedMaterials.map((mat) =>
+        Material.update(mat, { where: { id: mat.id }, transaction })
+      );
+      await Promise.all(updatePromises);
     }
 
     await transaction.commit();
 
     res.status(200).send({
       message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
     });
   } catch (error) {
     if (transaction) await transaction.rollback();

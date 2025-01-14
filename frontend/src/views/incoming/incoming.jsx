@@ -385,7 +385,7 @@ const Incoming = () => {
           addressRackName: '',
           planning: '',
           actual: '',
-          storageCode: '',
+          // storageCode: '',
         },
       ]
 

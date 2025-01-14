@@ -680,8 +680,12 @@ const Material = () => {
         return
       }
 
-      await uploadMasterData(apiUpload, uploadData)
-      MySwal.fire('Success', 'File uploaded successfully', 'success')
+      const response = await uploadMasterData(apiUpload, uploadData)
+      MySwal.fire(
+        'Success',
+        `${response.data.message},  ${response.data.errors && 'Errors: ' + response.data.errors}`,
+        'success',
+      )
 
       setImported(true)
       setShouldFetch(true)
