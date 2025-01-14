@@ -708,7 +708,7 @@ const validateHeaderMaterial = (header) => {
     "packaging",
     "unitPackaging",
     "category",
-    "supplier",
+    "supplierCode",
     // "storageCode",
   ];
   return header.every(
