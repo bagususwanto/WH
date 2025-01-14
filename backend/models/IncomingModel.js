@@ -12,12 +12,12 @@ const Incoming = db.define(
     planning: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      // defaultValue: 0,
+      defaultValue: 0,
     },
     actual: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      // defaultValue: 0,
+      defaultValue: 0,
     },
     inventoryId: {
       type: DataTypes.INTEGER,
