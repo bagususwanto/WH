@@ -16,7 +16,7 @@ const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
 // today - 8 hours
-const today = new Date(new Date().getTime() - 8 * 60 * 60 * 1000);
+const today = new Date(new Date().getTime() - 7 * 60 * 60 * 1000);
 
 export const getInventoryDashboard = async (req, res) => {
   try {
