@@ -681,9 +681,22 @@ const Material = () => {
       }
 
       const response = await uploadMasterData(apiUpload, uploadData)
+      console.log('response', response)
+
+      const errors = response.data.errors
+        ? response.data.errors
+            .map((err) => `Row: ${JSON.stringify(err.row)}, Error: ${err.error}`)
+            .join('\n') // Gabungkan setiap pesan error dengan newline
+        : ''
+
       MySwal.fire(
         'Success',
-        `${response.data.message},  ${response.data.errors && 'Errors: ' + response.data.errors}`,
+        `${response.data.message}${
+          errors
+            ? // '\nErrors:\n' +
+              errors
+            : ''
+        }`,
         'success',
       )
 

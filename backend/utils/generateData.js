@@ -28,9 +28,7 @@ const readJsonFile = (filePath) => {
 const createData = async (filePath) => {
   try {
     const jsonData = await readJsonFile(filePath);
-    const result = await Supplier.bulkCreate(jsonData, {
-      ignoreDuplicates: true,
-    });
+    const result = await Supplier.bulkCreate(jsonData);
     console.log(`${result.length} entries created from supplier`);
   } catch (error) {
     console.error("Error creating suppliers:", error);

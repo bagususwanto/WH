@@ -882,8 +882,10 @@ export const uploadMasterMaterial = async (req, res) => {
       existingCategories.map((cat) => [cat.categoryName, cat.id])
     );
     const supplierMap = new Map(
-      existingSuppliers.map((sup) => [sup.supplierName.toUpperCase(), sup.id])
+      existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
+
+    console.log("Supplier Map:", Array.from(supplierMap.entries()));
 
     const newMaterials = [];
     const updatedMaterials = [];
@@ -905,8 +907,9 @@ export const uploadMasterMaterial = async (req, res) => {
           packaging,
           unitPackaging,
           categoryName,
-          supplierName,
         ] = row;
+
+        const supplierCode = String(row[13]?.toString().trim());
 
         if (
           !materialNo ||
@@ -925,8 +928,8 @@ export const uploadMasterMaterial = async (req, res) => {
         if (!categoryId) throw new Error(`Category not found: ${categoryName}`);
 
         // Validate and get supplier ID
-        const supplierId = supplierMap.get(supplierName?.trim().toUpperCase());
-        if (!supplierId) throw new Error(`Supplier not found: ${supplierName}`);
+        const supplierId = supplierMap.get(supplierCode);
+        if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
 
         const existingMaterial = materialMap.get(materialNo);
 
@@ -958,7 +961,7 @@ export const uploadMasterMaterial = async (req, res) => {
           newMaterials.push(materialData);
         }
       } catch (error) {
-        validationErrors.push({ row, error: error.message });
+        validationErrors.push({ error: error.message });
       }
     }
 
@@ -1061,24 +1064,35 @@ export const uploadMasterAddress = async (req, res) => {
       });
 
       if (existingAddress) {
-        toUpdate.push({ id: existingAddress.id, storageId });
-      }
-
-      const existAddressStorage = await AddressRack.findOne({
-        where: { addressRackName: address, storageId, flag: 1 },
-      });
-
-      if (existAddressStorage) {
-        errors.push({
-          row: index + 2,
-          error: `Address ${address} already exists in storage ${storageCode}`,
-        });
-      } else {
-        toCreate.push({
-          addressRackName: address,
+        toUpdate.push({
+          id: existingAddress.id,
           storageId,
           logImport: logImport.id,
         });
+      } else {
+        const existAddressStorage = await AddressRack.findOne({
+          where: { addressRackName: address, storageId, flag: 1 },
+        });
+
+        if (existAddressStorage) {
+          errors.push({
+            row: index + 2,
+            error: `Address ${address} already exists in storage ${storageCode}`,
+          });
+        } else {
+          if (
+            !toCreate.some(
+              (item) =>
+                item.addressRackName === address && item.storageId === storageId
+            )
+          ) {
+            toCreate.push({
+              addressRackName: address,
+              storageId,
+              logImport: logImport.id,
+            });
+          }
+        }
       }
     }
 
