@@ -436,9 +436,16 @@ const Dashboard = () => {
             const materialNo = item.Material.materialNo
             const plantName = item.Address_Rack.Storage.Plant.plantName
             const description = item.Material.description
+            const descSubstring = `${description.substring(0, 17)}..`
 
             // Ambil hanya 10 karakter pertama dari description
-            return `${description.substring(0, 17)}..`
+            // return `${description.substring(0, 17)}..`
+
+            // Convert the description into an array of words
+            const arrayDesc = descSubstring.split(' ')
+
+            // Return the array for multiline labels
+            return arrayDesc
           },
           maxRotation: 0, // Mencegah rotasi diagonal
           autoSkip: false, // Pastikan label ditampilkan tanpa di-skip
