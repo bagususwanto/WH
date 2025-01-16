@@ -1131,6 +1131,23 @@ export const uploadMasterAddress = async (req, res) => {
   }
 };
 
+const validateHeaderDN = (header) => {
+  const expectedHeader = [
+    "DN No",
+    "Delivery Date",
+    "Material No",
+    "Quantity",
+    "Vendor Code",
+  ];
+
+  // Periksa apakah semua kolom yang diharapkan ada dalam header
+  return expectedHeader.every((column) =>
+    header.some(
+      (headerValue) => headerValue.trim().toLowerCase() === column.toLowerCase()
+    )
+  );
+};
+
 export const uploadDeliveryNote = async (req, res) => {
   let transaction;
 
@@ -1150,7 +1167,7 @@ export const uploadDeliveryNote = async (req, res) => {
         .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
 
-    if (!validateHeaderMaterial(header)) {
+    if (!validateHeaderDN(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
