@@ -13,6 +13,9 @@ import Storage from "../models/StorageModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
 import { typeMaterial, mrpTypeData, baseUom } from "./HarcodedData.js";
 import Packaging from "../models/PackagingModel.js";
+import { where } from "sequelize";
+import DeliverySchedule from "../models/DeliverySchedule.js";
+import DeliveryNote from "../models/DeliveryNoteModel.js";
 
 const BATCH_SIZE = 1000; // Set batch size sesuai kebutuhan
 
@@ -1124,6 +1127,179 @@ export const uploadMasterAddress = async (req, res) => {
     console.error(error);
     res.status(500).send({
       message: `Could not upload the file: ${req.file?.originalname}. ${error.message}`,
+    });
+  }
+};
+
+export const uploadDeliveryNote = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "DNInquiry";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+    const header = rows.shift();
+
+    if (rows.length > 5000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    if (!validateHeaderMaterial(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImportDN = await LogImport.create(
+      {
+        typeLog: "delivery note",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportIncoming = await LogImport.create(
+      {
+        typeLog: "delivery note",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    // Pre-fetch necessary data
+    const [
+      existingMaterials,
+      existingSuppliers,
+      existingInventories,
+      existingDeliverySchedules,
+      existingDeliveryNotes,
+    ] = await Promise.all([
+      Material.findAll({ where: { flag: 1 }, transaction }),
+      Supplier.findAll({ where: { flag: 1 }, transaction }),
+      Inventory.findAll({ transaction }),
+      DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
+      DeliveryNote.findAll({ transaction }),
+    ]);
+
+    const materialMap = new Map(
+      existingMaterials.map((mat) => [mat.materialNo, mat.id])
+    );
+
+    const supplierMap = new Map(
+      existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
+    );
+
+    const inventoryMap = new Map(
+      existingInventories.map((inv) => [inv.materialId, inv.id])
+    );
+
+    const deliveryScheduleMap = new Map(
+      existingDeliverySchedules.map((del) => [del.supplierId, del.id])
+    );
+
+    const deliveryNoteMap = new Map(
+      existingDeliveryNotes.map((del) => [del.dnNumber, del.id])
+    );
+
+    const newIncomings = [];
+    const newDeliveryNotes = [];
+    const validationErrors = [];
+
+    for (const row of rows) {
+      try {
+        const dnNumber = row[1];
+        const deliveryDate = row[4];
+        const materialNo = row[9];
+        const planning = row[11];
+        const supplierCode = row[19];
+
+        if (
+          !materialNo ||
+          !deliveryDate ||
+          !dnNumber ||
+          !planning ||
+          !supplierCode
+        ) {
+          throw new Error(`Invalid data in row: ${row.join(", ")}`);
+        }
+
+        // Validate and get material ID
+        const materialId = materialMap.get(materialNo);
+        if (!materialId) {
+          throw new Error(`Material not found: ${materialNo}`);
+        }
+
+        // Validate and get supplier ID
+        const supplierId = supplierMap.get(supplierCode);
+        if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
+
+        // Validate and get inventory ID
+        const inventoryId = inventoryMap.get(materialId);
+        if (!inventoryId)
+          throw new Error(`Material Number not found: ${materialNo}`);
+
+        // Validate and get delivery schedule ID
+        const deliveryScheduleId = deliveryScheduleMap.get(supplierId);
+        if (!deliveryScheduleId)
+          throw new Error(`Delivery Schedule not found: ${supplierCode}`);
+
+        const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+
+        const incomingData = {
+          inventoryId,
+          planning,
+          incomingDate: deliveryDate,
+          status: "not complete",
+          logImport: logImportIncoming.id,
+        };
+
+        const deliveryNoteData = {
+          dnNumber,
+          status: "schedule plan",
+          deliveryScheduleId,
+          logImport: logImportDN.id,
+        };
+
+        if (existingDeliveryNote) {
+          newIncomings.push(incomingData);
+          newDeliveryNotes.push(deliveryNoteData);
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk insert new materials
+    if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
+      await DeliveryNote.bulkCreate(newDeliveryNotes, { transaction });
+      await Incoming.bulkCreate(newIncomings, { transaction });
+    } else {
+      await transaction.rollback();
+      return res.status(400).send({ message: "Invalid data, cannot proceed" });
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
     });
   }
 };
