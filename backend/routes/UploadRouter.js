@@ -4,6 +4,7 @@ import {
   uploadIncomingActual,
   uploadMasterMaterial,
   uploadMasterAddress,
+  uploadDeliveryNote,
 } from "../controllers/Excel.js";
 import uploadFile from "../middleware/UploadMiddleware.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
@@ -13,14 +14,36 @@ const router = express.Router();
 
 router.post(
   "/upload-incoming-plan/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
   checkUserWarehouse,
   uploadFile.single("file"),
   uploadIncomingPlan
 );
 router.post(
   "/upload-incoming-actual/:warehouseId",
-  checkRole(["super admin", "warehouse member"]),
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
   checkUserWarehouse,
   uploadFile.single("file"),
   uploadIncomingActual
@@ -36,6 +59,24 @@ router.post(
   checkRole(["super admin"]),
   uploadFile.single("file"),
   uploadMasterAddress
+);
+router.post(
+  "/upload-delivery-note/:warehouseId",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  checkUserWarehouse,
+  uploadFile.single("file"),
+  uploadDeliveryNote
 );
 
 export default router;
