@@ -1289,6 +1289,8 @@ export const uploadDeliveryNote = async (req, res) => {
         };
 
         if (existingDeliveryNote) {
+          throw new Error(`Delivery Note already exists: ${dnNumber}`);
+        } else {
           newIncomings.push(incomingData);
           newDeliveryNotes.push(deliveryNoteData);
         }
@@ -1297,13 +1299,10 @@ export const uploadDeliveryNote = async (req, res) => {
       }
     }
 
-    // Bulk insert new materials
+    // Bulk insert new DN
     if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
       await DeliveryNote.bulkCreate(newDeliveryNotes, { transaction });
       await Incoming.bulkCreate(newIncomings, { transaction });
-    } else {
-      await transaction.rollback();
-      return res.status(400).send({ message: "Invalid data, cannot proceed" });
     }
 
     await transaction.commit();
