@@ -28,7 +28,7 @@ import ServiceHours from "./ServiceHoursModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
 import MaterialStorage from "./MaterialStorageModel.js";
 import AddressRack from "./AddressRackModel.js";
-import DeliverySchedule from "./DeliverySchedule.js";
+import DeliverySchedule from "./DeliveryScheduleModel.js";
 
 // transaksi
 import Inventory from "./InventoryModel.js";

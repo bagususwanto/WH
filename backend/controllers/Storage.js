@@ -110,7 +110,7 @@ export const getStorageByPlant = async (req, res) => {
 
 export const createStorage = async (req, res) => {
   try {
-    const { storageCode, storageName, plantId } = req.body;
+    const { storageCode, storageName, plantId, addressCode } = req.body;
     if (!storageCode || !storageName || !plantId) {
       return res.status(400).json({
         message: "StorageCode, StorageName, and Plant are required",
@@ -126,7 +126,12 @@ export const createStorage = async (req, res) => {
     }
 
     const storage = await Storage.findOne({
-      where: { storageCode: storageCode, plantId: plantId, flag: 1 },
+      where: {
+        storageCode: storageCode,
+        plantId: plantId,
+        addressCode: addressCode,
+        flag: 1,
+      },
     });
 
     if (storage) {
@@ -145,12 +150,27 @@ export const updateStorage = async (req, res) => {
   try {
     const storageId = req.params.id;
 
+    const { storageCode, plantId, addressCode } = req.body;
+
     const storage = await Storage.findOne({
       where: { id: storageId, flag: 1 },
     });
 
     if (!storage) {
       return res.status(404).json({ message: "Storage not found" });
+    }
+
+    const existingStorage = await Storage.findOne({
+      where: {
+        storageCode: storageCode,
+        plantId: plantId,
+        addressCode: addressCode,
+        flag: 1,
+      },
+    });
+
+    if (existingStorage) {
+      return res.status(400).json({ message: "Storage already exists" });
     }
 
     await Storage.update(req.body, {

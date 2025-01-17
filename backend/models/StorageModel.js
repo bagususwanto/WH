@@ -24,6 +24,10 @@ const Storage = db.define(
         key: "id",
       },
     },
+    addressCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     flag: {
       type: DataTypes.INTEGER,
       allowNull: false,

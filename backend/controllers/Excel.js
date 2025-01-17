@@ -12,7 +12,7 @@ import LogEntry from "../models/LogEntryModel.js";
 import Storage from "../models/StorageModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
 import Packaging from "../models/PackagingModel.js";
-import DeliverySchedule from "../models/DeliverySchedule.js";
+import DeliverySchedule from "../models/DeliveryScheduleModel.js";
 import DeliveryNote from "../models/DeliveryNoteModel.js";
 import XLSX from "xlsx";
 
@@ -1201,7 +1201,7 @@ export const uploadDeliveryNote = async (req, res) => {
 
     const logImportIncoming = await LogImport.create(
       {
-        typeLog: "delivery note",
+        typeLog: "incoming plan",
         fileName: req.file.originalname,
         userId: req.user.userId,
         importDate: req.body.importDate,
@@ -1236,13 +1236,6 @@ export const uploadDeliveryNote = async (req, res) => {
       existingInventories.map((inv) => [inv.materialId, inv.id])
     );
 
-    const deliveryScheduleMap = new Map(
-      existingDeliverySchedules.map((del) => [
-        `${del.supplierId}-${del.schedule}-${del.rit}`,
-        del.id,
-      ])
-    );
-
     const deliveryNoteMap = new Map(
       existingDeliveryNotes.map((del) => [del.dnNumber, del.id])
     );
@@ -1258,15 +1251,13 @@ export const uploadDeliveryNote = async (req, res) => {
         const materialNo = row[9];
         const planning = row[11];
         const supplierCode = row[19];
-        const rit = row[row.length - 1]; // Kolom terakhir (Rit)
 
         if (
           !materialNo ||
           !deliveryDate ||
           !dnNumber ||
           !planning ||
-          !supplierCode ||
-          !rit
+          !supplierCode
         ) {
           throw new Error(`Invalid data in row: ${row.join(", ")}`);
         }
@@ -1286,20 +1277,6 @@ export const uploadDeliveryNote = async (req, res) => {
         if (!inventoryId)
           throw new Error(`Material Number not found: ${materialNo}`);
 
-        // hari sekarang dalam format code
-        const today = new Date();
-        const dayCode = today.getDay();
-
-        // key untuk delivery schedule
-        const key = `${supplierId}-${dayCode}-${rit}`;
-
-        // Validate and get delivery schedule ID
-        const deliveryScheduleId = deliveryScheduleMap.get(key);
-        if (!deliveryScheduleId)
-          throw new Error(
-            `Delivery Schedule not found for supplier code: ${supplierCode}`
-          );
-
         const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
 
         const incomingData = {
@@ -1312,8 +1289,9 @@ export const uploadDeliveryNote = async (req, res) => {
 
         const deliveryNoteData = {
           dnNumber,
+          arrivalPlanDate: deliveryDate,
+          departurePlanDate: deliveryDate,
           status: "schedule plan",
-          deliveryScheduleId,
           logImport: logImportDN.id,
         };
 
@@ -1356,6 +1334,7 @@ const validateHeaderDeliverySchedule = (header) => {
     "arrival(time)",
     "departure(time)",
     "truckStation",
+    "rit",
   ];
   return header.every(
     (value, index) =>
@@ -1418,7 +1397,7 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
 
     const deliveryScheduleMap = new Map(
       existingDeliverySchedules.map((ds) => [
-        `${ds.supplierId}-${ds.schedule}-${ds.arrival}`,
+        `${ds.supplierId}-${ds.schedule}-${ds.rit}`,
         ds,
       ])
     );
@@ -1444,13 +1423,15 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         const arrival = row[2];
         const departure = row[3];
         const truckStation = row[4];
+        const rit = row[5];
 
         if (
           !supplierCode ||
           !schedule ||
           !arrival ||
           !departure ||
-          !truckStation
+          !truckStation ||
+          !rit
         ) {
           throw new Error(
             `Invalid data in row for supplierCode: ${supplierCode}`
@@ -1462,10 +1443,10 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
 
         const scheduleCode = daysMap.get(schedule);
-        const supplierIdScheduleAndArrival = `${supplierId}-${scheduleCode}-${arrival}`;
+        const supplierIdScheduleAndRit = `${supplierId}-${scheduleCode}-${rit}`;
 
         const existingDeliverySchedule = deliveryScheduleMap.get(
-          supplierIdScheduleAndArrival
+          supplierIdScheduleAndRit
         );
 
         const deliveryScheduleData = {
@@ -1474,6 +1455,7 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
           arrival,
           departure,
           truckStation,
+          rit,
           logImportId,
         };
 
@@ -1497,8 +1479,8 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
 
     // Bulk update existing materials
     if (updatedDeliverySchedules.length > 0) {
-      const updatePromises = updatedDeliverySchedules.map((mat) =>
-        Material.update(mat, { where: { id: mat.id }, transaction })
+      const updatePromises = updatedDeliverySchedules.map((ds) =>
+        DeliverySchedule.update(ds, { where: { id: ds.id }, transaction })
       );
       await Promise.all(updatePromises);
     }
