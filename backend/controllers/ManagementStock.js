@@ -399,6 +399,19 @@ export const createPlanIncoming = async (req, res) => {
       return res.status(400).json({ message: "Incoming date required" });
     }
 
+    // Cek incoming jika sudah ada tidak bisa di update
+    const existingIncoming = await Incoming.findOne({
+      where: {
+        inventoryId,
+        incomingDate,
+      },
+      transaction,
+    });
+
+    if (existingIncoming) {
+      return res.status(400).json({ message: "Incoming already exists" });
+    }
+
     // Membuat entri Incoming dan menyimpan hasilnya
     const incoming = await Incoming.create(
       {

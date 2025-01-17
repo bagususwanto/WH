@@ -11,11 +11,10 @@ import Supplier from "../models/SupplierModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import Storage from "../models/StorageModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
-import { typeMaterial, mrpTypeData, baseUom } from "./HarcodedData.js";
 import Packaging from "../models/PackagingModel.js";
-import { where } from "sequelize";
 import DeliverySchedule from "../models/DeliverySchedule.js";
 import DeliveryNote from "../models/DeliveryNoteModel.js";
+import XLSX from "xlsx";
 
 const BATCH_SIZE = 1000; // Set batch size sesuai kebutuhan
 
@@ -1158,7 +1157,23 @@ export const uploadDeliveryNote = async (req, res) => {
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
     const sheetName = "DNInquiry";
-    const rows = await readXlsxFile(path, { sheet: sheetName });
+
+    // Read the Excel file
+    const workbook = XLSX.readFile(path);
+    const sheet = workbook.Sheets[sheetName];
+
+    if (!sheet) {
+      return res
+        .status(400)
+        .send({ message: `Sheet "${sheetName}" not found!` });
+    }
+
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    if (rows.length <= 1) {
+      return res.status(400).send({ message: "No data found in the sheet!" });
+    }
+
     const header = rows.shift();
 
     if (rows.length > 5000) {
@@ -1222,7 +1237,10 @@ export const uploadDeliveryNote = async (req, res) => {
     );
 
     const deliveryScheduleMap = new Map(
-      existingDeliverySchedules.map((del) => [del.supplierId, del.id])
+      existingDeliverySchedules.map((del) => [
+        `${del.supplierId}-${del.schedule}-${del.rit}`,
+        del.id,
+      ])
     );
 
     const deliveryNoteMap = new Map(
@@ -1240,13 +1258,15 @@ export const uploadDeliveryNote = async (req, res) => {
         const materialNo = row[9];
         const planning = row[11];
         const supplierCode = row[19];
+        const rit = row[row.length - 1]; // Kolom terakhir (Rit)
 
         if (
           !materialNo ||
           !deliveryDate ||
           !dnNumber ||
           !planning ||
-          !supplierCode
+          !supplierCode ||
+          !rit
         ) {
           throw new Error(`Invalid data in row: ${row.join(", ")}`);
         }
@@ -1266,10 +1286,19 @@ export const uploadDeliveryNote = async (req, res) => {
         if (!inventoryId)
           throw new Error(`Material Number not found: ${materialNo}`);
 
+        // hari sekarang dalam format code
+        const today = new Date();
+        const dayCode = today.getDay();
+
+        // key untuk delivery schedule
+        const key = `${supplierId}-${dayCode}-${rit}`;
+
         // Validate and get delivery schedule ID
-        const deliveryScheduleId = deliveryScheduleMap.get(supplierId);
+        const deliveryScheduleId = deliveryScheduleMap.get(key);
         if (!deliveryScheduleId)
-          throw new Error(`Delivery Schedule not found: ${supplierCode}`);
+          throw new Error(
+            `Delivery Schedule not found for supplier code: ${supplierCode}`
+          );
 
         const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
 
@@ -1303,6 +1332,175 @@ export const uploadDeliveryNote = async (req, res) => {
     if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
       await DeliveryNote.bulkCreate(newDeliveryNotes, { transaction });
       await Incoming.bulkCreate(newIncomings, { transaction });
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};
+
+const validateHeaderDeliverySchedule = (header) => {
+  const expectedHeader = [
+    "supplierCode",
+    "schedule(day)",
+    "arrival(time)",
+    "departure(time)",
+    "truckStation",
+  ];
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
+};
+
+const cleanAndUppercaseData = (data) => {
+  // Gunakan RegExp untuk menghapus semua simbol kecuali huruf dan angka
+  return data.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase();
+};
+
+export const uploadMasterDeliverySchedule = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+    const header = rows.shift();
+
+    if (rows.length > 5000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    if (!validateHeaderDeliverySchedule(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImport = await LogImport.create(
+      {
+        typeLog: "master delivery schedule",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportId = logImport.id;
+
+    // Pre-fetch necessary data
+    const [existingSuppliers, existingDeliverySchedules] = await Promise.all([
+      Supplier.findAll({ where: { flag: 1 }, transaction }),
+      DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
+    ]);
+
+    const supplierMap = new Map(
+      existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
+    );
+
+    const deliveryScheduleMap = new Map(
+      existingDeliverySchedules.map((ds) => [
+        `${ds.supplierId}-${ds.schedule}-${ds.arrival}`,
+        ds,
+      ])
+    );
+
+    const daysMap = new Map([
+      ["MINGGU", 0],
+      ["SENIN", 1],
+      ["SELASA", 2],
+      ["RABU", 3],
+      ["KAMIS", 4],
+      ["JUMAT", 5],
+      ["SABTU", 6],
+    ]);
+
+    const newDeliverySchedules = [];
+    const updatedDeliverySchedules = [];
+    const validationErrors = [];
+
+    for (const row of rows) {
+      try {
+        const supplierCode = String(row[0]?.toString().trim());
+        const schedule = cleanAndUppercaseData(row[1]);
+        const arrival = row[2];
+        const departure = row[3];
+        const truckStation = row[4];
+
+        if (
+          !supplierCode ||
+          !schedule ||
+          !arrival ||
+          !departure ||
+          !truckStation
+        ) {
+          throw new Error(
+            `Invalid data in row for supplierCode: ${supplierCode}`
+          );
+        }
+
+        // Validate and get supplier ID
+        const supplierId = supplierMap.get(supplierCode);
+        if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
+
+        const scheduleCode = daysMap.get(schedule);
+        const supplierIdScheduleAndArrival = `${supplierId}-${scheduleCode}-${arrival}`;
+
+        const existingDeliverySchedule = deliveryScheduleMap.get(
+          supplierIdScheduleAndArrival
+        );
+
+        const deliveryScheduleData = {
+          supplierId,
+          schedule: scheduleCode,
+          arrival,
+          departure,
+          truckStation,
+          logImportId,
+        };
+
+        if (existingDeliverySchedule) {
+          updatedDeliverySchedules.push({
+            ...deliveryScheduleData,
+            id: existingDeliverySchedule.id,
+          });
+        } else {
+          newDeliverySchedules.push(deliveryScheduleData);
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk insert new materials
+    if (newDeliverySchedules.length > 0) {
+      await Material.bulkCreate(newDeliverySchedules, { transaction });
+    }
+
+    // Bulk update existing materials
+    if (updatedDeliverySchedules.length > 0) {
+      const updatePromises = updatedDeliverySchedules.map((mat) =>
+        Material.update(mat, { where: { id: mat.id }, transaction })
+      );
+      await Promise.all(updatePromises);
     }
 
     await transaction.commit();

@@ -1,8 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import LogImport from "./LogImportModel.js";
-import Inventory from "./InventoryModel.js";
-import DeliverySchedule from "./DeliverySchedule.js";
 
 const { DataTypes } = Sequelize;
 
@@ -13,25 +11,41 @@ const DeliveryNote = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    arrivalAt: {
-      type: DataTypes.DATE,
+    arrivalPlanDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    arrivalPlanTime: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    arrivalActualDate: {
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
-    departureAt: {
-      type: DataTypes.DATE,
+    arrivalActualTime: {
+      type: DataTypes.TIME,
+      allowNull: true,
+    },
+    departurePlanDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    departurePlanTime: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    departureActualDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    departureActualTime: {
+      type: DataTypes.TIME,
       allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    deliveryScheduleId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: DeliverySchedule,
-        key: "id",
-      },
     },
     logImportId: {
       type: DataTypes.INTEGER,
@@ -53,15 +67,6 @@ LogImport.hasMany(DeliveryNote, {
 });
 DeliveryNote.belongsTo(LogImport, {
   foreignKey: "logImportId",
-  onDelete: "NO ACTION",
-});
-
-DeliverySchedule.hasMany(DeliveryNote, {
-  foreignKey: "deliveryScheduleId",
-  onDelete: "NO ACTION",
-});
-DeliveryNote.belongsTo(DeliverySchedule, {
-  foreignKey: "deliveryScheduleId",
   onDelete: "NO ACTION",
 });
 

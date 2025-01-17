@@ -15,8 +15,10 @@ startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
 const endOfToday = new Date();
 endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 
-// today - 8 hours
-const today = new Date(new Date().getTime() - 7 * 60 * 60 * 1000);
+// today - 7 hours
+const today = new Date(new Date().getTime() - 7 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
 
 export const getInventoryDashboard = async (req, res) => {
   try {
@@ -155,9 +157,12 @@ export const getInventoryDashboard = async (req, res) => {
           model: Incoming,
           required: false,
           limit: 1,
-          order: [["createdAt", "DESC"]],
+          order: [["incomingDate", "ASC"]],
           where: {
-            incomingDate: today,
+            [Op.or]: [
+              { incomingDate: today }, // Sama dengan hari ini
+              { incomingDate: { [Op.gt]: today } }, // Lebih besar dari hari ini
+            ],
           },
         },
         {

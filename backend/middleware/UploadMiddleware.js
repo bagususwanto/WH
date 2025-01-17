@@ -9,10 +9,10 @@ const excelFilter = (req, file, cb) => {
   // Memeriksa tipe MIME
   const mimetype = file.mimetype;
 
-  if (extname === ".xlsx") {
+  if (extname === ".xlsx" || extname === ".xls") {
     cb(null, true);
   } else {
-    cb("Please upload only .xlsx Excel file.", false);
+    cb("Please upload only .xlsx or .xls Excel file.", false);
   }
 };
 

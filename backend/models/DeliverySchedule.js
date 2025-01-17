@@ -33,6 +33,10 @@ const DeliverySchedule = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    rit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -40,6 +44,11 @@ const DeliverySchedule = db.define(
         model: LogImport,
         key: "id",
       },
+    },
+    flag: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
     },
   },
   {
