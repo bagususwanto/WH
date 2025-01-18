@@ -9,8 +9,25 @@ const useMasterDataService = () => {
 
   const handleError = (error, message) => {
     console.error(message, error)
-    MySwal.fire('Error', `${error.response.data.message}`, 'error')
-    throw new Error(message + error.message)
+
+    // Cek apakah ada data duplikat di error.response.data
+    if (error.response?.data?.duplicates) {
+      const duplicates = error.response.data.duplicates
+        .map((dup) => `Row: ${dup.rowNumber}, Data: ${dup.data.join(', ')}`)
+        .join('<br>')
+
+      MySwal.fire({
+        icon: 'error',
+        title: 'Duplicate Data',
+        html: `<p>${error.response.data.message}</p><p>${duplicates}</p>`,
+      })
+    } else {
+      // Tampilkan pesan error biasa
+      MySwal.fire('Error', `${error.response?.data?.message || 'Terjadi kesalahan'}`, 'error')
+    }
+
+    // Lempar error agar bisa ditangani di level berikutnya
+    throw new Error(message + (error.message || ''))
   }
 
   const getMasterData = async (api) => {

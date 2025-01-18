@@ -52,8 +52,6 @@ const Address = () => {
   const [currentAddress, setCurrentAddress] = useState({
     id: '',
     addressRackName: '',
-    storageId: '',
-    plantId: '',
   })
   const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
@@ -207,8 +205,6 @@ const Address = () => {
     setCurrentAddress({
       id: '',
       addressRackName: '',
-      storageId: '',
-      plantId: '',
     })
     setModal(true)
   }
@@ -231,14 +227,10 @@ const Address = () => {
   )
 
   const handleEditAddress = (address) => {
-    const selectedStorage = storageOptions.find((option) => option?.id === address.Storage?.id)
-    const selectedPlant = plantOptions.find((p) => p?.id === address.Storage?.Plant?.id)
     setIsEdit(true)
     setCurrentAddress({
       id: address.id,
       addressRackName: address.addressRackName,
-      storageId: selectedStorage || null,
-      plantId: selectedPlant || null,
     })
     setModal(true)
   }
@@ -394,7 +386,6 @@ const Address = () => {
       const mappedData = [
         {
           address: '',
-          storageCode: '',
         },
       ]
 
@@ -419,7 +410,7 @@ const Address = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_material') {
+        if (fileName === 'template_master_data_address') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -771,44 +762,48 @@ const Address = () => {
                       addressRackName: e.target.value.toUpperCase(),
                     })
                   }
-                  disabled={isEdit}
-                  readOnly={isEdit}
                 />
               </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <div className="form-group">
-                  <label className="mb-2 required-label" htmlFor="storageId">
-                    Storage <span>*</span>
-                  </label>
-                  <Select
-                    value={currentAddress.storageId}
-                    options={storageOptions}
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isClearable={isClearable}
-                    id="storageId"
-                    onChange={(e) => setCurrentAddress({ ...currentAddress, storageId: e })}
-                    styles={customStyles}
-                  />
-                </div>
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <div className="form-group">
-                  <label className="mb-2 required-label" htmlFor="plantId">
-                    Plant <span>*</span>
-                  </label>
-                  <Select
-                    value={currentAddress.plantId}
-                    options={plantOptions}
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isClearable={isClearable}
-                    id="plantId"
-                    onChange={(e) => setCurrentAddress({ ...currentAddress, plantId: e })}
-                    styles={customStyles}
-                  />
-                </div>
-              </CCol>
+              {isEdit && (
+                <>
+                  <CCol xs={12} md={12} lg={6} className="mb-3">
+                    <div className="form-group">
+                      <label className="mb-2 required-label" htmlFor="storageId">
+                        Storage
+                      </label>
+                      <Select
+                        value={currentAddress.storageId}
+                        options={storageOptions}
+                        className="basic-single"
+                        classNamePrefix="select"
+                        isClearable={isClearable}
+                        id="storageId"
+                        onChange={(e) => setCurrentAddress({ ...currentAddress, storageId: e })}
+                        styles={customStyles}
+                        isDisabled
+                      />
+                    </div>
+                  </CCol>
+                  <CCol xs={12} md={12} lg={6} className="mb-3">
+                    <div className="form-group">
+                      <label className="mb-2 required-label" htmlFor="plantId">
+                        Plant
+                      </label>
+                      <Select
+                        value={currentAddress.plantId}
+                        options={plantOptions}
+                        className="basic-single"
+                        classNamePrefix="select"
+                        isClearable={isClearable}
+                        id="plantId"
+                        onChange={(e) => setCurrentAddress({ ...currentAddress, plantId: e })}
+                        styles={customStyles}
+                        isDisabled
+                      />
+                    </div>
+                  </CCol>
+                </>
+              )}
             </CRow>
           </CForm>
         </CModalBody>

@@ -346,6 +346,21 @@ export const uploadIncomingPlan = async (req, res) => {
   let transaction;
 
   try {
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "incoming";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+
+    if (rows.length > 5000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
+    }
+
+    const header = rows.shift();
+    if (!validateHeaderIncoming(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
     const [logImportActual, logImportPlan] = await Promise.all([
       checkIncomingActualImport(req.body.importDate),
       checkIncomingPlanImport(req.body.importDate),
@@ -364,21 +379,6 @@ export const uploadIncomingPlan = async (req, res) => {
         req.body.importDate
       );
       await Incoming.destroy({ where: { logImportId } });
-    }
-
-    const path = `./resources/uploads/excel/${req.file.filename}`;
-    const sheetName = "incoming";
-    const rows = await readXlsxFile(path, { sheet: sheetName });
-
-    if (rows.length > 5000) {
-      return res
-        .status(400)
-        .send({ message: "Batch size exceeds the limit!, max 5000 rows data" });
-    }
-
-    const header = rows.shift();
-    if (!validateHeaderIncoming(header)) {
-      return res.status(400).send({ message: "Invalid header!" });
     }
 
     const materials = await Material.findAll({
@@ -850,6 +850,31 @@ export const uploadMasterMaterial = async (req, res) => {
         .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
 
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnIndex = 0;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = row[checkColumnIndex]; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
     if (!validateHeaderMaterial(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
@@ -996,7 +1021,7 @@ export const uploadMasterMaterial = async (req, res) => {
 };
 
 const validateHeaderAddress = (header) => {
-  const expectedHeader = ["address", "storageCode"];
+  const expectedHeader = ["address"];
   return header.every(
     (value, index) =>
       value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
@@ -1022,6 +1047,31 @@ export const uploadMasterAddress = async (req, res) => {
         .send({ message: "Batch size exceeds the limit! Max 5000 rows data." });
     }
 
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnIndex = 0;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = row[checkColumnIndex]; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
     if (!validateHeaderAddress(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
@@ -1039,75 +1089,50 @@ export const uploadMasterAddress = async (req, res) => {
       { transaction }
     );
 
+    // Pre-fetch necessary data
+    const [existingAddressRacks, existingStorages] = await Promise.all([
+      AddressRack.findAll({ where: { flag: 1 }, transaction }),
+      Storage.findAll({ where: { flag: 1 }, transaction }),
+    ]);
+
+    const addressMap = new Map(
+      existingAddressRacks.map((address) => [
+        address.addressRackName,
+        address.id,
+      ])
+    );
+
+    const storageMap = new Map(
+      existingStorages.map((storage) => [storage.addressCode, storage.id])
+    );
+
     // Prepare data for bulk operations
-    const toUpdate = [];
     const toCreate = [];
     const errors = [];
 
     for (const [index, row] of rows.entries()) {
       const address = row[0];
-      const storageCode = row[1];
 
       // Validate data
-      if (!address || typeof storageCode !== "number") {
+      if (!address) {
         errors.push({ row: index + 2, error: "Invalid data" });
         continue;
       }
 
-      const storageId = await getStorageIdByCode(storageCode);
+      const shortAddressRackName = address.substring(0, 2);
+      const storageId = storageMap.get(shortAddressRackName);
 
-      if (!storageId) {
-        errors.push({ row: index + 2, error: "Invalid storage code" });
-        continue;
-      }
+      const existingAddress = addressMap.get(address);
 
-      const existingAddress = await AddressRack.findOne({
-        where: { addressRackName: address, flag: 1 },
-      });
-
-      if (existingAddress) {
-        toUpdate.push({
-          id: existingAddress.id,
+      if (!existingAddress) {
+        toCreate.push({
+          addressRackName: address,
           storageId,
           logImport: logImport.id,
         });
       } else {
-        const existAddressStorage = await AddressRack.findOne({
-          where: { addressRackName: address, storageId, flag: 1 },
-        });
-
-        if (existAddressStorage) {
-          errors.push({
-            row: index + 2,
-            error: `Address ${address} already exists in storage ${storageCode}`,
-          });
-        } else {
-          if (
-            !toCreate.some(
-              (item) =>
-                item.addressRackName === address && item.storageId === storageId
-            )
-          ) {
-            toCreate.push({
-              addressRackName: address,
-              storageId,
-              logImport: logImport.id,
-            });
-          }
-        }
+        errors.push({ row: index + 2, error: "Address already exists" });
       }
-    }
-
-    // Perform bulk operations
-    if (toUpdate.length > 0) {
-      await Promise.all(
-        toUpdate.map((item) =>
-          AddressRack.update(
-            { storageId: item.storageId },
-            { where: { id: item.id }, transaction }
-          )
-        )
-      );
     }
 
     if (toCreate.length > 0) {
@@ -1366,6 +1391,34 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
 
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnSupplier = 0;
+    const checkColumnSchedule = 1;
+    const checkColumnRit = 2;
+    const checkColumnPlant = 3;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = `${row[checkColumnSupplier]}-${row[checkColumnSchedule]}-${row[checkColumnRit]}-${row[checkColumnPlant]}`; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
     if (!validateHeaderDeliverySchedule(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
@@ -1483,6 +1536,305 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         DeliverySchedule.update(ds, { where: { id: ds.id }, transaction })
       );
       await Promise.all(updatePromises);
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};
+
+const validateHeaderMappingMaterialAddress = (header) => {
+  const expectedHeader = ["materialNo", "addressRackName"];
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
+};
+
+export const uploadMappingMaterialAddress = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+    const header = rows.shift();
+
+    if (rows.length > 5000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnIndex = 0;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = row[checkColumnIndex]; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
+    if (!validateHeaderMappingMaterialAddress(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImportInventory = await LogImport.create(
+      {
+        typeLog: "mapping material address",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportMaterialStorage = await LogImport.create(
+      {
+        typeLog: "master material storage",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportAddress = await LogImport.create(
+      {
+        typeLog: "master address",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    // Pre-fetch necessary data
+    const [
+      existingInventories,
+      exsitingMaterials,
+      existingAddressRacks,
+      existingMaterialStorages,
+      existingStorages,
+    ] = await Promise.all([
+      Inventory.findAll({ transaction }),
+      Material.findAll({ where: { flag: 1 }, transaction }),
+      AddressRack.findAll({ where: { flag: 1 }, transaction }),
+      MaterialStorage.findAll({ where: { flag: 1 }, transaction }),
+      Storage.findAll({ where: { flag: 1 }, transaction }),
+    ]);
+
+    const inventoryMap = new Map(
+      existingInventories.map((inv) => [inv.materialId, inv])
+    );
+
+    const materialMap = new Map(
+      exsitingMaterials.map((material) => [material.materialNo, material.id])
+    );
+
+    const addressRackMap = new Map(
+      existingAddressRacks.map((addressRack) => [
+        addressRack.addressRackName,
+        addressRack,
+      ])
+    );
+
+    const materialStorageMap = new Map(
+      existingMaterialStorages.map((ms) => [
+        `${ms.materialId}-${ms.storageId}`,
+        ms,
+      ])
+    );
+
+    const storageMap = new Map(
+      existingStorages.map((storage) => [storage.addressCode, storage.id])
+    );
+
+    const newInventories = [];
+    const updatedInventories = [];
+    const newMaterialStorages = [];
+    const updatedMaterialStorages = [];
+    const newAddressRacks = [];
+    const updatedAddressRacks = [];
+    const validationErrors = [];
+
+    for (const row of rows) {
+      try {
+        const [materialNo, addressRackName] = row;
+
+        if (!materialNo || !addressRackName) {
+          throw new Error(
+            `Invalid data in row for materialNo: ${materialNo} and addressRackName: ${addressRackName}`
+          );
+        }
+
+        const materialId = materialMap.get(materialNo);
+        if (!materialId) throw new Error(`Material not found: ${materialNo}`);
+
+        const address = addressRackMap.get(addressRackName);
+        if (!address)
+          throw new Error(`Address rack not found: ${addressRackName}`);
+
+        const shortAddressRackName = addressRackName.substring(0, 2);
+        const storageId = storageMap.get(shortAddressRackName);
+        if (!storageId)
+          throw new Error(
+            `Storage not found for addressRackName: ${addressRackName}`
+          );
+
+        const existingInventory = inventoryMap.get(materialId);
+
+        const existingMaterialStorage = materialStorageMap.get(
+          `${materialId}-${storageId}`
+        );
+
+        const existingAddressRack = addressRackMap.get(addressRackName);
+
+        const inventoryData = {
+          materialId,
+          addressId: address.id,
+          logImportId: logImportInventory.id,
+        };
+
+        const materialStorageData = {
+          materialId,
+          storageId,
+          logImportId: logImportMaterialStorage.id,
+        };
+
+        const addressRackData = {
+          addressRackName,
+          storageId,
+          logImportId: logImportAddress.id,
+        };
+
+        if (existingInventory) {
+          updatedInventories.push({
+            ...inventoryData,
+            id: existingInventory.id,
+          });
+        } else {
+          newInventories.push(inventoryData);
+        }
+
+        if (existingMaterialStorage) {
+          updatedMaterialStorages.push(materialStorageData);
+        } else {
+          newMaterialStorages.push(materialStorageData);
+        }
+
+        if (existingAddressRack) {
+          updatedAddressRacks.push({
+            ...addressRackData,
+            id: existingAddressRack.id,
+          });
+        } else {
+          newAddressRacks.push(addressRackData);
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk insert new inventories
+    if (newInventories.length > 0) {
+      await Inventory.bulkCreate(newInventories, { transaction });
+    }
+
+    // Promise all update existing inventories
+    if (updatedInventories.length > 0) {
+      await Promise.all(
+        updatedInventories.map((inventory) =>
+          Inventory.update(
+            {
+              materialId: inventory.materialId,
+              addressId: inventory.addressId,
+              logImportId: logImportInventory.id,
+            },
+            { where: { id: inventory.id }, transaction }
+          )
+        )
+      );
+    }
+
+    // Promise all update existing material storages
+    if (updatedMaterialStorages.length > 0) {
+      await Promise.all(
+        updatedMaterialStorages.map((materialStorage) =>
+          MaterialStorage.update(
+            {
+              logImportId: materialStorage.logImportId,
+            },
+            {
+              where: {
+                materialId: materialStorage.materialId,
+                storageId: materialStorage.storageId,
+                flag: 1,
+              },
+              transaction,
+            }
+          )
+        )
+      );
+    }
+
+    // Bulk insert new material storages
+    if (newMaterialStorages.length > 0) {
+      await MaterialStorage.bulkCreate(newMaterialStorages, { transaction });
+    }
+
+    // Bulk insert new address racks
+    if (newAddressRacks.length > 0) {
+      await AddressRack.bulkCreate(newAddressRacks, { transaction });
+    }
+
+    // Promise all update existing address racks
+    if (updatedAddressRacks.length > 0) {
+      await Promise.all(
+        updatedAddressRacks.map((addressRack) =>
+          AddressRack.update(
+            {
+              addressRackName: addressRack.addressRackName,
+              storageId: addressRack.storageId,
+              logImportId: logImportAddress.id,
+            },
+            { where: { id: addressRack.id }, transaction }
+          )
+        )
+      );
     }
 
     await transaction.commit();

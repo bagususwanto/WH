@@ -7,6 +7,7 @@ export const getStorage = async (req, res) => {
   try {
     const response = await Storage.findAll({
       where: { flag: 1 },
+      order: [["addressCode", "ASC"]],
       include: [
         {
           model: Plant,

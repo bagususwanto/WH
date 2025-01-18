@@ -5,6 +5,8 @@ import {
   uploadMasterMaterial,
   uploadMasterAddress,
   uploadDeliveryNote,
+  uploadMasterDeliverySchedule,
+  uploadMappingMaterialAddress,
 } from "../controllers/Excel.js";
 import uploadFile from "../middleware/UploadMiddleware.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
@@ -77,6 +79,30 @@ router.post(
   checkUserWarehouse,
   uploadFile.single("file"),
   uploadDeliveryNote
+);
+router.post(
+  "/upload-delivery-schedule/:warehouseId",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  checkUserWarehouse,
+  uploadFile.single("file"),
+  uploadMasterDeliverySchedule
+);
+router.post(
+  "/upload-mapping-material-address",
+  checkRole(["super admin"]),
+  uploadFile.single("file"),
+  uploadMappingMaterialAddress
 );
 
 export default router;

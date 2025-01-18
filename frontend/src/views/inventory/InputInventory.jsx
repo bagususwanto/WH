@@ -264,7 +264,7 @@ const InputInventory = () => {
         .filter((s) => s.plantId === selectedPlant.value)
         .map((s) => ({
           value: s.id,
-          label: s.storageName,
+          label: `${s.storageName} - ${s.addressCode}`,
         }))
 
       await getInventories(selectedPlant.value, 'DIRECT')

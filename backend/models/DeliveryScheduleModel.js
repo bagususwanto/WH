@@ -3,6 +3,7 @@ import db from "../utils/Database.js";
 import LogImport from "./LogImportModel.js";
 import Supplier from "./SupplierModel.js";
 import LogMaster from "./LogMasterModel.js";
+import Plant from "./PlantModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -11,7 +12,7 @@ const DeliverySchedule = db.define(
   {
     supplierId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: Supplier,
         key: "id",
@@ -36,6 +37,14 @@ const DeliverySchedule = db.define(
     rit: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    plantId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: Plant,
+        key: "id",
+      },
     },
     logImportId: {
       type: DataTypes.INTEGER,
@@ -70,6 +79,13 @@ Supplier.hasMany(DeliverySchedule, {
 });
 DeliverySchedule.belongsTo(Supplier, {
   foreignKey: "supplierId",
+});
+
+Plant.hasMany(DeliverySchedule, {
+  foreignKey: "plantId",
+});
+DeliverySchedule.belongsTo(Plant, {
+  foreignKey: "plantId",
 });
 
 // HOOKS

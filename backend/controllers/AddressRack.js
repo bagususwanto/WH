@@ -158,36 +158,25 @@ export const createAddressRack = async (req, res) => {
   const transaction = await db.transaction();
   try {
     // Body
-    const { addressRackName, storageId, plantId } = req.body;
+    const { addressRackName } = req.body;
+
+    const shortAddressRackName = addressRackName.substring(0, 2);
+    const storage = Storage.findOne({
+      where: { addressCode: shortAddressRackName, flag: 1 },
+    });
 
     // Validasi data tersedia
-    if (!addressRackName || !storageId || !plantId) {
+    if (!addressRackName) {
       return res.status(400).json({
         message: "All fields are required",
       });
     }
 
-    // Cek storage
-    const storage = await Storage.findOne({
-      where: { id: storageId.id, flag: 1 },
-      transaction,
-    });
+    // Validasi exist storage
     if (!storage) {
       await transaction.rollback();
       return res.status(400).json({
-        message: "Storage not found",
-      });
-    }
-
-    // cek plant
-    const plant = await Plant.findOne({
-      where: { id: plantId.id, flag: 1 },
-      transaction,
-    });
-    if (!plant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Plant not found",
+        message: `Storage not found by address code ${shortAddressRackName}`,
       });
     }
 
@@ -195,7 +184,6 @@ export const createAddressRack = async (req, res) => {
     const existAddress = await AddressRack.findOne({
       where: {
         addressRackName,
-        storageId: storageId.id,
         flag: 1,
       },
       transaction,
@@ -207,26 +195,10 @@ export const createAddressRack = async (req, res) => {
       });
     }
 
-    // cek storage plant
-    const storagePlant = await Storage.findOne({
-      where: {
-        id: storageId.id,
-        plantId: plantId.id,
-        flag: 1,
-      },
-      transaction,
-    });
-    if (!storagePlant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Storage and Plant not found, please check storage and plant",
-      });
-    }
-
     await AddressRack.create(
       {
         addressRackName,
-        storageId: storageId.id,
+        storageId: storage.id,
       },
       { transaction, userId: req.user.userId }
     );
@@ -245,10 +217,10 @@ export const updateAddressRack = async (req, res) => {
   try {
     // Params dan Body
     const { id } = req.params;
-    const { addressRackName, storageId, plantId } = req.body;
+    const { addressRackName } = req.body;
 
     // Validasi data tersedia
-    if (!id || !addressRackName || !storageId || !plantId) {
+    if (!id || !addressRackName) {
       return res.status(400).json({
         message: "All fields are required",
       });
@@ -266,51 +238,9 @@ export const updateAddressRack = async (req, res) => {
       });
     }
 
-    // Cek storage
-    const storage = await Storage.findOne({
-      where: { id: storageId.id, flag: 1 },
-      transaction,
-    });
-    if (!storage) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Storage not found",
-      });
-    }
-
-    // Cek plant
-    const plant = await Plant.findOne({
-      where: { id: plantId.id, flag: 1 },
-      transaction,
-    });
-    if (!plant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "Plant not found",
-      });
-    }
-
-    // Validasi exist address (cek jika nama baru sudah ada di storage yang sama)
-    // cek storage plant
-    const storagePlant = await Storage.findOne({
-      where: {
-        id: storageId.id,
-        plantId: plantId.id,
-        flag: 1,
-      },
-      transaction,
-    });
-    if (!storagePlant) {
-      await transaction.rollback();
-      return res.status(400).json({
-        message: "StoragePlant not found, please check storage and plant",
-      });
-    }
-
     const existAddress = await AddressRack.findOne({
       where: {
         addressRackName,
-        storageId: storageId.id,
         flag: 1,
       },
       transaction,
@@ -318,14 +248,14 @@ export const updateAddressRack = async (req, res) => {
     if (existAddress) {
       await transaction.rollback();
       return res.status(400).json({
-        message: "AddressRack with this name already exists",
+        message: `AddressRack with name ${addressRackName} already exists`,
       });
     }
 
     // Perbarui data AddressRack
     await addressRack.update(
       {
-        storageId: storageId.id,
+        addressRackName,
       },
       { where: { id }, transaction, userId: req.user.userId }
     );
