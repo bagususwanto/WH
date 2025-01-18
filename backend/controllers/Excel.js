@@ -705,7 +705,7 @@ const validateHeaderMaterial = (header) => {
     "mrpType",
     "minStock",
     "maxStock",
-    "img",
+    // "img",
     "minOrder",
     "packaging",
     "unitPackaging",
@@ -912,8 +912,6 @@ export const uploadMasterMaterial = async (req, res) => {
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
 
-    console.log("Supplier Map:", Array.from(supplierMap.entries()));
-
     const newMaterials = [];
     const updatedMaterials = [];
     const validationErrors = [];
@@ -929,7 +927,7 @@ export const uploadMasterMaterial = async (req, res) => {
           mrpType,
           minStock,
           maxStock,
-          img,
+          // img,
           minOrder,
           packaging,
           unitPackaging,
@@ -944,7 +942,7 @@ export const uploadMasterMaterial = async (req, res) => {
           !uom ||
           !typeMat ||
           !mrpType ||
-          !img ||
+          // || !img
           !categoryName
         ) {
           throw new Error(`Invalid data in row: ${materialNo}`);
@@ -969,7 +967,7 @@ export const uploadMasterMaterial = async (req, res) => {
           mrpType,
           minStock,
           maxStock,
-          img,
+          // img,
           minOrder,
           packagingId: await checkPackaging(
             packaging,
@@ -1439,10 +1437,12 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
     const logImportId = logImport.id;
 
     // Pre-fetch necessary data
-    const [existingSuppliers, existingDeliverySchedules] = await Promise.all([
-      Supplier.findAll({ where: { flag: 1 }, transaction }),
-      DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
-    ]);
+    const [existingSuppliers, existingDeliverySchedules, existingPlants] =
+      await Promise.all([
+        Supplier.findAll({ where: { flag: 1 }, transaction }),
+        DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
+        Plant.findAll({ where: { flag: 1 }, transaction }),
+      ]);
 
     const supplierMap = new Map(
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
@@ -1450,9 +1450,13 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
 
     const deliveryScheduleMap = new Map(
       existingDeliverySchedules.map((ds) => [
-        `${ds.supplierId}-${ds.schedule}-${ds.rit}`,
+        `${ds.supplierId}-${ds.schedule}-${ds.rit}-${ds.plantId}`,
         ds,
       ])
+    );
+
+    const plantMap = new Map(
+      existingPlants.map((plant) => [plant.plantCode, plant.id])
     );
 
     const daysMap = new Map([
@@ -1477,6 +1481,7 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         const departure = row[3];
         const truckStation = row[4];
         const rit = row[5];
+        const plantCode = row[6];
 
         if (
           !supplierCode ||
@@ -1484,7 +1489,8 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
           !arrival ||
           !departure ||
           !truckStation ||
-          !rit
+          !rit ||
+          !plantCode
         ) {
           throw new Error(
             `Invalid data in row for supplierCode: ${supplierCode}`
@@ -1495,11 +1501,14 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         const supplierId = supplierMap.get(supplierCode);
         if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
 
+        const plantId = plantMap.get(plantCode);
+        if (!plantId) throw new Error(`Plant not found: ${plantCode}`);
+
         const scheduleCode = daysMap.get(schedule);
-        const supplierIdScheduleAndRit = `${supplierId}-${scheduleCode}-${rit}`;
+        const supplierIdScheduleRitAndPlant = `${supplierId}-${scheduleCode}-${rit}-${plantId}`;
 
         const existingDeliverySchedule = deliveryScheduleMap.get(
-          supplierIdScheduleAndRit
+          supplierIdScheduleRitAndPlant
         );
 
         const deliveryScheduleData = {
@@ -1509,6 +1518,7 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
           departure,
           truckStation,
           rit,
+          plantId,
           logImportId,
         };
 

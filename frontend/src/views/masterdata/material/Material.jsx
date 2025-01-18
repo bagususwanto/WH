@@ -626,7 +626,7 @@ const Material = () => {
           mrpType: '',
           minStock: '',
           maxStock: '',
-          img: '',
+          // img: '',
           minOrder: '',
           packaging: '',
           unitPackaging: '',
