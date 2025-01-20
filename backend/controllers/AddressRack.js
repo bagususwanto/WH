@@ -161,9 +161,11 @@ export const createAddressRack = async (req, res) => {
     const { addressRackName } = req.body;
 
     const shortAddressRackName = addressRackName.substring(0, 2);
-    const storage = Storage.findOne({
+    const storage = await Storage.findOne({
       where: { addressCode: shortAddressRackName, flag: 1 },
     });
+
+    console.log(storage);
 
     // Validasi data tersedia
     if (!addressRackName) {
