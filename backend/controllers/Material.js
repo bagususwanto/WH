@@ -15,10 +15,6 @@ import db from "../utils/Database.js";
 
 export const getMaterial = async (req, res) => {
   try {
-    let response = [];
-    let offset = 0;
-    const limit = 1000;
-    let batch;
     const { storageId, plantId, type } = req.query;
 
     let whereCondition = { flag: 1 };
@@ -37,95 +33,82 @@ export const getMaterial = async (req, res) => {
       whereConditionPlant.id = plantId;
     }
 
-    do {
-      // Fetch a batch of 1000 records
-      batch = await Material.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        subQuery: false,
-        include: [
-          {
-            model: Packaging,
-            required: false,
-            where: { flag: 1 },
-          },
-          {
-            model: Category,
-            where: { flag: 1 },
-          },
-          {
-            model: Supplier,
-            required: false,
-            where: { flag: 1 },
-          },
-          {
-            model: Storage,
-            where: whereConditionStorage,
-            required: true,
-            include: [
-              {
-                model: Plant,
-                where: whereConditionPlant,
-                required: true,
-              },
-            ],
-          },
-          {
-            model: LogMaster,
-            required: false,
-            as: "createdBy",
-            attributes: ["id", "createdAt", "userId"],
-            where: { masterType: "Material", action: "create" },
-            include: [
-              {
-                model: User,
-                required: false,
-                attributes: ["id", "username"],
-              },
-            ],
-          },
-          {
-            model: LogMaster,
-            required: false,
-            as: "updatedBy",
-            attributes: ["id", "createdAt", "userId"],
-            where: { masterType: "Material" },
-            include: [
-              {
-                model: User,
-                required: false,
-                attributes: ["id", "username"],
-              },
-            ],
-            order: [["createdAt", "DESC"]],
-            limit: 1,
-          },
-          {
-            model: LogImport,
-            attributes: ["id", "createdAt", "userId"],
-            required: false,
-            include: [
-              {
-                model: User,
-                required: false,
-                attributes: ["id", "username"],
-              },
-            ],
-          },
-        ],
-      });
-
-      // Add the batch to the response array
-      response = response.concat(batch);
-
-      // Update offset for the next batch
-      offset += limit;
-    } while (batch.length === limit); // Continue fetching until we get less than 1000 records
-
-    if (!response || response.length === 0) {
-      return res.status(404).json({ message: "Materials not found" });
-    }
+    // Fetch a batch of 1000 records
+    const response = await Material.findAll({
+      where: whereCondition,
+      subQuery: false,
+      include: [
+        {
+          model: Packaging,
+          required: false,
+          where: { flag: 1 },
+        },
+        {
+          model: Category,
+          where: { flag: 1 },
+        },
+        {
+          model: Supplier,
+          required: false,
+          where: { flag: 1 },
+        },
+        {
+          model: Storage,
+          through: { attributes: [] },
+          where: whereConditionStorage,
+          required: true,
+          include: [
+            {
+              model: Plant,
+              where: whereConditionPlant,
+              required: true,
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Material", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Material" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+        {
+          model: LogImport,
+          attributes: ["id", "createdAt", "userId"],
+          required: false,
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+      ],
+    });
 
     res.status(200).json(response);
   } catch (error) {
@@ -349,7 +332,7 @@ export const updateMaterial = async (req, res) => {
       !categoryId ||
       !supplierId ||
       !minOrder ||
-      minOrder === 0 
+      minOrder === 0
       // ||
       // !storageId ||
       // !plantId
