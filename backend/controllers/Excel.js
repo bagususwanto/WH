@@ -1683,10 +1683,7 @@ export const uploadMappingMaterialAddress = async (req, res) => {
     );
 
     const materialStorageMap = new Map(
-      existingMaterialStorages.map((ms) => [
-        `${ms.materialId}-${ms.storageId}`,
-        ms,
-      ])
+      existingMaterialStorages.map((ms) => [ms.materialId, ms])
     );
 
     const storageMap = new Map(
@@ -1727,9 +1724,7 @@ export const uploadMappingMaterialAddress = async (req, res) => {
 
         const existingInventory = inventoryMap.get(materialId);
 
-        const existingMaterialStorage = materialStorageMap.get(
-          `${materialId}-${storageId}`
-        );
+        const existingMaterialStorage = materialStorageMap.get(materialId);
 
         const existingAddressRack = addressRackMap.get(addressRackName);
 
