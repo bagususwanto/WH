@@ -46,6 +46,11 @@ const DeliverySchedule = db.define(
         key: "id",
       },
     },
+    active: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,
