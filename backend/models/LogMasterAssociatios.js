@@ -1,6 +1,7 @@
 import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
 import CostCenter from "./CostCenterModel.js";
+import DeliverySchedule from "./DeliveryScheduleModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
 import GIC from "./GICModel.js";
@@ -460,6 +461,25 @@ export default function logMasterAssociations() {
     constraints: false,
   });
   LogMaster.belongsTo(MaterialStorage, {
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+    constraints: false,
+  });
+
+  // DeliverySchedule->LogMaster
+  DeliverySchedule.hasMany(LogMaster, {
+    as: "createdBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+    constraints: false,
+  });
+  DeliverySchedule.hasMany(LogMaster, {
+    as: "updatedBy",
+    foreignKey: "masterId",
+    onDelete: "NO ACTION",
+    constraints: false,
+  });
+  LogMaster.belongsTo(DeliverySchedule, {
     foreignKey: "masterId",
     onDelete: "NO ACTION",
     constraints: false,

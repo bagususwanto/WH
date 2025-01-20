@@ -15,6 +15,7 @@ import Packaging from "../models/PackagingModel.js";
 import DeliverySchedule from "../models/DeliveryScheduleModel.js";
 import DeliveryNote from "../models/DeliveryNoteModel.js";
 import XLSX from "xlsx";
+import Plant from "../models/PlantModel.js";
 
 const BATCH_SIZE = 1000; // Set batch size sesuai kebutuhan
 
@@ -1358,6 +1359,7 @@ const validateHeaderDeliverySchedule = (header) => {
     "departure(time)",
     "truckStation",
     "rit",
+    "plantCode",
   ];
   return header.every(
     (value, index) =>
@@ -1439,9 +1441,9 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
     // Pre-fetch necessary data
     const [existingSuppliers, existingDeliverySchedules, existingPlants] =
       await Promise.all([
-        Supplier.findAll({ where: { flag: 1 }, transaction }),
-        DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
-        Plant.findAll({ where: { flag: 1 }, transaction }),
+        Supplier.findAll({ where: { flag: 1 } }),
+        DeliverySchedule.findAll({ where: { flag: 1 } }),
+        Plant.findAll({ where: { flag: 1 } }),
       ]);
 
     const supplierMap = new Map(
@@ -1537,7 +1539,7 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
 
     // Bulk insert new materials
     if (newDeliverySchedules.length > 0) {
-      await Material.bulkCreate(newDeliverySchedules, { transaction });
+      await DeliverySchedule.bulkCreate(newDeliverySchedules, { transaction });
     }
 
     // Bulk update existing materials

@@ -47,6 +47,7 @@ import goodIssueRouter from "./routes/GoodIssueRouter.js";
 import packagingRouter from "./routes/PackagingRouter.js";
 import redpostRouter from "./routes/RedpostRouter.js";
 import materialStorageRouter from "./routes/MaterialStorageRouter.js";
+import deliveryScheduleRouter from "./routes/DeliveryScheduleRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 
@@ -132,6 +133,7 @@ app.use("/api", userPlantRouter);
 app.use("/api", userWarehouseRouter);
 app.use("/api", materialStorageRouter);
 app.use("/api", packagingRouter);
+app.use("/api", deliveryScheduleRouter);
 
 // Harcoded router
 app.use("/api", harcodedRouter);
