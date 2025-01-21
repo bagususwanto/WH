@@ -7,13 +7,18 @@ import User from "../models/UserModel.js";
 
 export const getDeliverySchedule = async (req, res) => {
   try {
-    const { page = 1, limit = 10, plantId, day } = req.query;
+    const {
+      // page = 1,
+      // limit = 10,
+      plantId,
+      day,
+    } = req.query;
 
     let whereCondition = { flag: 1 };
     let whereConditionPlant = { flag: 1 };
 
     // Hitung nilai offset berdasarkan halaman
-    const offset = (page - 1) * limit;
+    // const offset = (page - 1) * limit;
 
     if (plantId) {
       whereConditionPlant.id = plantId;
@@ -82,39 +87,40 @@ export const getDeliverySchedule = async (req, res) => {
           ],
         },
       ],
-      limit: parseInt(limit), // Tentukan jumlah data yang diambil (limit)
-      offset: parseInt(offset), // Tentukan dari data ke berapa (offset)
+      // limit: parseInt(limit), // Tentukan jumlah data yang diambil (limit)
+      // offset: parseInt(offset), // Tentukan dari data ke berapa (offset)
     });
 
     // Hitung total data untuk pagination
-    const totalData = await DeliverySchedule.count({
-      where: whereCondition,
-      include: [
-        {
-          model: Supplier,
-          required: true,
-          where: { flag: 1 },
-        },
-        {
-          model: Plant,
-          required: true,
-          where: whereConditionPlant,
-        },
-      ],
-    });
+    // const totalData = await DeliverySchedule.count({
+    //   where: whereCondition,
+    //   include: [
+    //     {
+    //       model: Supplier,
+    //       required: true,
+    //       where: { flag: 1 },
+    //     },
+    //     {
+    //       model: Plant,
+    //       required: true,
+    //       where: whereConditionPlant,
+    //     },
+    //   ],
+    // });
 
-    // Menghitung total halaman
-    const totalPages = Math.ceil(totalData / limit);
+    // // Menghitung total halaman
+    // const totalPages = Math.ceil(totalData / limit);
 
     // Kirim data dan informasi pagination
     res.status(200).json({
       data,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalData,
-        limit: parseInt(limit),
-      },
+      message: "Data Delivery Schedule Found",
+      // pagination: {
+      //   currentPage: page,
+      //   totalPages,
+      //   totalData,
+      //   limit: parseInt(limit),
+      // },
     });
   } catch (error) {
     console.log(error);
