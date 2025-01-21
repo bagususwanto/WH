@@ -109,7 +109,7 @@ const useNavigation = () => {
         {
           component: CNavGroup,
           name: 'TWIIS-Inventory',
-          to: '/order',
+          to: '/inventory',
           icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
           items: [
             {
@@ -123,6 +123,24 @@ const useNavigation = () => {
               name: 'Data Inventory',
               to: '/inventory/data',
               icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Receiving',
+          to: '/receiving',
+          icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Receiving',
+              to: 'dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.RECEIVING_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
+              },
             },
           ],
         },
@@ -144,7 +162,7 @@ const useNavigation = () => {
         {
           component: CNavGroup,
           name: 'TWIIS-Inventory',
-          to: '/order',
+          to: '/inventory',
           icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
           items: [
             {
@@ -152,6 +170,24 @@ const useNavigation = () => {
               name: 'Data Inventory',
               to: '/inventory/data',
               icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Receiving',
+          to: '/receiving',
+          icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Receiving',
+              to: 'dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.RECEIVING_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
+              },
             },
           ],
         },

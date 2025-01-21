@@ -1236,24 +1236,18 @@ export const uploadDeliveryNote = async (req, res) => {
     // Pre-fetch necessary data
     const [
       existingMaterials,
-      existingSuppliers,
       existingInventories,
-      existingDeliverySchedules,
       existingDeliveryNotes,
+      existingSuppliers,
     ] = await Promise.all([
-      Material.findAll({ where: { flag: 1 }, transaction }),
-      Supplier.findAll({ where: { flag: 1 }, transaction }),
-      Inventory.findAll({ transaction }),
-      DeliverySchedule.findAll({ where: { flag: 1 }, transaction }),
-      DeliveryNote.findAll({ transaction }),
+      Material.findAll({ where: { flag: 1 } }),
+      Inventory.findAll(),
+      DeliveryNote.findAll(),
+      Supplier.findAll({ where: { flag: 1 } }),
     ]);
 
     const materialMap = new Map(
       existingMaterials.map((mat) => [mat.materialNo, mat.id])
-    );
-
-    const supplierMap = new Map(
-      existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
 
     const inventoryMap = new Map(
@@ -1264,17 +1258,22 @@ export const uploadDeliveryNote = async (req, res) => {
       existingDeliveryNotes.map((del) => [del.dnNumber, del.id])
     );
 
+    const supplierMap = new Map(
+      existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
+    );
+
     const newIncomings = [];
     const newDeliveryNotes = [];
     const validationErrors = [];
+    const processedDNNumbers = new Set();
 
     for (const row of rows) {
       try {
-        const dnNumber = row[1];
+        const dnNumber = Number(row[1]);
         const deliveryDate = row[4];
         const materialNo = row[9];
-        const planning = row[11];
-        const supplierCode = row[19];
+        const planning = Number(row[11]);
+        const supplierCode = String(row[19]?.toString().trim());
 
         if (
           !materialNo ||
@@ -1286,29 +1285,45 @@ export const uploadDeliveryNote = async (req, res) => {
           throw new Error(`Invalid data in row: ${row.join(", ")}`);
         }
 
-        // Validate and get material ID
         const materialId = materialMap.get(materialNo);
+        const inventoryId = inventoryMap.get(materialId);
+        const existingSupplier = supplierMap.get(supplierCode);
+        const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+
         if (!materialId) {
-          throw new Error(`Material not found: ${materialNo}`);
+          validationErrors.push({ error: `Material not found: ${materialNo}` });
+          continue;
         }
 
-        // Validate and get supplier ID
-        const supplierId = supplierMap.get(supplierCode);
-        if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
+        if (!inventoryId) {
+          validationErrors.push({
+            error: `Inventory not found for material: ${materialNo}`,
+          });
+          continue;
+        }
 
-        // Validate and get inventory ID
-        const inventoryId = inventoryMap.get(materialId);
-        if (!inventoryId)
-          throw new Error(`Material Number not found: ${materialNo}`);
+        if (!existingSupplier) {
+          validationErrors.push({
+            error: `Supplier not found: ${supplierCode}`,
+          });
+          continue;
+        }
 
-        const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+        if (existingDeliveryNote) {
+          validationErrors.push({
+            error: `Delivery Note already exists: ${dnNumber}`,
+          });
+          continue;
+        }
 
         const incomingData = {
           inventoryId,
           planning,
           incomingDate: deliveryDate,
           status: "not complete",
-          logImport: logImportIncoming.id,
+          dnNumber,
+          deliveryNoteId: null,
+          logImportId: logImportIncoming.id,
         };
 
         const deliveryNoteData = {
@@ -1316,23 +1331,53 @@ export const uploadDeliveryNote = async (req, res) => {
           arrivalPlanDate: deliveryDate,
           departurePlanDate: deliveryDate,
           status: "schedule plan",
-          logImport: logImportDN.id,
+          logImportId: logImportDN.id,
         };
 
-        if (existingDeliveryNote) {
-          throw new Error(`Delivery Note already exists: ${dnNumber}`);
-        } else {
+        if (processedDNNumbers.has(dnNumber)) {
+          newIncomings.push(incomingData);
+        }
+
+        if (
+          materialId &&
+          inventoryId &&
+          existingSupplier &&
+          !existingDeliveryNote &&
+          !processedDNNumbers.has(dnNumber)
+        ) {
           newIncomings.push(incomingData);
           newDeliveryNotes.push(deliveryNoteData);
+          processedDNNumbers.add(dnNumber);
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
       }
     }
 
-    // Bulk insert new DN
+    // Bulk insert new Delivery Notes
     if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
-      await DeliveryNote.bulkCreate(newDeliveryNotes, { transaction });
+      const createdDeliveryNotes = await DeliveryNote.bulkCreate(
+        newDeliveryNotes,
+        {
+          transaction,
+          returning: true, // Mengembalikan data hasil insert
+        }
+      );
+
+      // Map DN Number ke ID untuk lookup cepat
+      const createdDNMap = new Map(
+        createdDeliveryNotes.map((dn) => [dn.dnNumber, dn.id])
+      );
+
+      // Update Incoming Data dengan deliveryNoteId menggunakan createdDNMap
+      newIncomings.forEach((incoming) => {
+        const deliveryNoteId = createdDNMap.get(incoming.dnNumber);
+        if (deliveryNoteId) {
+          incoming.deliveryNoteId = deliveryNoteId;
+        }
+      });
+
+      // Bulk insert new Incoming
       await Incoming.bulkCreate(newIncomings, { transaction });
     }
 

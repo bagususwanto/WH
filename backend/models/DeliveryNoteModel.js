@@ -17,7 +17,7 @@ const DeliveryNote = db.define(
     },
     arrivalPlanTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     arrivalActualDate: {
       type: DataTypes.DATEONLY,
@@ -33,7 +33,7 @@ const DeliveryNote = db.define(
     },
     departurePlanTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     departureActualDate: {
       type: DataTypes.DATEONLY,
@@ -45,6 +45,10 @@ const DeliveryNote = db.define(
     },
     status: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    rit: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     logImportId: {
