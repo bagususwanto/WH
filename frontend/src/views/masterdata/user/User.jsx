@@ -1065,11 +1065,7 @@ const User = () => {
                         onChange={(e) =>
                           setCurrentUser({
                             ...currentUser,
-                            name: e.target.value
-                              .toLowerCase()
-                              .split(' ')
-                              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                              .join(' '),
+                            name: e.target.value,
                           })
                         }
                       />

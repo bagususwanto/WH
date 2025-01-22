@@ -1044,6 +1044,13 @@ export const changePassword = async (req, res) => {
       });
     }
 
+    // Validasi panjang password baru
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
+    }
+
     // Cari user berdasarkan userId
     const user = await User.findByPk(userId);
     if (!user) {
@@ -1053,7 +1060,7 @@ export const changePassword = async (req, res) => {
     // Periksa apakah password lama sesuai
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Old password is incorrect" });
+      return res.status(400).json({ message: "Incorrect old password" });
     }
 
     // Hash password baru
@@ -1067,6 +1074,6 @@ export const changePassword = async (req, res) => {
     res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    res.status(500).json({ message: "An error occurred on the server." });
   }
 };

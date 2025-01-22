@@ -11,7 +11,6 @@ import { status } from "./HarcodedData.js";
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
     const dnNo = req.query.dn;
-    const today = new Date().getDay();
     let rit = 1;
 
     const checkRitDnNo = await DeliveryNote.findOne({
@@ -53,7 +52,7 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
           required: false,
           where: {
             schedule: day,
-            // rit: rit,
+            rit: rit,
             flag: 1,
           },
           include: [
@@ -114,9 +113,10 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
           materialNo: material.materialNo,
           address: material.Inventory.Address_Rack.addressRackName,
           description: material.description,
-          planQuantity: incoming.planning,
-          actualQuantity: incoming.actual,
-          discrepancy: incoming.actual - incoming.planning,
+          reqQuantity: incoming.planning,
+          receivedQuantity: incoming.actual,
+          remain: incoming.actual - incoming.planning,
+          status: incoming.status,
         }))
       );
 
@@ -124,6 +124,9 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
         supplierName: item.supplierName,
         supplierCode: item.supplierCode,
         day: dayName,
+        arrivalPlanDate:
+          item.Materials[0].Inventory.Incomings[0].Delivery_Note
+            .arrivalPlanDate,
         arrivalPlanTime: new Date(schedule.arrival).toISOString().slice(11, 16),
         departurePlanTime: new Date(schedule.departure)
           .toISOString()

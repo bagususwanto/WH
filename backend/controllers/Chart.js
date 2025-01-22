@@ -157,7 +157,15 @@ export const getInventoryDashboard = async (req, res) => {
           model: Incoming,
           required: false,
           limit: 1,
-          order: [["incomingDate", "ASC"]],
+          order: [
+            [
+              Sequelize.literal(
+                `CASE WHEN incomingDate = '${today}' THEN 0 ELSE 1 END`
+              ),
+              "ASC",
+            ],
+            ["incomingDate", "ASC"],
+          ],
           where: {
             [Op.or]: [
               { incomingDate: today }, // Sama dengan hari ini

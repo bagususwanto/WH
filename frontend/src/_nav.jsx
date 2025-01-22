@@ -229,7 +229,7 @@ const useNavigation = () => {
           component: CNavGroup,
           name: 'TWIIS-Confirmation',
           to: '/order',
-          icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+          icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
           items: [
             {
               component: CNavItem,
@@ -300,7 +300,7 @@ const useNavigation = () => {
         component: CNavGroup,
         name: 'TWIIS-Confirmation',
         to: '/order',
-        icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
         items: [
           {
             component: CNavItem,
