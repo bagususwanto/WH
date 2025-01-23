@@ -6,10 +6,18 @@ import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import Plant from "../models/PlantModel.js";
 import Supplier from "../models/SupplierModel.js";
+import Warehouse from "../models/WarehouseModel.js";
+import db from "../utils/Database.js";
+import { handleUpdateIncoming } from "./ManagementStock.js";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
     const dn = req.query.dn;
+
+    // validasi max dn 10 digit dan hanya angka
+    if (dn.length > 10 || dn.length < 10 || !/^\d+$/.test(dn)) {
+      return res.status(400).json({ message: "Invalid Delivery Note Number" });
+    }
 
     const checkDnNo = await DeliveryNote.findOne({
       where: { dnNumber: dn },
@@ -52,14 +60,6 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
           model: DeliverySchedule,
           required: true,
           where: whereConditionDs,
-          include: [
-            {
-              model: Plant,
-              required: true,
-              attributes: ["id", "plantName", "plantCode"],
-              where: { flag: 1 },
-            },
-          ],
         },
         {
           model: Material,
@@ -74,9 +74,33 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
               include: [
                 {
                   model: AddressRack,
-                  required: false,
+                  required: true,
                   attributes: ["id", "addressRackName"],
                   where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id", "storageName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id", "plantName"],
+                          where: { flag: 1 },
+                          include: [
+                            {
+                              model: Warehouse,
+                              required: true,
+                              attributes: ["id", "warehouseName"],
+                              where: { flag: 1 },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   model: Incoming,
@@ -106,6 +130,9 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
     const mappedData = data.map((item) => {
       const deliveryNotes = item.Materials.flatMap((material) =>
         material.Inventory.Incomings.map((incoming) => ({
+          incomingId: incoming.id,
+          warehouseId:
+            material.Inventory.Address_Rack.Storage.Plant.Warehouse.id,
           dnNumber: incoming.Delivery_Note.dnNumber,
           materialNo: material.materialNo,
           address: material.Inventory.Address_Rack.addressRackName,
@@ -169,50 +196,58 @@ export const submitDeliveryNote = async (req, res) => {
       departureActualDate,
       departureActualTime,
       rit,
+      incomingIds,
+      receivedQuantities,
     } = req.body;
+    const userId = req.user.userId;
 
-    const checkDnNo = await DeliveryNote.findOne({
-      where: { dnNumber },
-      include: [
-        {
-          model: Incoming,
-          required: true,
-          attributes: ["id", "planning", "actual", "status"],
-          include: [
-            {
-              model: Inventory,
-              required: true,
-              attributes: ["id", "materialId", "addressId"],
-              include: [
-                {
-                  model: Material,
-                  required: true,
-                  attributes: ["id", "materialNo", "description", "uom"],
-                  where: { flag: 1 },
-                  include: [
-                    {
-                      model: Supplier,
-                      required: true,
-                      attributes: ["id", "supplierName", "supplierCode"],
-                      where: { flag: 1 },
-                      include: [
-                        {
-                          model: DeliverySchedule,
-                          required: true,
-                          where: {
-                            rit,
+    const transaction = await db.transaction();
+
+    const checkDnNo = await DeliveryNote.findOne(
+      {
+        where: { dnNumber },
+        include: [
+          {
+            model: Incoming,
+            required: true,
+            attributes: ["id", "planning", "actual", "status"],
+            include: [
+              {
+                model: Inventory,
+                required: true,
+                attributes: ["id", "materialId", "addressId"],
+                include: [
+                  {
+                    model: Material,
+                    required: true,
+                    attributes: ["id", "materialNo", "description", "uom"],
+                    where: { flag: 1 },
+                    include: [
+                      {
+                        model: Supplier,
+                        required: true,
+                        attributes: ["id", "supplierName", "supplierCode"],
+                        where: { flag: 1 },
+                        include: [
+                          {
+                            model: DeliverySchedule,
+                            required: true,
+                            where: {
+                              rit,
+                            },
                           },
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      { transaction }
+    );
 
     // Check if DN Number is not found
     if (!checkDnNo) {
@@ -226,18 +261,65 @@ export const submitDeliveryNote = async (req, res) => {
         .json({ message: "Delivery Note already processed" });
     }
 
-    // await DeliveryNote.update(
-    //   {
-    //     arrivalActualTime,
-    //     status,
-    //   },
-    //   {
-    //     where: { dnNumber },
-    //   }
-    // );
+    const arrivalPlanDate = checkDnNo.arrivalPlanDate;
+    const arrivalPlanTime =
+      checkDnNo.Incomings[0].Inventory.Material.Supplier.Delivery_Schedules[0]
+        .arrival;
+    const departurePlanTime =
+      checkDnNo.Incomings[0].Inventory.Material.Supplier.Delivery_Schedules[0]
+        .departure;
+
+    // Combine actual and plan dates with times
+    const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
+    const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
+
+    // Calculate delay
+    const delay = actualArrival - plannedArrival;
+    // console semua data
+    console.log("delay", delay);
+    console.log("arrivalPlanDate", arrivalPlanDate);
+    console.log("arrivalPlanTime", arrivalPlanTime);
+    console.log("arrivalActualDate", arrivalActualDate);
+    console.log("arrivalActualTime", arrivalActualTime);
+    console.log("departurePlanTime", departurePlanTime);
+    console.log("departureActualDate", departureActualDate);
+    console.log("departureActualTime", departureActualTime);
+    console.log("rit", rit);
+    console.log("incomingIds", incomingIds);
+    console.log("receivedQuantities", receivedQuantities);
+    console.log("userId", userId);
+    return;
+
+    await DeliveryNote.update(
+      {
+        status: delay > 0 ? "delayed" : "on schedule",
+        arrivalPlanTime,
+        arrivalActualDate,
+        arrivalActualTime,
+        departurePlanTime,
+        departureActualDate,
+        departureActualTime,
+        rit,
+      },
+      {
+        where: { dnNumber },
+        transaction,
+      }
+    );
+
+    // Update data in Incoming
+    await handleUpdateIncoming(
+      incomingIds,
+      receivedQuantities,
+      userId,
+      transaction
+    );
+
+    await transaction.commit();
 
     res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
+    await transaction.rollback();
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
