@@ -7,6 +7,7 @@ import Material from "../models/MaterialModel.js";
 import Plant from "../models/PlantModel.js";
 import Supplier from "../models/SupplierModel.js";
 import Warehouse from "../models/WarehouseModel.js";
+import Storage from "../models/StorageModel.js";
 import db from "../utils/Database.js";
 import { handleUpdateIncoming } from "./ManagementStock.js";
 
