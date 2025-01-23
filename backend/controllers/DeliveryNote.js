@@ -6,30 +6,20 @@ import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
 import Plant from "../models/PlantModel.js";
 import Supplier from "../models/SupplierModel.js";
-import { status } from "./HarcodedData.js";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
-    const dnNo = req.query.dn;
-    let rit = 1;
+    const { dn, rit } = req.query;
 
-    const checkRitDnNo = await DeliveryNote.findOne({
-      where: { dnNumber: dnNo },
-    });
-    if (!checkRitDnNo) {
-      return res.status(404).json({ message: "Delivery Note Not Found" });
-    }
-
-    if (checkRitDnNo.rit) {
-      rit = checkRitDnNo.rit + 1;
-    }
-
-    const dn = await DeliveryNote.findOne({
-      where: { dnNumber: dnNo },
-      attributes: ["id", "arrivalPlanDate"],
+    const checkDnNo = await DeliveryNote.findOne({
+      where: { dnNumber: dn },
     });
 
-    const tanggal = new Date(dn.arrivalPlanDate);
+    if (!checkDnNo) {
+      return res.status(404).json({ message: "Delivery Note not found" });
+    }
+
+    const tanggal = new Date(checkDnNo.arrivalPlanDate);
     const day = tanggal.getDay();
 
     const days = [
@@ -49,16 +39,15 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       include: [
         {
           model: DeliverySchedule,
-          required: false,
+          required: true,
           where: {
             schedule: day,
-            rit: rit,
             flag: 1,
           },
           include: [
             {
               model: Plant,
-              required: false,
+              required: true,
               attributes: ["id", "plantName", "plantCode"],
               where: { flag: 1 },
             },
@@ -89,7 +78,7 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
                       model: DeliveryNote,
                       required: true,
                       where: {
-                        dnNumber: dnNo,
+                        dnNumber: dn,
                       },
                     },
                   ],
@@ -120,9 +109,11 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
         }))
       );
 
-      const vendorSchedules = item.Delivery_Schedules.flatMap((schedule) => ({
+      const vendorSchedules = item.Delivery_Schedules?.flatMap((schedule) => ({
         supplierName: item.supplierName,
         supplierCode: item.supplierCode,
+        truckStation: schedule.truckStation,
+        rit: schedule.rit,
         day: dayName,
         arrivalPlanDate:
           item.Materials[0].Inventory.Incomings[0].Delivery_Note
@@ -140,14 +131,6 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
               .slice(11, 16)
           : null,
         status: item.Materials[0].Inventory.Incomings[0].Delivery_Note.status,
-        delayTime: item.Materials[0].Inventory.Incomings[0].Delivery_Note
-          .arrivalActualTime
-          ? new Date(
-              item.Materials[0].Inventory.Incomings[0].Delivery_Note.arrivalActualTime
-            )
-              .toISOString()
-              .slice(11, 16)
-          : null - new Date(schedule.departure).toISOString().slice(11, 16),
       }));
 
       return {
