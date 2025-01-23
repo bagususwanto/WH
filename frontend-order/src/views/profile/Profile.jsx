@@ -47,6 +47,9 @@ const Profile = () => {
   const [userData, setUserData] = useState([])
   const [structureData, setStructureData] = useState([])
   const [notifProfile, setnotifProfile] = useState([])
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [notifCount, setNotifCount] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
@@ -56,28 +59,51 @@ const Profile = () => {
   const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
   const { roleName, userId } = useVerify() // Pastikan `userId` diperoleh dari konteks atau props
   const apiProfile = 'profile'
-  const apiStructure = 'structure-approval'
+  const [passData, setPassData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+
   const apiPassword = 'change-password'
   // Fetch user profile
 
   const fetchProfileData = async () => {
     try {
-      // Mengambil data profil menggunakan API
       const profileData = await getMasterData(apiProfile)
       console.log('Profile data fetched successfully:', profileData)
-
-      if (profileData) {
-        setUserData(profileData) // Set data profil ke state userData
-      }
+      // Ensure the data is set as an array
+      setUserData(profileData.data)
     } catch (error) {
       console.error('Error fetching profile data:', error)
     }
   }
 
+  console.log('userData', userData)
+
   // Memanggil fetchProfileData saat komponen di-mount
   useEffect(() => {
     fetchProfileData()
   }, [])
+
+  const handlePasswordChange = async () => {
+    const passDataToSave = { ...passData };
+
+    if (newPassword !== confirmPassword) {
+      return; // Don't continue if passwords don't match
+    }
+
+    try {
+      await postMasterData(apiPassword, passDataToSave);
+
+      setModalPassVisible(false); // Close modal after success
+      clearForm(); // Clear form fields or data
+
+    } catch (error) {
+      console.error('Error changing password:', error);
+    }
+};
+  
 
   // Personal Data and Contact Data Arrays
   const personalData = [
@@ -141,6 +167,17 @@ const Profile = () => {
     setVisibleNotifCount((prevCount) => prevCount + 7) // Menambah 7 notifikasi lagi
   }
 
+  console.log('passData', passData)
+
+  const clearForm = () => {
+    // Reset the password data fields
+    setPassData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+};
+
   return (
     <CTabs activeItemKey={'notifikasi'}>
       <CTabList variant="underline-border">
@@ -203,20 +240,18 @@ const Profile = () => {
               <CCol xs={4}>
                 <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
                   <CCardBody>
-                    {roleName === 'super admin' && (
-                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                        <img
-                          src={selectedImage} // Show the selected or API image
-                          alt="User Profile"
-                          style={{
-                            width: '200px',
-                            height: '200px',
-                            borderRadius: '50%',
-                            marginRight: '16px',
-                          }}
-                        />
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                      <img
+                        src={selectedImage} // Show the selected or API image
+                        alt="User Profile"
+                        style={{
+                          width: '200px',
+                          height: '200px',
+                          borderRadius: '50%',
+                          marginRight: '16px',
+                        }}
+                      />
+                    </div>
 
                     <hr />
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -224,7 +259,7 @@ const Profile = () => {
                         Choose Your Photo
                       </CButton>
 
-                      <hr style={{ width: '100%' }} />
+                      <hr style={{ width: '100%' }} />``
 
                       <CButton color="light" onClick={toggleModalPassword}>
                         Change Password
@@ -261,23 +296,53 @@ const Profile = () => {
                 </CModal>
                 <CModal visible={modalPassVisible} onClose={toggleModalPassword}>
                   <CModalHeader>Change Password</CModalHeader>
-                  <CModalBody>
-                    <CRow className="text-start mb-4">
+                  <CModalBody className="modal-dialog-centered">
+                    <CRow>
                       {' '}
                       {/* Added margin bottom for spacing */}
-                      <CCol xs={8}>
+                      <CRow>
                         {' '}
-                        {/* Adjusted to 7 for more space */}
-                        <CFormLabel htmlFor="inputPassword2" className="visually-hidden">
-                          Password
-                        </CFormLabel>
-                        <CFormInput type="password" id="inputPassword2" placeholder="Password" />
-                      </CCol>
-                      <CCol xs={4}>
-                        <CButton color="primary" type="submit" className="mb-2">
-                          Confirm identity
-                        </CButton>
-                      </CCol>
+                        <label style={{ fontSize: '12px' }}>Old Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword1"
+                          placeholder="Password"
+                          className="mb-1"
+                          value={passData.oldPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, oldPassword: e.target.value })
+                          }
+                        />
+                        <label style={{ fontSize: '12px' }}>New Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword2"
+                          placeholder="Password"
+                          className="mb-1"
+                          value={passData.newPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, newPassword: e.target.value })
+                          }
+                        />
+                        <label style={{ fontSize: '12px' }}>Confirm Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword3"
+                          placeholder="Password"
+                          className="mb-2"
+                          value={passData.confirmPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, confirmPassword: e.target.value })
+                          }
+                        />
+                      </CRow>
+                      <CRow>
+                        <CCol md={12} className="d-flex justify-content-end">
+                          <CButton color="primary" onClick={handlePasswordChange}>
+                            Confirm
+                          </CButton>
+                        </CCol>
+                      </CRow>
                     </CRow>
                   </CModalBody>
                 </CModal>
@@ -288,43 +353,79 @@ const Profile = () => {
                   <CCard className="h-80">
                     <CCardBody className="d-flex flex-column justify-content-between">
                       {userData ? (
-                        <>
-                          {/* Personal Data */}
+                        <div>
                           <CRow className="text-start">
-                            <CCol xs="12">
-                              <label className="fw-bold py-2 text-muted">Personal Data</label>
+                            <CCol xs="3">
+                              <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
                             </CCol>
                           </CRow>
-                          {personalData.map((data, index) => (
-                            <CRow className="text-start" key={index}>
-                              <CCol xs="4">
-                                <label className="py-2">{data.label}</label>
-                              </CCol>
-                              <CCol xs="8">
-                                <label className="py-2">{data.value}</label>
-                              </CCol>
-                            </CRow>
-                          ))}
-
-                          {/* Personal Contact */}
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Name</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2">{userData.name}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Position</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 "> {userData.position}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow className="text-start">
+                            <CCol xs="3">
+                              <label className="py-2">Line</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 ">
+                                {userData.Organization?.Line?.lineName}
+                              </label>
+                            </CCol>
+                          </CRow>
                           <CRow>
-                            <CCol xs="12">
-                              <label className="fw-bold py-2 text-muted">Personal Contact</label>
+                            <CCol xs="3">
+                              <label className="py-2">Section</label>
+                            </CCol>
+                            <CCol xs="7">
+                              <label className="py-2 ">
+                                {userData.Organization?.Section?.sectionName}
+                              </label>
                             </CCol>
                           </CRow>
-                          {contactData.map((data, index) => (
-                            <CRow key={index}>
-                              <CCol xs="4">
-                                <label className="py-2">{data.label}</label>
-                              </CCol>
-                              <CCol xs="8">
-                                <label className="py-2">{data.value}</label>
-                              </CCol>
-                            </CRow>
-                          ))}
-                        </>
+                          <CRow className="">
+                            <CCol xs="3">
+                              <label className="py-2">Departement</label>
+                            </CCol>
+                            <CCol xs="6">
+                              <label className="py-2 ">
+                                {userData.Organization?.Department?.departmentName}
+                              </label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="fw-bold py-2 text-muted">Change Contact</label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="py-2">Email</label>
+                            </CCol>
+                            <CCol xs="6">
+                              <label className="py-2">{userData.email}</label>
+                            </CCol>
+                          </CRow>
+                          <CRow>
+                            <CCol xs="3">
+                              <label className="py-2">Phone Number</label>
+                            </CCol>
+                          </CRow>
+                        </div>
                       ) : (
-                        <div>Loading user data...</div>
+                        <p>No user data available</p>
                       )}
                     </CCardBody>
                   </CCard>

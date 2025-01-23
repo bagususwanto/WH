@@ -41,10 +41,10 @@ const Profile = () => {
   const { roleName } = useVerify()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
 
-  const apiUser = 'user'
-
+  const apiProfile = 'profile'
+  
   const getusers = async () => {
-    const response = await getMasterData(apiUser)
+    const response = await getMasterData(apiProfile)
     setUserData(response.data)
 
     // Check if image data exists in the response and update states
@@ -53,10 +53,12 @@ const Profile = () => {
       setSelectedImage(response.data[0].img) // Set the selected image to the API image initially
     }
   }
+
   useEffect(() => {
     getusers()
   }, [])
 
+ 
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -225,7 +227,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="7">
                               <label className="py-2 ">
-                                {user.Organization.Section.sectionName},{' '}
+                                {user.Organization[0]?.Section?.sectionName},{' '}
                               </label>
                             </CCol>
                           </CRow>

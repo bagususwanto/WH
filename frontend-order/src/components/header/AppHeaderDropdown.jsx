@@ -129,7 +129,6 @@ const AppHeaderDropdown = () => {
       visible={isDropdownOpen}
       ref={dropdownRef}
       onMouseEnter={() => {
-        s
         // Buka saat hover
         setIsDropdownOpen(true)
         setIsCartOpen(false)

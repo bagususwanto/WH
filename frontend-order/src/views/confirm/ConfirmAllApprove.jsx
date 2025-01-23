@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../scss/home.scss'
-import Flatpickr from 'react-flatpickr'
-import 'flatpickr/dist/flatpickr.css'
 import { InputText } from 'primereact/inputtext'
 import { format, parseISO } from 'date-fns'
 import useVerify from '../../hooks/UseVerify'
