@@ -102,6 +102,7 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
           materialNo: material.materialNo,
           address: material.Inventory.Address_Rack.addressRackName,
           description: material.description,
+          uom: material.uom,
           reqQuantity: incoming.planning,
           receivedQuantity: incoming.actual,
           remain: incoming.actual - incoming.planning,
