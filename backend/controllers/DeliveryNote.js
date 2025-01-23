@@ -9,7 +9,7 @@ import Supplier from "../models/SupplierModel.js";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
-    const { dn, rit } = req.query;
+    const dn = req.query.dn;
 
     const checkDnNo = await DeliveryNote.findOne({
       where: { dnNumber: dn },
@@ -33,6 +33,17 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
     ];
     const dayName = days[day];
 
+    let whereConditionDs = {
+      schedule: day,
+      flag: 1,
+    };
+    let viewOnly = false;
+
+    if (checkDnNo.rit) {
+      whereConditionDs.rit = checkDnNo.rit;
+      viewOnly = true;
+    }
+
     const data = await Supplier.findAll({
       attributes: ["id", "supplierName", "supplierCode"],
       where: { flag: 1 },
@@ -40,10 +51,7 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
         {
           model: DeliverySchedule,
           required: true,
-          where: {
-            schedule: day,
-            flag: 1,
-          },
+          where: whereConditionDs,
           include: [
             {
               model: Plant,
@@ -144,7 +152,91 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
     res.status(200).json({
       data: mappedData,
       message: "Data Delivery Note Found",
+      viewOnly,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const submitDeliveryNote = async (req, res) => {
+  try {
+    const {
+      dnNumber,
+      arrivalActualDate,
+      arrivalActualTime,
+      departureActualDate,
+      departureActualTime,
+      rit,
+    } = req.body;
+
+    const checkDnNo = await DeliveryNote.findOne({
+      where: { dnNumber },
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id", "materialId", "addressId"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Supplier,
+                      required: true,
+                      attributes: ["id", "supplierName", "supplierCode"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: DeliverySchedule,
+                          required: true,
+                          where: {
+                            rit,
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Check if DN Number is not found
+    if (!checkDnNo) {
+      return res.status(404).json({ message: "Delivery Note not found" });
+    }
+
+    // Check if DN Number is already processed
+    if (checkDnNo) {
+      return res
+        .status(400)
+        .json({ message: "Delivery Note already processed" });
+    }
+
+    // await DeliveryNote.update(
+    //   {
+    //     arrivalActualTime,
+    //     status,
+    //   },
+    //   {
+    //     where: { dnNumber },
+    //   }
+    // );
+
+    res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
