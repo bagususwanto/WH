@@ -10,6 +10,9 @@ import Warehouse from "../models/WarehouseModel.js";
 import Storage from "../models/StorageModel.js";
 import db from "../utils/Database.js";
 import { handleUpdateIncoming } from "./ManagementStock.js";
+import LogImport from "../models/LogImportModel.js";
+import User from "../models/UserModel.js";
+import { where } from "sequelize";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
@@ -202,9 +205,18 @@ export const submitDeliveryNote = async (req, res) => {
     } = req.body;
     const userId = req.user.userId;
 
+    // validasi max dnNumber 10 digit dan hanya angka
+    if (
+      dnNumber.length > 10 ||
+      dnNumber.length < 10 ||
+      !/^\d+$/.test(dnNumber)
+    ) {
+      return res.status(400).json({ message: "Invalid Delivery Note Number" });
+    }
+
     const transaction = await db.transaction();
 
-    const checkDnNo = await DeliveryNote.findOne(
+    const checkDnNo = await DeliveryNote.findAll(
       {
         where: { dnNumber },
         include: [
@@ -250,13 +262,15 @@ export const submitDeliveryNote = async (req, res) => {
       { transaction }
     );
 
+    console.log("checkDnNo", checkDnNo.Incomings);
+
     // Check if DN Number is not found
     if (!checkDnNo) {
       return res.status(404).json({ message: "Delivery Note not found" });
     }
 
-    // Check if DN Number is already processed
-    if (checkDnNo) {
+    // Check if DN Number is already processeds
+    if (checkDnNo.rit) {
       return res
         .status(400)
         .json({ message: "Delivery Note already processed" });
@@ -264,11 +278,11 @@ export const submitDeliveryNote = async (req, res) => {
 
     const arrivalPlanDate = checkDnNo.arrivalPlanDate;
     const arrivalPlanTime =
-      checkDnNo.Incomings[0].Inventory.Material.Supplier.Delivery_Schedules[0]
-        .arrival;
+      checkDnNo.Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]
+        ?.arrival;
     const departurePlanTime =
-      checkDnNo.Incomings[0].Inventory.Material.Supplier.Delivery_Schedules[0]
-        .departure;
+      checkDnNo.Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]
+        ?.departure;
 
     // Combine actual and plan dates with times
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
@@ -320,8 +334,97 @@ export const submitDeliveryNote = async (req, res) => {
 
     res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
-    await transaction.rollback();
+    // await transaction.rollback();
     console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getDeliveryNoteByDate = async (req, res) => {
+  try {
+    const { importDate } = req.query;
+
+    let whereCondition = {};
+    let whereConditionDn = {};
+    if (importDate) {
+      whereCondition.importDate = importDate;
+    }
+
+    if (!importDate) {
+      whereConditionDn.arrivalPlanDate = new Date().toISOString().split("T")[0]; // get date only
+    }
+
+    const data = await DeliveryNote.findAll({
+      where: whereConditionDn,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id", "materialId", "addressId"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id", "addressRackName"],
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: LogImport,
+          required: true,
+          attributes: ["id", "typeLog", "fileName", "importDate"],
+          where: whereCondition,
+          include: [
+            {
+              model: User,
+              required: true,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Delivery Note Not Found" });
+    }
+
+    const mappedData = data.map((item) => {
+      const deliveryNotes = item.Incomings.map((incoming) => ({
+        dnNumber: item.dnNumber,
+        arrivalPlanDate: item.arrivalPlanDate,
+        materialNo: incoming.Inventory.Material.materialNo,
+        description: incoming.Inventory.Material.description,
+        uom: incoming.Inventory.Material.uom,
+        addressRackName: incoming.Inventory.Address_Rack.addressRackName,
+        planningQuantity: incoming.planning,
+        importDate: item.Log_Import.importDate,
+        importBy: item.Log_Import.User.username,
+      }));
+
+      return {
+        deliveryNotes,
+      };
+    });
+
+    res
+      .status(200)
+      .json({ data: mappedData, message: "Data Delivery Note Found" });
+  } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 };

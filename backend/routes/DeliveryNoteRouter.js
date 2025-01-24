@@ -1,5 +1,9 @@
 import express from "express";
-import { getDeliveryNoteByDnNo } from "../controllers/DeliveryNote.js";
+import {
+  getDeliveryNoteByDnNo,
+  submitDeliveryNote,
+  getDeliveryNoteByDate,
+} from "../controllers/DeliveryNote.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
 
@@ -36,7 +40,23 @@ router.post(
     [1]
   ),
   checkUserWarehouse,
-  getDeliveryNoteByDnNo
+  submitDeliveryNote
+);
+router.get(
+  "/delivery-note-date",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getDeliveryNoteByDate
 );
 
 export default router;
