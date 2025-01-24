@@ -403,8 +403,8 @@ export const getDeliveryNoteByDate = async (req, res) => {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
-    const mappedData = data.map((item) => {
-      const deliveryNotes = item.Incomings.map((incoming) => ({
+    const mappedData = data.flatMap((item) =>
+      item.Incomings.map((incoming) => ({
         dnNumber: item.dnNumber,
         arrivalPlanDate: item.arrivalPlanDate,
         materialNo: incoming.Inventory.Material.materialNo,
@@ -414,12 +414,8 @@ export const getDeliveryNoteByDate = async (req, res) => {
         planningQuantity: incoming.planning,
         importDate: item.Log_Import.importDate,
         importBy: item.Log_Import.User.username,
-      }));
-
-      return {
-        deliveryNotes,
-      };
-    });
+      }))
+    );
 
     res
       .status(200)
