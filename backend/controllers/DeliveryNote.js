@@ -214,6 +214,17 @@ export const submitDeliveryNote = async (req, res) => {
       return res.status(400).json({ message: "Invalid Delivery Note Number" });
     }
 
+    const dn = await DeliveryNote.findOne({
+      where: { dnNumber },
+    });
+
+    if (!dn) {
+      return res.status(404).json({ message: "Delivery Note not found" });
+    }
+
+    const tanggal = new Date(dn.arrivalPlanDate);
+    const day = tanggal.getDay();
+
     const transaction = await db.transaction();
 
     const checkDnNo = await DeliveryNote.findAll(
@@ -247,6 +258,8 @@ export const submitDeliveryNote = async (req, res) => {
                             required: true,
                             where: {
                               rit,
+                              schedule: day,
+                              flag: 1,
                             },
                           },
                         ],
@@ -258,11 +271,9 @@ export const submitDeliveryNote = async (req, res) => {
             ],
           },
         ],
-      },
-      { transaction }
+      }
+      // { transaction }
     );
-
-    console.log("checkDnNo", checkDnNo.Incomings);
 
     // Check if DN Number is not found
     if (!checkDnNo) {
@@ -290,20 +301,6 @@ export const submitDeliveryNote = async (req, res) => {
 
     // Calculate delay
     const delay = actualArrival - plannedArrival;
-    // console semua data
-    console.log("delay", delay);
-    console.log("arrivalPlanDate", arrivalPlanDate);
-    console.log("arrivalPlanTime", arrivalPlanTime);
-    console.log("arrivalActualDate", arrivalActualDate);
-    console.log("arrivalActualTime", arrivalActualTime);
-    console.log("departurePlanTime", departurePlanTime);
-    console.log("departureActualDate", departureActualDate);
-    console.log("departureActualTime", departureActualTime);
-    console.log("rit", rit);
-    console.log("incomingIds", incomingIds);
-    console.log("receivedQuantities", receivedQuantities);
-    console.log("userId", userId);
-    return;
 
     await DeliveryNote.update(
       {
