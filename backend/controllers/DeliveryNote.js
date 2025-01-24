@@ -159,13 +159,30 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
           item.Materials[0].Inventory.Incomings[0].Delivery_Note
             .arrivalPlanDate,
         arrivalPlanTime: new Date(schedule.arrival).toISOString().slice(11, 16),
+        departurePlanDate:
+          item.Materials[0].Inventory.Incomings[0].Delivery_Note
+            .departurePlanDate,
         departurePlanTime: new Date(schedule.departure)
           .toISOString()
           .slice(11, 16),
+        arrivalActualDate:
+          item.Materials[0].Inventory.Incomings[0].Delivery_Note
+            .arrivalActualDate,
+        departureActualDate:
+          item.Materials[0].Inventory.Incomings[0].Delivery_Note
+            .departureActualDate,
         arrivalActualTime: item.Materials[0].Inventory.Incomings[0]
           .Delivery_Note.arrivalActualTime
           ? new Date(
               item.Materials[0].Inventory.Incomings[0].Delivery_Note.arrivalActualTime
+            )
+              .toISOString()
+              .slice(11, 16)
+          : null,
+        departureActualTime: item.Materials[0].Inventory.Incomings[0]
+          .Delivery_Note.departureActualTime
+          ? new Date(
+              item.Materials[0].Inventory.Incomings[0].Delivery_Note.departureActualTime
             )
               .toISOString()
               .slice(11, 16)
@@ -189,6 +206,16 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+const formatTimeToHHMMSS = (time) => {
+  // Jika panjang string adalah 8 (sudah memiliki format HH:mm:ss), kembalikan langsung
+  if (time.length === 8) {
+    return time;
+  }
+  // Jika panjang string bukan 8, tambahkan detik default
+  const [hours, minutes] = time.split(":");
+  return `${hours}:${minutes}:00`;
 };
 
 export const submitDeliveryNote = async (req, res) => {
@@ -271,8 +298,8 @@ export const submitDeliveryNote = async (req, res) => {
             ],
           },
         ],
-      }
-      // { transaction }
+      },
+      { transaction }
     );
 
     // Check if DN Number is not found
@@ -287,13 +314,19 @@ export const submitDeliveryNote = async (req, res) => {
         .json({ message: "Delivery Note already processed" });
     }
 
-    const arrivalPlanDate = checkDnNo.arrivalPlanDate;
-    const arrivalPlanTime =
-      checkDnNo.Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]
-        ?.arrival;
-    const departurePlanTime =
-      checkDnNo.Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]
-        ?.departure;
+    const arrivalPlanDate = new Date(checkDnNo[0].arrivalPlanDate)
+      .toISOString()
+      .split("T")[0]; // date only format
+    const arrivalPlanTime = new Date(
+      checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]?.arrival
+    )
+      .toISOString()
+      .slice(11, 16); // time only format
+    const departurePlanTime = new Date(
+      checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]?.departure
+    )
+      .toISOString()
+      .slice(11, 16); // time only format
 
     // Combine actual and plan dates with times
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);

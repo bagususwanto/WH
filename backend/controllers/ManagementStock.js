@@ -360,14 +360,16 @@ export const handleUpdateIncoming = async (
         inventoryUpdates.add(incoming.Inventory.id);
       }
 
-      // Lakukan bulk update untuk Incoming
-      await Incoming.bulkCreate(updates, {
-        updateOnDuplicate: ["actual", "status"],
-        transaction,
-      });
-
       // Lakukan bulk insert untuk LogEntry
       await LogEntry.bulkCreate(logEntries, { transaction });
+
+      // Lakukan update untuk Incoming secara manual, karena MSSQL tidak mendukung updateOnDuplicate
+      for (const updateData of updates) {
+        await Incoming.update(updateData, {
+          where: { id: updateData.id },
+          transaction,
+        });
+      }
 
       // Update sistem dan actual check untuk setiap inventory yang terpengaruh
       for (const inventoryId of inventoryUpdates) {
