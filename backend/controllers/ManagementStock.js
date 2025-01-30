@@ -59,6 +59,7 @@ export const getInventory = async (req, res) => {
               "maxStock",
               "uom",
               "type",
+              "mrpType",
               "packagingId",
             ],
             where: whereCondition,
