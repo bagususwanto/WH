@@ -21,7 +21,7 @@ import {
   cilTransfer,
   cilEnvelopeLetter,
   cilCart,
-  cilStorage,
+  cilTags,
   cilGraph,
   cilTruck,
   cilEqualizer,
@@ -148,6 +148,35 @@ const useNavigation = () => {
     }
 
     // NAV INVENTORY UNTUK GH UP WH
+    if (
+      (isWarehouse == 1 && roleName === 'group head') ||
+      (isWarehouse == 1 && roleName === 'super admin') ||
+      (isWarehouse == 1 && roleName === 'line head') ||
+      (isWarehouse == 1 && roleName === 'section head') ||
+      (isWarehouse == 1 && roleName === 'department head')
+    ) {
+      baseNav.push(
+     
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Red Post',
+          to: '/',
+          icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Red Post',
+              to: 'dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
+              },
+            },
+          ],
+        },
+      )
+    }
     if (
       (isWarehouse == 1 && roleName === 'group head') ||
       (isWarehouse == 1 && roleName === 'line head') ||

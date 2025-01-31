@@ -426,7 +426,7 @@ const Dashboard = () => {
       x: {
         ticks: {
           font: {
-            size: 8, // Ukuran font
+            size: 10, // Ukuran font
             color: 'black', // Menetapkan warna font menjadi hitam
             weight: 'bold', // Menjadikan font bold
           },
@@ -436,7 +436,7 @@ const Dashboard = () => {
             const materialNo = item.Material.materialNo
             const plantName = item.Address_Rack.Storage.Plant.plantName
             const description = item.Material.description
-            const descSubstring = `${description.substring(0, 17)}..`
+            const descSubstring = `${description.substring(0, 19)}`
 
             // Ambil hanya 10 karakter pertama dari description
             // return `${description.substring(0, 17)}..`

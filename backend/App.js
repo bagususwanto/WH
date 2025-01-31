@@ -96,6 +96,7 @@ app.use(
       "http://10.65.132.153:4000",
       "http://localhost:4000",
       "http://localhost:3000",
+      "http://localhost:3001",
       "https://twiis-toyota.web.app",
       "https://twiis-gi-toyota.web.app",
     ],

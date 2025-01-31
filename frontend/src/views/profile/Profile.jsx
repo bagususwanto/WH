@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CCard,
@@ -14,10 +14,15 @@ import {
   CModalBody,
   CModalFooter,
   CModalHeader,
+  CAccordionItem,
   CFormLabel,
+  CNavLink,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
   CAccordionBody,
   CAccordion,
-  CAccordionItem,
   CAccordionHeader,
   CTab,
   CTabList,
@@ -26,39 +31,95 @@ import {
   CTabContent,
   CContainer,
   CFormCheck,
+  CCardHeader,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import useVerify from '../../hooks/UseVerify'
-import { cilCart, cilClipboard, cilHeart } from '@coreui/icons'
+import { cilEnvelopeOpen } from '@coreui/icons'
 import useMasterDataService from '../../services/MasterDataService'
 
+import useNotificationService from '../../services/NotificationService'
+
+
 const Profile = () => {
-  const { getMasterData } = useMasterDataService()
+  const { getMasterData, postMasterData } = useMasterDataService()
   const [selectedImage, setSelectedImage] = useState()
   const [userData, setUserData] = useState([])
+  const [structureData, setStructureData] = useState([])
+  const [notifProfile, setnotifProfile] = useState([])
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [notifCount, setNotifCount] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
-  const { roleName } = useVerify()
+  const { getNotification, getNotificationCount } = useNotificationService()
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
-
+  const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
+  const { roleName, userId } = useVerify() // Pastikan `userId` diperoleh dari konteks atau props
   const apiProfile = 'profile'
-  
-  const getusers = async () => {
-    const response = await getMasterData(apiProfile)
-    setUserData(response.data)
+  const [passData, setPassData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
 
-    // Check if image data exists in the response and update states
-    if (response.data && response.data[0] && response.data[0].img) {
-      setApiImage(response.data[0].img) // Store the image from API in state
-      setSelectedImage(response.data[0].img) // Set the selected image to the API image initially
+  const apiPassword = 'change-password'
+  // Fetch user profile
+
+  const fetchProfileData = async () => {
+    try {
+      const profileData = await getMasterData(apiProfile)
+      console.log('Profile data fetched successfully:', profileData)
+      // Ensure the data is set as an array
+      setUserData(profileData.data)
+    } catch (error) {
+      console.error('Error fetching profile data:', error)
     }
   }
 
+  console.log('userData', userData)
+
+  // Memanggil fetchProfileData saat komponen di-mount
   useEffect(() => {
-    getusers()
+    fetchProfileData()
   }, [])
 
+  const handlePasswordChange = async () => {
+    const passDataToSave = { ...passData };
+
+    if (newPassword !== confirmPassword) {
+      return; // Don't continue if passwords don't match
+    }
+
+    try {
+      await postMasterData(apiPassword, passDataToSave);
+
+      setModalPassVisible(false); // Close modal after success
+      clearForm(); // Clear form fields or data
+
+    } catch (error) {
+      console.error('Error changing password:', error);
+    }
+};
+  
+
+  // Personal Data and Contact Data Arrays
+  const personalData = [
+    { label: 'Name', value: userData.name },
+    { label: 'Position', value: userData.position },
+    { label: 'Line', value: userData.Organization?.Line?.lineName || '-' },
+    { label: 'Section', value: userData.Organization?.Section?.sectionName || '-' },
+    { label: 'Department', value: userData.Organization?.Department?.departmentName || '-' },
+  ]
+
+  const contactData = [
+    { label: 'Email', value: userData.email || '-' },
+    { label: 'Phone Number', value: userData.noHandphone || '-' },
+  ]
+
  
+
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -87,39 +148,54 @@ const Profile = () => {
   const toggleModalPassword = () => {
     setModalPassVisible(!modalPassVisible)
   }
+  const loadMore = () => {
+    setVisibleNotifCount((prevCount) => prevCount + 7) // Menambah 7 notifikasi lagi
+  }
+
+  console.log('passData', passData)
+
+  const clearForm = () => {
+    // Reset the password data fields
+    setPassData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+};
 
   return (
-    <CTabs activeItemKey={1}>
+    <CTabs activeItemKey={'notifikasi'}>
       <CTabList variant="underline-border">
-        <CTab aria-controls="home-tab-pane" itemKey={1}>
+       
+        <CTab aria-controls="home-tab-pane" itemKey={'profile'}>
           Profile
         </CTab>
 
-        <CTab aria-controls="profile-tab-pane" itemKey={2}>
+        {/* <CTab aria-controls="profile-tab-pane" itemKey={'structure'}>
           Structure Approval
-        </CTab>
+        </CTab> */}
       </CTabList>
       <CTabContent>
-        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={1}>
+      
+
+        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'profile'}>
           <CContainer>
             <CRow>
               <CCol xs={4}>
                 <CCard style={{ position: 'sticky', top: '0', zIndex: '10' }}>
                   <CCardBody>
-                    {roleName === 'super admin' && (
-                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                        <img
-                          src={selectedImage} // Show the selected or API image
-                          alt="User Profile"
-                          style={{
-                            width: '200px',
-                            height: '200px',
-                            borderRadius: '50%',
-                            marginRight: '16px',
-                          }}
-                        />
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                      <img
+                        src={selectedImage} // Show the selected or API image
+                        alt="User Profile"
+                        style={{
+                          width: '200px',
+                          height: '200px',
+                          borderRadius: '50%',
+                          marginRight: '16px',
+                        }}
+                      />
+                    </div>
 
                     <hr />
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -142,7 +218,7 @@ const Profile = () => {
                   <CModalBody>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <div>
-                        <CButton color="primary" onClick={openFileExplorer}>
+                        <CButton className=" px-5 py-3" color="primary" onClick={openFileExplorer}>
                           From Gallery
                         </CButton>
                         {/* Hidden input for file selection */}
@@ -164,23 +240,53 @@ const Profile = () => {
                 </CModal>
                 <CModal visible={modalPassVisible} onClose={toggleModalPassword}>
                   <CModalHeader>Change Password</CModalHeader>
-                  <CModalBody>
-                    <CRow className="text-start mb-4">
+                  <CModalBody className="modal-dialog-centered">
+                    <CRow>
                       {' '}
                       {/* Added margin bottom for spacing */}
-                      <CCol xs={9}>
+                      <CRow>
                         {' '}
-                        {/* Adjusted to 7 for more space */}
-                        <CFormLabel htmlFor="inputPassword2" className="visually-hidden">
-                          Password
-                        </CFormLabel>
-                        <CFormInput type="password" id="inputPassword2" placeholder="Password" />
-                      </CCol>
-                      <CCol xs={3}>
-                        <CButton color="primary" type="submit" className="mb-2">
-                          Confirm
-                        </CButton>
-                      </CCol>
+                        <label style={{ fontSize: '12px' }}>Old Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword1"
+                          placeholder="Password"
+                          className="mb-1"
+                          value={passData.oldPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, oldPassword: e.target.value })
+                          }
+                        />
+                        <label style={{ fontSize: '12px' }}>New Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword2"
+                          placeholder="Password"
+                          className="mb-1"
+                          value={passData.newPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, newPassword: e.target.value })
+                          }
+                        />
+                        <label style={{ fontSize: '12px' }}>Confirm Password</label>
+                        <CFormInput
+                          type="password"
+                          id="inputPassword3"
+                          placeholder="Password"
+                          className="mb-2"
+                          value={passData.confirmPassword}
+                          onChange={(e) =>
+                            setPassData({ ...passData, confirmPassword: e.target.value })
+                          }
+                        />
+                      </CRow>
+                      <CRow>
+                        <CCol md={12} className="d-flex justify-content-end">
+                          <CButton color="primary" onClick={handlePasswordChange}>
+                            Confirm
+                          </CButton>
+                        </CCol>
+                      </CRow>
                     </CRow>
                   </CModalBody>
                 </CModal>
@@ -190,8 +296,8 @@ const Profile = () => {
                 <CRow className="g-2">
                   <CCard className="h-80">
                     <CCardBody className="d-flex flex-column justify-content-between">
-                      {userData.map((user, index) => (
-                        <div key={index}>
+                      {userData ? (
+                        <div>
                           <CRow className="text-start">
                             <CCol xs="3">
                               <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
@@ -202,7 +308,7 @@ const Profile = () => {
                               <label className="py-2">Name</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2">{user.name}</label>
+                              <label className="py-2">{userData.name}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -210,7 +316,7 @@ const Profile = () => {
                               <label className="py-2">Position</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 "> {user.position}</label>
+                              <label className="py-2 "> {userData.position}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -218,7 +324,9 @@ const Profile = () => {
                               <label className="py-2">Line</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 ">{user.Organization?.Line?.lineName}</label>
+                              <label className="py-2 ">
+                                {userData.Organization?.Line?.lineName}
+                              </label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -227,7 +335,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="7">
                               <label className="py-2 ">
-                                {user.Organization[0]?.Section?.sectionName},{' '}
+                                {userData.Organization?.Section?.sectionName}
                               </label>
                             </CCol>
                           </CRow>
@@ -237,7 +345,7 @@ const Profile = () => {
                             </CCol>
                             <CCol xs="6">
                               <label className="py-2 ">
-                                {user.Organization.Department.departmentName}
+                                {userData.Organization?.Department?.departmentName}
                               </label>
                             </CCol>
                           </CRow>
@@ -251,7 +359,7 @@ const Profile = () => {
                               <label className="py-2">Email</label>
                             </CCol>
                             <CCol xs="6">
-                              <label className="py-2">{user.email}</label>
+                              <label className="py-2">{userData.email}</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -260,7 +368,9 @@ const Profile = () => {
                             </CCol>
                           </CRow>
                         </div>
-                      ))}
+                      ) : (
+                        <p>No user data available</p>
+                      )}
                     </CCardBody>
                   </CCard>
                 </CRow>
@@ -269,7 +379,7 @@ const Profile = () => {
           </CContainer>
         </CTabPanel>
 
-        <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={2}>
+        {/* <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={'structure'}>
           <CContainer>
             <CRow>
               <CCol xs={5}>
@@ -308,7 +418,7 @@ const Profile = () => {
                                   <CCol xs="9 ">
                                     <label className="py-2 ">
                                       {' '}
-                                      {user.Organization?.Line?.lineName},{' '}
+                                      {user.Organization.Line.lineName},{' '}
                                     </label>
                                   </CCol>
                                 </CRow>
@@ -388,27 +498,9 @@ const Profile = () => {
                   </CCard>
                 </CRow>
               </CCol>
-              <CCol xs={7}>
-                <CRow>
-                  <CCard>
-                    <CCardBody>
-                      <label className="fw-bold fs-5"> Your Information</label>
-                    </CCardBody>
-                  </CCard>
-                </CRow>
-              </CCol>
             </CRow>
           </CContainer>
-        </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={3}>
-          Contact tab content
-        </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={4}>
-          Contact tab content
-        </CTabPanel>
-        <CTabPanel className="py-3" aria-labelledby="contact-tab-pane" itemKey={4}>
-          Contact tab content
-        </CTabPanel>
+        </CTabPanel> */}
       </CTabContent>
     </CTabs>
   )
