@@ -59,6 +59,7 @@ export const getInventory = async (req, res) => {
               "maxStock",
               "uom",
               "type",
+              "mrpType",
               "packagingId",
             ],
             where: whereCondition,
@@ -293,75 +294,177 @@ export const updateInventory = async (req, res) => {
   }
 };
 
+export const handleUpdateIncoming = async (
+  incomingIds,
+  quantities,
+  userId,
+  transaction
+) => {
+  try {
+    if (Array.isArray(incomingIds) && Array.isArray(quantities)) {
+      if (incomingIds.length !== quantities.length) {
+        throw new Error(
+          "Incoming IDs and quantities array lengths do not match"
+        );
+      }
+
+      // Ambil semua data incoming yang diperlukan dalam satu query
+      const incomingData = await Incoming.findAll({
+        where: { id: incomingIds },
+        include: [
+          {
+            model: Inventory,
+            attributes: ["id", "materialId", "addressId"],
+          },
+        ],
+        transaction,
+      });
+
+      // Buat mapping untuk proses bulk update
+      const updates = [];
+      const logEntries = [];
+      const inventoryUpdates = new Set(); // Gunakan Set untuk menghindari duplikasi ID
+
+      for (let i = 0; i < incomingIds.length; i++) {
+        const incoming = incomingData.find(
+          (item) => item.id === incomingIds[i]
+        );
+        if (!incoming) {
+          throw new Error(`Incoming with ID ${incomingIds[i]} not found`);
+        }
+
+        const quantity = quantities[i];
+        if (quantity < 0) {
+          throw new Error("Quantity not allowed under 0");
+        }
+
+        // Tentukan status berdasarkan quantity
+        const status = quantity < incoming.planning ? "partial" : "completed";
+
+        // Siapkan data untuk update bulk
+        updates.push({
+          id: incomingIds[i],
+          actual: quantity,
+          status,
+        });
+
+        // Siapkan data untuk log entry
+        logEntries.push({
+          incomingId: incomingIds[i],
+          typeLogEntry: "update incoming",
+          quantity,
+          userId,
+          detailOrder: null,
+        });
+
+        // Tambahkan ID inventory ke Set
+        inventoryUpdates.add(incoming.Inventory.id);
+      }
+
+      // Lakukan bulk insert untuk LogEntry
+      await LogEntry.bulkCreate(logEntries, { transaction });
+
+      // Lakukan update untuk Incoming secara manual, karena MSSQL tidak mendukung updateOnDuplicate
+      for (const updateData of updates) {
+        await Incoming.update(updateData, {
+          where: { id: updateData.id },
+          transaction,
+        });
+      }
+
+      // Update sistem dan actual check untuk setiap inventory yang terpengaruh
+      for (const inventoryId of inventoryUpdates) {
+        await updateQuantitySistem(inventoryId, transaction);
+      }
+
+      const materialAddressPairs = [...inventoryUpdates].map((inventoryId) => {
+        const inventory = incomingData.find(
+          (item) => item.Inventory.id === inventoryId
+        ).Inventory;
+        return {
+          materialId: inventory.materialId,
+          addressId: inventory.addressId,
+        };
+      });
+
+      for (const { materialId, addressId } of materialAddressPairs) {
+        await setQuantityActualCheck(materialId, addressId, transaction);
+      }
+    } else {
+      // Jika bukan array, proses sebagai data tunggal
+      await processIncomingUpdate(incomingIds, quantities, userId, transaction);
+    }
+  } catch (error) {
+    console.log("Error updating incoming:", error);
+    throw error;
+  }
+};
+
+const processIncomingUpdate = async (
+  incomingId,
+  quantity,
+  userId,
+  transaction
+) => {
+  const incoming = await Incoming.findOne({
+    where: { id: incomingId },
+    include: [
+      {
+        model: Inventory,
+        attributes: ["id", "materialId", "addressId"],
+      },
+    ],
+    transaction,
+  });
+
+  if (!incoming) {
+    throw new Error(`Incoming with ID ${incomingId} not found`);
+  }
+
+  if (quantity < 0) {
+    throw new Error("Quantity not allowed under 0");
+  }
+
+  const status = quantity < incoming.planning ? "partial" : "completed";
+
+  await Incoming.update(
+    {
+      actual: quantity,
+      status,
+    },
+    {
+      where: { id: incomingId },
+      transaction,
+    }
+  );
+
+  await LogEntry.create(
+    {
+      incomingId,
+      typeLogEntry: "update incoming",
+      quantity,
+      userId,
+      detailOrder: null,
+    },
+    { transaction }
+  );
+
+  await updateQuantitySistem(incoming.Inventory.id, transaction);
+  await setQuantityActualCheck(
+    incoming.Inventory.materialId,
+    incoming.Inventory.addressId,
+    transaction
+  );
+};
+
 export const updateIncoming = async (req, res) => {
   const transaction = await db.transaction();
   try {
     const incomingId = req.params.id;
-    const actual = req.body.actual;
+    const quantity = req.body.actual;
+    const userId = req.user.userId;
 
-    // Cek incomingId
-    const incoming = await Incoming.findOne({
-      where: { id: incomingId },
-      transaction,
-    });
-
-    const inventory = await Inventory.findOne({
-      where: { id: incoming.inventoryId },
-      transaction,
-    });
-
-    if (!incoming) {
-      return res.status(404).json({ message: "Incoming not found" });
-    }
-
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory not found" });
-    }
-
-    // Validasi untuk quantity actual tidak boleh kurang dari 0
-    if (req.body.actual < 0) {
-      return res.status(400).json({ message: "Quantity not allowed under 0" });
-    }
-
-    // Set status incoming
-    let status;
-    if (req.body.actual < incoming.planning) {
-      status = "partial";
-    } else {
-      status = "completed";
-    }
-
-    // Update data incoming dalam transaksi
-    await Incoming.update(
-      {
-        actual,
-        status,
-      },
-      {
-        where: { id: incomingId },
-        transaction,
-      }
-    );
-
-    // Membuat log entry dalam transaksi
-    await LogEntry.create(
-      {
-        incomingId,
-        typeLogEntry: "update incoming",
-        quantity: actual,
-        userId: req.user.userId,
-        detailOrder: null,
-      },
-      { transaction }
-    );
-
-    // Update quantity sistem dan quantity actual check dalam transaksi
-    await updateQuantitySistem(inventory.id, transaction);
-    await setQuantityActualCheck(
-      inventory.materialId,
-      inventory.addressId,
-      transaction
-    );
+    await handleUpdateIncoming(incomingId, quantity, userId, transaction);
 
     // Commit transaksi jika semua proses berhasil
     await transaction.commit();
