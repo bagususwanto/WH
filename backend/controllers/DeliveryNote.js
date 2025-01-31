@@ -12,7 +12,6 @@ import db from "../utils/Database.js";
 import { handleUpdateIncoming } from "./ManagementStock.js";
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
-import { where } from "sequelize";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
