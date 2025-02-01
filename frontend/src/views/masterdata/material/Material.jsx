@@ -57,6 +57,7 @@ const Material = () => {
   const [mrpTypeOptions, setMRPTypeOptions] = useState([])
   const [packagingOptions, setPackagingOptions] = useState([])
   const [storageOptions, setStorageOptions] = useState([])
+  const [addressRackOptions, setAddressRackOptions] = useState([])
   const [storageId, setStorageId] = useState()
   const [plantId, setPlantOptionsId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
@@ -70,14 +71,13 @@ const Material = () => {
     mrpType: '',
     categoryId: '',
     supplierId: '',
-    packaging: '',
-    unitPackaging: '',
+    packagingId: '',
     minStock: '',
     maxStock: '',
     minOrder: '',
     img: '',
-    // storageId: '',
-    // plantId: '',
+    storageId: '',
+    plantId: '',
   })
   const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
@@ -130,6 +130,7 @@ const Material = () => {
   const apiMaterialDelete = 'material-delete'
   const apiSupplier = 'supplier'
   const apiStorages = 'storage'
+  const apiAddressRack = 'address-rack'
   const apiCategory = 'category'
   const apiPackaging = 'packaging'
   const apiUpload = 'upload-master-material'
@@ -146,6 +147,7 @@ const Material = () => {
     getPackaging()
     getSupplier()
     getStorage()
+    getAddressRack()
   }, [])
 
   useEffect(() => {
@@ -171,10 +173,10 @@ const Material = () => {
     { field: 'minStock', header: 'Min. Stock', sortable: true },
     { field: 'maxStock', header: 'Max. Stock', sortable: true },
     { field: 'minOrder', header: 'Min. Order', sortable: true },
-    { field: 'Packaging.packaging', header: 'Packaging', sortable: true },
-    { field: 'Packaging.unitPackaging', header: 'Unit Packaging', sortable: true },
-    { field: 'Supplier.supplierName', header: 'Supplier', sortable: true },
-    { field: 'storages', header: 'Storages', sortable: true },
+    { field: 'packaging', header: 'Packaging', sortable: true },
+    { field: 'supplier', header: 'Supplier', sortable: true },
+    { field: 'Inventory.Address_Rack.addressRackName', header: 'Address Rack', sortable: true },
+    { field: 'storage', header: 'Storage', sortable: true },
     { field: 'plant', header: 'Plant', sortable: true },
     { field: 'formattedCreatedAt', header: 'Created At', sortable: true },
     { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
@@ -197,8 +199,7 @@ const Material = () => {
       const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
         label: `${plant.plantName} - ${plant.plantCode}`,
-        value: plant.plantName,
-        id: plant.id,
+        value: plant.id,
       }))
       setPlantOptions(plantOptions)
     } catch (error) {
@@ -253,8 +254,7 @@ const Material = () => {
       const response = await getMasterData(apiCategory)
       const categoryOptions = response.data.map((category) => ({
         label: category.categoryName,
-        value: category.categoryName,
-        id: category.id,
+        value: category.id,
       }))
       setCategoryOptions(categoryOptions)
     } catch (error) {
@@ -266,24 +266,10 @@ const Material = () => {
     try {
       const response = await getMasterData(apiPackaging)
 
-      // Menggunakan Set untuk menyimpan packaging yang unik
-      const uniquePackaging = new Set()
-
-      const packagingOptions = response.data
-        .filter((packaging) => {
-          // Cek apakah packaging sudah ada di Set
-          if (!uniquePackaging.has(packaging.packaging)) {
-            uniquePackaging.add(packaging.packaging) // Tambahkan ke Set jika belum ada
-            return true // Sertakan dalam hasil
-          }
-          return false // Abaikan jika sudah ada
-        })
-        .map((packaging) => ({
-          label: packaging.packaging,
-          value: packaging.packaging,
-          id: packaging.id,
-          unitPackaging: packaging.unitPackaging,
-        }))
+      const packagingOptions = response.data.map((packaging) => ({
+        label: `${packaging.packaging} (${packaging.unitPackaging})`,
+        value: packaging.id,
+      }))
 
       setPackagingOptions(packagingOptions)
     } catch (error) {
@@ -296,8 +282,7 @@ const Material = () => {
       const response = await getMasterData(apiSupplier)
       const supplierOptions = response.data.map((supplier) => ({
         label: supplier.supplierName,
-        value: supplier.supplierName,
-        id: supplier.id,
+        value: supplier.id,
       }))
       setSupplierOptions(supplierOptions)
     } catch (error) {
@@ -310,10 +295,24 @@ const Material = () => {
       const response = await getMasterData(apiStorages)
       const storageOptions = response.data.map((storage) => ({
         label: `${storage.storageName} - ${storage.storageCode}`,
-        value: storage.storageName,
-        id: storage.id,
+        value: storage.id,
+        plantId: storage.plantId,
       }))
       setStorageOptions(storageOptions)
+    } catch (error) {
+      console.error('Error fetching Storage:', error)
+    }
+  }
+
+  const getAddressRack = async () => {
+    try {
+      const response = await getMasterData(apiAddressRack)
+      const addressRackOptions = response.data.map((address) => ({
+        label: address.addressRackName,
+        value: address.id,
+        storageId: address.storageId,
+      }))
+      setAddressRackOptions(addressRackOptions)
     } catch (error) {
       console.error('Error fetching Storage:', error)
     }
@@ -330,8 +329,9 @@ const Material = () => {
 
       const response = await getMasterData(apiMaterial)
       const dataWithFormattedFields = response.data.map((item) => {
-        const plant = item.Storages[0]?.Plant?.plantName
-        const storages = item.Storages.map((storage) => storage.storageName).join(', ')
+        const plant = `${item.Inventory.Address_Rack.Storage.Plant.plantName} - ${item.Inventory.Address_Rack.Storage.Plant.plantCode}`
+        const storage = `${item.Inventory.Address_Rack.Storage.storageName} - ${item.Inventory.Address_Rack.Storage.storageCode}`
+        const supplier = `${item.Supplier?.supplierName} - ${item.Supplier?.supplierCode}`
         const formatedPrice = item.price
           ? 'Rp. ' + item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
           : null
@@ -344,17 +344,20 @@ const Material = () => {
         const createdBy = item.createdBy?.[0]?.User?.username || ''
         const updatedBy = item.updatedBy?.[0]?.User?.username || ''
         const importBy = item.Log_Import?.User?.username || ''
+        const packaging = `${item.Packaging?.packaging} (${item.Packaging?.unitPackaging})`
 
         return {
           ...item,
-          plant,
-          storages,
           formatedPrice,
           formattedCreatedAt,
           formattedUpdatedAt,
           createdBy,
           updatedBy,
           importBy,
+          plant,
+          storage,
+          supplier,
+          packaging,
         }
       })
       setMaterials(dataWithFormattedFields)
@@ -378,14 +381,14 @@ const Material = () => {
       mrpType: '',
       categoryId: '',
       supplierId: '',
-      packaging: '',
-      unitPackaging: '',
+      packagingId: '',
       minStock: '',
       maxStock: '',
       minOrder: '',
       img: '',
-      // storageId: '',
-      // plantId: '',
+      addressRackId: '',
+      storageId: '',
+      plantId: '',
     })
     setModal(true)
   }
@@ -410,14 +413,23 @@ const Material = () => {
   const handleEditMaterial = (material) => {
     const selectedUOM = uomOptions.find((option) => option.value === material.uom)
     const selectedType = typeOptions.find((option) => option.value === material.type)
-    const selectedCategory = categoryOptions.find((option) => option.id === material.Category.id)
+    const selectedCategory = categoryOptions.find((option) => option.value === material.Category.id)
     const selectedMRPType = mrpTypeOptions.find((option) => option.value === material.mrpType)
     const selectedPackaging = packagingOptions.find(
-      (option) => option?.value === material.Packaging?.packaging,
+      (option) => option?.value === material.Packaging?.id,
     )
-    const selectedSupplier = supplierOptions.find((option) => option?.id === material.Supplier?.id)
-    // const selectedStorage = storageOptions.find((option) => option?.id === material.Storages[0]?.id)
-    // const selectedPlant = plantOptions.find((p) => p.id === material.Storages[0]?.Plant?.id)
+    const selectedSupplier = supplierOptions.find(
+      (option) => option?.value === material.Supplier?.id,
+    )
+    const selectedAddressRack = addressRackOptions.find(
+      (option) => option?.value === material.Inventory?.Address_Rack?.id,
+    )
+    const selectedStorage = storageOptions.find(
+      (option) => option?.value === material.Inventory.Address_Rack.storageId,
+    )
+    const selectedPlant = plantOptions.find(
+      (p) => p.value === material.Inventory.Address_Rack.Storage.plantId,
+    )
     setIsEdit(true)
     setCurrentMaterial({
       id: material.id,
@@ -429,14 +441,14 @@ const Material = () => {
       mrpType: selectedMRPType || null,
       categoryId: selectedCategory || null,
       supplierId: selectedSupplier || null,
-      packaging: selectedPackaging || null,
-      unitPackaging: material.Packaging?.unitPackaging,
+      packagingId: selectedPackaging || null,
       minStock: material.minStock,
       maxStock: material.maxStock,
       minOrder: material.minOrder,
       img: material.img,
-      // storageId: selectedStorage || null,
-      // plantId: selectedPlant || null,
+      addressRackId: selectedAddressRack || null,
+      storageId: selectedStorage || null,
+      plantId: selectedPlant || null,
     })
     setModal(true)
   }
@@ -480,14 +492,6 @@ const Material = () => {
       { field: 'minStock', message: 'Minimum Stock is required' },
       { field: 'maxStock', message: 'Maximum Stock is required' },
     ]
-
-    if (currentMaterial.packaging && !currentMaterial.unitPackaging) {
-      requiredFields.push({ field: 'packaging', message: 'Packaging is required' })
-    }
-
-    if (currentMaterial.unitPackaging && !currentMaterial.packaging) {
-      requiredFields.push({ field: 'unitPackaging', message: 'Unit Packaging is required' })
-    }
 
     for (const { field, message } of requiredFields) {
       if (!material[field]) {
@@ -589,10 +593,11 @@ const Material = () => {
         packaging: item.Packaging?.packaging,
         unitPackaging: item.Packaging?.unitPackaging,
         supplier: item.Supplier?.supplierName,
-        storageCode: item.Storages[0]?.storageCode,
-        storage: item.Storages[0]?.storageName,
-        plantCode: item.Storages[0]?.Plant?.plantCode,
-        plant: item.Storages[0]?.Plant?.plantName,
+        addressRack: item.Inventory.Address_Rack.addressRackName,
+        storageCode: item.Inventory.Address_Rack.Storage.storageCode,
+        storage: item.Inventory.Address_Rack.Storage.storageName,
+        plantCode: item.Inventory.Address_Rack.Storage.Plant.plantCode,
+        plant: item.Inventory.Address_Rack.Storage.Plant.plantName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -621,6 +626,7 @@ const Material = () => {
       const mappedData = [
         {
           materialNo: '',
+          addressRack: '',
           description: '',
           uom: '',
           price: '',
@@ -628,13 +634,11 @@ const Material = () => {
           mrpType: '',
           minStock: '',
           maxStock: '',
-          // img: '',
           minOrder: '',
           packaging: '',
           unitPackaging: '',
           category: '',
           supplierCode: '',
-          // storageCode: '',
         },
       ]
 
@@ -683,7 +687,6 @@ const Material = () => {
       }
 
       const response = await uploadMasterData(apiUpload, uploadData)
-      console.log('response', response)
 
       const errors = response.data.errors
         ? response.data.errors
@@ -770,8 +773,7 @@ const Material = () => {
       const response = await getMasterDataById(apiStorage, id)
       const storageOptions = response.map((storage) => ({
         label: `${storage.storageName} - ${storage.storageCode}`,
-        value: storage.storageName,
-        id: storage.id,
+        value: storage.id,
       }))
       setStorage(storageOptions)
     } catch (error) {
@@ -780,27 +782,23 @@ const Material = () => {
   }
 
   const handlePlantChange = (e) => {
-    const selectedPlantName = e.value
-    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
-    const plantId = selectedPlant?.id // Dapatkan plant.id
+    const plantId = e.value // Dapatkan plant.id
 
     setPlantOptionsId(plantId)
     getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['plant'].value = selectedPlantName
+    _filters['plant'].value = plantId
     setFilters(_filters)
     setShouldFetch(true)
   }
 
   const handleStorageChange = (e) => {
-    const selectedStorageName = e.value
-    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
-    const storageId = selectedStorage?.id // Dapatkan storage.id
+    const storageId = e.value // Dapatkan storage.id
     setStorageId(storageId)
     setShouldFetch(true)
     let _filters = { ...filters }
-    _filters['storage'].value = e.value
+    _filters['storage'].value = storageId
     setFilters(_filters)
   }
 
@@ -1247,7 +1245,7 @@ const Material = () => {
               </CCol>
               <CCol className="mb-3" sm={12} md={6} lg={3}>
                 <label htmlFor="price" className="mb-2 required-label">
-                  Price <span>*</span>
+                  Price (Rp) <span>*</span>
                 </label>
                 <CFormInput
                   type="number"
@@ -1301,38 +1299,19 @@ const Material = () => {
               <CCol className="mb-3" sm={12} md={6} lg={3}>
                 <div className="form-group">
                   <label htmlFor="packaging" className="mb-2 required-label">
-                    Packaging{' '}
-                    {currentMaterial?.unitPackaging || currentMaterial?.packaging ? (
-                      <span>*</span>
-                    ) : null}
+                    Packaging {currentMaterial?.packagingId ? <span>*</span> : null}
                   </label>
                   <Select
-                    value={currentMaterial.packaging}
+                    value={currentMaterial.packagingId}
                     options={packagingOptions}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="packaging"
-                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, packaging: e })}
+                    onChange={(e) => setCurrentMaterial({ ...currentMaterial, packagingId: e })}
                     styles={customStyles}
                   />
                 </div>
-              </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={3}>
-                <label htmlFor="unitPackaging" className="mb-2 required-label">
-                  Unit Of Packaging ({currentMaterial?.uom.label}){' '}
-                  {currentMaterial?.packaging || currentMaterial?.unitPackaging ? (
-                    <span>*</span>
-                  ) : null}
-                </label>
-                <CFormInput
-                  type="number"
-                  id="unitPackaging"
-                  value={currentMaterial.unitPackaging}
-                  onChange={(e) =>
-                    setCurrentMaterial({ ...currentMaterial, unitPackaging: e.target.value })
-                  }
-                />
               </CCol>
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
@@ -1353,13 +1332,47 @@ const Material = () => {
               </CCol>
 
               {/* Section: Informasi Tambahan */}
-              {/*  <CCol xs={12}>
+              <CCol xs={12}>
                 <h5>Other Information</h5>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={6}>
+              <CCol className="mb-3" sm={12} md={4} lg={4}>
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="addressRack">
+                    Address Rack <span>*</span>
+                  </label>
+                  <Select
+                    value={currentMaterial.addressRackId}
+                    options={addressRackOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="addressRack"
+                    onChange={(e) => {
+                      // cari storage berdasarkan storageId
+                      const selectedStorageOption = storageOptions.find(
+                        (option) => option.value === e.storageId,
+                      )
+
+                      // caari plant berdasarkan storageId
+                      const selectedPlant = plantOptions.find(
+                        (option) => option.value === selectedStorageOption?.plantId,
+                      )
+
+                      setCurrentMaterial({
+                        ...currentMaterial,
+                        addressRackId: e,
+                        storageId: selectedStorageOption,
+                        plantId: selectedPlant,
+                      })
+                    }}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+              <CCol className="mb-3" sm={12} md={4} lg={4}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="storage">
-                    Storage <span>*</span>
+                    Storage
                   </label>
                   <Select
                     value={currentMaterial.storageId}
@@ -1370,13 +1383,14 @@ const Material = () => {
                     id="storage"
                     onChange={(e) => setCurrentMaterial({ ...currentMaterial, storageId: e })}
                     styles={customStyles}
+                    isDisabled={true}
                   />
                 </div>
               </CCol>
-              <CCol className="mb-3" sm={12} md={6} lg={6}>
+              <CCol className="mb-3" sm={12} md={4} lg={4}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="plant">
-                    Plant <span>*</span>
+                    Plant
                   </label>
                   <Select
                     value={currentMaterial.plantId}
@@ -1387,9 +1401,10 @@ const Material = () => {
                     id="plant"
                     onChange={(e) => setCurrentMaterial({ ...currentMaterial, plantId: e })}
                     styles={customStyles}
+                    isDisabled={true}
                   />
                 </div>
-             </CCol> */}
+              </CCol>
             </CRow>
           </CForm>
         </CModalBody>

@@ -4,7 +4,6 @@ import Supplier from "../models/SupplierModel.js";
 import Packaging from "../models/PackagingModel.js";
 import Plant from "../models/PlantModel.js";
 import Storage from "../models/StorageModel.js";
-import MaterialStorage from "../models/MaterialStorageModel.js";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -12,6 +11,9 @@ import LogMaster from "../models/LogMasterModel.js";
 import User from "../models/UserModel.js";
 import LogImport from "../models/LogImportModel.js";
 import db from "../utils/Database.js";
+import Inventory from "../models/InventoryModel.js";
+import AddressRack from "../models/AddressRackModel.js";
+import MaterialStorage from "../models/MaterialStorageModel.js";
 
 export const getMaterial = async (req, res) => {
   try {
@@ -36,7 +38,7 @@ export const getMaterial = async (req, res) => {
     // Fetch a batch of 1000 records
     const response = await Material.findAll({
       where: whereCondition,
-      subQuery: false,
+      // subQuery: false,
       include: [
         {
           model: Packaging,
@@ -53,15 +55,28 @@ export const getMaterial = async (req, res) => {
           where: { flag: 1 },
         },
         {
-          model: Storage,
-          through: { attributes: [] },
-          where: whereConditionStorage,
+          model: Inventory,
           required: true,
+          attributes: ["id", "materialId", "addressId"],
           include: [
             {
-              model: Plant,
-              where: whereConditionPlant,
+              model: AddressRack,
               required: true,
+              where: { flag: 1 },
+              include: [
+                {
+                  model: Storage,
+                  required: true,
+                  where: whereConditionStorage,
+                  include: [
+                    {
+                      model: Plant,
+                      required: true,
+                      where: whereConditionPlant,
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -181,11 +196,9 @@ export const createMaterial = async (req, res) => {
       maxStock,
       categoryId,
       supplierId,
-      packaging,
-      unitPackaging,
+      packagingId,
+      addressRackId,
       minOrder,
-      // storageId,
-      // plantId,
     } = req.body;
 
     // Validasi data tersedia
@@ -202,60 +215,69 @@ export const createMaterial = async (req, res) => {
       !categoryId ||
       !supplierId ||
       !minOrder ||
-      minOrder === 0
-      // ||
-      // !storageId ||
-      // !plantId
+      minOrder === 0 ||
+      !addressRackId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
       });
     }
 
-    if (packaging && !unitPackaging) {
-      return res.status(400).json({ message: "Unit Packaging is required" });
+    const category = categoryId;
+    const supplier = supplierId;
+    const packaging = packagingId;
+
+    // Cek materialNo
+    const existingMaterial = await Material.findOne({
+      where: { materialNo: materialNo, flag: 1 },
+    });
+    if (existingMaterial) {
+      return res.status(400).json({ message: "Material already exists" });
     }
 
-    if (!packaging && unitPackaging) {
-      return res.status(400).json({ message: "Packaging is required" });
+    // Cek category
+    const existCategory = await Category.findOne({
+      where: { id: category.value, flag: 1 },
+    });
+    if (!existCategory) {
+      return res.status(400).json({
+        message:
+          "Category not found, plese check it out first Category master data",
+      });
+    }
+
+    // Cek supplier
+    const existSupplier = await Supplier.findOne({
+      where: { id: supplier.value, flag: 1 },
+    });
+    if (!existSupplier) {
+      return res.status(400).json({
+        message:
+          "Supplier not found, please check it out first Supplier master data",
+      });
     }
 
     // Cek packaging
-    let packagingRes = null;
-    if (packaging && unitPackaging) {
-      const existPackaging = await Packaging.findOne({
-        where: {
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-          flag: 1,
-        },
-        transaction,
+    const existPackaging = await Packaging.findOne({
+      where: { id: packaging.value, flag: 1 },
+    });
+    if (!existPackaging) {
+      return res.status(400).json({
+        message:
+          "Packaging not found, please check it out first Packaging master data",
       });
-
-      if (!existPackaging) {
-        packagingRes = await Packaging.create(
-          {
-            packaging: packaging.value,
-            unitPackaging: unitPackaging,
-          },
-          { userId: req.user.userId, transaction }
-        );
-      } else {
-        packagingRes = existPackaging;
-      }
     }
 
-    // Cek storageId dan plantId
-    // const storagePlant = await Storage.findOne({
-    //   where: { id: storageId.id, plantId: plantId.id, flag: 1 },
-    //   transaction,
-    // });
-    // if (!storagePlant) {
-    //   await transaction.rollback();
-    //   return res.status(400).json({
-    //     message: "Storage or Plant not found, please check storage and plant",
-    //   });
-    // }
+    // Cek address rack
+    const existAddressRack = await AddressRack.findOne({
+      where: { id: addressRackId, flag: 1 },
+    });
+    if (!existAddressRack) {
+      return res.status(400).json({
+        message:
+          "Address rack not found, please check it out first Address rack master data",
+      });
+    }
 
     // Buat material baru
     const newMaterial = await Material.create(
@@ -268,22 +290,39 @@ export const createMaterial = async (req, res) => {
         mrpType: mrpType.value,
         minStock,
         maxStock,
-        categoryId: categoryId.id,
-        supplierId: supplierId.id,
-        packagingId: packagingRes?.id,
         minOrder,
+        packagingId: packaging.value,
+        categoryId: category.value,
+        supplierId: supplier.value,
       },
       { userId: req.user.userId, transaction }
     );
 
-    // Hubungkan material dengan storage
-    // await MaterialStorage.create(
-    //   {
-    //     materialId: newMaterial.id,
-    //     storageId: storageId.id,
-    //   },
-    //   { userId: req.user.userId, transaction }
-    // );
+    // cek materialStorage
+    const materialStorage = await MaterialStorage.findOne({
+      where: { materialId: newMaterial.id },
+    });
+    if (materialStorage) {
+      await materialStorage.update(
+        {
+          storageId: existAddressRack.storageId,
+        },
+        {
+          where: { materialId: newMaterial.id, flag: 1 },
+          userId: req.user.userId,
+          transaction,
+        }
+      );
+    } else {
+      // Hubungkan material dengan storage
+      await MaterialStorage.create(
+        {
+          materialId: newMaterial.id,
+          storageId: existAddressRack.storageId,
+        },
+        { userId: req.user.userId, transaction }
+      );
+    }
 
     await transaction.commit();
     res
@@ -312,14 +351,12 @@ export const updateMaterial = async (req, res) => {
       maxStock,
       categoryId,
       supplierId,
-      packaging,
-      unitPackaging,
+      packagingId,
+      addressRackId,
       minOrder,
-      // storageId,
-      // plantId,
     } = req.body;
 
-    // validasi data tersedia
+    // Validasi data tersedia
     if (
       !description ||
       !uom ||
@@ -332,85 +369,95 @@ export const updateMaterial = async (req, res) => {
       !categoryId ||
       !supplierId ||
       !minOrder ||
-      minOrder === 0
-      // ||
-      // !storageId ||
-      // !plantId
+      minOrder === 0 ||
+      !addressRackId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
       });
     }
 
-    if (packaging && !unitPackaging) {
-      return res.status(400).json({ message: "Unit Packaging is required" });
-    }
+    const category = categoryId;
+    const supplier = supplierId;
+    const packaging = packagingId;
 
-    if (!packaging && unitPackaging) {
-      return res.status(400).json({ message: "Packaging is required" });
-    }
-
+    // Cek materialNo
     const material = await Material.findOne({
       where: { id: materialId, flag: 1 },
-      transaction,
     });
-
     if (!material) {
-      await transaction.rollback();
-      return res.status(404).json({ message: "Material not found" });
+      return res.status(400).json({ message: "Material not found" });
     }
 
-    let packagingRes = null;
-    // Cek packaging
-    if (packaging && unitPackaging) {
-      const existPackaging = await Packaging.findOne({
-        where: {
-          packaging: packaging.value,
-          unitPackaging: unitPackaging,
-          flag: 1,
-        },
-        transaction,
+    // Cek category
+    const existCategory = await Category.findOne({
+      where: { id: category.value, flag: 1 },
+    });
+    if (!existCategory) {
+      return res.status(400).json({
+        message:
+          "Category not found, plese check it out first Category master data",
       });
-
-      if (!existPackaging) {
-        packagingRes = await Packaging.create(
-          {
-            packaging: packaging.value,
-            unitPackaging: unitPackaging,
-          },
-          { userId: req.user.userId, transaction }
-        );
-      } else {
-        packagingRes = existPackaging;
-      }
     }
 
-    // Cek storageId dan plantId
-    // const storagePlant = await Storage.findOne({
-    //   where: { id: storageId.id, plantId: plantId.id, flag: 1 },
-    //   transaction,
-    // });
-    // if (!storagePlant) {
-    //   await transaction.rollback();
-    //   return res.status(400).json({
-    //     message: "Storage or Plant not found, please check storage and plant",
-    //   });
-    // }
+    // Cek supplier
+    const existSupplier = await Supplier.findOne({
+      where: { id: supplier.value, flag: 1 },
+    });
+    if (!existSupplier) {
+      return res.status(400).json({
+        message:
+          "Supplier not found, please check it out first Supplier master data",
+      });
+    }
 
-    // Cek materialId dan storageId
-    // const materialStorage = await MaterialStorage.findOne({
-    //   where: { materialId: materialId, storageId: storageId.id, flag: 1 },
-    //   transaction,
-    // });
-    // if (!materialStorage) {
-    //   await MaterialStorage.create(
-    //     {
-    //       materialId: materialId,
-    //       storageId: storageId.id,
-    //     },
-    //     { userId: req.user.userId, transaction }
-    //   );
-    // }
+    // Cek packaging
+    const existPackaging = await Packaging.findOne({
+      where: { id: packaging.value, flag: 1 },
+    });
+    if (!existPackaging) {
+      return res.status(400).json({
+        message:
+          "Packaging not found, please check it out first Packaging master data",
+      });
+    }
+
+    // Cek address rack
+    const existAddressRack = await AddressRack.findOne({
+      where: { id: addressRackId, flag: 1 },
+    });
+    if (!existAddressRack) {
+      return res.status(400).json({
+        message:
+          "Address rack not found, please check it out first Address rack master data",
+      });
+    }
+
+    // Cek materialStorage
+    const materialStorage = await MaterialStorage.findOne({
+      where: { materialId: materialId },
+    });
+    if (materialStorage) {
+      await materialStorage.update(
+        {
+          storageId: existAddressRack.storageId,
+        },
+        {
+          where: { materialId: materialId, flag: 1 },
+          userId: req.user.userId,
+          transaction,
+        }
+      );
+    } else {
+      // Hubungkan material dengan storage
+      await MaterialStorage.create(
+        {
+          materialId: materialId,
+          storageId: existAddressRack.storageId,
+        },
+        { userId: req.user.userId, transaction }
+      );
+    }
 
     await Material.update(
       {
@@ -421,10 +468,10 @@ export const updateMaterial = async (req, res) => {
         mrpType: mrpType.value,
         minStock,
         maxStock,
-        categoryId: categoryId.id,
-        supplierId: supplierId.id,
-        packagingId: packagingRes?.id,
         minOrder,
+        packagingId: packaging.value,
+        categoryId: category.value,
+        supplierId: supplier.value,
       },
       {
         where: {
