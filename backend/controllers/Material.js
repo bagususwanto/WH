@@ -14,6 +14,7 @@ import db from "../utils/Database.js";
 import Inventory from "../models/InventoryModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
+import LogEntry from "../models/LogEntryModel.js";
 
 export const getMaterial = async (req, res) => {
   try {
@@ -226,6 +227,7 @@ export const createMaterial = async (req, res) => {
     const category = categoryId;
     const supplier = supplierId;
     const packaging = packagingId;
+    const addressRack = addressRackId;
 
     // Cek materialNo
     const existingMaterial = await Material.findOne({
@@ -270,7 +272,7 @@ export const createMaterial = async (req, res) => {
 
     // Cek address rack
     const existAddressRack = await AddressRack.findOne({
-      where: { id: addressRackId, flag: 1 },
+      where: { id: addressRack.value, flag: 1 },
     });
     if (!existAddressRack) {
       return res.status(400).json({
@@ -298,10 +300,32 @@ export const createMaterial = async (req, res) => {
       { userId: req.user.userId, transaction }
     );
 
+    // Buat inventory baru
+    const newInventory = await Inventory.create(
+      {
+        materialId: newMaterial.id,
+        addressId: addressRack.value,
+      },
+      { userId: req.user.userId, transaction }
+    );
+
+    // Buat log
+    await LogEntry.create(
+      {
+        inventoryId: newInventory.id,
+        typeLogEntry: "create inventory",
+        userId: req.user.userId,
+      },
+      { transaction }
+    );
+
     // cek materialStorage
-    const materialStorage = await MaterialStorage.findOne({
-      where: { materialId: newMaterial.id },
-    });
+    const materialStorage = await MaterialStorage.findOne(
+      {
+        where: { materialId: newMaterial.id },
+      },
+      { transaction }
+    );
     if (materialStorage) {
       await materialStorage.update(
         {
@@ -380,10 +404,18 @@ export const updateMaterial = async (req, res) => {
     const category = categoryId;
     const supplier = supplierId;
     const packaging = packagingId;
+    const addressRack = addressRackId;
 
     // Cek materialNo
     const material = await Material.findOne({
       where: { id: materialId, flag: 1 },
+      include: [
+        {
+          model: Inventory,
+          required: true,
+          attributes: ["id", "materialId", "addressId"],
+        },
+      ],
     });
     if (!material) {
       return res.status(400).json({ message: "Material not found" });
@@ -424,7 +456,7 @@ export const updateMaterial = async (req, res) => {
 
     // Cek address rack
     const existAddressRack = await AddressRack.findOne({
-      where: { id: addressRackId, flag: 1 },
+      where: { id: addressRack.value, flag: 1 },
     });
     if (!existAddressRack) {
       return res.status(400).json({
@@ -456,6 +488,24 @@ export const updateMaterial = async (req, res) => {
           storageId: existAddressRack.storageId,
         },
         { userId: req.user.userId, transaction }
+      );
+    }
+
+    // Update addressId jika ada perubahan
+    if (material.Inventory.addressId !== addressRack.value) {
+      await Inventory.update(
+        { addressId: addressRack.value },
+        { where: { id: material.Inventory.id }, transaction }
+      );
+
+      // Create log
+      await LogEntry.create(
+        {
+          inventoryId: material.Inventory.id,
+          typeLogEntry: "update address inventory",
+          userId: req.user.userId,
+        },
+        { transaction }
       );
     }
 
