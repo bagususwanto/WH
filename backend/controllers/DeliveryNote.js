@@ -231,6 +231,20 @@ export const submitDeliveryNote = async (req, res) => {
     } = req.body;
     const userId = req.user.userId;
 
+    // validasi required
+    if (
+      !dnNumber ||
+      !arrivalActualDate ||
+      !arrivalActualTime ||
+      !departureActualDate ||
+      !departureActualTime ||
+      !rit ||
+      !incomingIds ||
+      !receivedQuantities
+    ) {
+      return res.status(400).json({ message: "Missing required parameters, please check again" });
+    }
+
     // validasi max dnNumber 10 digit dan hanya angka
     if (
       dnNumber.length > 10 ||

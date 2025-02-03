@@ -334,9 +334,9 @@ export const handleUpdateIncoming = async (
         }
 
         const quantity = quantities[i];
-        if (quantity < 0) {
-          throw new Error("Quantity not allowed under 0");
-        }
+        // if (quantity < 0) {
+        //   throw new Error("Quantity not allowed under 0");
+        // }
 
         // Tentukan status berdasarkan quantity
         const status = quantity < incoming.planning ? "partial" : "completed";
