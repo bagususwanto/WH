@@ -165,8 +165,6 @@ export const createAddressRack = async (req, res) => {
       where: { addressCode: shortAddressRackName, flag: 1 },
     });
 
-    console.log(storage);
-
     // Validasi data tersedia
     if (!addressRackName) {
       return res.status(400).json({

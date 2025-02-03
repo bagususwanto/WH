@@ -1143,7 +1143,6 @@ const Material = () => {
                   )}
                 </CCol>
                 {/* Form Material */}
-                {console.log(currentMaterial)}
                 <CCol xs={12} lg={9}>
                   <CRow className="gy-3">
                     <CCol xs={12} md={6} lg={4}>
