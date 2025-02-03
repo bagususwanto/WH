@@ -34,7 +34,7 @@ import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
-import { format, parseISO } from 'date-fns'
+import { add, format, parseISO } from 'date-fns'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import { Dropdown } from 'primereact/dropdown'
@@ -626,7 +626,6 @@ const Material = () => {
       const mappedData = [
         {
           materialNo: '',
-          addressRack: '',
           description: '',
           uom: '',
           price: '',
@@ -639,6 +638,7 @@ const Material = () => {
           unitPackaging: '',
           category: '',
           supplierCode: '',
+          addressRack: '',
         },
       ]
 
@@ -688,27 +688,35 @@ const Material = () => {
 
       const response = await uploadMasterData(apiUpload, uploadData)
 
+      // Format pesan error jika ada
       const errors = response.data.errors
         ? response.data.errors
-            .map((err) => `Row: ${JSON.stringify(err.row)}, Error: ${err.error}`)
+            .map((err) => `- ${err.error}`) // Format setiap error
             .join('\n') // Gabungkan setiap pesan error dengan newline
         : ''
 
-      MySwal.fire(
-        'Success',
-        `${response.data.message}${
-          errors
-            ? // '\nErrors:\n' +
-              errors
-            : ''
-        }`,
-        'success',
-      )
+      // Tampilkan pesan sukses dengan detail error (jika ada)
+      if (errors) {
+        MySwal.fire({
+          title: 'Success with Errors',
+          html: `
+            <div>
+              <p>${response.data.message}</p>
+              <p><strong>Errors:</strong></p>
+              <pre style="text-align: left; background: #f0f0f0; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">${errors}</pre>
+            </div>
+          `,
+          icon: 'warning', // Gunakan icon warning untuk success dengan error
+        })
+      } else {
+        MySwal.fire('Success', response.data.message, 'success')
+      }
 
       setImported(true)
       setShouldFetch(true)
     } catch (error) {
       console.error('Error during import:', error)
+      MySwal.fire('Error', 'Failed to import data', 'error')
     } finally {
       setLoadingImport(false)
       setModalUpload(false)
