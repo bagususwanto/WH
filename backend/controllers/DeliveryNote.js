@@ -245,6 +245,11 @@ export const submitDeliveryNote = async (req, res) => {
       return res.status(400).json({ message: "Missing required parameters, please check again" });
     }
 
+    // pastikan receivedQuantities diubah ke number
+    for (let i = 0; i < receivedQuantities.length; i++) {
+      receivedQuantities[i] = Number(receivedQuantities[i]);
+    }
+
     // validasi max dnNumber 10 digit dan hanya angka
     if (
       dnNumber.length > 10 ||
