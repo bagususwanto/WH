@@ -1,7 +1,5 @@
 import Inventory from "../models/InventoryModel.js";
 import Material from "../models/MaterialModel.js";
-import Category from "../models/CategoryModel.js";
-import Supplier from "../models/SupplierModel.js";
 import Incoming from "../models/IncomingModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import User from "../models/UserModel.js";
@@ -11,8 +9,6 @@ import Plant from "../models/PlantModel.js";
 import { Op } from "sequelize";
 import db from "../utils/Database.js";
 import Packaging from "../models/PackagingModel.js";
-import UserWarehouse from "../models/UserWarehouseModel.js";
-import { status } from "./HarcodedData.js";
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
@@ -334,9 +330,9 @@ export const handleUpdateIncoming = async (
         }
 
         const quantity = quantities[i];
-        if (quantity < 0) {
-          throw new Error("Quantity not allowed under 0");
-        }
+        // if (quantity < 0) {
+        //   throw new Error("Quantity not allowed under 0");
+        // }
 
         // Tentukan status berdasarkan quantity
         const status = quantity < incoming.planning ? "partial" : "completed";

@@ -16,8 +16,7 @@ const Incoming = db.define(
     },
     actual: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
+      allowNull: true,
     },
     inventoryId: {
       type: DataTypes.INTEGER,

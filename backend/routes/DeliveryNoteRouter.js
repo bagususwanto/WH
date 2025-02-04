@@ -3,6 +3,8 @@ import {
   getDeliveryNoteByDnNo,
   submitDeliveryNote,
   getDeliveryNoteByDate,
+  getArrivalMonitoring,
+  getDnInquiry,
 } from "../controllers/DeliveryNote.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
@@ -57,6 +59,38 @@ router.get(
     [1]
   ),
   getDeliveryNoteByDate
+);
+router.get(
+  "/delivery-note-inquiry",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getDnInquiry
+);
+router.get(
+  "/arrival-monitoring",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getArrivalMonitoring
 );
 
 export default router;

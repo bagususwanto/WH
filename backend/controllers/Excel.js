@@ -706,13 +706,12 @@ const validateHeaderMaterial = (header) => {
     "mrpType",
     "minStock",
     "maxStock",
-    // "img",
     "minOrder",
     "packaging",
     "unitPackaging",
     "category",
     "supplierCode",
-    // "storageCode",
+    "addressRack",
   ];
   return header.every(
     (value, index) =>
@@ -896,12 +895,21 @@ export const uploadMasterMaterial = async (req, res) => {
     const logImportId = logImport.id;
 
     // Pre-fetch necessary data
-    const [existingMaterials, existingCategories, existingSuppliers] =
-      await Promise.all([
-        Material.findAll({ where: { flag: 1 }, transaction }),
-        Category.findAll({ where: { flag: 1 }, transaction }),
-        Supplier.findAll({ where: { flag: 1 }, transaction }),
-      ]);
+    const [
+      existingMaterials,
+      existingCategories,
+      existingSuppliers,
+      existingAddressRacks,
+      existingPackagings,
+      existingInventories,
+    ] = await Promise.all([
+      Material.findAll({ where: { flag: 1 }, transaction }),
+      Category.findAll({ where: { flag: 1 }, transaction }),
+      Supplier.findAll({ where: { flag: 1 }, transaction }),
+      AddressRack.findAll({ where: { flag: 1 }, transaction }),
+      Packaging.findAll({ where: { flag: 1 }, transaction }),
+      Inventory.findAll({ transaction }),
+    ]);
 
     const materialMap = new Map(
       existingMaterials.map((mat) => [mat.materialNo, mat])
@@ -912,9 +920,23 @@ export const uploadMasterMaterial = async (req, res) => {
     const supplierMap = new Map(
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
+    const addressRackMap = new Map(
+      existingAddressRacks.map((addr) => [addr.addressRackName, addr.id])
+    );
+    const packagingMap = new Map(
+      existingPackagings.map((pack) => [
+        `${pack.packaging} - ${pack.unitPackaging}`,
+        pack.id,
+      ])
+    );
+    const inventoryMap = new Map(
+      existingInventories.map((inv) => [inv.materialId, inv])
+    );
 
     const newMaterials = [];
     const updatedMaterials = [];
+    const newInventories = [];
+    const updatedInventories = [];
     const validationErrors = [];
 
     for (const row of rows) {
@@ -928,14 +950,14 @@ export const uploadMasterMaterial = async (req, res) => {
           mrpType,
           minStock,
           maxStock,
-          // img,
           minOrder,
           packaging,
           unitPackaging,
           categoryName,
         ] = row;
 
-        const supplierCode = String(row[13]?.toString().trim());
+        const supplierCode = String(row[12]?.toString().trim());
+        const addressRack = row[13];
 
         if (
           !materialNo ||
@@ -943,21 +965,59 @@ export const uploadMasterMaterial = async (req, res) => {
           !uom ||
           !typeMat ||
           !mrpType ||
-          // || !img
-          !categoryName
+          !categoryName ||
+          !categoryName ||
+          !supplierCode ||
+          !addressRack
         ) {
-          throw new Error(`Invalid data in row: ${materialNo}`);
+          throw new Error(
+            `Invalid data in row: ${materialNo}, please check your data`
+          );
+        }
+
+        // check min stock, max stock, price, min order is number
+        if (
+          isNaN(parseFloat(minStock)) ||
+          isNaN(parseFloat(maxStock)) ||
+          isNaN(parseFloat(price)) ||
+          isNaN(parseFloat(minOrder))
+        ) {
+          throw new Error(
+            `Invalid data in row: ${materialNo}, please check your data`
+          );
         }
 
         // Validate and get category ID
         const categoryId = categoryMap.get(categoryName);
-        if (!categoryId) throw new Error(`Category not found: ${categoryName}`);
+        if (!categoryId)
+          throw new Error(
+            `Category not found: ${categoryName} in row ${materialNo}, plase check your data master Category`
+          );
 
         // Validate and get supplier ID
         const supplierId = supplierMap.get(supplierCode);
-        if (!supplierId) throw new Error(`Supplier not found: ${supplierCode}`);
+        if (!supplierId)
+          throw new Error(
+            `Supplier not found: ${supplierCode} in row ${materialNo}, plase check your data master Supplier`
+          );
+
+        // Validate and get address ID
+        const addressId = addressRackMap.get(addressRack);
+        if (!addressId)
+          throw new Error(
+            `Address not found: ${addressRack} in row ${materialNo}, plase check your data master Address`
+          );
+
+        // Validate and get packaging ID
+        const packagingId = packagingMap.get(`${packaging} - ${unitPackaging}`);
+        if (packaging !== null && unitPackaging !== null && !packagingId) {
+          throw new Error(
+            `Packaging not found: ${packaging} - ${unitPackaging} in row ${materialNo}, plase check your data master Packaging`
+          );
+        }
 
         const existingMaterial = materialMap.get(materialNo);
+        const existingInventory = inventoryMap.get(existingMaterial?.id);
 
         const materialData = {
           materialNo,
@@ -968,23 +1028,31 @@ export const uploadMasterMaterial = async (req, res) => {
           mrpType,
           minStock,
           maxStock,
-          // img,
           minOrder,
-          packagingId: await checkPackaging(
-            packaging,
-            unitPackaging,
-            logImportId,
-            req.user.userId
-          ),
+          packagingId,
           categoryId,
           supplierId,
           logImportId,
+        };
+
+        const inventoryData = {
+          materialId: existingMaterial?.id,
+          addressId,
         };
 
         if (existingMaterial) {
           updatedMaterials.push({ ...materialData, id: existingMaterial.id });
         } else {
           newMaterials.push(materialData);
+        }
+
+        if (existingInventory) {
+          updatedInventories.push({
+            ...inventoryData,
+            id: existingInventory.id,
+          });
+        } else {
+          newInventories.push(inventoryData);
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
@@ -1004,11 +1072,24 @@ export const uploadMasterMaterial = async (req, res) => {
       await Promise.all(updatePromises);
     }
 
+    // Bulk insert new inventories
+    if (newInventories.length > 0) {
+      await Inventory.bulkCreate(newInventories, { transaction });
+    }
+
+    // Bulk update existing inventories
+    if (updatedInventories.length > 0) {
+      const updatePromises = updatedInventories.map((inv) =>
+        Inventory.update(inv, { where: { id: inv.id }, transaction })
+      );
+      await Promise.all(updatePromises);
+    }
+
     await transaction.commit();
 
     res.status(200).send({
       message: `Uploaded the file successfully: ${req.file.originalname}`,
-      errors: validationErrors.length > 0 ? validationErrors : "",
+      errors: validationErrors.length > 0 ? validationErrors : [],
     });
   } catch (error) {
     if (transaction) await transaction.rollback();

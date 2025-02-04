@@ -51,6 +51,10 @@ const DeliveryNote = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    truckStation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,

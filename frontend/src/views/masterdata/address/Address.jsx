@@ -31,7 +31,7 @@ import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, set } from 'date-fns'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import { Dropdown } from 'primereact/dropdown'
@@ -47,11 +47,13 @@ const Address = () => {
   const [storage, setStorage] = useState([])
   const [storageOptions, setStorageOptions] = useState([])
   const [storageId, setStorageId] = useState()
-  const [plantId, setPlantOptionsId] = useState()
+  const [plantId, setPlantId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentAddress, setCurrentAddress] = useState({
     id: '',
     addressRackName: '',
+    storageId: '',
+    plantId: '',
   })
   const [loading, setLoading] = useState(true)
   const [loadingImport, setLoadingImport] = useState(false)
@@ -87,6 +89,8 @@ const Address = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
   })
+
+  console.log('filters', filters)
 
   const apiPlant = 'plant-public'
   const apiStorage = 'storage-plant'
@@ -137,8 +141,7 @@ const Address = () => {
       const response = await getMasterData(apiPlant)
       const plantOptions = response.data.map((plant) => ({
         label: `${plant.plantName} - ${plant.plantCode}`,
-        value: plant.plantName,
-        id: plant.id,
+        value: plant.id,
       }))
       setPlantOptions(plantOptions)
     } catch (error) {
@@ -151,8 +154,9 @@ const Address = () => {
       const response = await getMasterData(apiStorages)
       const storageOptions = response.data.map((storage) => ({
         label: `${storage.storageName} - ${storage.storageCode}`,
-        value: storage.storageName,
-        id: storage.id,
+        value: storage.id,
+        addressCode: storage.addressCode,
+        plantId: storage.plantId,
       }))
       setStorageOptions(storageOptions)
     } catch (error) {
@@ -163,6 +167,7 @@ const Address = () => {
   const getAddress = async () => {
     setLoading(true)
     try {
+      console.log('plantId', plantId)
       if (!plantId && !storageId) {
         setAddress([])
         setLoading(false)
@@ -190,7 +195,6 @@ const Address = () => {
           importBy,
         }
       })
-      console.log('dataWithFormattedFields', dataWithFormattedFields)
       setAddress(dataWithFormattedFields)
     } catch (error) {
       console.error('Error fetching address rack:', error)
@@ -205,6 +209,8 @@ const Address = () => {
     setCurrentAddress({
       id: '',
       addressRackName: '',
+      storageId: '',
+      plantId: '',
     })
     setModal(true)
   }
@@ -227,10 +233,15 @@ const Address = () => {
   )
 
   const handleEditAddress = (address) => {
+    const selectedStorage = storageOptions.find((option) => option.value === address.Storage.id)
+    const selectedPlant = plantOptions.find((p) => p.value === address.Storage.plantId)
+
     setIsEdit(true)
     setCurrentAddress({
       id: address.id,
       addressRackName: address.addressRackName,
+      storageId: selectedStorage || null,
+      plantId: selectedPlant || null,
     })
     setModal(true)
   }
@@ -526,14 +537,9 @@ const Address = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-
-      type: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
     })
     setGlobalFilterValue('')
-    setPlantOptionsId(null)
+    setPlantId(null)
     setStorageId(null)
     setType(null)
     setAddress([])
@@ -551,8 +557,7 @@ const Address = () => {
       const response = await getMasterDataById(apiStorage, id)
       const storageOptions = response.map((storage) => ({
         label: `${storage.storageName} - ${storage.storageCode}`,
-        value: storage.storageName,
-        id: storage.id,
+        value: storage.id,
       }))
       setStorage(storageOptions)
     } catch (error) {
@@ -561,22 +566,21 @@ const Address = () => {
   }
 
   const handlePlantChange = (e) => {
-    const selectedPlantName = e.value
-    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
-    const plantId = selectedPlant?.id // Dapatkan plant.id
-
-    setPlantOptionsId(plantId)
+    const selectedPlantId = e.value
+    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantId) // Cari objek plant berdasarkan plantName
+    const plantId = selectedPlant?.value // Dapatkan plant.id
+    setPlantId(plantId)
     getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
-    _filters['plant'].value = selectedPlantName
+    _filters['plant'].value = plantId
     setFilters(_filters)
     setShouldFetch(true)
   }
 
   const handleStorageChange = (e) => {
-    const selectedStorageName = e.value
-    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
+    const selectedStorageId = e.value
+    const selectedStorage = storage.find((s) => s.value === selectedStorageId) // Cari objek storage berdasarkan storageName
     const storageId = selectedStorage?.id // Dapatkan storage.id
     setStorageId(storageId)
     setShouldFetch(true)
@@ -657,7 +661,7 @@ const Address = () => {
                         onClick={handleAddAddress}
                         data-pr-tooltip="XLS"
                       />
-                      <Button
+                      {/* <Button
                         type="button"
                         label="Upload"
                         icon="pi pi-file-import"
@@ -665,7 +669,7 @@ const Address = () => {
                         className="rounded-5 me-2 mb-2"
                         onClick={showModalUpload}
                         data-pr-tooltip="XLS"
-                      />
+                      /> */}
                       <Button
                         type="button"
                         label="Excel"
@@ -675,7 +679,7 @@ const Address = () => {
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
-                      <Button
+                      {/*  <Button
                         type="button"
                         label="Template"
                         icon="pi pi-download"
@@ -683,7 +687,7 @@ const Address = () => {
                         className="rounded-5 mb-2"
                         onClick={downloadTemplate}
                         data-pr-tooltip="XLS"
-                      />
+                      /> */}
                     </div>
                   </CCol>
                   <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
@@ -756,54 +760,62 @@ const Address = () => {
                 </label>
                 <CFormInput
                   value={currentAddress.addressRackName}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    // cari storage berdasarkan addressCode dari e substring 2
+                    const selectedStorage = storageOptions.find(
+                      (s) => s.addressCode === e.target.value.substring(0, 2),
+                    )
+
+                    // cari plant berdasarkan plantId dari selectedStorage
+                    const selectedPlant = plantOptions.find(
+                      (p) => p.value === selectedStorage?.plantId,
+                    )
+
                     setCurrentAddress({
                       ...currentAddress,
                       addressRackName: e.target.value.toUpperCase(),
+                      storageId: selectedStorage || null,
+                      plantId: selectedPlant || null,
                     })
-                  }
+                  }}
                 />
               </CCol>
-              {isEdit && (
-                <>
-                  <CCol xs={12} md={12} lg={6} className="mb-3">
-                    <div className="form-group">
-                      <label className="mb-2 required-label" htmlFor="storageId">
-                        Storage
-                      </label>
-                      <Select
-                        value={currentAddress.storageId}
-                        options={storageOptions}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        isClearable={isClearable}
-                        id="storageId"
-                        onChange={(e) => setCurrentAddress({ ...currentAddress, storageId: e })}
-                        styles={customStyles}
-                        isDisabled
-                      />
-                    </div>
-                  </CCol>
-                  <CCol xs={12} md={12} lg={6} className="mb-3">
-                    <div className="form-group">
-                      <label className="mb-2 required-label" htmlFor="plantId">
-                        Plant
-                      </label>
-                      <Select
-                        value={currentAddress.plantId}
-                        options={plantOptions}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        isClearable={isClearable}
-                        id="plantId"
-                        onChange={(e) => setCurrentAddress({ ...currentAddress, plantId: e })}
-                        styles={customStyles}
-                        isDisabled
-                      />
-                    </div>
-                  </CCol>
-                </>
-              )}
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="storageId">
+                    Storage
+                  </label>
+                  <Select
+                    value={currentAddress.storageId}
+                    options={storageOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="storageId"
+                    onChange={(e) => setCurrentAddress({ ...currentAddress, storageId: e })}
+                    styles={customStyles}
+                    isDisabled
+                  />
+                </div>
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="plantId">
+                    Plant
+                  </label>
+                  <Select
+                    value={currentAddress.plantId}
+                    options={plantOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={isClearable}
+                    id="plantId"
+                    onChange={(e) => setCurrentAddress({ ...currentAddress, plantId: e })}
+                    styles={customStyles}
+                    isDisabled
+                  />
+                </div>
+              </CCol>
             </CRow>
           </CForm>
         </CModalBody>

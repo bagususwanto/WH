@@ -33,10 +33,6 @@ export const getIncoming = async (req, res) => {
     }
 
     if (startDate && endDate) {
-      // Validasi input tanggal
-      console.log("startDate:", startDate); // Contoh: 2025-01-07
-      console.log("endDate:", endDate); // Contoh: 2025-01-07
-
       whereCondition.incomingDate = {
         [Op.between]: [startDate, endDate],
       };
