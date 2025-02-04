@@ -99,6 +99,8 @@ app.use(
       "http://localhost:3001",
       "https://twiis-toyota.web.app",
       "https://twiis-gi-toyota.web.app",
+      "https://twiis-receiving-toyota.web.app",
+      "https://redpost-warehouse.web.app",
     ],
   })
 );
