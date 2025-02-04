@@ -12,6 +12,7 @@ import db from "../utils/Database.js";
 import { handleUpdateIncoming } from "./ManagementStock.js";
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
+import { Op } from "sequelize";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
@@ -242,7 +243,9 @@ export const submitDeliveryNote = async (req, res) => {
       !incomingIds ||
       !receivedQuantities
     ) {
-      return res.status(400).json({ message: "Missing required parameters, please check again" });
+      return res
+        .status(400)
+        .json({ message: "Missing required parameters, please check again" });
     }
 
     // pastikan receivedQuantities diubah ke number
@@ -469,6 +472,232 @@ export const getDeliveryNoteByDate = async (req, res) => {
       .status(200)
       .json({ data: mappedData, message: "Data Delivery Note Found" });
   } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getDnInquiry = async (req, res) => {
+  try {
+    const { plantId, startDate, endDate } = req.query;
+
+    let whereConditionPlant = { flag: 1 };
+    let whereConditionDn = {};
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    if (startDate && endDate) {
+      whereConditionDn.arrivalPlanDate = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    const data = await DeliveryNote.findAll({
+      where: whereConditionDn,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id", "materialId", "addressId"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Supplier,
+                      required: true,
+                      attributes: ["id", "supplierName", "supplierCode"],
+                      where: { flag: 1 },
+                    },
+                  ],
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id", "addressRackName"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id", "storageName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id", "plantName"],
+                          where: whereConditionPlant,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: LogImport,
+          required: true,
+          attributes: ["id", "typeLog", "fileName", "importDate"],
+          include: [
+            {
+              model: User,
+              required: true,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Delivery Note Not Found" });
+    }
+
+    // mapping data
+    const mappedData = data.map((item) => {
+      const deliveryNotes = item.Incomings.map((incoming) => ({
+        dnNumber: item.dnNumber,
+        supplierName:
+          item.Incomings[0].Inventory.Material.Supplier.supplierName,
+        supplierCode:
+          item.Incomings[0].Inventory.Material.Supplier.supplierCode,
+        truckStation: item.truckStation,
+        rit: item.rit,
+        arrivalPlanDate: item.arrivalPlanDate,
+        arrivalPlanTime: new Date(item.arrivalPlanTime)
+          .toISOString()
+          .slice(11, 16),
+        departurePlanDate: item.departurePlanDate,
+        departurePlanTime: new Date(item.departurePlanTime)
+          .toISOString()
+          .slice(11, 16),
+        arrivalActualDate: item.arrivalActualDate,
+        departureActualDate: item.departureActualDate,
+        arrivalActualTime: item.arrivalActualTime
+          ? new Date(item.arrivalActualTime).toISOString().slice(11, 16)
+          : null,
+        departureActualTime: item.departureActualTime
+          ? new Date(item.departureActualTime).toISOString().slice(11, 16)
+          : null,
+        status: item.status,
+        Materials: item.Incomings.map((incoming) => ({
+          materialNo: incoming.Inventory.Material.materialNo,
+          description: incoming.Inventory.Material.description,
+          uom: incoming.Inventory.Material.uom,
+          address: incoming.Inventory.Address_Rack.addressRackName,
+          reqQuantity: incoming.planning,
+          receivedQuantity: incoming.actual,
+          remain: incoming.actual - incoming.planning,
+          status: incoming.status,
+        })),
+      }));
+
+      return {
+        deliveryNotes,
+      };
+    });
+
+    res
+      .status(200)
+      .json({ data: mappedData, message: "Data Delivery Note Found" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getArrivalMonitoring = async (req, res) => {
+  try {
+    const { plantId, status, vendorId, startDate, endDate } = req.query;
+
+    let whereConditionDn = {};
+    let whereConditionSupplier = { flag: 1 };
+    let whereConditionPlant = { flag: 1 };
+
+    if (plantId) {
+      whereConditionPlant.plantId = plantId;
+    }
+
+    if (vendorId) {
+      whereConditionSupplier.supplierId = vendorId;
+    }
+
+    if (startDate && endDate) {
+      whereConditionDn.arrivalPlanDate = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    if (status) {
+      whereConditionDn.status = status;
+    }
+
+    const data = await DeliveryNote.findAll({
+      where: whereConditionDn,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id"],
+                  where: whereConditionSupplier,
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id"],
+                      where: whereConditionPlant,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Mengelompokkan data berdasarkan status
+    const summary = {
+      delayed: data.filter((item) => item.status === "delayed").length,
+      onSchedule: data.filter((item) => item.status === "on schedule").length,
+      total: data.length,
+    };
+
+    // Menghitung data yang tersisa
+    summary.remaining = summary.total - (summary.delayed + summary.onSchedule);
+
+    return res
+      .status(200)
+      .json({ data: summary, message: "Data Delivery Note Found" });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
