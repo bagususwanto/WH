@@ -349,6 +349,10 @@ export const submitDeliveryNote = async (req, res) => {
       .toISOString()
       .slice(11, 16); // time only format
 
+    const truckStation =
+      checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier
+        .Delivery_Schedules[0]?.truckStation;
+
     // Combine actual and plan dates with times
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
     const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
@@ -366,6 +370,7 @@ export const submitDeliveryNote = async (req, res) => {
         departureActualDate,
         departureActualTime,
         rit,
+        truckStation,
       },
       {
         where: { dnNumber },
