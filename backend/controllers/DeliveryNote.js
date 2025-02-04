@@ -481,7 +481,7 @@ export const getDnInquiry = async (req, res) => {
     const { plantId, startDate, endDate } = req.query;
 
     let whereConditionPlant = { flag: 1 };
-    let whereConditionDn = {};
+    let whereConditionDn = { rit: { [Op.ne]: null } };
 
     if (plantId) {
       whereConditionPlant.id = plantId;
