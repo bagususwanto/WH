@@ -567,7 +567,7 @@ export const getDnInquiry = async (req, res) => {
 
     // mapping data
     const mappedData = data.map((item) => {
-      const deliveryNotes = item.Incomings.map((incoming) => ({
+      const deliveryNotes = {
         dnNumber: item.dnNumber,
         supplierName:
           item.Incomings[0].Inventory.Material.Supplier.supplierName,
@@ -602,7 +602,7 @@ export const getDnInquiry = async (req, res) => {
           remain: incoming.actual - incoming.planning,
           status: incoming.status,
         })),
-      }));
+      };
 
       return {
         deliveryNotes,
