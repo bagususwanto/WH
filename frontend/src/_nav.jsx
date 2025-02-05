@@ -31,6 +31,10 @@ import {
   cilMinus,
   cilUserX,
   cilUserFollow,
+  cilIndustry,
+  cilFridge,
+  cilLan,
+  cilCash,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import useVerify from './hooks/UseVerify'
@@ -155,27 +159,24 @@ const useNavigation = () => {
       (isWarehouse == 1 && roleName === 'section head') ||
       (isWarehouse == 1 && roleName === 'department head')
     ) {
-      baseNav.push(
-     
-        {
-          component: CNavGroup,
-          name: 'TWIIS-Red Post',
-          to: '/',
-          icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
-          items: [
-            {
-              component: CNavItem,
-              name: 'Red Post',
-              to: 'dummy-route', // Internal route, just a placeholder
-              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-              onClick: (e) => {
-                e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
-              },
+      baseNav.push({
+        component: CNavGroup,
+        name: 'TWIIS-Red Post',
+        to: '/',
+        icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Red Post',
+            to: 'dummy-route', // Internal route, just a placeholder
+            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            onClick: (e) => {
+              e.preventDefault() // Prevent the default behavior of `to`
+              window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
             },
-          ],
-        },
-      )
+          },
+        ],
+      })
     }
     if (
       (isWarehouse == 1 && roleName === 'group head') ||
@@ -408,79 +409,163 @@ const useNavigation = () => {
         },
         {
           component: CNavGroup,
-          name: 'Master Data',
-          to: '/order',
-          icon: <CIcon icon={cilEqualizer} customClassName="nav-icon" />,
+          name: 'Item',
+          to: '/material',
+          icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
           items: [
+            {
+              component: CNavItem,
+              name: 'Material',
+              to: '/material',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Packaging',
+              to: '/packaging',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
             {
               component: CNavItem,
               name: 'Category',
               to: '/category',
-              icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
             },
             {
               component: CNavItem,
               name: 'Supplier',
               to: '/supplier',
-              icon: <CIcon icon={cilCarAlt} customClassName="nav-icon" />,
-            },
-            {
-              component: CNavItem,
-              name: 'Material',
-              to: '/material',
-              icon: <CIcon icon={cilPaintBucket} customClassName="nav-icon" />,
-            },
-            {
-              component: CNavItem,
-              name: 'Role',
-              to: '/role',
-              icon: <CIcon icon={cilCompass} customClassName="nav-icon" />,
-            },
-            {
-              component: CNavGroup,
-              name: 'Location',
-              to: '/order',
-              icon: <CIcon icon={cilLocationPin} customClassName="nav-icon" />,
-              items: [
-                {
-                  component: CNavItem,
-                  name: 'Storage',
-                  to: '/storage',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-                {
-                  component: CNavItem,
-                  name: 'Address',
-                  to: '/address',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-                {
-                  component: CNavItem,
-                  name: 'Plant',
-                  to: '/plant',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-                {
-                  component: CNavItem,
-                  name: 'Shop',
-                  to: '/shop',
-                  icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-                },
-              ],
-            },
-            {
-              component: CNavItem,
-              name: 'Cost',
-              to: '/cost',
-              icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
-            },
-            {
-              component: CNavItem,
-              name: 'User',
-              to: '/user',
-              icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
             },
           ],
+        },
+        {
+          component: CNavGroup,
+          name: 'Storage Bin',
+          to: '/storage',
+          icon: <CIcon icon={cilFridge} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Storage',
+              to: '/storage',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Address',
+              to: '/address',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavGroup,
+          name: 'Structure Org',
+          to: '/storage',
+          icon: <CIcon icon={cilLan} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Organization',
+              to: '/organization',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Division',
+              to: '/division',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Department',
+              to: '/department',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Section',
+              to: '/section',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Line',
+              to: '/line',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Group',
+              to: '/group',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavGroup,
+          name: 'Cost',
+          to: '/cost',
+          icon: <CIcon icon={cilCash} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'GI Card',
+              to: '/gic',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Cost Center',
+              to: '/cc',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'WBS',
+              to: '/wbs',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavGroup,
+          name: 'Operations',
+          to: '/storage',
+          icon: <CIcon icon={cilFactory} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Warehouse',
+              to: '/warehouse',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Plant',
+              to: '/plant',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Service Hours',
+              to: '/service-hours',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+            {
+              component: CNavItem,
+              name: 'Shift',
+              to: '/shift',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
+          ],
+        },
+        {
+          component: CNavItem,
+          name: 'User',
+          to: '/user',
+          icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
         },
       )
     }
