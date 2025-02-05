@@ -572,6 +572,23 @@ export const getDnInquiry = async (req, res) => {
 
     // mapping data
     const mappedData = data.map((item) => {
+      // Pastikan arrivalActualTime adalah string
+      const actualTime = item.arrivalActualTime
+        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+        : "00:00:00"; // Default value jika null atau undefined
+
+      // Pastikan arrivalPlanTime adalah string
+      const plannedTime = item.arrivalPlanTime
+        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+        : "00:00:00"; // Default value jika null atau undefined
+
+      // Gabungkan date dan time
+      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
+      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+
+      // Hitung delay dalam milidetik
+      const delay = actualArrival - plannedArrival;
+
       const deliveryNotes = {
         dnNumber: item.dnNumber,
         supplierName:
@@ -597,7 +614,11 @@ export const getDnInquiry = async (req, res) => {
           ? new Date(item.departureActualTime).toISOString().slice(11, 16)
           : null,
         status: item.status,
+        delayTime: delay > 0 ? convertDelay(delay) : "0s",
+        warehouseId:
+          item.Incomings[0].Inventory.Address_Rack.Storage.Plant.warehouseId,
         Materials: item.Incomings.map((incoming) => ({
+          incomingId: incoming.id,
           materialNo: incoming.Inventory.Material.materialNo,
           description: incoming.Inventory.Material.description,
           uom: incoming.Inventory.Material.uom,
@@ -705,4 +726,167 @@ export const getArrivalMonitoring = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+export const getArrivalChart = async (req, res) => {
+  try {
+    const { plantId, status, vendorId, startDate, endDate } = req.query;
+
+    let whereConditionDn = {};
+    let whereConditionSupplier = { flag: 1 };
+    let whereConditionPlant = { flag: 1 };
+
+    if (plantId) {
+      whereConditionPlant.plantId = plantId;
+    }
+
+    if (vendorId) {
+      whereConditionSupplier.id = vendorId;
+    }
+
+    if (startDate && endDate) {
+      whereConditionDn.arrivalPlanDate = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    if (status) {
+      whereConditionDn.status = status;
+    }
+
+    const data = await DeliveryNote.findAll({
+      where: whereConditionDn,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Supplier,
+                      required: true,
+                      attributes: ["id", "supplierName", "supplierCode"],
+                      where: whereConditionSupplier,
+                    },
+                  ],
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id", "addressRackName"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id"],
+                      where: whereConditionPlant,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // map data
+    const mappedData = data.map((item) => {
+      // Pastikan arrivalActualTime adalah string
+      const actualTime = item.arrivalActualTime
+        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+        : "00:00:00"; // Default value jika null atau undefined
+
+      // Pastikan arrivalPlanTime adalah string
+      const plannedTime = item.arrivalPlanTime
+        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+        : "00:00:00"; // Default value jika null atau undefined
+
+      // Gabungkan date dan time
+      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
+      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+
+      // Hitung delay dalam milidetik
+      const delay = actualArrival - plannedArrival;
+
+      const deliveryNotes = {
+        dnNumber: item.dnNumber,
+        supplierName:
+          item.Incomings[0].Inventory.Material.Supplier.supplierName,
+        supplierCode:
+          item.Incomings[0].Inventory.Material.Supplier.supplierCode,
+        truckStation: item.truckStation,
+        rit: item.rit,
+        arrivalPlanDate: item.arrivalPlanDate,
+        arrivalPlanTime: new Date(item.arrivalPlanTime)
+          .toISOString()
+          .slice(11, 16),
+        departurePlanDate: item.departurePlanDate,
+        departurePlanTime: new Date(item.departurePlanTime)
+          .toISOString()
+          .slice(11, 16),
+        arrivalActualDate: item.arrivalActualDate,
+        departureActualDate: item.departureActualDate,
+        arrivalActualTime: item.arrivalActualTime
+          ? new Date(item.arrivalActualTime).toISOString().slice(11, 16)
+          : null,
+        departureActualTime: item.departureActualTime
+          ? new Date(item.departureActualTime).toISOString().slice(11, 16)
+          : null,
+        status: item.status,
+        delayTime: delay > 0 ? convertDelay(delay) : "0s",
+        Materials: item.Incomings.map((incoming) => ({
+          incomingId: incoming.id,
+          materialNo: incoming.Inventory.Material.materialNo,
+          description: incoming.Inventory.Material.description,
+          uom: incoming.Inventory.Material.uom,
+          address: incoming.Inventory.Address_Rack.addressRackName,
+          reqQuantity: incoming.planning,
+          receivedQuantity: incoming.actual,
+          remain: incoming.actual - incoming.planning,
+          status: incoming.status,
+        })),
+      };
+
+      return {
+        deliveryNotes,
+      };
+    });
+
+    return res
+      .status(200)
+      .json({ data: mappedData, message: "Data Delivery Note Found" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Konversi delay ke format yang lebih mudah dibaca
+const convertDelay = (delayMs) => {
+  const seconds = Math.abs(delayMs) / 1000;
+  const days = Math.floor(seconds / (24 * 3600));
+  const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  let result = "";
+  if (days > 0) result += `${days}d `;
+  if (hours > 0) result += `${hours}h `;
+  if (minutes > 0) result += `${minutes}m `;
+  if (remainingSeconds > 0 && result === "") result += `${remainingSeconds}s`; // Tampilkan detik jika tidak ada yang lain
+
+  return result.trim() || "0s"; // Jika tidak ada delay, tampilkan "0s"
 };

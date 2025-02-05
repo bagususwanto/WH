@@ -5,6 +5,7 @@ import {
   getDeliveryNoteByDate,
   getArrivalMonitoring,
   getDnInquiry,
+  getArrivalChart,
 } from "../controllers/DeliveryNote.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
@@ -91,6 +92,22 @@ router.get(
     [1]
   ),
   getArrivalMonitoring
+);
+router.get(
+  "/arrival-chart",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getArrivalChart
 );
 
 export default router;
