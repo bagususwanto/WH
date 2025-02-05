@@ -566,7 +566,7 @@ export const getDnInquiry = async (req, res) => {
       ],
     });
 
-    if (data.length === 0) {
+    if (!data) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
@@ -709,6 +709,10 @@ export const getArrivalMonitoring = async (req, res) => {
       ],
     });
 
+    if (!data) {
+      return res.status(404).json({ message: "Data Delivery Note Not Found" });
+    }
+
     // Mengelompokkan data berdasarkan status
     const summary = {
       delayed: data.filter((item) => item.status === "delayed").length,
@@ -815,6 +819,10 @@ export const getArrivalChart = async (req, res) => {
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
+
+    if (!data) {
+      return res.status(404).json({ message: "Data Delivery Note Not Found" });
+    }
 
     const mappedData = data.map((item) => {
       const actualTime = item.arrivalActualTime

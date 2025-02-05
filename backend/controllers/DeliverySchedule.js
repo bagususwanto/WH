@@ -112,7 +112,7 @@ export const getDeliverySchedule = async (req, res) => {
     // const totalPages = Math.ceil(totalData / limit);
 
     if (data.length === 0) {
-      return res.status(200).json({
+      return res.status(404).json({
         data,
         message: "Data Delivery Schedule Not Found",
       });
