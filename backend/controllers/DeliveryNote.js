@@ -504,7 +504,7 @@ export const getDnInquiry = async (req, res) => {
         {
           model: Incoming,
           required: true,
-          attributes: ["id", "planning", "actual", "status"],
+          attributes: ["id", "planning", "actual", "status", "incomingDate"],
           include: [
             {
               model: Inventory,
@@ -589,6 +589,15 @@ export const getDnInquiry = async (req, res) => {
       // Hitung delay dalam milidetik
       const delay = actualArrival - plannedArrival;
 
+      // let viewOnly = false;
+      const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
+      // const incomingDate = item.Incomings[0]?.incomingDate;
+      // console.log("incomingDate", incomingDate);
+      // console.log("today", today);
+      // if (today > incomingDate) {
+      //   viewOnly = true;
+      // }
+
       const deliveryNotes = {
         dnNumber: item.dnNumber,
         supplierName:
@@ -627,6 +636,7 @@ export const getDnInquiry = async (req, res) => {
           receivedQuantity: incoming.actual,
           remain: incoming.actual - incoming.planning,
           status: incoming.status,
+          viewOnly: today > incoming.incomingDate ? true : false,
         })),
       };
 
