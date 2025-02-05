@@ -111,6 +111,13 @@ export const getDeliverySchedule = async (req, res) => {
     // // Menghitung total halaman
     // const totalPages = Math.ceil(totalData / limit);
 
+    if (data.length === 0) {
+      return res.status(200).json({
+        data,
+        message: "Data Delivery Schedule Not Found",
+      });
+    }
+
     // Kirim data dan informasi pagination
     res.status(200).json({
       data,
