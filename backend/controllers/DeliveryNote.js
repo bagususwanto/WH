@@ -730,7 +730,17 @@ export const getArrivalMonitoring = async (req, res) => {
 
 export const getArrivalChart = async (req, res) => {
   try {
-    const { plantId, status, vendorId, startDate, endDate } = req.query;
+    const {
+      plantId,
+      status,
+      vendorId,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const offset = (page - 1) * limit;
 
     let whereConditionDn = {};
     let whereConditionSupplier = { flag: 1 };
@@ -754,8 +764,9 @@ export const getArrivalChart = async (req, res) => {
       whereConditionDn.status = status;
     }
 
-    const data = await DeliveryNote.findAll({
+    const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
+      subQuery: false,
       include: [
         {
           model: Incoming,
@@ -800,28 +811,23 @@ export const getArrivalChart = async (req, res) => {
           ],
         },
       ],
+      distinct: true,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
     });
 
-    // map data
     const mappedData = data.map((item) => {
-      // Pastikan arrivalActualTime adalah string
       const actualTime = item.arrivalActualTime
-        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
-
-      // Pastikan arrivalPlanTime adalah string
+        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
+        : "00:00:00";
       const plannedTime = item.arrivalPlanTime
-        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
-
-      // Gabungkan date dan time
+        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19)
+        : "00:00:00";
       const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
       const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
-
-      // Hitung delay dalam milidetik
       const delay = actualArrival - plannedArrival;
 
-      const deliveryNotes = {
+      return {
         dnNumber: item.dnNumber,
         supplierName:
           item.Incomings[0].Inventory.Material.Supplier.supplierName,
@@ -859,15 +865,15 @@ export const getArrivalChart = async (req, res) => {
           status: incoming.status,
         })),
       };
-
-      return {
-        deliveryNotes,
-      };
     });
 
-    return res
-      .status(200)
-      .json({ data: mappedData, message: "Data Delivery Note Found" });
+    return res.status(200).json({
+      data: mappedData,
+      totalRecords: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+      message: "Data Delivery Note Found",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

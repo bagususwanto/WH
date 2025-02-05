@@ -581,7 +581,9 @@ const Address = () => {
   const handleStorageChange = (e) => {
     const selectedStorageId = e.value
     const selectedStorage = storage.find((s) => s.value === selectedStorageId) // Cari objek storage berdasarkan storageName
-    const storageId = selectedStorage?.id // Dapatkan storage.id
+    console.log('selectedStorage', selectedStorage)
+    const storageId = selectedStorage?.value // Dapatkan storage.id
+
     setStorageId(storageId)
     setShouldFetch(true)
     let _filters = { ...filters }
