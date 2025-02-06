@@ -689,7 +689,7 @@ export const updateQuantityDN = async (req, res) => {
     for (let i = 0; i < incomingIds.length; i++) {
       const incomingId = incomingIds[i];
       const quantity = Number(quantities[i]);
-
+      console.log("quantityyyyyyyyyyyyyyy", quantity);
       if (isNaN(quantity)) {
         await transaction.rollback();
         return res.status(400).json({
