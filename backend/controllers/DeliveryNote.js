@@ -543,7 +543,7 @@ export const getDnInquiry = async (req, res) => {
                         {
                           model: Plant,
                           required: true,
-                          attributes: ["id", "plantName"],
+                          attributes: ["id", "plantName", "warehouseId"],
                           where: whereConditionPlant,
                         },
                       ],
