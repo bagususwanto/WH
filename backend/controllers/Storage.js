@@ -2,8 +2,17 @@ import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
 import LogMaster from "../models/LogMasterModel.js";
 import User from "../models/UserModel.js";
+import AddressRack from "../models/AddressRackModel.js";
 
 export const getStorage = async (req, res) => {
+  const { plantId } = req.query;
+
+  let whereConditionPlant = { flag: 1 };
+
+  if (plantId) {
+    whereConditionPlant.id = plantId;
+  }
+
   try {
     const response = await Storage.findAll({
       where: { flag: 1 },
@@ -11,7 +20,7 @@ export const getStorage = async (req, res) => {
       include: [
         {
           model: Plant,
-          where: { flag: 1 },
+          where: whereConditionPlant,
         },
         {
           model: LogMaster,
@@ -45,6 +54,10 @@ export const getStorage = async (req, res) => {
         },
       ],
     });
+
+    if (response.length === 0) {
+      return res.status(404).json({ message: "Storage not found" });
+    }
 
     res.status(200).json(response);
   } catch (error) {
@@ -112,25 +125,16 @@ export const getStorageByPlant = async (req, res) => {
 export const createStorage = async (req, res) => {
   try {
     const { storageCode, storageName, plantId, addressCode } = req.body;
-    if (!storageCode || !storageName || !plantId) {
+    if (!storageCode || !storageName || !plantId || !addressCode) {
       return res.status(400).json({
-        message: "StorageCode, StorageName, and Plant are required",
+        message:
+          "StorageCode, StorageName, AddressCode, and Plant are required",
       });
-    }
-
-    const plant = await Plant.findOne({
-      where: { id: plantId, flag: 1 },
-    });
-
-    if (!plant) {
-      return res.status(404).json({ message: "Plant not found" });
     }
 
     const storage = await Storage.findOne({
       where: {
         storageCode: storageCode,
-        plantId: plantId,
-        addressCode: addressCode,
         flag: 1,
       },
     });
@@ -139,10 +143,38 @@ export const createStorage = async (req, res) => {
       return res.status(400).json({ message: "Storage already exists" });
     }
 
-    await Storage.create(req.body, { userId: req.user.userId });
+    const storageRack = await Storage.findOne({
+      where: {
+        addressCode: addressCode,
+        flag: 1,
+      },
+    });
+
+    if (storageRack) {
+      return res.status(400).json({ message: "Rack Code already exists" });
+    }
+
+    const plant = await Plant.findOne({
+      where: { id: plantId.value, flag: 1 },
+    });
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    await Storage.create(
+      {
+        storageCode,
+        storageName,
+        plantId: plantId.value,
+        addressCode,
+      },
+      { userId: req.user.userId }
+    );
+
     res.status(201).json({ message: "Storage Created" });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -164,14 +196,21 @@ export const updateStorage = async (req, res) => {
     const existingStorage = await Storage.findOne({
       where: {
         storageCode: storageCode,
-        plantId: plantId,
-        addressCode: addressCode,
-        flag: 1,
       },
     });
 
     if (existingStorage) {
       return res.status(400).json({ message: "Storage already exists" });
+    }
+
+    const storageRack = await Storage.findOne({
+      where: {
+        addressCode: addressCode,
+      },
+    });
+
+    if (storageRack) {
+      return res.status(400).json({ message: "Rack Code already exists" });
     }
 
     await Storage.update(req.body, {

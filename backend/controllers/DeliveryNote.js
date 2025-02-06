@@ -256,6 +256,13 @@ export const submitDeliveryNote = async (req, res) => {
       receivedQuantities[i] = Number(receivedQuantities[i]);
     }
 
+    // Validasi quantities tidak boleh null
+    if (receivedQuantities.includes(null)) {
+      return res
+        .status(400)
+        .json({ message: "Received quantities cannot be null" });
+    }
+
     // validasi max dnNumber 10 digit dan hanya angka
     if (
       dnNumber.length > 10 ||

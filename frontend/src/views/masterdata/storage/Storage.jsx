@@ -50,8 +50,9 @@ const Storage = () => {
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentStorage, setCurrentStorage] = useState({
     id: '',
-    addressRackName: '',
-    storageId: '',
+    storageCode: '',
+    storageName: '',
+    addressCode: '',
     plantId: '',
   })
   const [loading, setLoading] = useState(true)
@@ -90,7 +91,8 @@ const Storage = () => {
   })
 
   const apiPlant = 'plant-public'
-  const apiStorage = 'storage-plant'
+  const apiStorage = `storage?plantId=${plantId}`
+  const apiPostStorage = 'storage'
 
   useEffect(() => {
     setLoading(false)
@@ -143,8 +145,7 @@ const Storage = () => {
   const getStorage = async () => {
     setLoading(true)
     try {
-      console.log('plantId', plantId)
-      if (!plantId && !storageId) {
+      if (!plantId) {
         setStorage([])
         setLoading(false)
         return
@@ -184,8 +185,9 @@ const Storage = () => {
     setIsEdit(false)
     setCurrentStorage({
       id: '',
-      addressRackName: '',
-      storageId: '',
+      storageCode: '',
+      storageName: '',
+      addressCode: '',
       plantId: '',
     })
     setModal(true)
@@ -208,15 +210,15 @@ const Storage = () => {
     </div>
   )
 
-  const handleEditStorage = (address) => {
-    const selectedStorage = storageOptions.find((option) => option.value === address.Storage.id)
-    const selectedPlant = plantOptions.find((p) => p.value === address.Storage.plantId)
+  const handleEditStorage = (storage) => {
+    const selectedPlant = plantOptions.find((p) => p.value === storage.plantId)
 
     setIsEdit(true)
     setCurrentStorage({
-      id: address.id,
-      addressRackName: address.addressRackName,
-      storageId: selectedStorage || null,
+      id: storage.id,
+      storageCode: storage.storageCode,
+      storageName: storage.storageName,
+      addressCode: storage.addressCode,
       plantId: selectedPlant || null,
     })
     setModal(true)
@@ -250,8 +252,9 @@ const Storage = () => {
 
   const validateMaterial = (address) => {
     const requiredFields = [
-      { field: 'addressRackName', message: 'Storage is required' },
-      { field: 'storageId', message: 'Storage is required' },
+      { field: 'storageCode', message: 'Storage Code is required' },
+      { field: 'storageName', message: 'Storage Name is required' },
+      { field: 'addressCode', message: 'Address Code is required' },
       { field: 'plantId', message: 'Plant is required' },
     ]
 
@@ -272,14 +275,14 @@ const Storage = () => {
     }
 
     try {
-      const materialToSave = { ...currentStorage }
+      const storageToSave = { ...currentStorage }
 
       if (isEdit) {
-        await updateMasterDataById(apiMasterStorage, currentStorage.id, materialToSave)
+        await updateMasterDataById(apiPostStorage, currentStorage.id, storageToSave)
         MySwal.fire('Updated!', 'Storage has been updated.', 'success')
       } else {
-        delete materialToSave.id
-        await postMasterData(apiMasterStorage, materialToSave)
+        delete storageToSave.id
+        await postMasterData(apiPostStorage, storageToSave)
         MySwal.fire('Added!', 'Storage has been added.', 'success')
       }
     } catch (error) {
@@ -302,12 +305,12 @@ const Storage = () => {
 
   const filteredStorage = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
-    return address.filter((item) => {
+    return storage.filter((item) => {
       return Object.values(item).some(
         (val) => val && val.toString().toLowerCase().includes(globalFilter),
       )
     })
-  }, [address, filters.global.value])
+  }, [storage, filters.global.value])
 
   const renderHeader = () => {
     return (
@@ -340,11 +343,12 @@ const Storage = () => {
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = address.map((item, index) => ({
+      const mappedData = storage.map((item, index) => ({
         no: index + 1,
-        address: item.addressRackName,
-        storage: item.Storage.storageName,
-        plant: item.Storage.Plant.plantName,
+        storageCode: item.storageCode,
+        storageName: item.storageName,
+        rackCode: item.addressCode,
+        plant: item.Plant.plantName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -354,7 +358,7 @@ const Storage = () => {
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'address')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'storage')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -363,7 +367,7 @@ const Storage = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_address')
+      saveAsExcelFile(excelBuffer, 'master_data_storage')
     })
   }
 
@@ -508,16 +512,9 @@ const Storage = () => {
         value: null,
         matchMode: FilterMatchMode.EQUALS,
       },
-
-      storage: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
     })
     setGlobalFilterValue('')
     setPlantId(null)
-    setStorageId(null)
-    setType(null)
     setStorage([])
   }
 
@@ -525,46 +522,16 @@ const Storage = () => {
     initFilters()
   }
 
-  const getStorageByPlantId = async (id) => {
-    if (!id) {
-      return
-    }
-    try {
-      const response = await getMasterDataById(apiStorage, id)
-      const storageOptions = response.map((storage) => ({
-        label: `${storage.storageName} - ${storage.storageCode}`,
-        value: storage.id,
-      }))
-      setStorage(storageOptions)
-    } catch (error) {
-      console.error('Error fetching storage by ID:', error)
-    }
-  }
-
   const handlePlantChange = (e) => {
     const selectedPlantId = e.value
     const selectedPlant = plantOptions.find((p) => p.value === selectedPlantId) // Cari objek plant berdasarkan plantName
     const plantId = selectedPlant?.value // Dapatkan plant.id
     setPlantId(plantId)
-    getStorageByPlantId(plantId)
 
     let _filters = { ...filters }
     _filters['plant'].value = plantId
     setFilters(_filters)
     setShouldFetch(true)
-  }
-
-  const handleStorageChange = (e) => {
-    const selectedStorageId = e.value
-    const selectedStorage = storage.find((s) => s.value === selectedStorageId) // Cari objek storage berdasarkan storageName
-    console.log('selectedStorage', selectedStorage)
-    const storageId = selectedStorage?.value // Dapatkan storage.id
-
-    setStorageId(storageId)
-    setShouldFetch(true)
-    let _filters = { ...filters }
-    _filters['storage'].value = e.value
-    setFilters(_filters)
   }
 
   const LoadingComponent = () => (
@@ -605,17 +572,6 @@ const Storage = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={12} sm={6} md={6} lg={6} xl={4}>
-                <Dropdown
-                  value={filters['storage'].value}
-                  options={storage}
-                  onChange={handleStorageChange}
-                  placeholder="Select Storage"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
             </CRow>
           </CCardBody>
         </CCard>
@@ -639,15 +595,6 @@ const Storage = () => {
                         onClick={handleAddStorage}
                         data-pr-tooltip="XLS"
                       />
-                      {/* <Button
-                        type="button"
-                        label="Upload"
-                        icon="pi pi-file-import"
-                        severity="primary"
-                        className="rounded-5 me-2 mb-2"
-                        onClick={showModalUpload}
-                        data-pr-tooltip="XLS"
-                      /> */}
                       <Button
                         type="button"
                         label="Excel"
@@ -657,15 +604,6 @@ const Storage = () => {
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
-                      {/*  <Button
-                        type="button"
-                        label="Template"
-                        icon="pi pi-download"
-                        severity="success"
-                        className="rounded-5 mb-2"
-                        onClick={downloadTemplate}
-                        data-pr-tooltip="XLS"
-                      /> */}
                     </div>
                   </CCol>
                   <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
@@ -691,16 +629,32 @@ const Storage = () => {
                     body={(data, options) => options.rowIndex + 1}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
                   <Column
-                    field="addressRackName"
-                    header="Storage"
+                    field="storageCode"
+                    header="Storage Code"
                     style={{ width: '25%' }}
-                    frozen
-                    alignFrozen="left"
+                    sortable
                   />
-                  <Column field="Storage.storageName" header="Storage" style={{ width: '25%' }} />
-                  <Column field="Storage.Plant.plantName" header="Plant" style={{ width: '25%' }} />
+                  <Column
+                    field="storageName"
+                    header="Storage Name"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
+                  <Column
+                    field="addressCode"
+                    header="Rack Code"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
+                  <Column
+                    field="Plant.plantName"
+                    header="Plant"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -733,53 +687,52 @@ const Storage = () => {
               </CCol>
               {/* Form Storage */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="addressRackName">
-                  Storage {isEdit ? '' : <span>*</span>}
+                <label className="mb-2 required-label" htmlFor="storageCode">
+                  Storage Code {isEdit ? '' : <span>*</span>}
                 </label>
                 <CFormInput
-                  value={currentStorage.addressRackName}
-                  onChange={(e) => {
-                    // cari storage berdasarkan addressCode dari e substring 2
-                    const selectedStorage = storageOptions.find(
-                      (s) => s.addressCode === e.target.value.substring(0, 2),
-                    )
-
-                    // cari plant berdasarkan plantId dari selectedStorage
-                    const selectedPlant = plantOptions.find(
-                      (p) => p.value === selectedStorage?.plantId,
-                    )
-
+                  disabled={isEdit}
+                  value={currentStorage.storageCode}
+                  onChange={(e) =>
                     setCurrentStorage({
                       ...currentStorage,
-                      addressRackName: e.target.value.toUpperCase(),
-                      storageId: selectedStorage || null,
-                      plantId: selectedPlant || null,
+                      storageCode: e.target.value,
                     })
-                  }}
+                  }
+                />
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="storageName">
+                  Storage Name <span>*</span>
+                </label>
+                <CFormInput
+                  value={currentStorage.storageName}
+                  onChange={(e) =>
+                    setCurrentStorage({
+                      ...currentStorage,
+                      storageName: e.target.value,
+                    })
+                  }
+                />
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="addressCode">
+                  Rack Code <span>*</span>
+                </label>
+                <CFormInput
+                  value={currentStorage.addressCode}
+                  onChange={(e) =>
+                    setCurrentStorage({
+                      ...currentStorage,
+                      addressCode: e.target.value,
+                    })
+                  }
                 />
               </CCol>
               <CCol xs={12} md={12} lg={6} className="mb-3">
                 <div className="form-group">
-                  <label className="mb-2 required-label" htmlFor="storageId">
-                    Storage
-                  </label>
-                  <Select
-                    value={currentStorage.storageId}
-                    options={storageOptions}
-                    className="basic-single"
-                    classNamePrefix="select"
-                    isClearable={isClearable}
-                    id="storageId"
-                    onChange={(e) => setCurrentStorage({ ...currentStorage, storageId: e })}
-                    styles={customStyles}
-                    isDisabled
-                  />
-                </div>
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="plantId">
-                    Plant
+                    Plant <span>*</span>
                   </label>
                   <Select
                     value={currentStorage.plantId}
@@ -790,7 +743,6 @@ const Storage = () => {
                     id="plantId"
                     onChange={(e) => setCurrentStorage({ ...currentStorage, plantId: e })}
                     styles={customStyles}
-                    isDisabled
                   />
                 </div>
               </CCol>

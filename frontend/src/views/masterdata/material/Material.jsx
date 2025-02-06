@@ -1026,6 +1026,7 @@ const Material = () => {
                     body={(data, options) => options.rowIndex + 1}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
                   <Column header="Image" body={imageBodyTemplate} frozen alignFrozen="left" />
                   <Column
@@ -1034,14 +1035,21 @@ const Material = () => {
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
-                  <Column field="description" header="Description" style={{ width: '25%' }} />
-                  <Column field="uom" header="UoM" style={{ width: '25%' }} />
-                  <Column field="type" header="Type" style={{ width: '25%' }} />
+                  <Column
+                    field="description"
+                    header="Description"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
+                  <Column field="uom" header="UoM" style={{ width: '25%' }} sortable />
+                  <Column field="type" header="Type" style={{ width: '25%' }} sortable />
                   <Column
                     header="Category"
                     field="Category.categoryName"
                     style={{ width: '25%' }}
+                    sortable
                   />
                   {visibleColumns.map((col, index) => (
                     <Column
