@@ -316,15 +316,6 @@ export const handleUpdateIncoming = async (
         transaction,
       });
 
-      // hanya bisa update data incoming dalam hari ini
-      const today = new Date();
-      const incomingDate = new Date(incomingData[0].incomingDate);
-
-      // Validasi hanya bisa update data incoming dalam hari ini
-      if (incomingDate.getDate() !== today.getDate()) {
-        throw new Error("Cannot update data for a different day");
-      }
-
       // Buat mapping untuk proses bulk update
       const updates = [];
       const logEntries = [];
@@ -336,6 +327,10 @@ export const handleUpdateIncoming = async (
         );
         if (!incoming) {
           throw new Error(`Incoming with ID ${incomingIds[i]} not found`);
+        }
+
+        if (incoming.actual !== null) {
+          throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
         }
 
         const quantity = quantities[i];
@@ -405,7 +400,7 @@ export const handleUpdateIncoming = async (
   }
 };
 
-const processIncomingUpdate = async (
+export const processIncomingUpdate = async (
   incomingId,
   quantity,
   userId,
@@ -424,6 +419,13 @@ const processIncomingUpdate = async (
 
   if (!incoming) {
     throw new Error(`Incoming with ID ${incomingId} not found`);
+  }
+
+  const today = new Date();
+  const incomingDate = new Date(incoming.incomingDate);
+
+  if (incomingDate.getDate() !== today.getDate()) {
+    throw new Error("Cannot update data on a different day");
   }
 
   // if (quantity < 0) {
@@ -634,12 +636,9 @@ const updateQuantitySistem = async (
 
       const oldQuantity = incoming.actual;
       const newQuantity = quantity;
-      console.log("oldQuantity", oldQuantity);
-      console.log("newQuantity", newQuantity);
       const adjustment = newQuantity - oldQuantity;
 
       cumQuantity = inventoryStock.quantityActualCheck + adjustment;
-      console.log("cumQuantity", cumQuantity);
     } else {
       // Hitung jumlah total kuantitas actual dari tabel Incoming berdasarkan inventoryId
       // const totalIncomingQuantity = await Incoming.sum("actual", {

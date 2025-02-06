@@ -6,6 +6,7 @@ import {
   getArrivalMonitoring,
   getDnInquiry,
   getArrivalChart,
+  updateQuantityDN,
 } from "../controllers/DeliveryNote.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
@@ -76,6 +77,21 @@ router.get(
     [1]
   ),
   getDnInquiry
+);
+router.post(
+  "/delivery-note-inquiry/:warehouseId",
+  checkRole(
+    [
+      "super admin",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  updateQuantityDN
 );
 router.get(
   "/arrival-monitoring",

@@ -9,7 +9,10 @@ import Supplier from "../models/SupplierModel.js";
 import Warehouse from "../models/WarehouseModel.js";
 import Storage from "../models/StorageModel.js";
 import db from "../utils/Database.js";
-import { handleUpdateIncoming } from "./ManagementStock.js";
+import {
+  handleUpdateIncoming,
+  processIncomingUpdate,
+} from "./ManagementStock.js";
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
 import { Op } from "sequelize";
@@ -589,14 +592,7 @@ export const getDnInquiry = async (req, res) => {
       // Hitung delay dalam milidetik
       const delay = actualArrival - plannedArrival;
 
-      // let viewOnly = false;
       const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
-      // const incomingDate = item.Incomings[0]?.incomingDate;
-      // console.log("incomingDate", incomingDate);
-      // console.log("today", today);
-      // if (today > incomingDate) {
-      //   viewOnly = true;
-      // }
 
       const deliveryNotes = {
         dnNumber: item.dnNumber,
@@ -649,6 +645,65 @@ export const getDnInquiry = async (req, res) => {
       .status(200)
       .json({ data: mappedData, message: "Data Delivery Note Found" });
   } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updateQuantityDN = async (req, res) => {
+  const transaction = await db.transaction(); // Inisialisasi transaksi
+
+  try {
+    const { incomingIds, quantities } = req.body;
+    const userId = req.user.userId;
+
+    // Validasi required
+    if (!Array.isArray(incomingIds) || !Array.isArray(quantities)) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities must be arrays",
+      });
+    }
+
+    if (incomingIds.length === 0 || quantities.length === 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities cannot be empty",
+      });
+    }
+
+    if (incomingIds.length !== quantities.length) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities array lengths do not match",
+      });
+    }
+
+    // Looping untuk update satu per satu
+    for (let i = 0; i < incomingIds.length; i++) {
+      const incomingId = incomingIds[i];
+      const quantity = Number(quantities[i]);
+
+      if (isNaN(quantity)) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: `Invalid quantity at index ${i}`,
+        });
+      }
+
+      try {
+        // Tangkap error dari `processIncomingUpdate`
+        await processIncomingUpdate(incomingId, quantity, userId, transaction);
+      } catch (error) {
+        await transaction.rollback();
+        return res.status(400).json({ message: error.message }); // Return error validasi
+      }
+    }
+
+    await transaction.commit();
+    res.status(200).json({ message: "Delivery Note Updated" });
+  } catch (error) {
+    await transaction.rollback(); // Rollback jika terjadi error sistem
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
