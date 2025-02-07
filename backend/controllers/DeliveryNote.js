@@ -752,12 +752,12 @@ export const getArrivalMonitoring = async (req, res) => {
       include: [
         {
           model: Incoming,
-          required: true,
+          required: false,
           attributes: ["id"],
           include: [
             {
               model: Inventory,
-              required: true,
+              required: false,
               attributes: ["id"],
               include: [
                 {
@@ -768,7 +768,7 @@ export const getArrivalMonitoring = async (req, res) => {
                 },
                 {
                   model: AddressRack,
-                  required: true,
+                  required: false,
                   attributes: ["id"],
                   where: { flag: 1 },
                   include: [
@@ -849,21 +849,21 @@ export const getArrivalChart = async (req, res) => {
     const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
       order: [["arrivalPlanTime", "ASC"]],
-      subQuery: false,
+      // subQuery: false,
       include: [
         {
           model: Incoming,
-          required: true,
+          required: false,
           attributes: ["id", "planning", "actual", "status"],
           include: [
             {
               model: Inventory,
-              required: true,
+              required: false,
               attributes: ["id"],
               include: [
                 {
                   model: Material,
-                  required: true,
+                  required: false,
                   attributes: ["id", "materialNo", "description", "uom"],
                   where: { flag: 1 },
                   include: [
@@ -877,7 +877,7 @@ export const getArrivalChart = async (req, res) => {
                 },
                 {
                   model: AddressRack,
-                  required: true,
+                  required: false,
                   attributes: ["id", "addressRackName"],
                   where: { flag: 1 },
                   include: [

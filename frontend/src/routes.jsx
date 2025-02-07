@@ -21,6 +21,7 @@ const InputInventory = React.lazy(() => import('./views/inventory/InputInventory
 const GoodIssue = React.lazy(() => import('./views/gidata/GoodIssue'))
 const Redpost = React.lazy(() => import('./views/redpostdata/Redpost'))
 const Request = React.lazy(() => import('./views/request/Request'))
+const Packaging = React.lazy(() => import('./views/masterdata/packaging/Packaging'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -44,6 +45,7 @@ const routes = [
   { path: '/goodissue', name: 'Good Issue', element: GoodIssue },
   { path: '/redpost', name: 'Redpost', element: Redpost },
   { path: '/request', name: 'Request', element: Request },
+  { path: '/packaging', name: 'Master / Packaging', element: Packaging },
 ]
 
 export default routes

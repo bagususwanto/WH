@@ -25,35 +25,29 @@ import {
   CFormInput,
   CForm,
   CSpinner,
-  CFormLabel,
 } from '@coreui/react'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, set } from 'date-fns'
 import 'flatpickr/dist/flatpickr.min.css'
-import { Dropdown } from 'primereact/dropdown'
 
 const MySwal = withReactContent(swal)
 
-const Storage = () => {
-  const [storage, setStorage] = useState([])
+const Packaging = () => {
+  const [packaging, setPackaging] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
-  const [plantOptions, setPlantOptions] = useState([])
-  const [plantId, setPlantId] = useState()
-  const [shouldFetch, setShouldFetch] = useState(false)
-  const [currentStorage, setCurrentStorage] = useState({
+  const [currentPackaging, setCurrentPackaging] = useState({
     id: '',
-    storageCode: '',
-    storageName: '',
-    addressCode: '',
-    plantId: '',
+    packaging: '',
+    unitPackaging: '',
   })
   const [loading, setLoading] = useState(true)
   const [visibleColumns, setVisibleColumns] = useState([])
+  const [uomOptions, setUomOptions] = useState([])
   const [isClearable, setIsClearable] = useState(true)
 
   const { getMasterData, deleteMasterDataById, updateMasterDataById, postMasterData } =
@@ -67,26 +61,21 @@ const Storage = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
 
-    storage: {
+    packaging: {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
   })
 
-  const apiPlant = 'plant-public'
-  const apiStorage = `storage?plantId=${plantId}`
-  const apiPostStorage = 'storage'
-  const apiStorageDelete = 'storage-delete'
+  const apiPackaging = 'packaging'
+  const apiPackagingDelete = 'packaging-delete'
+  const apiUom = 'uom'
 
   useEffect(() => {
+    getPackaging()
+    getUoms()
     setLoading(false)
-    getPlant()
   }, [])
-
-  useEffect(() => {
-    if (!shouldFetch) return
-    getStorage()
-  }, [plantId, shouldFetch])
 
   const customStyles = {
     control: (provided) => ({
@@ -113,29 +102,24 @@ const Storage = () => {
     setVisibleColumns(orderedSelectedColumns)
   }
 
-  const getPlant = async () => {
+  const getUoms = async () => {
     try {
-      const response = await getMasterData(apiPlant)
-      const plantOptions = response.data.map((plant) => ({
-        label: `${plant.plantName} - ${plant.plantCode}`,
-        value: plant.id,
+      const response = await getMasterData(apiUom)
+      const uomOptions = response.data.map((uom) => ({
+        label: uom.uom,
+        value: uom.id,
       }))
-      setPlantOptions(plantOptions)
+      setUomOptions(uomOptions)
     } catch (error) {
-      console.error('Error fetching plant:', error)
+      console.error('Error fetching uom:', error)
     }
   }
 
-  const getStorage = async () => {
+  const getPackaging = async () => {
     setLoading(true)
     try {
-      if (!plantId) {
-        setStorage([])
-        setLoading(false)
-        return
-      }
+      const response = await getMasterData(apiPackaging)
 
-      const response = await getMasterData(apiStorage)
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
           ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
@@ -156,23 +140,20 @@ const Storage = () => {
           importBy,
         }
       })
-      setStorage(dataWithFormattedFields)
+      setPackaging(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching address rack:', error)
+      console.error('Error fetching packaging:', error)
     } finally {
-      setShouldFetch(false)
       setLoading(false) // Set loading to false after data is fetched
     }
   }
 
-  const handleAddStorage = () => {
+  const handleAddPackaging = () => {
     setIsEdit(false)
-    setCurrentStorage({
+    setCurrentPackaging({
       id: '',
-      storageCode: '',
-      storageName: '',
-      addressCode: '',
-      plantId: '',
+      packaging: '',
+      unitPackaging: '',
     })
     setModal(true)
   }
@@ -183,32 +164,28 @@ const Storage = () => {
         label="Edit"
         icon="pi pi-pencil"
         className="p-button-success"
-        onClick={() => handleEditStorage(rowData)}
+        onClick={() => handleEditPackaging(rowData)}
       />
       <Button
         label="Delete"
         icon="pi pi-trash"
         className="p-button-danger"
-        onClick={() => handleDeleteStorage(rowData.id)}
+        onClick={() => handleDeletePackaging(rowData.id)}
       />
     </div>
   )
 
-  const handleEditStorage = (storage) => {
-    const selectedPlant = plantOptions.find((p) => p.value === storage.plantId)
-
+  const handleEditPackaging = (packaging) => {
     setIsEdit(true)
-    setCurrentStorage({
-      id: storage.id,
-      storageCode: storage.storageCode,
-      storageName: storage.storageName,
-      addressCode: storage.addressCode,
-      plantId: selectedPlant || null,
+    setCurrentPackaging({
+      id: packaging.id,
+      packaging: packaging.packaging,
+      unitPackaging: packaging.unitPackaging,
     })
     setModal(true)
   }
 
-  const handleDeleteStorage = (addressId) => {
+  const handleDeletePackaging = (addressId) => {
     MySwal.fire({
       title: 'Are you sure?',
       text: 'This address cannot be recovered!',
@@ -226,24 +203,22 @@ const Storage = () => {
 
   const confirmDelete = async (addressId) => {
     try {
-      await deleteMasterDataById(apiStorageDelete, addressId)
-      MySwal.fire('Deleted!', 'Storage deleted successfully.', 'success')
-      await getStorage() // Refresh the list after deletion
+      await deleteMasterDataById(apiPackagingDelete, addressId)
+      MySwal.fire('Deleted!', 'Packaging deleted successfully.', 'success')
+      await getPackaging() // Refresh the list after deletion
     } catch (error) {
       console.error('Error menghapus address:', error)
     }
   }
 
-  const validateMaterial = (address) => {
+  const validatePackaging = (packaging) => {
     const requiredFields = [
-      { field: 'storageCode', message: 'Storage Code is required' },
-      { field: 'storageName', message: 'Storage Name is required' },
-      { field: 'addressCode', message: 'Address Code is required' },
-      { field: 'plantId', message: 'Plant is required' },
+      { field: 'packaging', message: 'Packaging is required' },
+      { field: 'unitPackaging', message: 'Unit of Packaging is required' },
     ]
 
     for (const { field, message } of requiredFields) {
-      if (!address[field]) {
+      if (!packaging[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -251,30 +226,35 @@ const Storage = () => {
     return true
   }
 
-  const handleSaveStorage = async () => {
+  const handleSavePackaging = async () => {
     setLoading(true)
-    if (!validateMaterial(currentStorage)) {
+    if (!validatePackaging(currentPackaging)) {
       setLoading(false)
       return
     }
 
     try {
-      const storageToSave = { ...currentStorage }
+      const packagingToSave = { ...currentPackaging }
 
       if (isEdit) {
-        await updateMasterDataById(apiPostStorage, currentStorage.id, storageToSave)
-        MySwal.fire('Updated!', 'Storage has been updated.', 'success')
+        await updateMasterDataById(apiPackaging, currentPackaging.id, {
+          packaging: packagingToSave.packaging.label,
+          unitPackaging: packagingToSave.unitPackaging,
+        })
+        MySwal.fire('Updated!', 'Packaging has been updated.', 'success')
       } else {
-        delete storageToSave.id
-        await postMasterData(apiPostStorage, storageToSave)
-        MySwal.fire('Added!', 'Storage has been added.', 'success')
+        delete packagingToSave.id
+        await postMasterData(apiPackaging, {
+          packaging: packagingToSave.packaging.label,
+          unitPackaging: packagingToSave.unitPackaging,
+        })
+        MySwal.fire('Added!', 'Packaging has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving address:', error)
+      console.error('Error saving packaging:', error)
     } finally {
       setLoading(false)
       setModal(false)
-      setShouldFetch(true)
     }
   }
 
@@ -287,14 +267,14 @@ const Storage = () => {
     setGlobalFilterValue(value)
   }
 
-  const filteredStorage = useMemo(() => {
+  const filteredPackaging = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
-    return storage.filter((item) => {
+    return packaging.filter((item) => {
       return Object.values(item).some(
         (val) => val && val.toString().toLowerCase().includes(globalFilter),
       )
     })
-  }, [storage, filters.global.value])
+  }, [packaging, filters.global.value])
 
   const renderHeader = () => {
     return (
@@ -327,10 +307,10 @@ const Storage = () => {
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = storage.map((item, index) => ({
+      const mappedData = packaging.map((item, index) => ({
         no: index + 1,
-        storageCode: item.storageCode,
-        storageName: item.storageName,
+        packagingCode: item.packagingCode,
+        packagingName: item.packagingName,
         rackCode: item.addressCode,
         plant: item.Plant.plantName,
         createdAt: item.formattedCreatedAt,
@@ -342,7 +322,7 @@ const Storage = () => {
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'storage')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'packaging')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -351,7 +331,7 @@ const Storage = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_storage')
+      saveAsExcelFile(excelBuffer, 'master_data_packaging')
     })
   }
 
@@ -380,36 +360,6 @@ const Storage = () => {
     })
   }
 
-  const initFilters = () => {
-    setFilters({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-      plant: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-    })
-    setGlobalFilterValue('')
-    setPlantId(null)
-    setStorage([])
-  }
-
-  const clearFilter = () => {
-    initFilters()
-  }
-
-  const handlePlantChange = (e) => {
-    const selectedPlantId = e.value
-    const selectedPlant = plantOptions.find((p) => p.value === selectedPlantId) // Cari objek plant berdasarkan plantName
-    const plantId = selectedPlant?.value // Dapatkan plant.id
-    setPlantId(plantId)
-
-    let _filters = { ...filters }
-    _filters['plant'].value = plantId
-    setFilters(_filters)
-    setShouldFetch(true)
-  }
-
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
@@ -420,40 +370,8 @@ const Storage = () => {
   return (
     <CRow>
       <CCol>
-        <CCard className="mb-3">
-          <CCardHeader>Filter</CCardHeader>
-          <CCardBody>
-            <CRow>
-              <CCol xs={12} sm={6} md={4}>
-                <Button
-                  type="button"
-                  icon="pi pi-filter-slash"
-                  label="Clear Filter"
-                  outlined
-                  onClick={clearFilter}
-                  className="mb-2"
-                  style={{ borderRadius: '5px' }}
-                />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol xs={12} sm={6} md={6} lg={6} xl={4}>
-                <Dropdown
-                  value={filters['plant'].value}
-                  options={plantOptions}
-                  onChange={handlePlantChange}
-                  placeholder="Select Plant"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-            </CRow>
-          </CCardBody>
-        </CCard>
-
         <CCard className="mb-4">
-          <CCardHeader>Master Data Storage</CCardHeader>
+          <CCardHeader>Master Data Packaging</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent />
@@ -468,7 +386,7 @@ const Storage = () => {
                         icon="pi pi-plus"
                         severity="primary"
                         className="rounded-5 me-2 mb-2"
-                        onClick={handleAddStorage}
+                        onClick={handleAddPackaging}
                         data-pr-tooltip="XLS"
                       />
                       <Button
@@ -487,7 +405,7 @@ const Storage = () => {
                   </CCol>
                 </CRow>
                 <DataTable
-                  value={filteredStorage}
+                  value={filteredPackaging}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
@@ -507,27 +425,10 @@ const Storage = () => {
                     alignFrozen="left"
                     sortable
                   />
+                  <Column field="packaging" header="Packaging" style={{ width: '25%' }} sortable />
                   <Column
-                    field="storageCode"
-                    header="Storage Code"
-                    style={{ width: '25%' }}
-                    sortable
-                  />
-                  <Column
-                    field="storageName"
-                    header="Storage Name"
-                    style={{ width: '25%' }}
-                    sortable
-                  />
-                  <Column
-                    field="addressCode"
-                    header="Rack Code"
-                    style={{ width: '25%' }}
-                    sortable
-                  />
-                  <Column
-                    field="Plant.plantName"
-                    header="Plant"
+                    field="unitPackaging"
+                    header="Unit of Packaging"
                     style={{ width: '25%' }}
                     sortable
                   />
@@ -552,75 +453,49 @@ const Storage = () => {
 
       <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
-          <CModalTitle>{isEdit ? 'Edit Storage' : 'Add Storage'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Packaging' : 'Add Packaging'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
-              {/* Section: Informasi Storage */}
+              {/* Section: Informasi Packaging */}
               <CCol xs={12}>
-                <h5>Storage Information</h5>
+                <h5>Packaging Information</h5>
               </CCol>
-              {/* Form Storage */}
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="storageCode">
-                  Storage Code {isEdit ? '' : <span>*</span>}
-                </label>
-                <CFormInput
-                  disabled={isEdit}
-                  value={currentStorage.storageCode}
-                  onChange={(e) =>
-                    setCurrentStorage({
-                      ...currentStorage,
-                      storageCode: e.target.value,
-                    })
-                  }
-                />
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="storageName">
-                  Storage Name <span>*</span>
-                </label>
-                <CFormInput
-                  value={currentStorage.storageName}
-                  onChange={(e) =>
-                    setCurrentStorage({
-                      ...currentStorage,
-                      storageName: e.target.value,
-                    })
-                  }
-                />
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="addressCode">
-                  Rack Code <span>*</span>
-                </label>
-                <CFormInput
-                  value={currentStorage.addressCode}
-                  onChange={(e) =>
-                    setCurrentStorage({
-                      ...currentStorage,
-                      addressCode: e.target.value,
-                    })
-                  }
-                />
-              </CCol>
+              {/* Form Packaging */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
                 <div className="form-group">
-                  <label className="mb-2 required-label" htmlFor="plantId">
-                    Plant <span>*</span>
+                  <label className="mb-2 required-label" htmlFor="packagingId">
+                    Packaging {isEdit ? '' : <span>*</span>}
                   </label>
                   <Select
-                    value={currentStorage.plantId}
-                    options={plantOptions}
+                    value={currentPackaging.packaging}
+                    options={uomOptions}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={isClearable}
-                    id="plantId"
-                    onChange={(e) => setCurrentStorage({ ...currentStorage, plantId: e })}
+                    id="packagingId"
+                    onChange={(e) => setCurrentPackaging({ ...currentPackaging, packaging: e })}
                     styles={customStyles}
+                    isDisabled={isEdit}
                   />
                 </div>
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="unitPackaging">
+                  Unit of Packaging <span>*</span>
+                </label>
+                <CFormInput
+                  type="number"
+                  id="unitPackaging"
+                  value={currentPackaging.unitPackaging}
+                  onChange={(e) =>
+                    setCurrentPackaging({
+                      ...currentPackaging,
+                      unitPackaging: e.target.value,
+                    })
+                  }
+                />
               </CCol>
             </CRow>
           </CForm>
@@ -636,7 +511,7 @@ const Storage = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleSaveStorage}>
+            <CButton color="primary" onClick={handleSavePackaging}>
               {loading ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />
@@ -653,4 +528,4 @@ const Storage = () => {
   )
 }
 
-export default Storage
+export default Packaging

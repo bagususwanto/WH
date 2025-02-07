@@ -87,14 +87,18 @@ export const getPackagingById = async (req, res) => {
 
 export const createPackaging = async (req, res) => {
   try {
-    const packagingName = await Packaging.findOne({
-      where: { packagingName: req.body.packagingName, flag: 1 },
+    const packaging = await Packaging.findOne({
+      where: {
+        packaging: req.body.packaging,
+        unitPackaging: req.body.unitPackaging,
+        flag: 1,
+      },
     });
-    if (packagingName) {
+    if (packaging) {
       return res.status(400).json({ message: "Packaging already exists" });
     }
 
-    await Packaging.create(req.body, { userId: req.user.id });
+    await Packaging.create(req.body, { userId: req.user.userId });
     res.status(201).json({ message: "Packaging Created" });
   } catch (error) {
     console.log(error.message);
@@ -114,14 +118,19 @@ export const updatePackaging = async (req, res) => {
       return res.status(404).json({ message: "Packaging not found" });
     }
 
-    await Packaging.update(req.body, {
-      where: {
-        id: packagingId,
-        flag: 1,
+    await Packaging.update(
+      {
+        unitPackaging: req.body.unitPackaging,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: packagingId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Packaging Updated" });
   } catch (error) {
     console.log(error.message);
