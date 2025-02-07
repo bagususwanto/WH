@@ -214,24 +214,24 @@ export const createDeliverySchedule = async (req, res) => {
   try {
     // Body
     const {
-      supplierCode,
+      supplierId,
       schedule,
       arrival,
       departure,
       truckStation,
       rit,
-      plantCode,
+      plantId,
     } = req.body;
 
     // Validasi data tersedia
     if (
-      !supplierCode ||
+      !supplierId ||
       !schedule ||
       !arrival ||
       !departure ||
       !truckStation ||
       !rit ||
-      !plantCode
+      !plantId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
@@ -239,14 +239,14 @@ export const createDeliverySchedule = async (req, res) => {
     }
 
     const supplier = await Supplier.findOne({
-      where: { supplierCode, flag: 1 },
+      where: { id: supplierId, flag: 1 },
     });
     if (!supplier) {
       return res.status(400).json({ message: "Supplier not found" });
     }
 
     const plant = await Plant.findOne({
-      where: { plantCode, flag: 1 },
+      where: { id: plantId, flag: 1 },
     });
     if (!plant) {
       return res.status(400).json({ message: "Plant not found" });
@@ -254,10 +254,10 @@ export const createDeliverySchedule = async (req, res) => {
 
     const existingDeliverySchedule = await DeliverySchedule.findOne({
       where: {
-        supplierId: supplier.id,
+        supplierId,
         schedule,
         rit,
-        plantId: plant.id,
+        plantId,
         flag: 1,
       },
     });
@@ -272,13 +272,13 @@ export const createDeliverySchedule = async (req, res) => {
     // Buat ds baru
     const newDs = await DeliverySchedule.create(
       {
-        supplierId: supplier.id,
+        supplierId,
         schedule,
         arrival,
         departure,
         truckStation,
         rit,
-        plantId: plant.id,
+        plantId,
       },
       { userId: req.user.userId, transaction }
     );
@@ -302,24 +302,24 @@ export const updateDeliverySchedule = async (req, res) => {
 
     // Body
     const {
-      supplierCode,
+      supplierId,
       schedule,
       arrival,
       departure,
       truckStation,
       rit,
-      plantCode,
+      plantId,
     } = req.body;
 
     // validasi data tersedia
     if (
-      !supplierCode ||
+      !supplierId ||
       !schedule ||
       !arrival ||
       !departure ||
       !truckStation ||
       !rit ||
-      !plantCode
+      !plantId
     ) {
       return res.status(400).json({
         message: "All fields are required, except packaging and unit packaging",
@@ -334,28 +334,45 @@ export const updateDeliverySchedule = async (req, res) => {
     }
 
     const supplier = await Supplier.findOne({
-      where: { supplierCode, flag: 1 },
+      where: { id: supplierId, flag: 1 },
     });
     if (!supplier) {
       return res.status(400).json({ message: "Supplier not found" });
     }
 
     const plant = await Plant.findOne({
-      where: { plantCode, flag: 1 },
+      where: { id: plantId, flag: 1 },
     });
     if (!plant) {
       return res.status(400).json({ message: "Plant not found" });
     }
 
+    const existingDeliverySchedule = await DeliverySchedule.findOne({
+      where: {
+        supplierId,
+        schedule,
+        rit,
+        plantId,
+        flag: 1,
+      },
+    });
+
+    if (existingDeliverySchedule) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json({ message: "Delivery Schedule already exist" });
+    }
+
     await DeliverySchedule.update(
       {
-        supplierId: supplier.id,
+        supplierId,
         schedule,
         arrival,
         departure,
         truckStation,
         rit,
-        plantId: plant.id,
+        plantId,
       },
       {
         where: {
