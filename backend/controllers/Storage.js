@@ -3,6 +3,7 @@ import Plant from "../models/PlantModel.js";
 import LogMaster from "../models/LogMasterModel.js";
 import User from "../models/UserModel.js";
 import AddressRack from "../models/AddressRackModel.js";
+import db from "../utils/Database.js";
 
 export const getStorage = async (req, res) => {
   const { plantId } = req.query;
@@ -244,6 +245,7 @@ export const updateStorage = async (req, res) => {
         addressRackName: {
           [Op.like]: `%${addressCode}%`,
         },
+        flag: 1,
       },
     });
 
@@ -257,6 +259,7 @@ export const updateStorage = async (req, res) => {
             addressRackName: {
               [Op.like]: `%${addressCode}%`,
             },
+            flag: 1,
           },
           individualHooks: true,
           userId: req.user.userId,

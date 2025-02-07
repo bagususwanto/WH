@@ -93,6 +93,7 @@ const Storage = () => {
   const apiPlant = 'plant-public'
   const apiStorage = `storage?plantId=${plantId}`
   const apiPostStorage = 'storage'
+  const apiStorageDelete = 'storage-delete'
 
   useEffect(() => {
     setLoading(false)
