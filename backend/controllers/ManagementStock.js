@@ -444,6 +444,12 @@ export const processIncomingUpdate = async (
     throw new Error("Cannot update data on a different day");
   }
 
+  if (incoming.status !== "partial") {
+    throw new Error(
+      "Cannot update data for a fully received or not yet received data"
+    );
+  }
+
   // if (quantity < 0) {
   //   throw new Error("Quantity not allowed under 0");
   // }
