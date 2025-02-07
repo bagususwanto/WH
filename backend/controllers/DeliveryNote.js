@@ -388,19 +388,24 @@ export const submitDeliveryNote = async (req, res) => {
       }
     );
 
-    // Update data in Incoming
-    await handleUpdateIncoming(
-      incomingIds,
-      receivedQuantities,
-      userId,
-      transaction
-    );
+    try {
+      // Update data in Incoming
+      await handleUpdateIncoming(
+        incomingIds,
+        receivedQuantities,
+        userId,
+        transaction
+      );
+    } catch (error) {
+      await transaction.rollback();
+      return res.status(400).json({ message: error.message });
+    }
 
     await transaction.commit();
 
     res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
-    // await transaction.rollback();
+    await transaction.rollback();
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -689,7 +694,7 @@ export const updateQuantityDN = async (req, res) => {
     for (let i = 0; i < incomingIds.length; i++) {
       const incomingId = incomingIds[i];
       const quantity = Number(quantities[i]);
-      console.log("quantityyyyyyyyyyyyyyy", quantity);
+
       if (isNaN(quantity)) {
         await transaction.rollback();
         return res.status(400).json({
