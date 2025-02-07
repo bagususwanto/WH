@@ -227,7 +227,7 @@ export const createDeliverySchedule = async (req, res) => {
     // Validasi data tersedia
     if (
       !supplierId ||
-      !schedule ||
+      schedule == null ||
       !arrival ||
       !departure ||
       !truckStation ||
