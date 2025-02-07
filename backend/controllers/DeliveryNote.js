@@ -500,6 +500,7 @@ export const getDnInquiry = async (req, res) => {
 
     const data = await DeliveryNote.findAll({
       where: whereConditionDn,
+      order: [["arrivalPlanTime", "ASC"]],
       include: [
         {
           model: Incoming,
@@ -766,6 +767,7 @@ export const getArrivalChart = async (req, res) => {
 
     const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
+      order: [["arrivalPlanTime", "ASC"]],
       subQuery: false,
       include: [
         {
