@@ -296,14 +296,14 @@ const Address = () => {
     }
 
     try {
-      const materialToSave = { ...currentAddress }
+      const addressToSave = { ...currentAddress }
 
       if (isEdit) {
-        await updateMasterDataById(apiMasterAddress, currentAddress.id, materialToSave)
+        await updateMasterDataById(apiMasterAddress, currentAddress.id, addressToSave)
         MySwal.fire('Updated!', 'Address has been updated.', 'success')
       } else {
-        delete materialToSave.id
-        await postMasterData(apiMasterAddress, materialToSave)
+        delete addressToSave.id
+        await postMasterData(apiMasterAddress, addressToSave)
         MySwal.fire('Added!', 'Address has been added.', 'success')
       }
     } catch (error) {
@@ -715,6 +715,7 @@ const Address = () => {
                     body={(data, options) => options.rowIndex + 1}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
                   <Column
                     field="addressRackName"
@@ -722,9 +723,20 @@ const Address = () => {
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
-                  <Column field="Storage.storageName" header="Storage" style={{ width: '25%' }} />
-                  <Column field="Storage.Plant.plantName" header="Plant" style={{ width: '25%' }} />
+                  <Column
+                    field="Storage.storageName"
+                    header="Storage"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
+                  <Column
+                    field="Storage.Plant.plantName"
+                    header="Plant"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}

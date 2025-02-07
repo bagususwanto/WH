@@ -927,6 +927,7 @@ const User = () => {
                     body={(data, options) => options.rowIndex + 1}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
                   <Column header="Image" body={imageBodyTemplate} frozen alignFrozen="left" />
                   <Column
@@ -935,10 +936,11 @@ const User = () => {
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
+                    sortable
                   />
-                  <Column field="name" header="Name" style={{ width: '25%' }} />
-                  <Column header="Position" field="position" style={{ width: '25%' }} />
-                  <Column header="Role" field="Role.roleName" style={{ width: '25%' }} />
+                  <Column field="name" header="Name" style={{ width: '25%' }} sortable />
+                  <Column header="Position" field="position" style={{ width: '25%' }} sortable />
+                  <Column header="Role" field="Role.roleName" style={{ width: '25%' }} sortable />
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}

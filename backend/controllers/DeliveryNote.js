@@ -9,7 +9,10 @@ import Supplier from "../models/SupplierModel.js";
 import Warehouse from "../models/WarehouseModel.js";
 import Storage from "../models/StorageModel.js";
 import db from "../utils/Database.js";
-import { handleUpdateIncoming } from "./ManagementStock.js";
+import {
+  handleUpdateIncoming,
+  processIncomingUpdate,
+} from "./ManagementStock.js";
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
 import { Op } from "sequelize";
@@ -253,6 +256,13 @@ export const submitDeliveryNote = async (req, res) => {
       receivedQuantities[i] = Number(receivedQuantities[i]);
     }
 
+    // Validasi quantities tidak boleh null
+    if (receivedQuantities.includes(null)) {
+      return res
+        .status(400)
+        .json({ message: "Received quantities cannot be null" });
+    }
+
     // validasi max dnNumber 10 digit dan hanya angka
     if (
       dnNumber.length > 10 ||
@@ -378,19 +388,24 @@ export const submitDeliveryNote = async (req, res) => {
       }
     );
 
-    // Update data in Incoming
-    await handleUpdateIncoming(
-      incomingIds,
-      receivedQuantities,
-      userId,
-      transaction
-    );
+    try {
+      // Update data in Incoming
+      await handleUpdateIncoming(
+        incomingIds,
+        receivedQuantities,
+        userId,
+        transaction
+      );
+    } catch (error) {
+      await transaction.rollback();
+      return res.status(400).json({ message: error.message });
+    }
 
     await transaction.commit();
 
     res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
-    // await transaction.rollback();
+    await transaction.rollback();
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -505,7 +520,7 @@ export const getDnInquiry = async (req, res) => {
         {
           model: Incoming,
           required: true,
-          attributes: ["id", "planning", "actual", "status"],
+          attributes: ["id", "planning", "actual", "status", "incomingDate"],
           include: [
             {
               model: Inventory,
@@ -541,7 +556,7 @@ export const getDnInquiry = async (req, res) => {
                         {
                           model: Plant,
                           required: true,
-                          attributes: ["id", "plantName"],
+                          attributes: ["id", "plantName", "warehouseId"],
                           where: whereConditionPlant,
                         },
                       ],
@@ -567,7 +582,7 @@ export const getDnInquiry = async (req, res) => {
       ],
     });
 
-    if (data.length === 0) {
+    if (!data) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
@@ -589,6 +604,8 @@ export const getDnInquiry = async (req, res) => {
 
       // Hitung delay dalam milidetik
       const delay = actualArrival - plannedArrival;
+
+      const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
       const deliveryNotes = {
         dnNumber: item.dnNumber,
@@ -628,6 +645,7 @@ export const getDnInquiry = async (req, res) => {
           receivedQuantity: incoming.actual,
           remain: incoming.actual - incoming.planning,
           status: incoming.status,
+          viewOnly: today > incoming.incomingDate ? true : false,
         })),
       };
 
@@ -640,6 +658,65 @@ export const getDnInquiry = async (req, res) => {
       .status(200)
       .json({ data: mappedData, message: "Data Delivery Note Found" });
   } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updateQuantityDN = async (req, res) => {
+  const transaction = await db.transaction(); // Inisialisasi transaksi
+
+  try {
+    const { incomingIds, quantities } = req.body;
+    const userId = req.user.userId;
+
+    // Validasi required
+    if (!Array.isArray(incomingIds) || !Array.isArray(quantities)) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities must be arrays",
+      });
+    }
+
+    if (incomingIds.length === 0 || quantities.length === 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities cannot be empty",
+      });
+    }
+
+    if (incomingIds.length !== quantities.length) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Incoming IDs and quantities array lengths do not match",
+      });
+    }
+
+    // Looping untuk update satu per satu
+    for (let i = 0; i < incomingIds.length; i++) {
+      const incomingId = incomingIds[i];
+      const quantity = Number(quantities[i]);
+
+      if (isNaN(quantity)) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: `Invalid quantity at index ${i}`,
+        });
+      }
+
+      try {
+        // Tangkap error dari `processIncomingUpdate`
+        await processIncomingUpdate(incomingId, quantity, userId, transaction);
+      } catch (error) {
+        await transaction.rollback();
+        return res.status(400).json({ message: error.message }); // Return error validasi
+      }
+    }
+
+    await transaction.commit();
+    res.status(200).json({ message: "Delivery Note Updated" });
+  } catch (error) {
+    await transaction.rollback(); // Rollback jika terjadi error sistem
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -709,6 +786,10 @@ export const getArrivalMonitoring = async (req, res) => {
         },
       ],
     });
+
+    if (!data) {
+      return res.status(404).json({ message: "Data Delivery Note Not Found" });
+    }
 
     // Mengelompokkan data berdasarkan status
     const summary = {
@@ -817,6 +898,10 @@ export const getArrivalChart = async (req, res) => {
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
+
+    if (!data) {
+      return res.status(404).json({ message: "Data Delivery Note Not Found" });
+    }
 
     const mappedData = data.map((item) => {
       const actualTime = item.arrivalActualTime

@@ -329,6 +329,10 @@ export const handleUpdateIncoming = async (
           throw new Error(`Incoming with ID ${incomingIds[i]} not found`);
         }
 
+        if (incoming.actual !== null) {
+          throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
+        }
+
         const quantity = quantities[i];
         // if (quantity < 0) {
         //   throw new Error("Quantity not allowed under 0");
@@ -396,7 +400,7 @@ export const handleUpdateIncoming = async (
   }
 };
 
-const processIncomingUpdate = async (
+export const processIncomingUpdate = async (
   incomingId,
   quantity,
   userId,
@@ -417,15 +421,34 @@ const processIncomingUpdate = async (
     throw new Error(`Incoming with ID ${incomingId} not found`);
   }
 
-  if (quantity < 0) {
-    throw new Error("Quantity not allowed under 0");
+  const today = new Date();
+  const incomingDate = new Date(incoming.incomingDate);
+
+  if (incomingDate.getDate() !== today.getDate()) {
+    throw new Error("Cannot update data on a different day");
   }
+
+  // if (quantity < 0) {
+  //   throw new Error("Quantity not allowed under 0");
+  // }
+
+  const updateInventory = await updateQuantitySistem(
+    incoming.Inventory.id,
+    incoming.id,
+    quantity,
+    transaction
+  );
+  await setQuantityActualCheck(
+    incoming.Inventory.materialId,
+    incoming.Inventory.addressId,
+    transaction
+  );
 
   const status = quantity < incoming.planning ? "partial" : "completed";
 
   await Incoming.update(
     {
-      actual: quantity,
+      actual: updateInventory,
       status,
     },
     {
@@ -438,18 +461,11 @@ const processIncomingUpdate = async (
     {
       incomingId,
       typeLogEntry: "update incoming",
-      quantity,
+      quantity: updateInventory,
       userId,
       detailOrder: null,
     },
     { transaction }
-  );
-
-  await updateQuantitySistem(incoming.Inventory.id, transaction);
-  await setQuantityActualCheck(
-    incoming.Inventory.materialId,
-    incoming.Inventory.addressId,
-    transaction
   );
 };
 
@@ -593,59 +609,85 @@ export const setQuantityActualCheck = async (
   }
 };
 
-const updateQuantitySistem = async (inventoryId, transaction) => {
+const updateQuantitySistem = async (
+  inventoryId,
+  incomingId = null,
+  quantity = null,
+  transaction
+) => {
   try {
     if (!inventoryId) {
       throw new Error("Invalid inventoryId");
     }
 
-    // Hitung jumlah total kuantitas actual dari tabel Incoming berdasarkan inventoryId
-    // const totalIncomingQuantity = await Incoming.sum("actual", {
-    //   where: { inventoryId },
-    //   transaction,
-    // });
+    let cumQuantity;
 
-    // Last incoming quantity
-    const lastIncoming = await Incoming.findOne({
-      where: { inventoryId },
-      attributes: ["actual"],
-      order: [["createdAt", "DESC"]],
-      transaction,
-    });
+    if (incomingId !== null && quantity !== null) {
+      const incoming = await Incoming.findOne({
+        where: { id: incomingId },
+        transaction,
+      });
 
-    if (!lastIncoming) {
-      throw new Error("Last incoming not found");
-    }
+      const inventoryStock = await Inventory.findOne({
+        where: { id: inventoryId },
+        attributes: ["quantityActualCheck"],
+        transaction,
+      });
 
-    // Ambil nilai quantityActualCheck terbaru dari tabel Inventory berdasarkan inventoryId
-    const inventoryStock = await Inventory.findOne({
-      where: { id: inventoryId },
-      attributes: ["quantityActualCheck"],
-      transaction,
-    });
+      const oldQuantity = incoming.actual;
+      const newQuantity = quantity;
+      const adjustment = newQuantity - oldQuantity;
 
-    if (!inventoryStock) {
-      throw new Error("Inventory stock not found");
-    }
+      cumQuantity = inventoryStock.quantityActualCheck + adjustment;
+    } else {
+      // Hitung jumlah total kuantitas actual dari tabel Incoming berdasarkan inventoryId
+      // const totalIncomingQuantity = await Incoming.sum("actual", {
+      //   where: { inventoryId },
+      //   transaction,
+      // });
 
-    const totalIncomingQuantity = lastIncoming
-      ? lastIncoming.actual + inventoryStock.quantityActualCheck
-      : null;
+      // Last incoming quantity
+      const lastIncoming = await Incoming.findOne({
+        where: { inventoryId },
+        attributes: ["actual"],
+        order: [["createdAt", "DESC"]],
+        transaction,
+      });
 
-    if (totalIncomingQuantity === null) {
-      throw new Error(
-        `Failed to calculate sum for inventoryId: ${inventoryId}`
-      );
+      if (!lastIncoming) {
+        throw new Error("Last incoming not found");
+      }
+
+      // Ambil nilai quantityActualCheck terbaru dari tabel Inventory berdasarkan inventoryId
+      const inventoryStock = await Inventory.findOne({
+        where: { id: inventoryId },
+        attributes: ["quantityActualCheck"],
+        transaction,
+      });
+
+      if (!inventoryStock) {
+        throw new Error("Inventory stock not found");
+      }
+
+      cumQuantity = lastIncoming
+        ? lastIncoming.actual + inventoryStock.quantityActualCheck
+        : null;
+
+      if (cumQuantity === null) {
+        throw new Error(
+          `Failed to calculate sum for inventoryId: ${inventoryId}`
+        );
+      }
     }
 
     // Perbarui nilai quantitySistem di tabel Inventory berdasarkan inventoryId
     await Inventory.update(
-      { quantitySistem: totalIncomingQuantity },
+      { quantitySistem: cumQuantity },
       { where: { id: inventoryId }, transaction }
     );
 
     // Mengembalikan nilai yang dihitung untuk digunakan dalam fungsi pemanggil
-    return totalIncomingQuantity;
+    return cumQuantity;
   } catch (error) {
     console.error("Error updating quantitySistem:", error);
     throw error; // Lempar kembali error agar dapat ditangani di fungsi pemanggil
