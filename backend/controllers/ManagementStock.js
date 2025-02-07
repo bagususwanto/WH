@@ -319,7 +319,7 @@ export const handleUpdateIncoming = async (
       // Buat mapping untuk proses bulk update
       const updates = [];
       const logEntries = [];
-      const inventoryUpdates = new Set(); // Gunakan Set untuk menghindari duplikasi ID
+      const inventoryUpdates = [];
 
       for (let i = 0; i < incomingIds.length; i++) {
         const incoming = incomingData.find(
@@ -358,7 +358,10 @@ export const handleUpdateIncoming = async (
         });
 
         // Tambahkan ID inventory ke Set
-        inventoryUpdates.add(incoming.Inventory.id);
+        inventoryUpdates.push({
+          inventoryId: incoming.inventoryId,
+          quantity: quantity,
+        });
       }
 
       // Lakukan bulk insert untuk LogEntry
@@ -372,14 +375,23 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      // Update sistem dan actual check untuk setiap inventory yang terpengaruh
-      for (const inventoryId of inventoryUpdates) {
-        await updateQuantitySistem(inventoryId, transaction);
+      try {
+        // Update sistem dan actual check untuk setiap inventory yang terpengaruh
+        for (const inventory of inventoryUpdates) {
+          await updateQuantitySistem(
+            inventory.inventoryId,
+            null,
+            inventory.quantity,
+            transaction
+          );
+        }
+      } catch (error) {
+        throw error;
       }
 
-      const materialAddressPairs = [...inventoryUpdates].map((inventoryId) => {
+      const materialAddressPairs = [...inventoryUpdates].map((inv) => {
         const inventory = incomingData.find(
-          (item) => item.Inventory.id === inventoryId
+          (item) => item.Inventory.id === inv.inventoryId
         ).Inventory;
         return {
           materialId: inventory.materialId,
@@ -387,8 +399,12 @@ export const handleUpdateIncoming = async (
         };
       });
 
-      for (const { materialId, addressId } of materialAddressPairs) {
-        await setQuantityActualCheck(materialId, addressId, transaction);
+      try {
+        for (const { materialId, addressId } of materialAddressPairs) {
+          await setQuantityActualCheck(materialId, addressId, transaction);
+        }
+      } catch (error) {
+        throw error;
       }
     } else {
       // Jika bukan array, proses sebagai data tunggal
@@ -647,16 +663,16 @@ const updateQuantitySistem = async (
       // });
 
       // Last incoming quantity
-      const lastIncoming = await Incoming.findOne({
-        where: { inventoryId },
-        attributes: ["actual"],
-        order: [["createdAt", "DESC"]],
-        transaction,
-      });
+      // const lastIncoming = await Incoming.findOne({
+      //   where: { inventoryId },
+      //   attributes: ["actual"],
+      //   order: [["createdAt", "DESC"]],
+      //   transaction,
+      // });
 
-      if (!lastIncoming) {
-        throw new Error("Last incoming not found");
-      }
+      // if (!lastIncoming) {
+      //   throw new Error("Last incoming not found");
+      // }
 
       // Ambil nilai quantityActualCheck terbaru dari tabel Inventory berdasarkan inventoryId
       const inventoryStock = await Inventory.findOne({
@@ -665,19 +681,29 @@ const updateQuantitySistem = async (
         transaction,
       });
 
+      const quantitySystem = inventoryStock.quantityActualCheck
+        ? inventoryStock.quantityActualCheck
+        : null;
+
+      const incomingQuantity = quantity ? quantity : null;
+
       if (!inventoryStock) {
         throw new Error("Inventory stock not found");
       }
 
-      cumQuantity = lastIncoming
-        ? lastIncoming.actual + inventoryStock.quantityActualCheck
-        : null;
-
-      if (cumQuantity === null) {
-        throw new Error(
-          `Failed to calculate sum for inventoryId: ${inventoryId}`
-        );
+      if (quantitySystem && incomingQuantity) {
+        cumQuantity = quantitySystem + incomingQuantity;
+      } else if (quantitySystem && !incomingQuantity) {
+        cumQuantity = quantitySystem;
+      } else if (incomingQuantity && !quantitySystem) {
+        cumQuantity = incomingQuantity;
       }
+
+      // if (cumQuantity === null) {
+      //   throw new Error(
+      //     `Failed to calculate sum for inventoryId: ${inventoryId}`
+      //   );
+      // }
     }
 
     // Perbarui nilai quantitySistem di tabel Inventory berdasarkan inventoryId
