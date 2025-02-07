@@ -519,12 +519,12 @@ export const getDnInquiry = async (req, res) => {
       include: [
         {
           model: Incoming,
-          required: true,
+          required: false,
           attributes: ["id", "planning", "actual", "status", "incomingDate"],
           include: [
             {
               model: Inventory,
-              required: true,
+              required: false,
               attributes: ["id", "materialId", "addressId"],
               include: [
                 {
@@ -543,7 +543,7 @@ export const getDnInquiry = async (req, res) => {
                 },
                 {
                   model: AddressRack,
-                  required: true,
+                  required: false,
                   attributes: ["id", "addressRackName"],
                   where: { flag: 1 },
                   include: [
