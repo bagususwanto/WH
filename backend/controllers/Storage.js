@@ -181,6 +181,8 @@ export const createStorage = async (req, res) => {
 
 export const updateStorage = async (req, res) => {
   try {
+    const transaction = await db.transaction();
+
     const storageId = req.params.id;
 
     const { storageCode, storageName, plantId, addressCode } = req.body;
@@ -200,18 +202,20 @@ export const updateStorage = async (req, res) => {
       return res.status(404).json({ message: "Storage not found" });
     }
 
-    const storageRack = await Storage.findOne({
-      where: {
-        addressCode: addressCode,
-      },
-    });
+    if (storage.addressCode !== addressCode) {
+      const storageRack = await Storage.findOne({
+        where: {
+          addressCode: addressCode,
+        },
+      });
 
-    if (storageRack) {
-      return res.status(400).json({ message: "Rack Code already exists" });
+      if (storageRack) {
+        return res.status(400).json({ message: "Rack Code already exists" });
+      }
     }
 
     const plant = await Plant.findOne({
-      where: { id: plantId, flag: 1 },
+      where: { id: plantId.value, flag: 1 },
     });
 
     if (!plant) {
@@ -221,7 +225,7 @@ export const updateStorage = async (req, res) => {
     await Storage.update(
       {
         storageName,
-        plantId,
+        plantId: plantId.value,
         addressCode,
       },
       {
@@ -231,11 +235,41 @@ export const updateStorage = async (req, res) => {
         },
         individualHooks: true,
         userId: req.user.userId,
+        transaction,
       }
     );
+
+    const addressRack = AddressRack.findOne({
+      where: {
+        addressRackName: {
+          [Op.like]: `%${addressCode}%`,
+        },
+      },
+    });
+
+    if (addressRack) {
+      await AddressRack.update(
+        {
+          storageId: storageId,
+        },
+        {
+          where: {
+            addressRackName: {
+              [Op.like]: `%${addressCode}%`,
+            },
+          },
+          individualHooks: true,
+          userId: req.user.userId,
+          transaction,
+        }
+      );
+    }
+
+    await transaction.commit();
     res.status(200).json({ message: "Storage Updated" });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
+    await transaction.rollback();
     res.status(500).json({ message: "Internal server error" });
   }
 };
