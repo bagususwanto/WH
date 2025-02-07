@@ -315,7 +315,7 @@ export const updateDeliverySchedule = async (req, res) => {
     // validasi data tersedia
     if (
       !supplierId ||
-      !schedule ||
+      schedule == null ||
       !arrival ||
       !departure ||
       !truckStation ||
