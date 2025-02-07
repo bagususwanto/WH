@@ -183,7 +183,14 @@ export const updateStorage = async (req, res) => {
   try {
     const storageId = req.params.id;
 
-    const { storageCode, plantId, addressCode } = req.body;
+    const { storageCode, storageName, plantId, addressCode } = req.body;
+
+    if (!storageCode || !storageName || !plantId || !addressCode) {
+      return res.status(400).json({
+        message:
+          "StorageCode, StorageName, AddressCode, and Plant are required",
+      });
+    }
 
     const storage = await Storage.findOne({
       where: { id: storageId, flag: 1 },
@@ -191,16 +198,6 @@ export const updateStorage = async (req, res) => {
 
     if (!storage) {
       return res.status(404).json({ message: "Storage not found" });
-    }
-
-    const existingStorage = await Storage.findOne({
-      where: {
-        storageCode: storageCode,
-      },
-    });
-
-    if (existingStorage) {
-      return res.status(400).json({ message: "Storage already exists" });
     }
 
     const storageRack = await Storage.findOne({
@@ -213,14 +210,29 @@ export const updateStorage = async (req, res) => {
       return res.status(400).json({ message: "Rack Code already exists" });
     }
 
-    await Storage.update(req.body, {
-      where: {
-        id: storageId,
-        flag: 1,
-      },
-      individualHooks: true,
-      userId: req.user.userId,
+    const plant = await Plant.findOne({
+      where: { id: plantId, flag: 1 },
     });
+
+    if (!plant) {
+      return res.status(404).json({ message: "Plant not found" });
+    }
+
+    await Storage.update(
+      {
+        storageName,
+        plantId,
+        addressCode,
+      },
+      {
+        where: {
+          id: storageId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Storage Updated" });
   } catch (error) {
     console.log(error.message);
