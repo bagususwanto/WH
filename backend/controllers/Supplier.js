@@ -87,12 +87,12 @@ export const getSupplierById = async (req, res) => {
 
 export const createSupplier = async (req, res) => {
   try {
-    // Cek apakah supplierName sudah ada
-    const supplierName = await Supplier.findOne({
-      where: { supplierName: req.body.supplierName, flag: 1 },
+    // Cek apakah supplierCode sudah ada
+    const supplierCode = await Supplier.findOne({
+      where: { supplierCode: req.body.supplierCode, flag: 1 },
     });
 
-    if (supplierName) {
+    if (supplierCode) {
       return res.status(400).json({ message: "Supplier already exists" });
     }
 
@@ -118,14 +118,19 @@ export const updateSupplier = async (req, res) => {
       return res.status(404).json({ message: "Supplier not found" });
     }
 
-    await Supplier.update(req.body, {
-      where: {
-        id: supplierId,
-        flag: 1,
+    await Supplier.update(
+      {
+        supplierName: req.body.supplierName,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: supplierId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Supplier Updated" });
   } catch (error) {
     console.log(error);
