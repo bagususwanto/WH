@@ -1734,7 +1734,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="ycB-yfqDIb34Wx4LZlnP-21" value="Supplier" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+        <mxCell id="ycB-yfqDIb34Wx4LZlnP-21" value="Supplier" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="1050" y="1220" width="180" height="150" as="geometry">
             <mxRectangle x="960" y="420" width="80" height="30" as="alternateBounds" />
           </mxGeometry>
