@@ -25,59 +25,29 @@ import {
   CFormInput,
   CForm,
   CSpinner,
-  CFormLabel,
-  CImage,
 } from '@coreui/react'
-import { CIcon } from '@coreui/icons-react'
-import { cilImagePlus, cilXCircle } from '@coreui/icons'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
-import Select from 'react-select'
 import { format, parseISO } from 'date-fns'
-import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
-import { Dropdown } from 'primereact/dropdown'
-import config from '../../../utils/Config'
 
 const MySwal = withReactContent(swal)
 
-const category = () => {
-  const [categorys, setCategorys] = useState([])
-
+const Category = () => {
+  const [category, setCategory] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
-
-  const [type, setType] = useState()
-  const [categoryOptions, setCategoryOptions] = useState([])
-  const [storageId, setStorageId] = useState()
-  const [plantId, setPlantOptionsId] = useState()
-  const [shouldFetch, setShouldFetch] = useState(false)
   const [currentCategory, setCurrentCategory] = useState({
     id: '',
     categoryName: '',
-    createdAt: '',
-    updatedAt: '',
   })
   const [loading, setLoading] = useState(true)
-  const [loadingImport, setLoadingImport] = useState(false)
-  const [modalUpload, setModalUpload] = useState(false)
-  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
-  const [uploadData, setUploadData] = useState({
-    importDate: date,
-    file: null,
-  })
-  const [imported, setImported] = useState(false)
-  const {
-    getMasterData,
-    getMasterDataById,
-    deleteMasterDataById,
-    updateMasterDataById,
-    postMasterData,
-    uploadMasterData,
-    uploadImageMaterial,
-  } = useMasterDataService()
+  const [visibleColumns, setVisibleColumns] = useState([])
+
+  const { getMasterData, deleteMasterDataById, updateMasterDataById, postMasterData } =
+    useMasterDataService()
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -87,31 +57,19 @@ const category = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
 
-    storage: {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
-
-    type: {
+    category: {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
   })
 
-  const apiPlant = 'plant-public'
-  const apiStorage = 'storage-plant'
   const apiCategory = 'category'
+  const apiCategoryDelete = 'category-delete'
 
   useEffect(() => {
+    getCategory()
     setLoading(false)
-    getCategory()
-    getPlant()
   }, [])
-
-  useEffect(() => {
-    if (!shouldFetch) return
-    getCategory()
-  }, [shouldFetch])
 
   const customStyles = {
     control: (provided) => ({
@@ -121,7 +79,13 @@ const category = () => {
     }),
   }
 
-  const columns = [{ field: 'category', header: 'Category', sortable: true }]
+  const columns = [
+    { field: 'formattedCreatedAt', header: 'Created At', sortable: true },
+    { field: 'formattedUpdatedAt', header: 'Updated At', sortable: true },
+    { field: 'createdBy', header: 'Created By', sortable: true },
+    { field: 'updatedBy', header: 'Updated By', sortable: true },
+    { field: 'importBy', header: 'Import By', sortable: true },
+  ]
 
   const onColumnToggle = (event) => {
     let selectedColumns = event.value
@@ -133,30 +97,35 @@ const category = () => {
   }
 
   const getCategory = async () => {
+    setLoading(true)
     try {
       const response = await getMasterData(apiCategory)
-      const categoryOptions = response.data.map((category) => ({
-        id: category.id,
-        label: category.categoryName,
-        value: category.categoryName,
-      }))
-      setCategoryOptions(categoryOptions)
-    } catch (error) {
-      console.error('Error fetching Category:', error)
-    }
-  }
 
-  const getPlant = async () => {
-    try {
-      const response = await getMasterData(apiPlant)
-      const plantOptions = response.data.map((plant) => ({
-        label: plant.plantName,
-        value: plant.plantName,
-        id: plant.id,
-      }))
-      setPlantOptions(plantOptions)
+      const dataWithFormattedFields = response.data.map((item) => {
+        const formattedCreatedAt = item.createdAt
+          ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
+          : ''
+        const formattedUpdatedAt = item.updatedAt
+          ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
+          : ''
+        const createdBy = item.createdBy?.[0]?.User?.username || ''
+        const updatedBy = item.updatedBy?.[0]?.User?.username || ''
+        const importBy = item.Log_Import?.User?.username || ''
+
+        return {
+          ...item,
+          formattedCreatedAt,
+          formattedUpdatedAt,
+          createdBy,
+          updatedBy,
+          importBy,
+        }
+      })
+      setCategory(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching Plant:', error)
+      console.error('Error fetching category:', error)
+    } finally {
+      setLoading(false) // Set loading to false after data is fetched
     }
   }
 
@@ -165,8 +134,6 @@ const category = () => {
     setCurrentCategory({
       id: '',
       categoryName: '',
-      createdAt: '',
-      updatedAt: '',
     })
     setModal(true)
   }
@@ -192,15 +159,15 @@ const category = () => {
     setIsEdit(true)
     setCurrentCategory({
       id: category.id,
-      selectedCategory: category.categoryName,
+      categoryName: category.categoryName,
     })
     setModal(true)
   }
 
-  const handleDeleteCategory = (materialId) => {
+  const handleDeleteCategory = (categoryId) => {
     MySwal.fire({
-      title: 'Apakah Anda yakin?',
-      text: 'This material cannot be recovered!',
+      title: 'Are you sure?',
+      text: 'This category cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -208,26 +175,26 @@ const category = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(materialId)
+        confirmDelete(categoryId)
       }
     })
   }
 
-  const confirmDelete = async (materialId) => {
+  const confirmDelete = async (categoryId) => {
     try {
-      await deleteMasterDataById(apiMaterialDelete, materialId)
-      MySwal.fire('Deleted!', 'Material deleted successfully.', 'success')
-      await getMaterial() // Refresh the list after deletion
+      await deleteMasterDataById(apiCategoryDelete, categoryId)
+      await getCategory() // Refresh the list after deletion
+      MySwal.fire('Deleted!', 'Category deleted successfully.', 'success')
     } catch (error) {
-      console.error('Error menghapus material:', error)
+      console.error('Error menghapus category:', error)
     }
   }
 
-  const validateCategory = (material) => {
-    const requiredFields = [{ field: 'categoryName', message: 'Material No. is required' }]
+  const validateCategory = (category) => {
+    const requiredFields = [{ field: 'categoryName', message: 'Category is required' }]
 
     for (const { field, message } of requiredFields) {
-      if (!material[field]) {
+      if (!category[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -237,7 +204,6 @@ const category = () => {
 
   const handleSaveCategory = async () => {
     setLoading(true)
-
     if (!validateCategory(currentCategory)) {
       setLoading(false)
       return
@@ -248,18 +214,19 @@ const category = () => {
 
       if (isEdit) {
         await updateMasterDataById(apiCategory, currentCategory.id, categoryToSave)
-        MySwal.fire('Updated!', 'Material has been updated.', 'success')
+        await getCategory()
+        MySwal.fire('Updated!', 'Category has been updated.', 'success')
       } else {
         delete categoryToSave.id
         await postMasterData(apiCategory, categoryToSave)
-        MySwal.fire('Added!', 'Material has been added.', 'success')
+        await getCategory()
+        MySwal.fire('Added!', 'Category has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving material:', error)
+      console.error('Error saving category:', error)
     } finally {
       setLoading(false)
       setModal(false)
-      setShouldFetch(true)
     }
   }
 
@@ -271,6 +238,15 @@ const category = () => {
     })
     setGlobalFilterValue(value)
   }
+
+  const filteredCategory = useMemo(() => {
+    const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
+    return category.filter((item) => {
+      return Object.values(item).some(
+        (val) => val && val.toString().toLowerCase().includes(globalFilter),
+      )
+    })
+  }, [category, filters.global.value])
 
   const renderHeader = () => {
     return (
@@ -288,19 +264,34 @@ const category = () => {
     )
   }
 
+  const header = () => (
+    <MultiSelect
+      value={visibleColumns}
+      options={columns}
+      optionLabel="header"
+      onChange={onColumnToggle}
+      className="w-full sm:w-20rem mb-2 mt-2"
+      display="chip"
+      placeholder="Show Hiden Columns"
+      style={{ borderRadius: '5px' }}
+    />
+  )
+
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = categorys.map((item) => ({
-        id: item.id,
-        categoryName: item.categoryName,
-        'Created At': item.formattedCreatedAt,
-        'Updated At': item.formattedUpdatedAt,
+      const mappedData = category.map((item, index) => ({
+        no: index + 1,
+        category: item.categoryName,
+        createdAt: item.formattedCreatedAt,
+        updatedAt: item.formattedUpdatedAt,
+        createdBy: item.createdBy,
+        updatedBy: item.updatedBy,
       }))
 
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'material')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'category')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -309,7 +300,7 @@ const category = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_material')
+      saveAsExcelFile(excelBuffer, 'master_data_category')
     })
   }
 
@@ -323,7 +314,7 @@ const category = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_material') {
+        if (fileName === 'template_master_data_category') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -338,151 +329,123 @@ const category = () => {
     })
   }
 
-  const handleImport = async () => {
-    setLoadingImport(true)
-    try {
-      if (!uploadData.file) {
-        MySwal.fire('Error', 'Please select a file', 'error')
-        return
-      }
-
-      await uploadMasterData(apiUpload, uploadData)
-      MySwal.fire('Success', 'File uploaded successfully', 'success')
-
-      setImported(true)
-      setShouldFetch(true)
-    } catch (error) {
-      console.error('Error during import:', error)
-    } finally {
-      setLoadingImport(false)
-      setModalUpload(false)
-    }
-  }
-
-  const handleDateChange = (selectedDate) => {
-    setDate(selectedDate[0])
-    setUploadData((prevData) => ({
-      ...prevData,
-      importDate: selectedDate[0],
-    }))
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    setUploadData((prevData) => ({
-      ...prevData,
-      file: file,
-    }))
-  }
-
-  const showModalUpload = () => {
-    setModalUpload(true)
-  }
+  const LoadingComponent = () => (
+    <div className="text-center">
+      <CSpinner color="primary" />
+      <p>Loading category data...</p>
+    </div>
+  )
 
   return (
     <CRow>
       <CCol>
-        <CCard>
+        <CCard className="mb-4">
           <CCardHeader>Master Data Category</CCardHeader>
           <CCardBody>
-            <CRow className="mb-2">
-              <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
-                <div className="d-flex flex-wrap justify-content-start">
-                  <Button
-                    type="button"
-                    label="Add"
-                    icon="pi pi-plus"
-                    severity="primary"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={handleAddCategory}
-                    data-pr-tooltip="XLS"
+            {loading ? (
+              <LoadingComponent />
+            ) : (
+              <>
+                <CRow className="mb-2">
+                  <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
+                    <div className="d-flex flex-wrap justify-content-start">
+                      <Button
+                        type="button"
+                        label="Add"
+                        icon="pi pi-plus"
+                        severity="primary"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={handleAddCategory}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Excel"
+                        icon="pi pi-file-excel"
+                        severity="success"
+                        className="rounded-5 me-2 mb-2"
+                        onClick={exportExcel}
+                        data-pr-tooltip="XLS"
+                      />
+                    </div>
+                  </CCol>
+                  <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
+                  </CCol>
+                </CRow>
+                <DataTable
+                  value={filteredCategory}
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[10, 25, 50]}
+                  tableStyle={{ minWidth: '30rem' }}
+                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  scrollable
+                  globalFilter={filters.global.value} // Aplikasikan filter global di sini
+                  header={header}
+                  onMouseDownCapture={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Column
+                    header="No"
+                    body={(data, options) => options.rowIndex + 1}
+                    frozen
+                    alignFrozen="left"
+                    sortable
                   />
-                  <Button
-                    type="button"
-                    label="Upload"
-                    icon="pi pi-file-import"
-                    severity="primary"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={showModalUpload}
-                    data-pr-tooltip="XLS"
+                  <Column
+                    field="categoryName"
+                    header="Category"
+                    style={{ width: '25%' }}
+                    sortable
                   />
-                  <Button
-                    type="button"
-                    label="Excel"
-                    icon="pi pi-file-excel"
-                    severity="success"
-                    className="rounded-5 me-2 mb-2"
-                    onClick={exportExcel}
-                    data-pr-tooltip="XLS"
-                  />
-                </div>
-              </CCol>
-              <CCol xs={12} sm={12} md={4} lg={4} xl={4}>
-                <div className="d-flex flex-wrap justify-content-end">{renderHeader()}</div>
-              </CCol>
-            </CRow>
-            <DataTable
-              paginator
-              rows={10}
-              rowsPerPageOptions={[10, 25, 50]}
-              tableStyle={{ minWidth: '30rem' }}
-              className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
-              scrollable
-            >
-              <Column
-                header="No"
-                body={(data, options) => options.rowIndex + 1}
-                frozen
-                alignFrozen="left"
-              />
-
-              <Column
-                field="categoryName"
-                header="Category"
-                style={{ width: '25%' }}
-                frozen
-                alignFrozen="left"
-              />
-              <Column field="createdAt" header="Created" style={{ width: '25%' }} />
-              <Column field="updatedAt" header="Update" style={{ width: '25%' }} />
-              <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
-            </DataTable>
+                  {visibleColumns.map((col, index) => (
+                    <Column
+                      key={index}
+                      field={col.field}
+                      header={col.header}
+                      body={col.body}
+                      sortable={col.sortable}
+                      headerStyle={col.headerStyle}
+                      bodyStyle={col.bodyStyle}
+                    />
+                  ))}
+                  <Column header="Action" body={actionBodyTemplate} frozen alignFrozen="right" />
+                </DataTable>
+              </>
+            )}
           </CCardBody>
         </CCard>
       </CCol>
 
-      <CModal backdrop="static" size="md" visible={modal} onClose={() => setModal(false)}>
+      <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit Category' : 'Add Category'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
-              {/* Section: Informasi Material */}
+              {/* Section: Informasi Category */}
               <CCol xs={12}>
                 <h5>Category Information</h5>
               </CCol>
-              <div className="clearfix d-flex flex-wrap align-items-start">
-                {/* Foto Material */}
-
-                {/* Form Material */}
-                {console.log(currentCategory)}
-                <CCol xs={12} lg={12}>
-                  <CRow className="gy-3">
-                    <CCol xs={12} md={12} lg={12}>
-                      <label className="mb-2 required-label" htmlFor="materialNo">
-                        Category <span>*</span>
-                      </label>
-                      <CFormInput
-                        value={currentCategory.categoryName}
-                        onChange={(e) =>
-                          setCurrentCategory({ ...currentCategory, categoryName: e.target.value })
-                        }
-                      />
-                    </CCol>
-                  </CRow>
-                </CCol>
-              </div>
+              {/* Form Category */}
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="category">
+                  Category <span>*</span>
+                </label>
+                <CFormInput
+                  id="category"
+                  value={currentCategory.categoryName}
+                  onChange={(e) =>
+                    setCurrentCategory({
+                      ...currentCategory,
+                      categoryName: e.target.value,
+                    })
+                  }
+                />
+              </CCol>
             </CRow>
           </CForm>
         </CModalBody>
@@ -510,58 +473,8 @@ const category = () => {
           </Suspense>
         </CModalFooter>
       </CModal>
-
-      <CModal visible={modalUpload} onClose={() => setModalUpload(false)}>
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Upload Master Material</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <div className="mb-3">
-            <CFormLabel>Date</CFormLabel>
-            <Flatpickr
-              value={date}
-              options={{
-                dateFormat: 'Y-m-d',
-                maxDate: new Date(),
-                allowInput: true,
-              }}
-              onChange={handleDateChange}
-              className="form-control"
-              placeholder="Select a date"
-            />
-          </div>
-          <div className="mb-3">
-            <CFormInput
-              onChange={handleFileChange} // Handle perubahan file
-              type="file"
-              label="Excel File"
-              accept=".xlsx" // Hanya menerima file Excel
-            />
-          </div>
-        </CModalBody>
-        <CModalFooter>
-          <Suspense
-            fallback={
-              <div className="pt-3 text-center">
-                <CSpinner color="primary" variant="grow" />
-              </div>
-            }
-          >
-            <CButton color="primary" onClick={() => handleImport()}>
-              {loadingImport ? (
-                <>
-                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
-                  Importing...
-                </>
-              ) : (
-                'Import'
-              )}
-            </CButton>
-          </Suspense>
-        </CModalFooter>
-      </CModal>
     </CRow>
   )
 }
 
-export default category
+export default Category
