@@ -291,8 +291,8 @@ const Supplier = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = supplier.map((item, index) => ({
         no: index + 1,
-        supplier: item.supplier,
-        unitSupplier: item.unitSupplier,
+        supplierCode: item.supplierCode,
+        supplierName: item.supplierName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
