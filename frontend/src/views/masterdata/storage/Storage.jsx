@@ -208,33 +208,33 @@ const Storage = () => {
     setModal(true)
   }
 
-  const handleDeleteStorage = (addressId) => {
+  const handleDeleteStorage = (storageId) => {
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'This address cannot be recovered!',
+      text: 'This storage cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Ya, delete!',
+      confirmButtonText: 'Yes, delete!',
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(addressId)
+        confirmDelete(storageId)
       }
     })
   }
 
-  const confirmDelete = async (addressId) => {
+  const confirmDelete = async (storageId) => {
     try {
-      await deleteMasterDataById(apiStorageDelete, addressId)
+      await deleteMasterDataById(apiStorageDelete, storageId)
       MySwal.fire('Deleted!', 'Storage deleted successfully.', 'success')
       await getStorage() // Refresh the list after deletion
     } catch (error) {
-      console.error('Error menghapus address:', error)
+      console.error('Error menghapus storage:', error)
     }
   }
 
-  const validateMaterial = (address) => {
+  const validateMaterial = (storage) => {
     const requiredFields = [
       { field: 'storageCode', message: 'Storage Code is required' },
       { field: 'storageName', message: 'Storage Name is required' },
@@ -243,7 +243,7 @@ const Storage = () => {
     ]
 
     for (const { field, message } of requiredFields) {
-      if (!address[field]) {
+      if (!storage[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -270,7 +270,7 @@ const Storage = () => {
         MySwal.fire('Added!', 'Storage has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving address:', error)
+      console.error('Error saving storage:', error)
     } finally {
       setLoading(false)
       setModal(false)
@@ -511,6 +511,8 @@ const Storage = () => {
                     field="storageCode"
                     header="Storage Code"
                     style={{ width: '25%' }}
+                    frozen
+                    alignFrozen="left"
                     sortable
                   />
                   <Column

@@ -118,6 +118,17 @@ export const updatePackaging = async (req, res) => {
       return res.status(404).json({ message: "Packaging not found" });
     }
 
+    const existPackaging = await Packaging.findOne({
+      where: {
+        packaging: req.body.packaging,
+        unitPackaging: req.body.unitPackaging,
+        flag: 1,
+      },
+    });
+    if (existPackaging) {
+      return res.status(400).json({ message: "Packaging already exists" });
+    }
+
     await Packaging.update(
       {
         unitPackaging: req.body.unitPackaging,

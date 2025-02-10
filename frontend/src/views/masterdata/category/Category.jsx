@@ -79,40 +79,39 @@ const category = () => {
     uploadImageMaterial,
   } = useMasterDataService()
 
-   const [filters, setFilters] = useState({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  
-      plant: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-  
-      storage: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-  
-      type: {
-        value: null,
-        matchMode: FilterMatchMode.EQUALS,
-      },
-    })
+  const [filters, setFilters] = useState({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 
-    const apiPlant = 'plant-public'
-    const apiStorage = 'storage-plant'  
+    plant: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+
+    storage: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+
+    type: {
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
+    },
+  })
+
+  const apiPlant = 'plant-public'
+  const apiStorage = 'storage-plant'
   const apiCategory = 'category'
 
-useEffect(() => {
+  useEffect(() => {
     setLoading(false)
     getCategory()
     getPlant()
-
   }, [])
 
   useEffect(() => {
-      if (!shouldFetch) return
-      getCategory()
-    }, [shouldFetch])
+    if (!shouldFetch) return
+    getCategory()
+  }, [shouldFetch])
 
   const customStyles = {
     control: (provided) => ({
@@ -122,12 +121,7 @@ useEffect(() => {
     }),
   }
 
-  const columns = [
-    
-    { field: 'category', header: 'Category', sortable: true },
-
-    
-  ]
+  const columns = [{ field: 'category', header: 'Category', sortable: true }]
 
   const onColumnToggle = (event) => {
     let selectedColumns = event.value
@@ -137,7 +131,6 @@ useEffect(() => {
 
     setVisibleColumns(orderedSelectedColumns)
   }
-
 
   const getCategory = async () => {
     try {
@@ -211,7 +204,7 @@ useEffect(() => {
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Ya, delete!',
+      confirmButtonText: 'Yes, delete!',
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
@@ -231,9 +224,7 @@ useEffect(() => {
   }
 
   const validateCategory = (material) => {
-    const requiredFields = [
-      { field: 'categoryName', message: 'Material No. is required' },
-    ]
+    const requiredFields = [{ field: 'categoryName', message: 'Material No. is required' }]
 
     for (const { field, message } of requiredFields) {
       if (!material[field]) {
@@ -387,8 +378,6 @@ useEffect(() => {
   const showModalUpload = () => {
     setModalUpload(true)
   }
-
-  
 
   return (
     <CRow>

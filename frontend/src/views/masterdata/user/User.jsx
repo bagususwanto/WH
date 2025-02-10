@@ -492,7 +492,7 @@ const User = () => {
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Ya, delete!',
+      confirmButtonText: 'Yes, delete!',
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {

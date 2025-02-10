@@ -30,7 +30,7 @@ import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
-import { format, parseISO, set } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import 'flatpickr/dist/flatpickr.min.css'
 
 const MySwal = withReactContent(swal)
@@ -176,38 +176,39 @@ const Packaging = () => {
   )
 
   const handleEditPackaging = (packaging) => {
+    const packagingSelected = uomOptions.find((uom) => uom.label === packaging.packaging)
     setIsEdit(true)
     setCurrentPackaging({
       id: packaging.id,
-      packaging: packaging.packaging,
+      packaging: packagingSelected || null,
       unitPackaging: packaging.unitPackaging,
     })
     setModal(true)
   }
 
-  const handleDeletePackaging = (addressId) => {
+  const handleDeletePackaging = (packagingId) => {
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'This address cannot be recovered!',
+      text: 'This packaging cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Ya, delete!',
+      confirmButtonText: 'Yes, delete!',
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(addressId)
+        confirmDelete(packagingId)
       }
     })
   }
 
-  const confirmDelete = async (addressId) => {
+  const confirmDelete = async (packagingId) => {
     try {
-      await deleteMasterDataById(apiPackagingDelete, addressId)
-      MySwal.fire('Deleted!', 'Packaging deleted successfully.', 'success')
+      await deleteMasterDataById(apiPackagingDelete, packagingId)
       await getPackaging() // Refresh the list after deletion
+      MySwal.fire('Deleted!', 'Packaging deleted successfully.', 'success')
     } catch (error) {
-      console.error('Error menghapus address:', error)
+      console.error('Error menghapus packaging:', error)
     }
   }
 
@@ -241,6 +242,7 @@ const Packaging = () => {
           packaging: packagingToSave.packaging.label,
           unitPackaging: packagingToSave.unitPackaging,
         })
+        await getPackaging()
         MySwal.fire('Updated!', 'Packaging has been updated.', 'success')
       } else {
         delete packagingToSave.id
@@ -248,6 +250,7 @@ const Packaging = () => {
           packaging: packagingToSave.packaging.label,
           unitPackaging: packagingToSave.unitPackaging,
         })
+        await getPackaging()
         MySwal.fire('Added!', 'Packaging has been added.', 'success')
       }
     } catch (error) {
@@ -309,10 +312,8 @@ const Packaging = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = packaging.map((item, index) => ({
         no: index + 1,
-        packagingCode: item.packagingCode,
-        packagingName: item.packagingName,
-        rackCode: item.addressCode,
-        plant: item.Plant.plantName,
+        packaging: item.packaging,
+        unitPackaging: item.unitPackaging,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -345,7 +346,7 @@ const Packaging = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_address') {
+        if (fileName === 'template_master_data_packaging') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -363,7 +364,7 @@ const Packaging = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading address data...</p>
+      <p>Loading packaging data...</p>
     </div>
   )
 
