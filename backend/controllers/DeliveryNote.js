@@ -15,7 +15,7 @@ import {
 } from "./ManagementStock.js";
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
@@ -848,7 +848,17 @@ export const getArrivalChart = async (req, res) => {
 
     const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
-      order: [["arrivalPlanTime", "ASC"]],
+      order: [
+        [
+          Sequelize.literal(`CASE 
+            WHEN [Delivery_Note].[status] = 'delayed' THEN 1 
+            WHEN [Delivery_Note].[status] = 'on schedule' THEN 2 
+            ELSE 3 
+          END`), 
+          "ASC"
+        ],
+        ["arrivalPlanTime", "ASC"]
+      ],
       // subQuery: false,
       include: [
         {
@@ -869,9 +879,16 @@ export const getArrivalChart = async (req, res) => {
                   include: [
                     {
                       model: Supplier,
-                      required: true,
+                      required: false,
                       attributes: ["id", "supplierName", "supplierCode"],
                       where: whereConditionSupplier,
+                      include: [
+                        {
+                          model: DeliverySchedule,
+                          required: false,
+                          where: { flag: 1 },
+                        },
+                      ],
                     },
                   ],
                 },
@@ -883,7 +900,7 @@ export const getArrivalChart = async (req, res) => {
                   include: [
                     {
                       model: Storage,
-                      required: true,
+                      required: false,
                       attributes: ["id"],
                       where: whereConditionPlant,
                     },
@@ -904,6 +921,9 @@ export const getArrivalChart = async (req, res) => {
     }
 
     const mappedData = data.map((item) => {
+      const tanggal = new Date(item.arrivalPlanDate);
+      const day = tanggal.getDay();
+
       const actualTime = item.arrivalActualTime
         ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
         : "00:00:00";
@@ -914,6 +934,23 @@ export const getArrivalChart = async (req, res) => {
       const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
       const delay = actualArrival - plannedArrival;
 
+      const planTime = item.Incomings.flatMap((incoming) =>
+        incoming.Inventory.Material.Supplier.DeliverySchedules
+          ? incoming.Inventory.Material.Supplier.DeliverySchedules.filter(
+              (schedule) => schedule.day === day
+            )
+          : []
+      );
+
+      const arrivalPlan =
+        planTime.length > 0
+          ? new Date(planTime.arrival).toISOString().slice(11, 16)
+          : "00:00";
+      const departurePlan =
+        planTime.length > 0
+          ? new Date(planTime.departure).toISOString().slice(11, 16)
+          : "00:00";
+
       return {
         dnNumber: item.dnNumber,
         supplierName:
@@ -923,13 +960,13 @@ export const getArrivalChart = async (req, res) => {
         truckStation: item.truckStation,
         rit: item.rit,
         arrivalPlanDate: item.arrivalPlanDate,
-        arrivalPlanTime: new Date(item.arrivalPlanTime)
-          .toISOString()
-          .slice(11, 16),
+        arrivalPlanTime: item.arrivalPlanTime
+          ? new Date(item.arrivalPlanTime).toISOString().slice(11, 16)
+          : arrivalPlan,
         departurePlanDate: item.departurePlanDate,
-        departurePlanTime: new Date(item.departurePlanTime)
-          .toISOString()
-          .slice(11, 16),
+        departurePlanTime: item.departurePlanTime
+          ? new Date(item.departurePlanTime).toISOString().slice(11, 16)
+          : departurePlan,
         arrivalActualDate: item.arrivalActualDate,
         departureActualDate: item.departureActualDate,
         arrivalActualTime: item.arrivalActualTime
@@ -953,6 +990,15 @@ export const getArrivalChart = async (req, res) => {
         })),
       };
     });
+
+    // const sortedData = data.sort((a, b) => {
+    //   const order = { delayed: 1, "on schedule": 2, "schedule plan": 3 };
+
+    //   const statusA = order[a.status];
+    //   const statusB = order[b.status];
+
+    //   return statusA - statusB;
+    // });
 
     return res.status(200).json({
       data: mappedData,
