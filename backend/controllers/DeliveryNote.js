@@ -956,11 +956,11 @@ export const getArrivalChart = async (req, res) => {
         arrivalPlanDate: item.arrivalPlanDate,
         arrivalPlanTime: item.arrivalPlanTime
           ? new Date(item.arrivalPlanTime).toISOString().slice(11, 16)
-          : arrivalPlan,
+          : new Date(arrivalPlan).toISOString().slice(11, 16),
         departurePlanDate: item.departurePlanDate,
         departurePlanTime: item.departurePlanTime
           ? new Date(item.departurePlanTime).toISOString().slice(11, 16)
-          : departurePlan,
+          : new Date(departurePlan).toISOString().slice(11, 16),
         arrivalActualDate: item.arrivalActualDate,
         departureActualDate: item.departureActualDate,
         arrivalActualTime: item.arrivalActualTime
