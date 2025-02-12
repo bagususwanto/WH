@@ -942,8 +942,12 @@ export const getArrivalChart = async (req, res) => {
           (s) => s.schedule === day
         );
 
-      const arrivalPlan = planTime ? planTime.arrival : "00:00";
-      const departurePlan = planTime ? planTime.departure : "00:00";
+      const arrivalPlan = planTime
+        ? new Date(planTime.arrival).toISOString().slice(11, 16)
+        : "00:00";
+      const departurePlan = planTime
+        ? new Date(planTime.departure).toISOString().slice(11, 16)
+        : "00:00";
 
       return {
         dnNumber: item.dnNumber,
@@ -956,11 +960,11 @@ export const getArrivalChart = async (req, res) => {
         arrivalPlanDate: item.arrivalPlanDate,
         arrivalPlanTime: item.arrivalPlanTime
           ? new Date(item.arrivalPlanTime).toISOString().slice(11, 16)
-          : new Date(arrivalPlan).toISOString().slice(11, 16),
+          : arrivalPlan,
         departurePlanDate: item.departurePlanDate,
         departurePlanTime: item.departurePlanTime
           ? new Date(item.departurePlanTime).toISOString().slice(11, 16)
-          : new Date(departurePlan).toISOString().slice(11, 16),
+          : departurePlan,
         arrivalActualDate: item.arrivalActualDate,
         departureActualDate: item.departureActualDate,
         arrivalActualTime: item.arrivalActualTime
