@@ -5,6 +5,7 @@ import { checkRole } from "../middleware/RoleMiddleware.js";
 const router = express.Router();
 
 router.get("/organization", checkRole(["super admin"]), getOrganization);
+router.get("/organization-public", getOrganization);
 router.get("/organization/:id", checkRole(["super admin"]), getOrganizationById);
 router.post("/organization", checkRole(["super admin"]), createOrganization);
 router.put("/organization/:id", checkRole(["super admin"]), updateOrganization);

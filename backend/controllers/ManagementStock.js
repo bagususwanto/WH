@@ -454,7 +454,7 @@ export const processIncomingUpdate = async (
   //   throw new Error("Quantity not allowed under 0");
   // }
 
-  const updateInventory = await updateQuantitySistem(
+  await updateQuantitySistem(
     incoming.Inventory.id,
     incoming.id,
     quantity,
@@ -470,7 +470,7 @@ export const processIncomingUpdate = async (
 
   await Incoming.update(
     {
-      actual: updateInventory,
+      actual: quantity,
       status,
     },
     {
@@ -483,7 +483,7 @@ export const processIncomingUpdate = async (
     {
       incomingId,
       typeLogEntry: "update incoming",
-      quantity: updateInventory,
+      quantity: quantity,
       userId,
       detailOrder: null,
     },

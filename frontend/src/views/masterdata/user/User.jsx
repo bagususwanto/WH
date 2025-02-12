@@ -323,6 +323,22 @@ const User = () => {
     }
   }
 
+  const getOrg = async () => {
+    try {
+      const response = await getMasterData(apiOrg)
+      const orgOptions = response.data.map((org) => ({
+        groupId: org.groupId,
+        lineId: org.lineId,
+        sectionId: org.sectionId,
+        departmentId: org.departmentId,
+        divisionId: org.divisionId,
+      }))
+      setOrgOptions(orgOptions)
+    } catch (error) {
+      console.error('Error fetching Plant:', error)
+    }
+  }
+
   const getWarehouse = async () => {
     try {
       const response = await getMasterData(apiWarehouse)

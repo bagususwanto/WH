@@ -854,10 +854,10 @@ export const getArrivalChart = async (req, res) => {
             WHEN [Delivery_Note].[status] = 'delayed' THEN 1 
             WHEN [Delivery_Note].[status] = 'on schedule' THEN 2 
             ELSE 3 
-          END`), 
-          "ASC"
+          END`),
+          "ASC",
         ],
-        ["arrivalPlanTime", "ASC"]
+        ["arrivalPlanTime", "ASC"],
       ],
       // subQuery: false,
       include: [
@@ -920,10 +920,15 @@ export const getArrivalChart = async (req, res) => {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
+    // return res.status(200).json({
+    //   data: data,
+    // });
+
     const mappedData = data.map((item) => {
       const tanggal = new Date(item.arrivalPlanDate);
+      console.log("tanggal", tanggal);
       const day = tanggal.getDay();
-
+      console.log("day", day);
       const actualTime = item.arrivalActualTime
         ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
         : "00:00:00";
@@ -934,22 +939,18 @@ export const getArrivalChart = async (req, res) => {
       const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
       const delay = actualArrival - plannedArrival;
 
-      const planTime = item.Incomings.flatMap((incoming) =>
+      const planTime = item.Incomings.map((incoming) =>
         incoming.Inventory.Material.Supplier.DeliverySchedules
           ? incoming.Inventory.Material.Supplier.DeliverySchedules.filter(
-              (schedule) => schedule.day === day
+              (ds) => ds.schedule === day
             )
           : []
       );
 
-      const arrivalPlan =
-        planTime.length > 0
-          ? new Date(planTime.arrival).toISOString().slice(11, 16)
-          : "00:00";
-      const departurePlan =
-        planTime.length > 0
-          ? new Date(planTime.departure).toISOString().slice(11, 16)
-          : "00:00";
+      console.log("planTime", planTime);
+
+      const arrivalPlan = planTime.length > 0 ? planTime.arrival : "00:00";
+      const departurePlan = planTime.length > 0 ? planTime.departure : "00:00";
 
       return {
         dnNumber: item.dnNumber,
