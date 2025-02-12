@@ -926,9 +926,7 @@ export const getArrivalChart = async (req, res) => {
 
     const mappedData = data.map((item) => {
       const tanggal = new Date(item.arrivalPlanDate);
-      console.log("tanggal", tanggal);
       const day = tanggal.getDay();
-      console.log("day", day);
       const actualTime = item.arrivalActualTime
         ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
         : "00:00:00";
@@ -939,18 +937,13 @@ export const getArrivalChart = async (req, res) => {
       const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
       const delay = actualArrival - plannedArrival;
 
-      const planTime = item.Incomings.map((incoming) =>
-        incoming.Inventory.Material.Supplier.DeliverySchedules
-          ? incoming.Inventory.Material.Supplier.DeliverySchedules.filter(
-              (ds) => ds.schedule === day
-            )
-          : []
-      );
+      const planTime =
+        item.Incomings[0]?.Inventory?.Material?.Supplier?.Delivery_Schedules?.find(
+          (s) => s.schedule === day
+        );
 
-      console.log("planTime", planTime);
-
-      const arrivalPlan = planTime.length > 0 ? planTime.arrival : "00:00";
-      const departurePlan = planTime.length > 0 ? planTime.departure : "00:00";
+      const arrivalPlan = planTime ? planTime.arrival : "00:00";
+      const departurePlan = planTime ? planTime.departure : "00:00";
 
       return {
         dnNumber: item.dnNumber,
