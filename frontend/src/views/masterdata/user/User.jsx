@@ -85,6 +85,7 @@ const User = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [roleValid, setRoleValid] = useState([])
+  const [orgOptions, setOrgOptions] = useState([])
 
   const animatedComponents = makeAnimated()
 
@@ -129,6 +130,7 @@ const User = () => {
   const apiDivision = 'division-public'
   const apiPlant = 'plant-public'
   const apiWarehouse = 'warehouse-public'
+  const apiOrg = 'organization-public'
 
   useEffect(() => {
     setLoading(false)
@@ -142,6 +144,7 @@ const User = () => {
     getDivision()
     getPlant()
     getWarehouse()
+    getOrg()
   }, [])
 
   useEffect(() => {
@@ -1227,7 +1230,47 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="group"
-                    onChange={(e) => setCurrentUser({ ...currentUser, groupId: e })}
+                    onChange={(e) => {
+                      if (!e) {
+                        setCurrentUser({
+                          ...currentUser,
+                          groupId: '',
+                          lineId: '',
+                          sectionId: '',
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const org = orgOptions.find((org) => org.groupId === e.id)
+                      if (!org) {
+                        setCurrentUser({
+                          ...currentUser,
+                          groupId: e,
+                          lineId: '',
+                          sectionId: '',
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const line = lineOptions.find((line) => line.id === org.lineId)
+                      const section = sectionOptions.find((section) => section.id === org.sectionId)
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      setCurrentUser({
+                        ...currentUser,
+                        groupId: e,
+                        lineId: line ? line : '',
+                        sectionId: section ? section : '',
+                        departmentId: department ? department : '',
+                        divisionId: division ? division : '',
+                      })
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1244,7 +1287,43 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="line"
-                    onChange={(e) => setCurrentUser({ ...currentUser, lineId: e })}
+                    onChange={(e) => {
+                      if (!e) {
+                        setCurrentUser({
+                          ...currentUser,
+                          lineId: '',
+                          sectionId: '',
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const org = orgOptions.find((org) => org.lineId === e.id)
+                      if (!org) {
+                        setCurrentUser({
+                          ...currentUser,
+                          lineId: e,
+                          sectionId: '',
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const section = sectionOptions.find((section) => section.id === org.sectionId)
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      setCurrentUser({
+                        ...currentUser,
+                        lineId: e,
+                        sectionId: section ? section : '',
+                        departmentId: department ? department : '',
+                        divisionId: division ? division : '',
+                      })
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1266,7 +1345,39 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="section"
-                    onChange={(e) => setCurrentUser({ ...currentUser, sectionId: e })}
+                    onChange={(e) => {
+                      if (!e) {
+                        setCurrentUser({
+                          ...currentUser,
+                          sectionId: '',
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const org = orgOptions.find((org) => org.sectionId === e.id)
+                      if (!org) {
+                        setCurrentUser({
+                          ...currentUser,
+                          sectionId: e,
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      setCurrentUser({
+                        ...currentUser,
+                        sectionId: e,
+                        departmentId: department ? department : '',
+                        divisionId: division ? division : '',
+                      })
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1290,7 +1401,33 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="department"
-                    onChange={(e) => setCurrentUser({ ...currentUser, departmentId: e })}
+                    onChange={(e) => {
+                      if (!e) {
+                        setCurrentUser({
+                          ...currentUser,
+                          departmentId: '',
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const org = orgOptions.find((org) => org.departmentId === e.id)
+                      if (!org) {
+                        setCurrentUser({
+                          ...currentUser,
+                          departmentId: e,
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      setCurrentUser({
+                        ...currentUser,
+                        departmentId: e,
+                        divisionId: division ? division : '',
+                      })
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1314,7 +1451,15 @@ const User = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="division"
-                    onChange={(e) => setCurrentUser({ ...currentUser, divisionId: e })}
+                    onChange={(e) => {
+                      if (!e) {
+                        setCurrentUser({
+                          ...currentUser,
+                          divisionId: '',
+                        })
+                        return
+                      }
+                      setCurrentUser({ ...currentUser, divisionId: e })}}
                     styles={customStyles}
                   />
                 </div>

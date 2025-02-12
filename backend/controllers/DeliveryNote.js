@@ -955,9 +955,9 @@ export const getArrivalChart = async (req, res) => {
       return {
         dnNumber: item.dnNumber,
         supplierName:
-          item.Incomings[0].Inventory.Material.Supplier.supplierName,
+          item.Incomings[0]?.Inventory?.Material.Supplier.supplierName,
         supplierCode:
-          item.Incomings[0].Inventory.Material.Supplier.supplierCode,
+          item.Incomings[0]?.Inventory?.Material.Supplier.supplierCode,
         truckStation: item.truckStation,
         rit: item.rit,
         arrivalPlanDate: item.arrivalPlanDate,
