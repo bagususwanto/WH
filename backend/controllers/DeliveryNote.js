@@ -859,7 +859,6 @@ export const getArrivalChart = async (req, res) => {
         ],
         ["arrivalPlanTime", "ASC"],
       ],
-      // subQuery: false,
       include: [
         {
           model: Incoming,
@@ -887,6 +886,7 @@ export const getArrivalChart = async (req, res) => {
                           model: DeliverySchedule,
                           required: false,
                           where: { flag: 1 },
+                          attributes: ["id", "arrival"],
                         },
                       ],
                     },
@@ -988,15 +988,6 @@ export const getArrivalChart = async (req, res) => {
         })),
       };
     });
-
-    // const sortedData = data.sort((a, b) => {
-    //   const order = { delayed: 1, "on schedule": 2, "schedule plan": 3 };
-
-    //   const statusA = order[a.status];
-    //   const statusB = order[b.status];
-
-    //   return statusA - statusB;
-    // });
 
     return res.status(200).json({
       data: mappedData,

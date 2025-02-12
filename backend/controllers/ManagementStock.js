@@ -444,7 +444,8 @@ export const processIncomingUpdate = async (
     throw new Error("Cannot update data on a different day");
   }
 
-  if (incoming.status !== "partial") {
+  const allowedStatus = ["partial", "not complete"];
+  if (!allowedStatus.includes(incoming.status)) {
     throw new Error(
       "Cannot update data for a fully received or not yet received data"
     );
@@ -498,7 +499,12 @@ export const updateIncoming = async (req, res) => {
     const quantity = req.body.actual;
     const userId = req.user.userId;
 
-    await handleUpdateIncoming(incomingId, quantity, userId, transaction);
+    try {
+      await handleUpdateIncoming(incomingId, quantity, userId, transaction);
+    } catch (error) {
+      await transaction.rollback();
+      return res.status(400).json({ message: error.message });
+    }
 
     // Commit transaksi jika semua proses berhasil
     await transaction.commit();
