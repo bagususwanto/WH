@@ -1411,7 +1411,7 @@ export const uploadDeliveryNote = async (req, res) => {
           dnNumber,
           arrivalPlanDate: deliveryDate,
           departurePlanDate: deliveryDate,
-          status: "schedule plan",
+          status: "scheduled",
           logImportId: logImportDN.id,
         };
 

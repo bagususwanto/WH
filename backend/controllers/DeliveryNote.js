@@ -367,12 +367,15 @@ export const submitDeliveryNote = async (req, res) => {
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
     const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
 
-    // Calculate delay
-    const delay = actualArrival - plannedArrival;
+    // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
+    const tolerance = 15 * 60 * 1000;
+
+    // Calculate delay with tolerance
+    const delay = actualArrival - plannedArrival - tolerance;
 
     await DeliveryNote.update(
       {
-        status: delay > 0 ? "delayed" : "on schedule",
+        status: delay > 0 ? "overdue" : "on schedule",
         arrivalPlanTime,
         arrivalActualDate,
         arrivalActualTime,
@@ -851,9 +854,8 @@ export const getArrivalChart = async (req, res) => {
       order: [
         [
           Sequelize.literal(`CASE 
-            WHEN [Delivery_Note].[status] = 'delayed' THEN 1 
-            WHEN [Delivery_Note].[status] = 'on schedule' THEN 2 
-            ELSE 3 
+            WHEN [Delivery_Note].[arrivalPlanTime] IS NULL THEN 1 
+            ELSE 0 
           END`),
           "ASC",
         ],
