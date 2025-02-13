@@ -98,7 +98,7 @@ const Dashboard = () => {
   const { getInventoryCriticalStock } = useDashboardService() // Service
   const { getInventoryLowestStock } = useDashboardService() // Service
   const { getInventoryOverflowStock } = useDashboardService() // Service
-  const { createIncomingPlan, updateIncoming } = useDashboardService() // Service
+  const { createIncomingPlan, updateIncoming,getInventoryAll} = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
   const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
@@ -109,6 +109,7 @@ const Dashboard = () => {
   const [itemNb, setItemNb] = React.useState(14) //item untuk critical
   const [chartWidth, setChartWidth] = useState(window.innerWidth)
   const [order, setOrder] = useState('ASC')
+  const [dataGetIncoming, setDataGetIncoming] = useState()
   const [selectedChart, setSelectedChart] = useState('critical')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedData, setSelectedData] = useState(null)
@@ -134,6 +135,16 @@ const Dashboard = () => {
   const handleOrderChange = (event) => {
     setOrder(event.target.value)
   }
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log('Fetching data every 10 seconds...');
+      
+      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value);
+    }, 10000);
+  
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [itemNb, order, selectedPlant.value]); 
 
   //Size Window
   useEffect(() => {
@@ -201,8 +212,9 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const data = await getDataFromAPI() // Ganti dengan API fetch yang sesuai
-      setData(data) // Update state dengan data terbaru
+      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+      // const data = await getInventoryCriticalStock() // Ganti dengan API fetch yang sesuai
+      // setInventoriesCritical(data) // Update state dengan data terbaru
     } catch (error) {
       console.error('Error fetching data:', error)
     }
@@ -817,29 +829,23 @@ const Dashboard = () => {
         throw new Error('Plant ID is missing')
       }
 
+      const incomingId = editData?.Incomings?.[0]?.id 
+    if (!incomingId) {
+      throw new Error('Incoming ID is missing')
+    }
       // Ambil warehouseId berdasarkan plantId
       const warehouseId = await getWarehouseId(plantId)
       if (!warehouseId) {
         throw new Error('Warehouse ID is missing')
       }
 
-      // Validasi incomingId
-      const incomingId = editData.Incomings[0]?.id // Pastikan editData memiliki incomingId
-      if (!incomingId) {
-        throw new Error('Incoming ID is missing')
-      }
 
-      // Validasi data actual
-      if (!editData.actual || isNaN(editData.actual)) {
-        throw new Error('Qty Receiv is missing or invalid')
-      }
-
-      // Simpan data inventory menggunakan incomingId dan warehouseId
-      const response = await updateIncoming(incomingId, warehouseId, {
+ console.log('Update data Actual:', editData.actual);
+ 
+      await updateIncoming(incomingId,warehouseId, {
         actual: editData.actual,
+        // inventoryId: editData.id,
       })
-
-      console.log('Update response:', response.data)
 
       // Tutup modal
       setModalActual(false)
@@ -850,7 +856,8 @@ const Dashboard = () => {
       setLoadingSave(false)
 
       // Fetch ulang data untuk refresh dengan retry mekanisme
-
+ // Fetch ulang data untuk refresh
+      setFetchNow(true)
       await fetchData() // Pastikan fetchData adalah fungsi yang memperbarui data di state
     }
   }

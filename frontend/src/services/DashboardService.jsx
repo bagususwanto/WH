@@ -12,6 +12,21 @@ const useDashboardService = () => {
     MySwal.fire('Error', `${error.response.data.message}`, 'error')
     throw new Error(message + error.message)
   }
+  const getInventoryAll = async (limit, order,id) => {
+    try {
+      const response = await axiosJWT.get(
+        `/inventory-dashboard?limit=${limit}&order=${order}&status=&plant=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
 
   const getInventoryCriticalStock = async (limit, order,id) => {
     try {
@@ -60,6 +75,21 @@ const useDashboardService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+  const getIncoming= async (startdate, enddate,plant,stroge) => {
+    try {
+      const response = await axiosJWT.get(
+        `/incoming?startDate=${startdate}&endDate=${enddate}&plantId=${plant}&storageId=${stroge}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response
+    } catch (error) {
+      handleError(error, 'Error fetching inventory:')
+    }
+  }
   const createIncomingPlan = async (warehouseId,data) => {
     try {
       const response = await axiosJWT.post(
@@ -92,11 +122,13 @@ const useDashboardService = () => {
   }
 
   return {
+    getInventoryAll,
     getInventoryCriticalStock,
     getInventoryLowestStock,
     getInventoryOverflowStock,
     createIncomingPlan,
-    updateIncoming
+    updateIncoming,
+    getIncoming,
   }
 }
 
