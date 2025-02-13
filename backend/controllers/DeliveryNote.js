@@ -17,6 +17,9 @@ import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
 import { Op, Sequelize } from "sequelize";
 
+// Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
+const tolerance = 15 * 60 * 1000;
+
 export const getDeliveryNoteByDnNo = async (req, res) => {
   try {
     const dn = req.query.dn;
@@ -366,9 +369,6 @@ export const submitDeliveryNote = async (req, res) => {
     // Combine actual and plan dates with times
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
     const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
-
-    // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
-    const tolerance = 15 * 60 * 1000;
 
     // Calculate delay with tolerance
     const delay = actualArrival - plannedArrival - tolerance;
@@ -818,14 +818,11 @@ export const getArrivalChart = async (req, res) => {
     const {
       plantId,
       status,
-      vendorId,
       startDate,
       endDate,
       page = 1,
       limit = 10,
     } = req.query;
-
-    const offset = (page - 1) * limit;
 
     let whereConditionDn = {};
     let whereConditionSupplier = { flag: 1 };
@@ -833,10 +830,6 @@ export const getArrivalChart = async (req, res) => {
 
     if (plantId) {
       whereConditionPlant.plantId = plantId;
-    }
-
-    if (vendorId) {
-      whereConditionSupplier.id = vendorId;
     }
 
     if (startDate && endDate) {
@@ -876,7 +869,13 @@ export const getArrivalChart = async (req, res) => {
                         model: DeliverySchedule,
                         required: false,
                         where: { flag: 1 },
-                        attributes: ["id", "arrival", "departure", "schedule"],
+                        attributes: [
+                          "id",
+                          "arrival",
+                          "departure",
+                          "schedule",
+                          "truckStation",
+                        ],
                       },
                     ],
                   },
@@ -902,37 +901,6 @@ export const getArrivalChart = async (req, res) => {
       },
     ];
 
-    // const checkDn = await DeliveryNote.findOne({
-    //   where: whereConditionDn,
-    //   include: includeDn,
-    // });
-
-    // if (!checkDn) {
-    //   return res.status(404).json({ message: "Data Delivery Note Not Found" });
-    // }
-
-    // const arrivalPlanDate = new Date(checkDn.arrivalPlanDate)
-    //   .toISOString()
-    //   .split("T")[0]; // date only format
-    // const arrivalPlanTime = new Date(checkDn.arrivalPlanTime)
-    //   .toISOString()
-    //   .slice(11, 16); // time only format
-    // const departurePlanTime = new Date(
-    //   checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]?.departure
-    // )
-    //   .toISOString()
-    //   .slice(11, 16); // time only format
-
-    // // Combine actual and plan dates with times
-    // const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
-    // const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
-
-    // // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
-    // const tolerance = 15 * 60 * 1000;
-
-    // // Calculate delay with tolerance
-    // const delay = actualArrival - plannedArrival - tolerance;
-
     const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
       order: [
@@ -947,8 +915,6 @@ export const getArrivalChart = async (req, res) => {
       ],
       include: includeDn,
       distinct: true,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
     });
 
     if (!data) {
@@ -963,15 +929,6 @@ export const getArrivalChart = async (req, res) => {
     const mappedData = data.map((item) => {
       const tanggal = new Date(item.arrivalPlanDate);
       const day = tanggal.getDay();
-      const actualTime = item.arrivalActualTime
-        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
-        : "00:00:00";
-      const plannedTime = item.arrivalPlanTime
-        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19)
-        : "00:00:00";
-      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
-      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
-      const delay = actualArrival - plannedArrival;
 
       const planTimes =
         item.Incomings[0]?.Inventory?.Material?.Supplier?.Delivery_Schedules?.filter(
@@ -991,6 +948,26 @@ export const getArrivalChart = async (req, res) => {
               new Date(plan.departure).toISOString().slice(11, 16)
             )
           : ["00:00"];
+
+      const getPlannedTime = () => {
+        if (item.arrivalPlanTime) {
+          return new Date(item.arrivalPlanTime).toISOString().slice(11, 19);
+        }
+        if (Array.isArray(planTimes)) {
+          return planTimes[0];
+        }
+        return "00:00:00";
+      };
+
+      const actualTime = item.arrivalActualTime
+        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
+        : "00:00:00";
+      const plannedTime = getPlannedTime();
+      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
+      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+
+      // Calculate delay with tolerance
+      const delay = actualArrival - plannedArrival - tolerance;
 
       return {
         dnNumber: item.dnNumber,
