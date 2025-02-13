@@ -849,6 +849,90 @@ export const getArrivalChart = async (req, res) => {
       whereConditionDn.status = status;
     }
 
+    const includeDn = [
+      {
+        model: Incoming,
+        required: true,
+        attributes: ["id", "planning", "actual", "status"],
+        include: [
+          {
+            model: Inventory,
+            required: false,
+            attributes: ["id"],
+            include: [
+              {
+                model: Material,
+                required: false,
+                attributes: ["id", "materialNo", "description", "uom"],
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Supplier,
+                    required: false,
+                    attributes: ["id", "supplierName", "supplierCode"],
+                    where: whereConditionSupplier,
+                    include: [
+                      {
+                        model: DeliverySchedule,
+                        required: false,
+                        where: { flag: 1 },
+                        attributes: ["id", "arrival", "departure", "schedule"],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                model: AddressRack,
+                required: false,
+                attributes: ["id", "addressRackName"],
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Storage,
+                    required: false,
+                    attributes: ["id"],
+                    where: whereConditionPlant,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    // const checkDn = await DeliveryNote.findOne({
+    //   where: whereConditionDn,
+    //   include: includeDn,
+    // });
+
+    // if (!checkDn) {
+    //   return res.status(404).json({ message: "Data Delivery Note Not Found" });
+    // }
+
+    // const arrivalPlanDate = new Date(checkDn.arrivalPlanDate)
+    //   .toISOString()
+    //   .split("T")[0]; // date only format
+    // const arrivalPlanTime = new Date(checkDn.arrivalPlanTime)
+    //   .toISOString()
+    //   .slice(11, 16); // time only format
+    // const departurePlanTime = new Date(
+    //   checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier.Delivery_Schedules[0]?.departure
+    // )
+    //   .toISOString()
+    //   .slice(11, 16); // time only format
+
+    // // Combine actual and plan dates with times
+    // const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
+    // const plannedArrival = new Date(`${arrivalPlanDate}T${arrivalPlanTime}`);
+
+    // // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
+    // const tolerance = 15 * 60 * 1000;
+
+    // // Calculate delay with tolerance
+    // const delay = actualArrival - plannedArrival - tolerance;
+
     const { count, rows: data } = await DeliveryNote.findAndCountAll({
       where: whereConditionDn,
       order: [
@@ -861,58 +945,7 @@ export const getArrivalChart = async (req, res) => {
         ],
         ["arrivalPlanTime", "ASC"],
       ],
-      include: [
-        {
-          model: Incoming,
-          required: false,
-          attributes: ["id", "planning", "actual", "status"],
-          include: [
-            {
-              model: Inventory,
-              required: false,
-              attributes: ["id"],
-              include: [
-                {
-                  model: Material,
-                  required: false,
-                  attributes: ["id", "materialNo", "description", "uom"],
-                  where: { flag: 1 },
-                  include: [
-                    {
-                      model: Supplier,
-                      required: false,
-                      attributes: ["id", "supplierName", "supplierCode"],
-                      where: whereConditionSupplier,
-                      include: [
-                        {
-                          model: DeliverySchedule,
-                          required: false,
-                          where: { flag: 1 },
-                          attributes: ["id", "arrival"],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  model: AddressRack,
-                  required: false,
-                  attributes: ["id", "addressRackName"],
-                  where: { flag: 1 },
-                  include: [
-                    {
-                      model: Storage,
-                      required: false,
-                      attributes: ["id"],
-                      where: whereConditionPlant,
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      include: includeDn,
       distinct: true,
       limit: parseInt(limit),
       offset: parseInt(offset),
@@ -926,6 +959,7 @@ export const getArrivalChart = async (req, res) => {
     //   data: data,
     // });
 
+    // Mapping data
     const mappedData = data.map((item) => {
       const tanggal = new Date(item.arrivalPlanDate);
       const day = tanggal.getDay();
@@ -939,34 +973,42 @@ export const getArrivalChart = async (req, res) => {
       const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
       const delay = actualArrival - plannedArrival;
 
-      const planTime =
-        item.Incomings[0]?.Inventory?.Material?.Supplier?.Delivery_Schedules?.find(
+      const planTimes =
+        item.Incomings[0]?.Inventory?.Material?.Supplier?.Delivery_Schedules?.filter(
           (s) => s.schedule === day
         );
 
-      const arrivalPlan = planTime
-        ? new Date(planTime.arrival).toISOString().slice(11, 16)
-        : "00:00";
-      const departurePlan = planTime
-        ? new Date(planTime.departure).toISOString().slice(11, 16)
-        : "00:00";
+      const arrivalPlans =
+        planTimes && planTimes.length > 0
+          ? planTimes.map((plan) =>
+              new Date(plan.arrival).toISOString().slice(11, 16)
+            )
+          : ["00:00"];
+
+      const departurePlans =
+        planTimes && planTimes.length > 0
+          ? planTimes.map((plan) =>
+              new Date(plan.departure).toISOString().slice(11, 16)
+            )
+          : ["00:00"];
 
       return {
         dnNumber: item.dnNumber,
+        vendorId: item.Incomings[0]?.Inventory?.Material?.Supplier?.id,
         supplierName:
-          item.Incomings[0]?.Inventory?.Material.Supplier.supplierName,
+          item.Incomings[0]?.Inventory?.Material.Supplier?.supplierName,
         supplierCode:
-          item.Incomings[0]?.Inventory?.Material.Supplier.supplierCode,
+          item.Incomings[0]?.Inventory?.Material.Supplier?.supplierCode,
         truckStation: item.truckStation,
         rit: item.rit,
         arrivalPlanDate: item.arrivalPlanDate,
         arrivalPlanTime: item.arrivalPlanTime
           ? new Date(item.arrivalPlanTime).toISOString().slice(11, 16)
-          : arrivalPlan,
+          : arrivalPlans,
         departurePlanDate: item.departurePlanDate,
         departurePlanTime: item.departurePlanTime
           ? new Date(item.departurePlanTime).toISOString().slice(11, 16)
-          : departurePlan,
+          : departurePlans,
         arrivalActualDate: item.arrivalActualDate,
         departureActualDate: item.departureActualDate,
         arrivalActualTime: item.arrivalActualTime
@@ -991,6 +1033,18 @@ export const getArrivalChart = async (req, res) => {
       };
     });
 
+    // Sorting the mapped data by arrivalPlanTime
+    mappedData.sort((a, b) => {
+      const timeA = Array.isArray(a.arrivalPlanTime)
+        ? a.arrivalPlanTime[0]
+        : a.arrivalPlanTime;
+      const timeB = Array.isArray(b.arrivalPlanTime)
+        ? b.arrivalPlanTime[0]
+        : b.arrivalPlanTime;
+      return timeA.localeCompare(timeB);
+    });
+
+    // Return sorted data
     return res.status(200).json({
       data: mappedData,
       totalRecords: count,
@@ -1019,4 +1073,38 @@ const convertDelay = (delayMs) => {
   if (remainingSeconds > 0 && result === "") result += `${remainingSeconds}s`; // Tampilkan detik jika tidak ada yang lain
 
   return result.trim() || "0s"; // Jika tidak ada delay, tampilkan "0s"
+};
+
+export const updateStatusToDelayed = async (dnNumber) => {
+  try {
+    if (!dnNumber) {
+      throw new Error("Delivery Note number is required");
+    }
+
+    const deliveryNote = await DeliveryNote.findOne({
+      where: { dnNumber: dnNumber },
+    });
+
+    if (!deliveryNote) {
+      throw new Error("Delivery Note not found");
+    }
+
+    // jika status sudah delayed tidak bisa di update
+    if (deliveryNote.status === "delayed") {
+      throw new Error("Delivery Note is already delayed");
+    }
+
+    // status harus scheduled
+    if (deliveryNote.status !== "scheduled") {
+      throw new Error("Delivery Note is not scheduled");
+    }
+
+    deliveryNote.status = "delayed";
+    await deliveryNote.save();
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
