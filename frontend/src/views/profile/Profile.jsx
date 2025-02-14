@@ -12,7 +12,6 @@ import {
   CFormInput,
   CModal,
   CModalBody,
-  CModalFooter,
   CModalHeader,
   CAccordionItem,
   CFormLabel,
@@ -44,6 +43,7 @@ import { GlobalContext } from '../../context/GlobalProvider'
 const Profile = () => {
   const { getMasterData, postMasterData } = useMasterDataService()
   const [selectedImage, setSelectedImage] = useState()
+
   const [userData, setUserData] = useState([])
   const [structureData, setStructureData] = useState([])
   const [notifProfile, setnotifProfile] = useState([])
@@ -53,8 +53,6 @@ const Profile = () => {
   const [notifCount, setNotifCount] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
   const [modalPassVisible, setModalPassVisible] = useState(false)
-  const { getNotification, getNotificationCount } = useNotificationService()
-  const { warehouse, setWarehouse, cartCount, cart, setCart } = useContext(GlobalContext)
   const fileInputRef = useRef(null) // Use a ref to trigger the file input
   const [visibleNotifCount, setVisibleNotifCount] = useState(7) // Awalnya menampilkan 7 notifikasi
   const { roleName, userId } = useVerify() // Pastikan `userId` diperoleh dari konteks atau props
@@ -119,21 +117,6 @@ const Profile = () => {
     { label: 'Phone Number', value: userData.noHandphone || '-' },
   ]
 
-  useEffect(() => {
-    if (warehouse && warehouse.id) {
-      const fetchAndCountNotifications = async () => {
-        const notifications = await getNotification(warehouse.id)
-        if (Array.isArray(notifications)) {
-          setnotifProfile(notifications)
-          const unreadCount = notifications.filter((notif) => notif.isRead === 0).length
-          setNotifCount(unreadCount)
-        }
-      }
-      fetchAndCountNotifications()
-      const interval = setInterval(fetchAndCountNotifications, 5000)
-      return () => clearInterval(interval)
-    }
-  }, [warehouse, cartCount])
 
   const handleFileSelection = (event) => {
     const file = event.target.files[0]
@@ -179,61 +162,13 @@ const Profile = () => {
 };
 
   return (
-    <CTabs activeItemKey={'notifikasi'}>
+    <CTabs activeItemKey={'profile'}>
       <CTabList variant="underline-border">
-        <CTab aria-controls="home-tab-pane" itemKey={'notifikasi'}>
-          Notifikasi
-        </CTab>
-
         <CTab aria-controls="home-tab-pane" itemKey={'profile'}>
           Profile
         </CTab>
-
-        {/* <CTab aria-controls="profile-tab-pane" itemKey={'structure'}>
-          Structure Approval
-        </CTab> */}
       </CTabList>
       <CTabContent>
-        <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'notifikasi'}>
-          <CContainer>
-            <CRow>
-              <label className="mb-2 fs-4 fw-bold">Your Notification</label>
-            </CRow>
-            <CRow>
-              <CCard>
-                <CAccordionHeader className="mt-2 fs-6">Transaction Info</CAccordionHeader>
-                <hr className="my-1" />
-                {Array.isArray(notifProfile) &&
-                  notifProfile.slice(0, visibleNotifCount).map((notif, index) => (
-                    <CCardBody key={index} className="p-1">
-                      <CRow className="align-items-center mb-1">
-                        <CCol xs={1} className="d-flex justify-content-center">
-                          <CIcon icon={cilEnvelopeOpen} size="lg" />
-                        </CCol>
-                        <CCol xs={11}>
-                          <div>
-                            <div className="mb-0 fw-light text-muted">Message for you</div>
-                            <div>{notif.description}</div>
-                          </div>
-                        </CCol>
-                      </CRow>
-                      {index < visibleNotifCount - 1 && index < notifProfile.length - 1 && (
-                        <hr className="my-1" />
-                      )}
-                    </CCardBody>
-                  ))}
-              </CCard>
-              {visibleNotifCount < notifProfile.length && (
-                <div className="text-center my-3">
-                  <CButton color="primary" onClick={loadMore}>
-                    Load More
-                  </CButton>
-                </div>
-              )}
-            </CRow>
-          </CContainer>
-        </CTabPanel>
-
         <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={'profile'}>
           <CContainer>
             <CRow>
@@ -259,7 +194,7 @@ const Profile = () => {
                         Choose Your Photo
                       </CButton>
 
-                      <hr style={{ width: '100%' }} />``
+                      <hr style={{ width: '100%' }} />
 
                       <CButton color="light" onClick={toggleModalPassword}>
                         Change Password
@@ -296,49 +231,75 @@ const Profile = () => {
                 </CModal>
                 <CModal visible={modalPassVisible} onClose={toggleModalPassword}>
                   <CModalHeader>Change Password</CModalHeader>
-                  <CModalBody className="modal-dialog-centered">
+                  <CModalBody >
                     <CRow>
                       {' '}
                       {/* Added margin bottom for spacing */}
                       <CRow>
-                        {' '}
-                        <label style={{ fontSize: '12px' }}>Old Password</label>
-                        <CFormInput
-                          type="password"
-                          id="inputPassword1"
-                          placeholder="Password"
-                          className="mb-1"
-                          value={passData.oldPassword}
-                          onChange={(e) =>
-                            setPassData({ ...passData, oldPassword: e.target.value })
-                          }
-                        />
-                        <label style={{ fontSize: '12px' }}>New Password</label>
-                        <CFormInput
-                          type="password"
-                          id="inputPassword2"
-                          placeholder="Password"
-                          className="mb-1"
-                          value={passData.newPassword}
-                          onChange={(e) =>
-                            setPassData({ ...passData, newPassword: e.target.value })
-                          }
-                        />
-                        <label style={{ fontSize: '12px' }}>Confirm Password</label>
-                        <CFormInput
-                          type="password"
-                          id="inputPassword3"
-                          placeholder="Password"
-                          className="mb-2"
-                          value={passData.confirmPassword}
-                          onChange={(e) =>
-                            setPassData({ ...passData, confirmPassword: e.target.value })
-                          }
-                        />
-                      </CRow>
+                        {/* Old Password */}
+                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mb-1 mt-1">
+                            Old Password
+                        </CFormLabel>
+                        <div className="d-flex justify-content-center">
+                            <CFormInput
+                            type="password"
+                            id="inputPassword1"
+                            placeholder="Password"
+                            className="mb-2"
+                            value={passData.oldPassword}
+                            onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })}
+                            />
+                        </div>
+
+                        {/* New Password */}
+                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mb-1 mt-2">
+                            New Password
+                        </CFormLabel>
+                        <div className="d-flex justify-content-center">
+                            <CFormInput
+                            type="password"
+                            id="inputPassword2"
+                            placeholder="Password"
+                            className="mb-2"
+                            value={passData.newPassword}
+                            disabled={!passData.oldPassword} // Disable jika oldPassword kosong
+                            style={{
+                                border: !passData.oldPassword ? '1px solid gray' : '1px solid red', // Border merah jika sudah aktif
+                              }}
+                            onChange={(e) =>
+                                setPassData({ ...passData, newPassword: e.target.value })
+                            }
+                            />
+                        </div>
+
+                        {/* Confirm Password */}
+                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mb-1">
+                            Confirm Password
+                        </CFormLabel>
+                        <div className="d-flex justify-content-center">
+                            <CFormInput
+                            type="password"
+                            id="inputPassword3"
+                            placeholder="Password"
+                            className="mb-2"
+                            value={passData.confirmPassword}
+                            disabled={!passData.oldPassword} // Disable jika oldPassword kosong
+                            style={{
+                                border: !passData.oldPassword ? '1px solid gray' : '1px solid red', // Border merah jika sudah aktif
+                              }}
+                            onChange={(e) =>
+                                setPassData({ ...passData, confirmPassword: e.target.value })
+                            }
+                            />
+                        </div>
+                        </CRow>
+
                       <CRow>
                         <CCol md={12} className="d-flex justify-content-end">
-                          <CButton color="primary" onClick={handlePasswordChange}>
+                          <CButton 
+                          color="primary" 
+                          onClick={handlePasswordChange}
+                          className='mt-2'>
                             Confirm
                           </CButton>
                         </CCol>

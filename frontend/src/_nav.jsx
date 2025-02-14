@@ -569,20 +569,60 @@ const useNavigation = () => {
         },
       )
     }
-    if (roleName === 'super admin') {
+    if (roleName === 'super admin'|| roleName === 'line head' || roleName === 'section head' || roleName === 'department head') {
       baseNav.push(
         {
           component: CNavTitle,
           name: 'Form Request',
         },
+        ...(roleName === 'line head'|| roleName === 'super admin' ? [
         {
           component: CNavItem,
           name: 'Request',
           to: '/request',
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
         },
-      )
+         ] : []),
+        {
+          component: CNavGroup,
+          name: 'Approval Req Form',
+          to: '/Approval-request',
+          icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+          items: [
+            ...(roleName === 'section head'|| roleName === 'super admin' ? [
+              {
+                component: CNavItem,
+                name: 'Approval Req By SH',
+                to: '/Approval-request/sect-head',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+            ] : []),
+            
+            ...(roleName === 'department head' || roleName === 'super admin' ? [
+              {
+                component: CNavItem,
+                name: 'Approval Req By DpH',
+                to: '/Approval-request/dept-head',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+              {
+                component: CNavItem,
+                name: 'Approval Req By DH',
+                to: '/Approval-request/div-head',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+              {
+                component: CNavItem,
+                name: 'Approval Req By Director',
+                to: '/Approval-request/director',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+            ] : []),
+          ]
+        },
+      );
     }
+    
     baseNav.push(
       {
         component: CNavTitle,
@@ -591,8 +631,12 @@ const useNavigation = () => {
       {
         component: CNavItem,
         name: 'Profile',
-        to: '/profile',
+        to: '/dummy-route', // Internal route, just a placeholder
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+        onClick: (e) => {
+          e.preventDefault() // Prevent the default behavior of `to`
+          window.open(`${config.ORDER_URL}/#/profile`, '_blank') // Use base URL from config
+        },
       },
       {
         component: CNavItem,

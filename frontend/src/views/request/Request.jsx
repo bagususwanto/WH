@@ -12,10 +12,12 @@ import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.min.css'
 import {
   CCard,
+  CFormLabel ,
   CCardHeader,
   CCardBody,
   CCol,
   CRow,
+  CTooltip,
   CFormInput,
   CButton,
   CCollapse,
@@ -67,25 +69,7 @@ const Request = () => {
           <CCardHeader>Biodata </CCardHeader>
           <CCardBody>
             <CRow>
-              <CCol xs={12} sm={6} md={4}>
-                <Dropdown
-                  label="Dept"
-                  placeholder="Select Plant"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-              <CCol xs={12} sm={6} md={4}>
-                <CFormInput
-                  label="Division"
-                  placeholder="Select Plant"
-                  className="p-column-filter mb-2"
-                  showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
-                />
-              </CCol>
-              <CCol xs={12} sm={6} md={4}>
+            <CCol xs={12} sm={6} md={4}>
                 <CFormInput
                   label="Plant"
                   placeholder="Select Plant"
@@ -103,7 +87,39 @@ const Request = () => {
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
+              <CCol xs={12} sm={4} md={2}>
+                  <CFormLabel>Date</CFormLabel>
+                  <Flatpickr
+                    value={date}
+                    onChange={(selectedDates) => setDate(selectedDates[0])}
+                    options={{
+                      dateFormat: "Y-m-d",
+                      enableTime: false, // Set to true if you need time selection
+                    }}
+                    placeholder="Select Date"
+                    className="p-column-filter mb-2 form-control"
+                    style={{ width: "100%", borderRadius: "5px" }}
+                  />
+              </CCol>
               <CCol xs={12} sm={6} md={4}>
+                <CFormInput
+                  label="Division"
+                  placeholder="Select Plant"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={4}>
+                <CFormInput
+                  label="Dept."
+                  placeholder="Select Plant"
+                  className="p-column-filter mb-2"
+                  showClear
+                  style={{ width: '100%', borderRadius: '5px' }}
+                />
+              </CCol>
+              <CCol xs={12} sm={6} md={2}>
                 <CFormInput
                   label="Ext"
                   placeholder="Select Type"
@@ -120,7 +136,7 @@ const Request = () => {
           <CCardBody>
             <CRow className="mt-2">
               <CCol xs={4} sm={4} md={4}>
-                <CButton color="primary" onClick={() => setVisibleA(!visibleA)}>
+                <CButton color="primary" variant="ghost"onClick={() => setVisibleA(!visibleA)}>
                   Reason A
                 </CButton>
               </CCol>
@@ -171,7 +187,7 @@ const Request = () => {
               <hr />
               <CRow>
                 <CCol xs={4} sm={4} md={4}>
-                  <CButton color="primary" onClick={() => setVisibleB(!visibleB)}>
+                  <CButton color="primary" variant="ghost" onClick={() => setVisibleB(!visibleB)}>
                     Reason B
                   </CButton>
                 </CCol>
@@ -195,7 +211,7 @@ const Request = () => {
               <CRow>
                 <hr />
                 <CCol xs={4} sm={4} md={4}>
-                  <CButton color="primary" onClick={() => setVisibleC(!visibleC)}>
+                  <CButton color="primary" variant="ghost" onClick={() => setVisibleC(!visibleC)}>
                     Reason C
                   </CButton>
                 </CCol>
@@ -223,23 +239,27 @@ const Request = () => {
         </CCard>
         {/* Basic data */}
         <CCard className="mb-3">
-          <CCardHeader>Basic Data/Data Utama </CCardHeader>
+          <CCardHeader  style={{ textAlign: 'center',fontWeight: "bold" }}>Basic Data/Data Utama </CCardHeader>
           <CCardBody>
             <CRow>
               <CCol xs={12} sm={8} md={8}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Description / Deskripsi</CFormLabel>
+              <CFormLabel className='px-1' style={{ fontWeight: "lighter" }}>(Max. Characters :40 Letters)</CFormLabel>
                 <CFormInput
-                  label=" Description / Deskripsi"
                   placeholder="Select  Description"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
-              </CCol>
+                 </CCol>
+           
+
             </CRow>
             <CRow>
               <CCol xs={12} sm={8} md={8}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Type / Tipe</CFormLabel>
+              <CFormLabel className='px-1' style={{ fontWeight: "lighter" }}>(Max. Characters :40 Letters)</CFormLabel>
                 <CFormInput
-                  label="Type / Tipe"
                   placeholder="Select Type"
                   className="p-column-filter mb-2"
                   showClear
@@ -249,8 +269,9 @@ const Request = () => {
             </CRow>
             <CRow>
               <CCol xs={12} sm={8} md={8}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Maker / Merk</CFormLabel>
+              <CFormLabel className='px-1' style={{ fontWeight: "lighter" }}>(Max. Characters :40 Letters)</CFormLabel>
                 <CFormInput
-                  label="Maker / Merk"
                   placeholder="Select Maker"
                   className="p-column-filter mb-2"
                   showClear
@@ -259,47 +280,55 @@ const Request = () => {
               </CCol>
             </CRow>
             <CRow>
-              <CCol xs={6} sm={4} md={4}>
+              <CCol xs={6} sm={4} md={3}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Unit of Measure / Satuan</CFormLabel>
                 <CFormInput
-                  label="Unit of Measure / Satuan"
-                  placeholder="Select Unit of Measure"
+                  placeholder="(Pc/Unit/Set/KG, etc)"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-              <CCol xs={6} sm={4} md={4}>
+              <CCol xs={6} sm={4} md={3}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Alternative UoM</CFormLabel>
                 <CFormInput
-                  label="Alternative UoM"
-                  placeholder="Select UoM"
+                  placeholder="(Box/Ltr/Unit, etc)"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
             </CRow>
+            <hr/>
+            <label style={{ textAlign: 'right', fontStyle: 'italic',fontWeight: '300'}}>
+              This Material will be used for / Material akan digunakan sebagai :
+            </label>
             <CRow>
               <CCol xs={6} sm={4} md={3}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Line</CFormLabel>
                 <CFormInput
-                  label="Line"
                   placeholder="Select Line"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
+              </CRow>
+              <CRow>
               <CCol xs={6} sm={4} md={5}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Process / Proses</CFormLabel>
                 <CFormInput
-                  label="Process / Proses"
                   placeholder="Select Process"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
+              </CRow>
+              <CRow>
               <CCol xs={6} sm={4} md={4}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Equipment / Mesin</CFormLabel>
                 <CFormInput
-                  label="Equipment / Mesin"
                   placeholder="Select Equipment"
                   className="p-column-filter mb-2"
                   showClear
@@ -307,10 +336,14 @@ const Request = () => {
                 />
               </CCol>
             </CRow>
+            <hr/>
+            <label style={{ textAlign: 'right', fontStyle: 'italic',fontWeight: '300'}}>
+            Fill in by Warehouse / Diisi oleh Warehouse
+            </label>
             <CRow>
               <CCol xs={6} sm={4} md={4}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Material Number</CFormLabel>
                 <CFormInput
-                  label="Material Number"
                   placeholder="Select Material Number"
                   className="p-column-filter mb-2"
                   showClear
@@ -321,61 +354,87 @@ const Request = () => {
           </CCardBody>
         </CCard>
         <CCard className="mb-3">
-          <CCardHeader>MRP (Material Requirement Planning) / Standard Stock</CCardHeader>
+          <CCardHeader  style={{ textAlign: 'center',fontWeight: "bold" }}>MRP (Material Requirement Planning) / Standard Stock</CCardHeader>
           <CCardBody>
             <CRow>
               <CCol>
-                <CRow>
+                <CRow className='mb-2'>
                   <CCol xs={12} sm={4} md={4}>
-                    <h6 className=" fs-6">New Material Requistion Form</h6>
+                    <h6 className=" fs-6 fw-bold" style={{paddingTop: '20px',}}>MRP Type / Tipe Stock</h6>
                   </CCol>
-                  <CCol xs={12} sm={6} md={6}>
+                  <CCol xs={12} sm={4} md={8}>
+                    <CRow>
+                    <CCol xs={12} sm={4} md={1}>
+                   
                     <CFormCheck
                       id="flexCheckDefault"
-                      label=" ROP (Stock avalable & maintained) / Stock tersedia & dikelola oleh Warehouse"
                     />
+                     <CFormLabel className='px-1' style={{ fontWeight: "bold" }}>ROP</CFormLabel>
+                    </CCol>
+                    <CCol xs={12} sm={10} md={10}>
+                    <label style={{ textAlign: 'right', fontStyle: 'italic',fontWeight: '300'}}> 
+                      (Stock avalable & maintained) / Stock tersedia & dikelola oleh Warehouse</label>
+                    </CCol>
+                    </CRow>
+                    <CRow>
+                    <CCol xs={12} sm={4} md={1}>
+                     
                     <CFormCheck
                       id="flexCheckDefault"
-                      label=" OTH (Stock 0 order by Reservation) / Stock tidak tersedia Order via RFOnline"
                     />
-                  </CCol>
+                    
+                     <CTooltip content="Jika Material tidak diambil /digunakan dalam waktu 3 tahun, maka user wajib bertanggung jawab atas stock yang tersisa di warehouse (wajib diambil)."
+                       placement="top">
+                     <CFormLabel className='px-1' style={{ fontWeight: "bold" }}>OTH</CFormLabel>
+                     </CTooltip>
+                     </CCol>
+                     <CCol xs={12} sm={10} md={10}>
+                    <label style={{ textAlign: 'right', fontStyle: 'italic',fontWeight: '300'}}> 
+                      (Stock 0 order by Reservation) / Stock tidak tersedia Order via RFOnline</label>
+                    </CCol>
+                    </CRow>
+                    </CCol>
                 </CRow>
               </CCol>
             </CRow>
-
+            <hr/>
             <CRow>
               <CCol xs={6} sm={4} md={4}>
-                <CFormInput
-                  label="Gentan-i"
+              <CFormLabel style={{ fontWeight: "bold" }}>Gentan-i</CFormLabel>
+              <CFormInput
                   placeholder="Select Maker"
                   className="p-column-filter mb-2"
                   showClear
-                  style={{ width: '100%', borderRadius: '5px' }}
+                  style={{ width: "100%", borderRadius: "5px" }}
                 />
               </CCol>
+              </CRow>
+              <CRow>
               <CCol xs={6} sm={4} md={4}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Reorder Point / Titik order</CFormLabel>
                 <CFormInput
-                  label="Reorder Point / Titik order"
                   placeholder="Select Maker"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
-            </CRow>
+              </CRow>
             <CRow>
               <CCol xs={6} sm={4} md={4}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Rounding Value / Kelipatan Order</CFormLabel>
                 <CFormInput
-                  label="Unit of Measure / Satuan"
                   placeholder="Select Maker"
                   className="p-column-filter mb-2"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
               </CCol>
+              </CRow>
+              <CRow>
               <CCol xs={6} sm={4} md={4}>
+              <CFormLabel style={{ fontWeight: "bold" }}>Usage / Pemakaian</CFormLabel>
                 <CFormInput
-                  label="Alternative UoM"
                   placeholder="Select Maker"
                   className="p-column-filter mb-2"
                   showClear
@@ -386,34 +445,47 @@ const Request = () => {
           </CCardBody>
         </CCard>
         <CCard>
-          <CCardHeader>MRP (Material Requirement Planning) / Standard Stock</CCardHeader>
+          <CCardHeader style={{ textAlign: 'center',fontWeight: "bold" }}>Accounting</CCardHeader>
           <CCardBody>
+            <CRow>
             <CCol xs={6} sm={4} md={4}>
+            <CFormLabel style={{ fontWeight: "bold" }}>Standard, Average Prive / Harga</CFormLabel>
               <CFormInput
-                label=" Standard, Average Prive / Harga"
                 placeholder="Select Standard"
                 className="p-column-filter mb-2"
                 showClear
                 style={{ width: '100%', borderRadius: '5px' }}
               />
             </CCol>
+              <CCol xs={6} sm={6} md={6} style={{ textAlign: 'right', paddingTop: '35px', fontStyle: 'italic', fontWeight: '300' }}>
+                (Please submit Quotation / Lampirkan Penawaran Harga)
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
-        <CCard>
-          <CCardHeader> Others / Lain - lain</CCardHeader>
+        <CCard className='mt-3'>
+          <CCardHeader style={{ textAlign: 'center',fontWeight: "bold" }}> Others / Lain - lain</CCardHeader>
           <CCardBody>
+          <CCol xs={4} sm={4} md={4}>
+          <CFormLabel style={{ fontWeight: "bold" }}>Storage Bin / Alamat Rack</CFormLabel>
             <CFormInput
-              label="Storage Bin / Alamat Rack"
               placeholder="Select Standard"
               className="p-column-filter mb-2"
               showClear
               style={{ width: '100%', borderRadius: '5px' }}
             />
+            </CCol>
             <CRow>
               <CCol xs={4} sm={4} md={4}>
-                <CButton color="primary" onClick={() => setVisibleC(!visibleC)}>
-                  Reason C
-                </CButton>
+              <CButton 
+                  color="primary"  
+                  variant="ghost" 
+                  style={{ fontWeight: "bold", fontStyle: "italic", textDecoration: "underline" }} 
+                  onClick={() => setVisibleC(!visibleC)}
+                >
+                  (Required) For Chemical Material
+              </CButton>
+
               </CCol>
 
               <CRow>
@@ -425,29 +497,26 @@ const Request = () => {
                           <CCol xs={6}>
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can be Repaired / Dapat diperbaiki"
+                              label="MSDS"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
+                              label="SoC Free Letter"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
+                              label="Proper Storage (grounding, etc)
+"
                             />
                           </CCol>
                           <CCol xs={6}>
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can be Repaired / Dapat diperbaiki"
+                              label="Flammable"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
-                            />
-                            <CFormCheck
-                              id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
+                              label="Corrosives, Toxic"
                             />
                           </CCol>
                         </CRow>
@@ -456,29 +525,19 @@ const Request = () => {
                           <CCol xs={6}>
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can be Repaired / Dapat diperbaiki"
+                              label="Cost Reduction / Penurunan Biaya"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
+                              label="Drawing / Gambar teknik"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
-                            />
-                          </CCol>
-                          <CCol xs={6}>
-                            <CFormCheck
-                              id="flexCheckDefault"
-                              label="Can be Repaired / Dapat diperbaiki"
+                              label="Trial Result / Hasil Trial"
                             />
                             <CFormCheck
                               id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
-                            />
-                            <CFormCheck
-                              id="flexCheckDefault"
-                              label="Can Not be Repaired / Tidak dapat diperbaiki"
+                              label="Improvement Report"
                             />
                           </CCol>
                         </CRow>

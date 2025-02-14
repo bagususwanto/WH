@@ -1,0 +1,32 @@
+/* Garis di antara header dan tabel */
+.custom-table thead tr th {
+    border-bottom: none !important; /* Hapus garis di bawah header */
+    padding: 2px; /* Jarak dalam sel */
+  }
+  .custom-table thead tr th:last-child {
+    border-right: none; /* Hapus garis pada kolom terakhir */
+  }
+  
+  /* Baris tabel dengan striping */
+  .custom-table tbody tr {
+    border-bottom: 1px solid #d3d3d3 !important; /* Garis horizontal antar baris */
+  }
+  
+  .custom-table tbody tr td {
+    padding: 7px; /* Jarak dalam sel */
+    border-right: 1px solid #d3d3d3; /* Garis vertikal antar kolom */
+  }
+  
+  .custom-table tbody tr td:last-child {
+    border-right: none; /* Hapus garis pada kolom terakhir */
+  }
+  
+  /* Baris tabel dengan striping */
+  .custom-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9; /* Warna latar belakang abu-abu muda untuk baris ganjil */
+  }
+  
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #ffffff; /* Warna putih untuk baris genap */
+  }
+  
