@@ -179,15 +179,10 @@ const ApprovalRequest = () => {
                   className="custom-table"
                 >
                   <Column className='' header="No" body={(rowBody, {rowIndex})=>rowIndex+1}></Column>
-                  <Column className='' field=''  header="DN No"></Column>
-                  <Column className='' field=''  header="Vendor Name" ></Column>
-                  <Column className='' field=''  header="Truck Station" ></Column>
-                  <Column className='' field=''  header="Rit" ></Column>
-                  <Column className='' field=''  header="Plan Date" ></Column>
-                  <Column className='' field=''  header="Plan Time" ></Column>
-                  <Column className='' field=''  header="Arriv. Date" ></Column>
-                  <Column className='' field=''  header="Arriv. Time" ></Column>
-                  {/* <Column className='' field='deliveryNotes.departureActualDate'  header="Departure Date" /> */}
+                  <Column className='' field=''  header="Req No"></Column>
+                  <Column className='' field=''  header="Req Form" ></Column>
+                  <Column className='' field=''  header="Material Requstion" ></Column>
+                  <Column className='' field=''  header="Req Date" ></Column>
                   <Column className='' field=''  header="Dept. Time" ></Column>
                   <Column className='' field=''  header="Status"  ></Column>
                   <Column className='' field=''  header="Materials"  ></Column>

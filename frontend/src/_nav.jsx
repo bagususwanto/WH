@@ -99,6 +99,21 @@ const useNavigation = () => {
         active: location.pathname === '/dashboard',
       })
     }
+    if (
+      (isWarehouse == 1 && roleName === 'super admin') ||
+      (isWarehouse == 1 && roleName === 'group head') ||
+      (isWarehouse == 1 && roleName === 'line head') ||
+      (isWarehouse == 1 && roleName === 'section head') ||
+      roleName === 'warehouse staff'
+    ) {
+      baseNav.push({
+        component: CNavItem,
+        name: 'Compare Inventory',
+        to: '/compare-inventory',
+        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+        active: location.pathname === '/dashboard',
+      })
+    }
     // NAV INVENTORY
     if (
       roleName === 'super admin' ||
