@@ -951,13 +951,11 @@ export const getArrivalChart = async (req, res) => {
           vendorName: item.supplierName,
           truckStation: ds.truckStation,
           rit: ds.rit,
-          planDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
-          arrivalDeparture:
-            new Date(ds.arrival).toISOString().slice(11, 16) +
-            " - " +
-            new Date(ds.departure).toISOString().slice(11, 16),
-          arrivalDate: deliveryNote?.arrivalActualDate || null,
-          arrivalTime: deliveryNote?.arrivalActualTime
+          arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
+          arrivalPlanTime: new Date(ds.arrival).toISOString().slice(11, 16),
+          departurePlanTime: new Date(ds.departure).toISOString().slice(11, 16),
+          arrivalActualDate: deliveryNote?.arrivalActualDate || null,
+          arrivalActualTime: deliveryNote?.arrivalActualTime
             ? new Date(deliveryNote?.arrivalActualTime)
                 .toISOString()
                 .slice(11, 16)
@@ -967,14 +965,10 @@ export const getArrivalChart = async (req, res) => {
       });
     });
 
-    // Sorting the mapped data by arrivalDeparture
+    // Sorting the mapped data by arrivalPlanTime
     mappedData.sort((a, b) => {
-      const timeA = a.arrivalDeparture
-        ? new Date(a.arrivalDeparture.split(" - ")[0])
-        : null;
-      const timeB = b.arrivalDeparture
-        ? new Date(b.arrivalDeparture.split(" - ")[0])
-        : null;
+      const timeA = a.arrivalPlanTime ? new Date(a.arrivalPlanTime) : null;
+      const timeB = b.arrivalPlanTime ? new Date(b.arrivalPlanTime) : null;
 
       // Jika salah satu atau kedua nilai null, letakkan di bagian bawah
       if (timeA === null && timeB === null) return 0;
