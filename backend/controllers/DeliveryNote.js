@@ -912,10 +912,11 @@ export const getArrivalChart = async (req, res) => {
             vendorName: item.supplierName,
             truckStation: null,
             rit: null,
-            planDate: item.Delivery_Notes[0]?.arrivalPlanDate || null,
-            arrivalDeparture: null,
-            arrivalDate: null,
-            arrivalTime: null,
+            arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
+            arrivalPlanTime: null,
+            departurePlanTime: null,
+            arrivalActualDate: null,
+            arrivalActualTime: null,
             status: "no schedule",
           },
         ];
