@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../utils/Database.js";
 import LogImport from "./LogImportModel.js";
+import Supplier from "./SupplierModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -55,6 +56,14 @@ const DeliveryNote = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    supplierId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: Supplier,
+        key: "id",
+      },
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -76,6 +85,13 @@ LogImport.hasMany(DeliveryNote, {
 DeliveryNote.belongsTo(LogImport, {
   foreignKey: "logImportId",
   onDelete: "NO ACTION",
+});
+
+Supplier.hasMany(DeliveryNote, {
+  foreignKey: "supplierId",
+});
+DeliveryNote.belongsTo(Supplier, {
+  foreignKey: "supplierId",
 });
 
 export default DeliveryNote;
