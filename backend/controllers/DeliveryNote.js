@@ -956,9 +956,11 @@ export const getArrivalChart = async (req, res) => {
           arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
           arrivalPlanTime: new Date(ds.arrival).toISOString().slice(11, 16),
           departurePlanTime: new Date(ds.departure).toISOString().slice(11, 16),
-          departureActualTime: new Date(deliveryNote?.departureActualTime)
-            .toISOString()
-            .slice(11, 16),
+          departureActualTime: deliveryNote?.departureActualTime
+            ? new Date(deliveryNote?.departureActualTime)
+                .toISOString()
+                .slice(11, 16)
+            : null,
           arrivalActualDate: deliveryNote?.arrivalActualDate || null,
           arrivalActualTime: deliveryNote?.arrivalActualTime
             ? new Date(deliveryNote?.arrivalActualTime)
