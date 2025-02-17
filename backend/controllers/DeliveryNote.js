@@ -815,7 +815,7 @@ export const getArrivalMonitoring = async (req, res) => {
 
 export const getArrivalChart = async (req, res) => {
   try {
-    const { plantId, status, startDate, endDate } = req.query;
+    const { plantId, startDate, endDate } = req.query;
 
     let whereConditionDn = {};
     let whereConditionSupplier = { flag: 1 };
@@ -831,9 +831,9 @@ export const getArrivalChart = async (req, res) => {
       };
     }
 
-    if (status) {
-      whereConditionDn.status = status;
-    }
+    // if (status) {
+    //   whereConditionDn.status = status;
+    // }
 
     const includeDn = [
       {
