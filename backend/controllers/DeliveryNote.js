@@ -886,7 +886,17 @@ export const getArrivalChart = async (req, res) => {
 
     const data = await Supplier.findAll({
       where: whereConditionSupplier,
-      order: [["Delivery_Schedules", "arrival", "ASC"]],
+      order: [
+        ["Delivery_Schedules", "arrival", "ASC"],
+        [
+          "Delivery_Notes",
+          "Incomings",
+          "Inventory",
+          "Address_Rack",
+          "addressRackName",
+          "ASC",
+        ],
+      ],
       include: includeDn,
       distinct: true,
     });
@@ -894,6 +904,8 @@ export const getArrivalChart = async (req, res) => {
     if (!data) {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
+
+    // return res.status(200).json({ data, message: "Data Delivery Note Found" });
 
     const mappedData = data.flatMap((item) => {
       const tanggal = new Date(item.Delivery_Notes[0].arrivalPlanDate);
@@ -968,6 +980,36 @@ export const getArrivalChart = async (req, res) => {
                 .slice(11, 16)
             : null,
           status: deliveryNote?.status || status,
+          Materials: deliveryNote?.Incomings.map((inc) => {
+            return {
+              incomingId: inc.id,
+              dnNumber: deliveryNote.dnNumber,
+              materialNo: inc.Inventory.Material.materialNo,
+              description: inc.Inventory.Material.description,
+              uom: inc.Inventory.Material.uom,
+              address: inc.Inventory.Address_Rack.addressRackName,
+              reqQuantity: inc.planning,
+              actQuantity: inc.actual,
+              remain: inc.planning - inc.actual,
+              status: inc.status,
+            };
+          }),
+          // Materials: item.Delivery_Notes.flatMap((dn) =>
+          //   dn.Incomings.map((inc) => {
+          //     return {
+          //       incomingId: inc.id,
+          //       dnNumber: dn.dnNumber,
+          //       materialNo: inc.Inventory.Material.materialNo,
+          //       description: inc.Inventory.Material.description,
+          //       uom: inc.Inventory.Material.uom,
+          //       address: inc.Inventory.Address_Rack.addressRackName,
+          //       reqQuantity: inc.planning,
+          //       actQuantity: inc.actual,
+          //       remain: inc.planning - inc.actual,
+          //       status: inc.status,
+          //     };
+          //   })
+          // ),
         };
       });
     });
