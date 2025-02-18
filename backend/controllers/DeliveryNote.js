@@ -958,6 +958,17 @@ export const getArrivalChart = async (req, res) => {
         if (delay > 0) {
           status = "delayed";
         }
+        const completeMaterials = deliveryNote?.Incomings.filter(
+          (inc) => inc.status === "completed"
+        );
+
+        const totalMaterials = deliveryNote?.Incomings?.length || 0;
+
+        // Menghitung jumlah complete
+        const totalComplete = completeMaterials?.length || 0;
+
+        // Format hasil statusMaterial
+        const statusMaterial = `${totalComplete} / ${totalMaterials}`;
 
         return {
           vendorId: item.supplierId,
@@ -979,6 +990,7 @@ export const getArrivalChart = async (req, res) => {
                 .toISOString()
                 .slice(11, 16)
             : null,
+          statusMaterial: statusMaterial,
           status: deliveryNote?.status || status,
           Materials: deliveryNote?.Incomings.map((inc) => {
             return {
