@@ -163,6 +163,14 @@ const ApprovalRequest = () => {
       </CButton>      
     );
   };
+  const statusIcons = {
+    "Sedang dibuat": "cilClipboard",       // Ikon clipboard untuk dokumen yang baru dibuat
+    "Approval SHE": "cilHome",             // Bisa pakai ikon rumah (atau ganti sesuai kebutuhan)
+    "Approval Section Head": "cilUser",     // Ikon user untuk level manajerial
+    "Approval Dept Head": "cilCheckCircle", // Ikon check circle untuk approval yang lebih tinggi
+    "Approval Div Head": "cilTruck",        // Bisa pakai ikon truck sebagai tanda akhir persetujuan
+  };
+  
 
       
   return (
@@ -347,8 +355,8 @@ const ApprovalRequest = () => {
                   </div>
                 </CCol>
               </CCardBody>
-    {/* Detail Modal */}
-    <CModal   fullscreen visible={showModal} onClose={() => setShowModal(false)} size="xl">
+            {/* Detail Modal */}
+            <CModal   visible={showModal} onClose={() => setShowModal(false)} size="xl">
               <CModalHeader>
                 <CModalTitle>Detail Information</CModalTitle>
               </CModalHeader>
@@ -371,7 +379,66 @@ const ApprovalRequest = () => {
                       <CFormText>Status</CFormText>
                       <CFormLabel>{selectedRow.status}</CFormLabel>
                     </CCol>
+                    <hr/>
+<CRow
+                    key={item.id}
+                    className="mb-3" // Margin bawah antar item
+                    style={{
+                        alignItems: 'center', // Pastikan elemen rata
+                    }}
+                    >
+                    {/* Kolom Tanggal dan Waktu */}
+                    <CCol xs="auto">
+                        <label
+                        style={{
+                            fontSize: '0.8rem',
+                            color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
+                        }}
+                        >
+                        {format(parseISO(item.createdAt), 'dd MMM yyyy')}
+                        {', '}
+                        {format(parseISO(item.createdAt), 'HH:mm')}
+                        </label>
+                    </CCol>
+
+                    {/* Kolom Ikon */}
+                    <CCol xs="auto">
+                        <div
+                        style={{
+                            border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                        >
+                        <CIcon
+                            icon={icons[item.icon]}
+                            size="lg"
+                            style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
+                        />
+                        </div>
+                    </CCol>
+
+                    {/* Kolom Status */}
+                    <CCol>
+                        <div
+                        style={{
+                            fontSize: '0.91rem',
+                            textTransform: 'capitalize',
+                            color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
+                        }}
+                        >
+                        <label style={{ fontSize: '0.96em' }}>{item.status}</label>
+                        <div>By : {item.requser}</div>
+                        <div>Remark : {item.remarks}</div>
+                        </div>
+                    </CCol>
+                    </CRow>
                   </CRow>
+               
                 )}
               </CModalBody>
             </CModal>

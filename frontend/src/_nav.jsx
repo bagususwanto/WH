@@ -90,30 +90,32 @@ const useNavigation = () => {
       (isWarehouse == 1 && roleName === 'line head') ||
       (isWarehouse == 1 && roleName === 'section head') ||
       roleName === 'warehouse staff'
-    ) {
+    )
+    {
       baseNav.push({
+    component: CNavGroup,
+    name: 'TWIIS-Dashboard ',
+    to: '/inventory',
+    icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+    items: [
+    
+      {
         component: CNavItem,
         name: 'Dasboard',
         to: '/dashboard',
-        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
         active: location.pathname === '/dashboard',
-      })
-    }
-    if (
-      (isWarehouse == 1 && roleName === 'super admin') ||
-      (isWarehouse == 1 && roleName === 'group head') ||
-      (isWarehouse == 1 && roleName === 'line head') ||
-      (isWarehouse == 1 && roleName === 'section head') ||
-      roleName === 'warehouse staff'
-    ) {
-      baseNav.push({
-        component: CNavItem,
-        name: 'Compare Inventory',
-        to: '/compare-inventory',
-        icon: <CIcon icon={cilGraph} customClassName="nav-icon" />,
-        active: location.pathname === '/dashboard',
-      })
-    }
+      },
+      {
+          component: CNavItem,
+          name: 'Compare Inventory',
+          to: '/compare-inventory',
+          icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+          active: location.pathname === '/dashboard',
+      }
+     ]
+    })
+    } 
     // NAV INVENTORY
     if (
       roleName === 'super admin' ||
@@ -166,33 +168,8 @@ const useNavigation = () => {
       )
     }
 
-    // NAV INVENTORY UNTUK GH UP WH
-    if (
-      (isWarehouse == 1 && roleName === 'group head') ||
-      (isWarehouse == 1 && roleName === 'super admin') ||
-      (isWarehouse == 1 && roleName === 'line head') ||
-      (isWarehouse == 1 && roleName === 'section head') ||
-      (isWarehouse == 1 && roleName === 'department head')
-    ) {
-      baseNav.push({
-        component: CNavGroup,
-        name: 'TWIIS-Red Post',
-        to: '/',
-        icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Red Post',
-            to: 'dummy-route', // Internal route, just a placeholder
-            icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-            onClick: (e) => {
-              e.preventDefault() // Prevent the default behavior of `to`
-              window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
-            },
-          },
-        ],
-      })
-    }
+
+
     if (
       (isWarehouse == 1 && roleName === 'group head') ||
       (isWarehouse == 1 && roleName === 'line head') ||
@@ -218,6 +195,24 @@ const useNavigation = () => {
             },
           ],
         },
+        {
+          component: CNavGroup,
+          name: 'TWIIS-Red Post',
+          to: '/',
+          icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
+          items: [
+            {
+              component: CNavItem,
+              name: 'Red Post',
+              to: 'dummy-route', // Internal route, just a placeholder
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              onClick: (e) => {
+                e.preventDefault() // Prevent the default behavior of `to`
+                window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
+              },
+            },
+          ],
+       },
         {
           component: CNavGroup,
           name: 'TWIIS-Receiving',
@@ -591,13 +586,33 @@ const useNavigation = () => {
           name: 'Form Request',
         },
         ...(roleName === 'line head'|| roleName === 'super admin' ? [
-        {
-          component: CNavItem,
-          name: 'Request',
-          to: '/request',
+          {
+          component: CNavGroup,
+          name: 'Request New Material',
+          to: '/Approval-request',
           icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-        },
+          items: [
+              {
+                component: CNavItem,
+                name: 'Input',
+                to: '/input-request',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+              {
+                component: CNavItem,
+                name: 'History',
+                to: '/history-request',
+                icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+              },
+           ]
+          }
          ] : []),
+        );
+       }
+
+         if (roleName === 'super admin' || roleName === 'section head' || roleName === 'department head') {
+          baseNav.push(
+         
         {
           component: CNavGroup,
           name: 'Approval Req Form',

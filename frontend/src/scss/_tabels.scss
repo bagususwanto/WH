@@ -29,4 +29,26 @@
   .custom-table tbody tr:nth-child(even) {
     background-color: #ffffff; /* Warna putih untuk baris genap */
   }
+
+  .custom-table .p-datatable-tbody tr {
+    border-bottom: 1px solid #dee2e6; /* Warna abu-abu muda */
+  }
   
+  /* Beri jarak antar baris */
+  .custom-row td {
+    padding: 15px 20px; /* Atur padding agar lebih rapi */
+  }
+  
+  /* Tambahkan garis header */
+  .custom-table .p-datatable-thead  {
+    border-bottom: 1px solid #000; /* Garis lebih tebal untuk header */
+  }
+  
+  /* Tambahkan efek hover */
+  .custom-table .p-datatable-tbody tr:hover {
+    background-color: #f8f9fa; /* Warna hover lebih soft */
+  }
+
+  .p-datatable .p-datatable-thead > tr > th {
+    text-align: center !important;
+  }
