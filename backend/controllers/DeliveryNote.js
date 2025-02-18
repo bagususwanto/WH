@@ -815,14 +815,7 @@ export const getArrivalMonitoring = async (req, res) => {
 
 export const getArrivalChart = async (req, res) => {
   try {
-    const {
-      plantId,
-      status,
-      startDate,
-      endDate,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { plantId, startDate, endDate } = req.query;
 
     let whereConditionDn = {};
     let whereConditionSupplier = { flag: 1 };
@@ -838,60 +831,50 @@ export const getArrivalChart = async (req, res) => {
       };
     }
 
-    if (status) {
-      whereConditionDn.status = status;
-    }
+    // if (status) {
+    //   whereConditionDn.status = status;
+    // }
 
     const includeDn = [
       {
-        model: Incoming,
+        model: DeliverySchedule,
+        required: false,
+        where: { flag: 1 },
+      },
+      {
+        model: DeliveryNote,
         required: true,
-        attributes: ["id", "planning", "actual", "status"],
+        where: whereConditionDn,
         include: [
           {
-            model: Inventory,
-            required: false,
-            attributes: ["id"],
+            model: Incoming,
+            required: true,
+            attributes: ["id", "planning", "actual", "status"],
             include: [
               {
-                model: Material,
-                required: false,
-                attributes: ["id", "materialNo", "description", "uom"],
-                where: { flag: 1 },
+                model: Inventory,
+                required: true,
+                attributes: ["id"],
                 include: [
                   {
-                    model: Supplier,
-                    required: false,
-                    attributes: ["id", "supplierName", "supplierCode"],
-                    where: whereConditionSupplier,
+                    model: Material,
+                    required: true,
+                    attributes: ["id", "materialNo", "description", "uom"],
+                    where: { flag: 1 },
+                  },
+                  {
+                    model: AddressRack,
+                    required: true,
+                    attributes: ["id", "addressRackName"],
+                    where: { flag: 1 },
                     include: [
                       {
-                        model: DeliverySchedule,
-                        required: false,
-                        where: { flag: 1 },
-                        attributes: [
-                          "id",
-                          "arrival",
-                          "departure",
-                          "schedule",
-                          "truckStation",
-                        ],
+                        model: Storage,
+                        required: true,
+                        attributes: ["id"],
+                        where: whereConditionPlant,
                       },
                     ],
-                  },
-                ],
-              },
-              {
-                model: AddressRack,
-                required: false,
-                attributes: ["id", "addressRackName"],
-                where: { flag: 1 },
-                include: [
-                  {
-                    model: Storage,
-                    required: false,
-                    attributes: ["id"],
-                    where: whereConditionPlant,
                   },
                 ],
               },
@@ -901,17 +884,18 @@ export const getArrivalChart = async (req, res) => {
       },
     ];
 
-    const { count, rows: data } = await DeliveryNote.findAndCountAll({
-      where: whereConditionDn,
+    const data = await Supplier.findAll({
+      where: whereConditionSupplier,
       order: [
+        ["Delivery_Schedules", "arrival", "ASC"],
         [
-          Sequelize.literal(`CASE 
-            WHEN [Delivery_Note].[arrivalPlanTime] IS NULL THEN 1 
-            ELSE 0 
-          END`),
+          "Delivery_Notes",
+          "Incomings",
+          "Inventory",
+          "Address_Rack",
+          "addressRackName",
           "ASC",
         ],
-        ["arrivalPlanTime", "ASC"],
       ],
       include: includeDn,
       distinct: true,
@@ -921,112 +905,144 @@ export const getArrivalChart = async (req, res) => {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
-    // return res.status(200).json({
-    //   data: data,
-    // });
+    // return res.status(200).json({ data, message: "Data Delivery Note Found" });
 
-    // Mapping data
-    const mappedData = data.map((item) => {
-      const tanggal = new Date(item.arrivalPlanDate);
+    const mappedData = data.flatMap((item) => {
+      const tanggal = new Date(item.Delivery_Notes[0].arrivalPlanDate);
       const day = tanggal.getDay();
 
-      const planTimes =
-        item.Incomings[0]?.Inventory?.Material?.Supplier?.Delivery_Schedules?.filter(
-          (s) => s.schedule === day
+      // Filter berdasarkan hari
+      const schedules =
+        item.Delivery_Schedules?.filter((s) => s.schedule === day) || [];
+
+      // Jika tidak ada schedules, tampilkan vendor dengan status 'no schedule'
+      if (schedules.length === 0) {
+        return [
+          {
+            vendorId: item.supplierId,
+            vendorCode: item.supplierCode,
+            vendorName: item.supplierName,
+            truckStation: null,
+            rit: null,
+            arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
+            arrivalPlanTime: null,
+            departurePlanTime: null,
+            departureActualTime: null,
+            arrivalActualDate: null,
+            arrivalActualTime: null,
+            status: "no schedule",
+          },
+        ];
+      }
+
+      // Map data berdasarkan jumlah schedules
+      return schedules.map((ds) => {
+        let status = "scheduled";
+
+        // Cari data Delivery Note yang cocok
+        const deliveryNote = item.Delivery_Notes.find(
+          (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
         );
 
-      const arrivalPlans =
-        planTimes && planTimes.length > 0
-          ? planTimes.map((plan) =>
-              new Date(plan.arrival).toISOString().slice(11, 16)
-            )
-          : ["00:00"];
+        const planArrivalTime = new Date(ds.arrival)
+          .toISOString()
+          .slice(11, 16);
 
-      const departurePlans =
-        planTimes && planTimes.length > 0
-          ? planTimes.map((plan) =>
-              new Date(plan.departure).toISOString().slice(11, 16)
-            )
-          : ["00:00"];
+        const plannedArrival = new Date(
+          `${item.Delivery_Notes[0].arrivalPlanDate}T${planArrivalTime}`
+        );
 
-      const getPlannedTime = () => {
-        if (item.arrivalPlanTime) {
-          return new Date(item.arrivalPlanTime).toISOString().slice(11, 19);
+        // Calculate delay with tolerance
+        const delay = new Date() - plannedArrival - tolerance;
+
+        if (delay > 0) {
+          status = "delayed";
         }
-        if (Array.isArray(planTimes)) {
-          return planTimes[0];
-        }
-        return "00:00:00";
-      };
+        const completeMaterials = deliveryNote?.Incomings.filter(
+          (inc) => inc.status === "completed"
+        );
 
-      const actualTime = item.arrivalActualTime
-        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19)
-        : "00:00:00";
-      const plannedTime = getPlannedTime();
-      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
-      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+        const totalMaterials = deliveryNote?.Incomings?.length || 0;
 
-      // Calculate delay with tolerance
-      const delay = actualArrival - plannedArrival - tolerance;
+        // Menghitung jumlah complete
+        const totalComplete = completeMaterials?.length || 0;
 
-      return {
-        dnNumber: item.dnNumber,
-        vendorId: item.Incomings[0]?.Inventory?.Material?.Supplier?.id,
-        supplierName:
-          item.Incomings[0]?.Inventory?.Material.Supplier?.supplierName,
-        supplierCode:
-          item.Incomings[0]?.Inventory?.Material.Supplier?.supplierCode,
-        truckStation: item.truckStation,
-        rit: item.rit,
-        arrivalPlanDate: item.arrivalPlanDate,
-        arrivalPlanTime: item.arrivalPlanTime
-          ? new Date(item.arrivalPlanTime).toISOString().slice(11, 16)
-          : arrivalPlans,
-        departurePlanDate: item.departurePlanDate,
-        departurePlanTime: item.departurePlanTime
-          ? new Date(item.departurePlanTime).toISOString().slice(11, 16)
-          : departurePlans,
-        arrivalActualDate: item.arrivalActualDate,
-        departureActualDate: item.departureActualDate,
-        arrivalActualTime: item.arrivalActualTime
-          ? new Date(item.arrivalActualTime).toISOString().slice(11, 16)
-          : null,
-        departureActualTime: item.departureActualTime
-          ? new Date(item.departureActualTime).toISOString().slice(11, 16)
-          : null,
-        status: item.status,
-        delayTime: delay > 0 ? convertDelay(delay) : "0s",
-        Materials: item.Incomings.map((incoming) => ({
-          incomingId: incoming.id,
-          materialNo: incoming.Inventory.Material.materialNo,
-          description: incoming.Inventory.Material.description,
-          uom: incoming.Inventory.Material.uom,
-          address: incoming.Inventory.Address_Rack.addressRackName,
-          reqQuantity: incoming.planning,
-          receivedQuantity: incoming.actual,
-          remain: incoming.actual - incoming.planning,
-          status: incoming.status,
-        })),
-      };
+        // Format hasil statusMaterial
+        const statusMaterial = `${totalComplete} / ${totalMaterials}`;
+
+        return {
+          vendorId: item.supplierId,
+          vendorCode: item.supplierCode,
+          vendorName: item.supplierName,
+          truckStation: ds.truckStation,
+          rit: ds.rit,
+          arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
+          arrivalPlanTime: new Date(ds.arrival).toISOString().slice(11, 16),
+          departurePlanTime: new Date(ds.departure).toISOString().slice(11, 16),
+          departureActualTime: deliveryNote?.departureActualTime
+            ? new Date(deliveryNote?.departureActualTime)
+                .toISOString()
+                .slice(11, 16)
+            : null,
+          arrivalActualDate: deliveryNote?.arrivalActualDate || null,
+          arrivalActualTime: deliveryNote?.arrivalActualTime
+            ? new Date(deliveryNote?.arrivalActualTime)
+                .toISOString()
+                .slice(11, 16)
+            : null,
+          statusMaterial: statusMaterial,
+          status: deliveryNote?.status || status,
+          Materials: deliveryNote?.Incomings.map((inc) => {
+            return {
+              incomingId: inc.id,
+              dnNumber: deliveryNote.dnNumber,
+              materialNo: inc.Inventory.Material.materialNo,
+              description: inc.Inventory.Material.description,
+              uom: inc.Inventory.Material.uom,
+              address: inc.Inventory.Address_Rack.addressRackName,
+              reqQuantity: inc.planning,
+              actQuantity: inc.actual,
+              remain: inc.planning - inc.actual,
+              status: inc.status,
+            };
+          }),
+          // Materials: item.Delivery_Notes.flatMap((dn) =>
+          //   dn.Incomings.map((inc) => {
+          //     return {
+          //       incomingId: inc.id,
+          //       dnNumber: dn.dnNumber,
+          //       materialNo: inc.Inventory.Material.materialNo,
+          //       description: inc.Inventory.Material.description,
+          //       uom: inc.Inventory.Material.uom,
+          //       address: inc.Inventory.Address_Rack.addressRackName,
+          //       reqQuantity: inc.planning,
+          //       actQuantity: inc.actual,
+          //       remain: inc.planning - inc.actual,
+          //       status: inc.status,
+          //     };
+          //   })
+          // ),
+        };
+      });
     });
 
     // Sorting the mapped data by arrivalPlanTime
     mappedData.sort((a, b) => {
-      const timeA = Array.isArray(a.arrivalPlanTime)
-        ? a.arrivalPlanTime[0]
-        : a.arrivalPlanTime;
-      const timeB = Array.isArray(b.arrivalPlanTime)
-        ? b.arrivalPlanTime[0]
-        : b.arrivalPlanTime;
-      return timeA.localeCompare(timeB);
+      const timeA = a.arrivalPlanTime ? new Date(a.arrivalPlanTime) : null;
+      const timeB = b.arrivalPlanTime ? new Date(b.arrivalPlanTime) : null;
+
+      // Jika salah satu atau kedua nilai null, letakkan di bagian bawah
+      if (timeA === null && timeB === null) return 0;
+      if (timeA === null) return 1; // a lebih besar, letakkan di bawah
+      if (timeB === null) return -1; // b lebih besar, letakkan di bawah
+
+      // Jika keduanya ada, bandingkan berdasarkan waktu
+      return timeA - timeB;
     });
 
     // Return sorted data
     return res.status(200).json({
       data: mappedData,
-      totalRecords: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: parseInt(page),
       message: "Data Delivery Note Found",
     });
   } catch (error) {
@@ -1082,6 +1098,6 @@ export const updateStatusToDelayed = async (dnNumber) => {
     return true;
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    throw error;
   }
 };
