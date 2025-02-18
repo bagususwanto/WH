@@ -29,6 +29,10 @@ const Inventory = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    soh: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     remarks: {
       type: DataTypes.TEXT,
       allowNull: true,

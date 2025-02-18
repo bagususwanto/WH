@@ -1985,3 +1985,167 @@ export const uploadMappingMaterialAddress = async (req, res) => {
     });
   }
 };
+
+const validateHeaderStockIWMS = (header) => {
+  const expectedHeader = ["materialNo", "SoH"];
+
+  // Periksa apakah semua kolom yang diharapkan ada dalam header
+  return expectedHeader.every((column) =>
+    header.some(
+      (headerValue) => headerValue.trim().toLowerCase() === column.toLowerCase()
+    )
+  );
+};
+
+export const uploadStockIWMS = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+
+    // Read the Excel file
+    const workbook = XLSX.readFile(path);
+    const sheet = workbook.Sheets[sheetName];
+
+    if (!sheet) {
+      return res
+        .status(400)
+        .send({ message: `Sheet "${sheetName}" not found!` });
+    }
+
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    if (rows.length <= 1) {
+      return res.status(400).send({ message: "No data found in the sheet!" });
+    }
+
+    const header = rows.shift();
+
+    if (rows.length > 15000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnMaterialNo = 0;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = `${row[checkColumnMaterialNo]}`; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({
+          rowNumber: index + 1,
+          data: row,
+        }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
+    if (!validateHeaderStockIWMS(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImport = await LogImport.create(
+      {
+        typeLog: "stock iwms",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportId = logImport.id;
+
+    // Pre-fetch necessary data
+    const [existingMaterials] = await Promise.all([
+      Material.findAll({ where: { flag: 1, type: "DIRECT" } }),
+    ]);
+
+    const materialMap = new Map(
+      existingMaterials.map((mat) => [mat.materialNo, mat.id])
+    );
+
+    const updatedSohs = [];
+    const validationErrors = [];
+
+    for (const row of rows) {
+      try {
+        const materialNo = row[0]?.trim();
+        const soh = row[1];
+
+        if (!materialNo) {
+          throw new Error(`Invalid data in row for material: ${materialNo}`);
+        }
+
+        if (soh !== parseInt(soh)) {
+          throw new Error(
+            `Invalid data in row for material: ${materialNo}, soh must be integer`
+          );
+        }
+
+        // get material id
+        const materialId = materialMap.get(materialNo);
+
+        if (materialId) {
+          updatedSohs.push({
+            materialId,
+            soh,
+            logImportId,
+          });
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk update existing materials
+    if (updatedSohs.length > 0) {
+      const updatePromises = updatedSohs.map((soh) =>
+        Inventory.update(
+          {
+            soh: soh.soh,
+            logImportId: soh.logImportId,
+          },
+          { where: { materialId: soh.materialId }, transaction }
+        )
+      );
+      await Promise.all(updatePromises);
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};
