@@ -898,8 +898,8 @@ export const getArrivalChart = async (req, res) => {
     const totalIncomingMaterials = data.reduce((total, item) => {
       return (
         total +
-        item.Delivery_Notes.reduce((dnTotal, dn) => {
-          return dnTotal + dn.Incomings.length;
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
+          return dnTotal + ((dn.Incomings || []).length || 0);
         }, 0)
       );
     }, 0);
@@ -907,11 +907,12 @@ export const getArrivalChart = async (req, res) => {
     const totalPartialIncomings = data.reduce((total, item) => {
       return (
         total +
-        item.Delivery_Notes.reduce((dnTotal, dn) => {
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
           return (
             dnTotal +
-            dn.Incomings.filter((incoming) => incoming.status === "partial")
-              .length
+            (dn.Incomings || []).filter(
+              (incoming) => incoming.status === "partial"
+            ).length
           );
         }, 0)
       );
@@ -920,10 +921,10 @@ export const getArrivalChart = async (req, res) => {
     const totalNotCompleteIncomings = data.reduce((total, item) => {
       return (
         total +
-        item.Delivery_Notes.reduce((dnTotal, dn) => {
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
           return (
             dnTotal +
-            dn.Incomings.filter(
+            (dn.Incomings || []).filter(
               (incoming) => incoming.status === "not complete"
             ).length
           );
@@ -934,11 +935,12 @@ export const getArrivalChart = async (req, res) => {
     const totalCompletedIncomings = data.reduce((total, item) => {
       return (
         total +
-        item.Delivery_Notes.reduce((dnTotal, dn) => {
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
           return (
             dnTotal +
-            dn.Incomings.filter((incoming) => incoming.status === "completed")
-              .length
+            (dn.Incomings || []).filter(
+              (incoming) => incoming.status === "completed"
+            ).length
           );
         }, 0)
       );
