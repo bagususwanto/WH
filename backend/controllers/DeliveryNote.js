@@ -581,77 +581,68 @@ export const getDnInquiry = async (req, res) => {
     }
 
     // mapping data
-    const mappedData = data.map((item) => {
-      // Pastikan arrivalActualTime adalah string
-      const actualTime = item.Delivery_Notes[0]?.arrivalActualTime
-        ? new Date(item.Delivery_Notes[0]?.arrivalActualTime)
-            .toISOString()
-            .slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
+    const mappedData = data.flatMap((item) => {
+      return item.Delivery_Notes.map((dn) => {
+        // Pastikan arrivalActualTime adalah string
+        const actualTime = dn.arrivalActualTime
+          ? new Date(dn.arrivalActualTime).toISOString().slice(11, 19)
+          : "00:00:00"; // Default value jika null atau undefined
 
-      // Pastikan arrivalPlanTime adalah string
-      const plannedTime = item.Delivery_Notes[0]?.arrivalPlanTime
-        ? new Date(item.Delivery_Notes[0]?.arrivalPlanTime)
-            .toISOString()
-            .slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
+        // Pastikan arrivalPlanTime adalah string
+        const plannedTime = dn.arrivalPlanTime
+          ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 19)
+          : "00:00:00"; // Default value jika null atau undefined
 
-      // Gabungkan date dan time
-      const actualArrival = new Date(
-        `${item.Delivery_Notes[0]?.arrivalActualDate}T${actualTime}`
-      );
-      const plannedArrival = new Date(
-        `${item.Delivery_Notes[0]?.arrivalPlanDate}T${plannedTime}`
-      );
+        // Gabungkan date dan time
+        const actualArrival = new Date(`${dn.arrivalActualDate}T${actualTime}`);
+        const plannedArrival = new Date(`${dn.arrivalPlanDate}T${plannedTime}`);
 
-      // Hitung delay dalam milidetik
-      const delay = actualArrival - plannedArrival;
+        // Hitung delay dalam milidetik
+        const delay = actualArrival - plannedArrival;
 
-      const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
-      const deliveryNotes = item.Delivery_Notes.map((dn) => ({
-        dnNumber: dn.dnNumber,
-        supplierName: item.supplierName,
-        supplierCode: item.supplierCode,
-        truckStation: dn.truckStation,
-        rit: dn.rit,
-        arrivalPlanDate: dn.arrivalPlanDate,
-        arrivalPlanTime: new Date(dn.arrivalPlanTime)
-          .toISOString()
-          .slice(11, 16),
-        departurePlanDate: dn.departurePlanDate,
-        departurePlanTime: new Date(dn.departurePlanTime)
-          .toISOString()
-          .slice(11, 16),
-        arrivalActualDate: dn.arrivalActualDate,
-        departureActualDate: dn.departureActualDate,
-        arrivalActualTime: dn.arrivalActualTime
-          ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
-          : null,
-        departureActualTime: dn.departureActualTime
-          ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
-          : null,
-        status: dn.status,
-        delayTime: delay > 0 ? convertDelay(delay) : "0s",
-        warehouseId:
-          dn.Incomings[0].Inventory.Address_Rack.Storage.Plant.warehouseId,
-        Materials: dn.Incomings.map((incoming) => ({
-          incomingId: incoming.id,
-          materialNo: incoming.Inventory.Material.materialNo,
-          description: incoming.Inventory.Material.description,
-          uom: incoming.Inventory.Material.uom,
-          address: incoming.Inventory.Address_Rack.addressRackName,
-          reqQuantity: incoming.planning,
-          receivedQuantity: incoming.actual,
-          remain: incoming.actual - incoming.planning,
-          status: incoming.status,
-          viewOnly: today > incoming.incomingDate ? true : false,
-        })),
-      }));
-
-      return {
-        deliveryNotes,
-      };
+        return {
+          dnNumber: dn.dnNumber,
+          supplierName: item.supplierName,
+          supplierCode: item.supplierCode,
+          truckStation: dn.truckStation,
+          rit: dn.rit,
+          arrivalPlanDate: dn.arrivalPlanDate,
+          arrivalPlanTime: dn.arrivalPlanTime
+            ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 16)
+            : "00:00",
+          departurePlanDate: dn.departurePlanDate,
+          departurePlanTime: dn.departurePlanTime
+            ? new Date(dn.departurePlanTime).toISOString().slice(11, 16)
+            : "00:00",
+          arrivalActualDate: dn.arrivalActualDate,
+          departureActualDate: dn.departureActualDate,
+          arrivalActualTime: dn.arrivalActualTime
+            ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
+            : null,
+          departureActualTime: dn.departureActualTime
+            ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
+            : null,
+          status: dn.status,
+          delayTime: delay > 0 ? convertDelay(delay) : "0s",
+          warehouseId:
+            dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant
+              ?.warehouseId,
+          Materials: dn.Incomings.map((incoming) => ({
+            incomingId: incoming.id,
+            materialNo: incoming.Inventory.Material.materialNo,
+            description: incoming.Inventory.Material.description,
+            uom: incoming.Inventory.Material.uom,
+            address: incoming.Inventory.Address_Rack.addressRackName,
+            reqQuantity: incoming.planning,
+            receivedQuantity: incoming.actual,
+            remain: incoming.actual - incoming.planning,
+            status: incoming.status,
+            viewOnly: today > incoming.incomingDate,
+          })),
+        };
+      });
     });
 
     res
