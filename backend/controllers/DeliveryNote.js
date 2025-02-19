@@ -502,51 +502,56 @@ export const getDnInquiry = async (req, res) => {
       };
     }
 
-    const data = await DeliveryNote.findAll({
-      where: whereConditionDn,
-      order: [["arrivalPlanTime", "ASC"]],
+    const data = await Supplier.findAll({
+      attributes: ["id", "supplierName", "supplierCode"],
+      where: { flag: 1 },
       include: [
         {
-          model: Incoming,
-          required: false,
-          attributes: ["id", "planning", "actual", "status", "incomingDate"],
+          model: DeliveryNote,
+          required: true,
+          where: whereConditionDn,
           include: [
             {
-              model: Inventory,
+              model: Incoming,
               required: false,
-              attributes: ["id", "materialId", "addressId"],
+              attributes: [
+                "id",
+                "planning",
+                "actual",
+                "status",
+                "incomingDate",
+              ],
               include: [
                 {
-                  model: Material,
-                  required: true,
-                  attributes: ["id", "materialNo", "description", "uom"],
-                  where: { flag: 1 },
+                  model: Inventory,
+                  required: false,
+                  attributes: ["id", "materialId", "addressId"],
                   include: [
                     {
-                      model: Supplier,
+                      model: Material,
                       required: true,
-                      attributes: ["id", "supplierName", "supplierCode"],
+                      attributes: ["id", "materialNo", "description", "uom"],
                       where: { flag: 1 },
                     },
-                  ],
-                },
-                {
-                  model: AddressRack,
-                  required: false,
-                  attributes: ["id", "addressRackName"],
-                  where: { flag: 1 },
-                  include: [
                     {
-                      model: Storage,
-                      required: true,
-                      attributes: ["id", "storageName"],
+                      model: AddressRack,
+                      required: false,
+                      attributes: ["id", "addressRackName"],
                       where: { flag: 1 },
                       include: [
                         {
-                          model: Plant,
+                          model: Storage,
                           required: true,
-                          attributes: ["id", "plantName", "warehouseId"],
-                          where: whereConditionPlant,
+                          attributes: ["id", "storageName"],
+                          where: { flag: 1 },
+                          include: [
+                            {
+                              model: Plant,
+                              required: true,
+                              attributes: ["id", "plantName", "warehouseId"],
+                              where: whereConditionPlant,
+                            },
+                          ],
                         },
                       ],
                     },
@@ -554,17 +559,17 @@ export const getDnInquiry = async (req, res) => {
                 },
               ],
             },
-          ],
-        },
-        {
-          model: LogImport,
-          required: true,
-          attributes: ["id", "typeLog", "fileName", "importDate"],
-          include: [
             {
-              model: User,
+              model: LogImport,
               required: true,
-              attributes: ["id", "username"],
+              attributes: ["id", "typeLog", "fileName", "importDate"],
+              include: [
+                {
+                  model: User,
+                  required: true,
+                  attributes: ["id", "username"],
+                },
+              ],
             },
           ],
         },
@@ -578,53 +583,59 @@ export const getDnInquiry = async (req, res) => {
     // mapping data
     const mappedData = data.map((item) => {
       // Pastikan arrivalActualTime adalah string
-      const actualTime = item.arrivalActualTime
-        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+      const actualTime = item.Delivery_Notes[0]?.arrivalActualTime
+        ? new Date(item.Delivery_Notes[0]?.arrivalActualTime)
+            .toISOString()
+            .slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
         : "00:00:00"; // Default value jika null atau undefined
 
       // Pastikan arrivalPlanTime adalah string
-      const plannedTime = item.arrivalPlanTime
-        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
+      const plannedTime = item.Delivery_Notes[0]?.arrivalPlanTime
+        ? new Date(item.Delivery_Notes[0]?.arrivalPlanTime)
+            .toISOString()
+            .slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
         : "00:00:00"; // Default value jika null atau undefined
 
       // Gabungkan date dan time
-      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
-      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+      const actualArrival = new Date(
+        `${item.Delivery_Notes[0]?.arrivalActualDate}T${actualTime}`
+      );
+      const plannedArrival = new Date(
+        `${item.Delivery_Notes[0]?.arrivalPlanDate}T${plannedTime}`
+      );
 
       // Hitung delay dalam milidetik
       const delay = actualArrival - plannedArrival;
 
       const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
-      const deliveryNotes = {
-        dnNumber: item.dnNumber,
-        supplierName:
-          item.Incomings[0].Inventory.Material.Supplier.supplierName,
-        supplierCode:
-          item.Incomings[0].Inventory.Material.Supplier.supplierCode,
-        truckStation: item.truckStation,
-        rit: item.rit,
-        arrivalPlanDate: item.arrivalPlanDate,
-        arrivalPlanTime: new Date(item.arrivalPlanTime)
+      const deliveryNotes = item.Delivery_Notes.map((dn) => ({
+        dnNumber: dn.dnNumber,
+        supplierName: item.supplierName,
+        supplierCode: item.supplierCode,
+        truckStation: dn.truckStation,
+        rit: dn.rit,
+        arrivalPlanDate: dn.arrivalPlanDate,
+        arrivalPlanTime: new Date(dn.arrivalPlanTime)
           .toISOString()
           .slice(11, 16),
-        departurePlanDate: item.departurePlanDate,
-        departurePlanTime: new Date(item.departurePlanTime)
+        departurePlanDate: dn.departurePlanDate,
+        departurePlanTime: new Date(dn.departurePlanTime)
           .toISOString()
           .slice(11, 16),
-        arrivalActualDate: item.arrivalActualDate,
-        departureActualDate: item.departureActualDate,
-        arrivalActualTime: item.arrivalActualTime
-          ? new Date(item.arrivalActualTime).toISOString().slice(11, 16)
+        arrivalActualDate: dn.arrivalActualDate,
+        departureActualDate: dn.departureActualDate,
+        arrivalActualTime: dn.arrivalActualTime
+          ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
           : null,
-        departureActualTime: item.departureActualTime
-          ? new Date(item.departureActualTime).toISOString().slice(11, 16)
+        departureActualTime: dn.departureActualTime
+          ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
           : null,
-        status: item.status,
+        status: dn.status,
         delayTime: delay > 0 ? convertDelay(delay) : "0s",
         warehouseId:
-          item.Incomings[0].Inventory.Address_Rack.Storage.Plant.warehouseId,
-        Materials: item.Incomings.map((incoming) => ({
+          dn.Incomings[0].Inventory.Address_Rack.Storage.Plant.warehouseId,
+        Materials: dn.Incomings.map((incoming) => ({
           incomingId: incoming.id,
           materialNo: incoming.Inventory.Material.materialNo,
           description: incoming.Inventory.Material.description,
@@ -636,7 +647,7 @@ export const getDnInquiry = async (req, res) => {
           status: incoming.status,
           viewOnly: today > incoming.incomingDate ? true : false,
         })),
-      };
+      }));
 
       return {
         deliveryNotes,
