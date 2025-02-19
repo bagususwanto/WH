@@ -895,6 +895,55 @@ export const getArrivalChart = async (req, res) => {
 
     // return res.status(200).json({ data, message: "Data Delivery Note Found" });
 
+    const totalIncomingMaterials = data.reduce((total, item) => {
+      return (
+        total +
+        item.Delivery_Notes.reduce((dnTotal, dn) => {
+          return dnTotal + dn.Incomings.length;
+        }, 0)
+      );
+    }, 0);
+
+    const totalPartialIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        item.Delivery_Notes.reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            dn.Incomings.filter((incoming) => incoming.status === "partial")
+              .length
+          );
+        }, 0)
+      );
+    }, 0);
+
+    const totalNotCompleteIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        item.Delivery_Notes.reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            dn.Incomings.filter(
+              (incoming) => incoming.status === "not complete"
+            ).length
+          );
+        }, 0)
+      );
+    }, 0);
+
+    const totalCompletedIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        item.Delivery_Notes.reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            dn.Incomings.filter((incoming) => incoming.status === "completed")
+              .length
+          );
+        }, 0)
+      );
+    }, 0);
+
     const mappedData = data.flatMap((item) => {
       const tanggal = new Date(item.Delivery_Notes[0].arrivalPlanDate);
       const day = tanggal.getDay();
@@ -1004,20 +1053,6 @@ export const getArrivalChart = async (req, res) => {
               }),
             };
           }),
-          // Materials: deliveryNotes?.Incomings.map((inc) => {
-          //   return {
-          //     incomingId: inc.id,
-          //     dnNumber: deliveryNotes.dnNumber,
-          //     materialNo: inc.Inventory.Material.materialNo,
-          //     description: inc.Inventory.Material.description,
-          //     uom: inc.Inventory.Material.uom,
-          //     address: inc.Inventory.Address_Rack.addressRackName,
-          //     reqQuantity: inc.planning,
-          //     actQuantity: inc.actual,
-          //     remain: inc.planning - inc.actual,
-          //     status: inc.status,
-          //   };
-          // }),
         };
       });
     });
@@ -1039,6 +1074,12 @@ export const getArrivalChart = async (req, res) => {
     // Return sorted data
     return res.status(200).json({
       data: mappedData,
+      summaryMaterial: {
+        completed: totalCompletedIncomings,
+        notCompleted: totalPartialIncomings,
+        notDelivered: totalNotCompleteIncomings,
+        total: totalIncomingMaterials,
+      },
       message: "Data Delivery Note Found",
     });
   } catch (error) {
