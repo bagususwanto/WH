@@ -939,10 +939,11 @@ export const getArrivalChart = async (req, res) => {
       return schedules.map((ds) => {
         let status = "scheduled";
 
-        // Cari data Delivery Note yang cocok
-        const deliveryNote = item.Delivery_Notes.find(
-          (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
-        );
+        // filter data Delivery Note yang cocok
+        const deliveryNotes =
+          item.Delivery_Notes?.filter(
+            (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
+          ) || [];
 
         const planArrivalTime = new Date(ds.arrival)
           .toISOString()
@@ -958,14 +959,18 @@ export const getArrivalChart = async (req, res) => {
         if (delay > 0) {
           status = "delayed";
         }
-        const completeMaterials = deliveryNote?.Incomings.filter(
-          (inc) => inc.status === "completed"
-        );
 
-        const totalMaterials = deliveryNote?.Incomings?.length || 0;
+        let totalComplete = 0;
+        let totalMaterials = 0;
 
-        // Menghitung jumlah complete
-        const totalComplete = completeMaterials?.length || 0;
+        deliveryNotes.forEach((dn) => {
+          const completeMaterials = dn?.Incomings?.filter(
+            (inc) => inc.status === "completed"
+          );
+
+          totalComplete += completeMaterials?.length || 0;
+          totalMaterials += dn?.Incomings?.length || 0;
+        });
 
         // Format hasil statusMaterial
         const statusMaterial = `${totalComplete} / ${totalMaterials}`;
@@ -979,49 +984,52 @@ export const getArrivalChart = async (req, res) => {
           arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
           arrivalPlanTime: new Date(ds.arrival).toISOString().slice(11, 16),
           departurePlanTime: new Date(ds.departure).toISOString().slice(11, 16),
-          departureActualTime: deliveryNote?.departureActualTime
-            ? new Date(deliveryNote?.departureActualTime)
+          departureActualTime: deliveryNotes[0]?.departureActualTime
+            ? new Date(deliveryNotes[0]?.departureActualTime)
                 .toISOString()
                 .slice(11, 16)
             : null,
-          arrivalActualDate: deliveryNote?.arrivalActualDate || null,
-          arrivalActualTime: deliveryNote?.arrivalActualTime
-            ? new Date(deliveryNote?.arrivalActualTime)
+          arrivalActualDate: deliveryNotes[0]?.arrivalActualDate || null,
+          arrivalActualTime: deliveryNotes[0]?.arrivalActualTime
+            ? new Date(deliveryNotes[0]?.arrivalActualTime)
                 .toISOString()
                 .slice(11, 16)
             : null,
           statusMaterial: statusMaterial,
-          status: deliveryNote?.status || status,
-          Materials: deliveryNote?.Incomings.map((inc) => {
+          status: deliveryNotes[0]?.status || status,
+          deliveryNotes: deliveryNotes?.map((dn) => {
             return {
-              incomingId: inc.id,
-              dnNumber: deliveryNote.dnNumber,
-              materialNo: inc.Inventory.Material.materialNo,
-              description: inc.Inventory.Material.description,
-              uom: inc.Inventory.Material.uom,
-              address: inc.Inventory.Address_Rack.addressRackName,
-              reqQuantity: inc.planning,
-              actQuantity: inc.actual,
-              remain: inc.planning - inc.actual,
-              status: inc.status,
+              dnNumber: dn.dnNumber,
+              Materials: dn.Incomings?.map((inc) => {
+                return {
+                  incomingId: inc.id,
+                  dnNumber: dn.dnNumber,
+                  materialNo: inc.Inventory.Material.materialNo,
+                  description: inc.Inventory.Material.description,
+                  uom: inc.Inventory.Material.uom,
+                  address: inc.Inventory.Address_Rack.addressRackName,
+                  reqQuantity: inc.planning,
+                  actQuantity: inc.actual,
+                  remain: inc.planning - inc.actual,
+                  status: inc.status,
+                };
+              }),
             };
           }),
-          // Materials: item.Delivery_Notes.flatMap((dn) =>
-          //   dn.Incomings.map((inc) => {
-          //     return {
-          //       incomingId: inc.id,
-          //       dnNumber: dn.dnNumber,
-          //       materialNo: inc.Inventory.Material.materialNo,
-          //       description: inc.Inventory.Material.description,
-          //       uom: inc.Inventory.Material.uom,
-          //       address: inc.Inventory.Address_Rack.addressRackName,
-          //       reqQuantity: inc.planning,
-          //       actQuantity: inc.actual,
-          //       remain: inc.planning - inc.actual,
-          //       status: inc.status,
-          //     };
-          //   })
-          // ),
+          // Materials: deliveryNotes?.Incomings.map((inc) => {
+          //   return {
+          //     incomingId: inc.id,
+          //     dnNumber: deliveryNotes.dnNumber,
+          //     materialNo: inc.Inventory.Material.materialNo,
+          //     description: inc.Inventory.Material.description,
+          //     uom: inc.Inventory.Material.uom,
+          //     address: inc.Inventory.Address_Rack.addressRackName,
+          //     reqQuantity: inc.planning,
+          //     actQuantity: inc.actual,
+          //     remain: inc.planning - inc.actual,
+          //     status: inc.status,
+          //   };
+          // }),
         };
       });
     });
