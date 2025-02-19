@@ -68,60 +68,60 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       include: [
         {
           model: DeliverySchedule,
-          required: true,
+          required: false,
           where: whereConditionDs,
         },
         {
-          model: Material,
+          model: DeliveryNote,
           required: true,
-          attributes: ["id", "materialNo", "description", "uom"],
-          where: { flag: 1 },
+          where: {
+            dnNumber: dn,
+          },
           include: [
             {
-              model: Inventory,
-              attributes: ["id", "materialId", "addressId"],
+              model: Incoming,
               required: true,
               include: [
                 {
-                  model: AddressRack,
+                  model: Inventory,
+                  attributes: ["id", "materialId", "addressId"],
                   required: true,
-                  attributes: ["id", "addressRackName"],
-                  where: { flag: 1 },
                   include: [
                     {
-                      model: Storage,
+                      model: Material,
                       required: true,
-                      attributes: ["id", "storageName"],
+                      attributes: ["id", "materialNo", "description", "uom"],
+                      where: { flag: 1 },
+                    },
+                    {
+                      model: AddressRack,
+                      required: true,
+                      attributes: ["id", "addressRackName"],
                       where: { flag: 1 },
                       include: [
                         {
-                          model: Plant,
+                          model: Storage,
                           required: true,
-                          attributes: ["id", "plantName"],
+                          attributes: ["id", "storageName"],
                           where: { flag: 1 },
                           include: [
                             {
-                              model: Warehouse,
+                              model: Plant,
                               required: true,
-                              attributes: ["id", "warehouseName"],
+                              attributes: ["id", "plantName"],
                               where: { flag: 1 },
+                              include: [
+                                {
+                                  model: Warehouse,
+                                  required: true,
+                                  attributes: ["id", "warehouseName"],
+                                  where: { flag: 1 },
+                                },
+                              ],
                             },
                           ],
                         },
                       ],
-                    },
-                  ],
-                },
-                {
-                  model: Incoming,
-                  required: true,
-                  include: [
-                    {
-                      model: DeliveryNote,
-                      required: true,
-                      where: {
-                        dnNumber: dn,
-                      },
                     },
                   ],
                 },
@@ -138,16 +138,16 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
 
     // mapping data
     const mappedData = data.map((item) => {
-      const deliveryNotes = item.Materials.flatMap((material) =>
-        material.Inventory.Incomings.map((incoming) => ({
+      const deliveryNotes = item.Delivery_Notes.flatMap((dn) =>
+        dn.Incomings.map((incoming) => ({
           incomingId: incoming.id,
           warehouseId:
-            material.Inventory.Address_Rack.Storage.Plant.Warehouse.id,
-          dnNumber: incoming.Delivery_Note.dnNumber,
-          materialNo: material.materialNo,
-          address: material.Inventory.Address_Rack.addressRackName,
-          description: material.description,
-          uom: material.uom,
+            incoming.Inventory.Address_Rack.Storage.Plant.Warehouse.id,
+          dnNumber: dn.dnNumber,
+          materialNo: incoming.Inventory.Material.materialNo,
+          address: incoming.Inventory.Address_Rack.addressRackName,
+          description: incoming.Inventory.Material.description,
+          uom: incoming.Inventory.Material.uom,
           reqQuantity: incoming.planning,
           receivedQuantity: incoming.actual,
           remain: incoming.actual - incoming.planning,
@@ -161,39 +161,25 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
         truckStation: schedule.truckStation,
         rit: schedule.rit,
         day: dayName,
-        arrivalPlanDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .arrivalPlanDate,
+        arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate,
         arrivalPlanTime: new Date(schedule.arrival).toISOString().slice(11, 16),
-        departurePlanDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .departurePlanDate,
+        departurePlanDate: item.Delivery_Notes[0]?.departurePlanDate,
         departurePlanTime: new Date(schedule.departure)
           .toISOString()
           .slice(11, 16),
-        arrivalActualDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .arrivalActualDate,
-        departureActualDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .departureActualDate,
-        arrivalActualTime: item.Materials[0].Inventory.Incomings[0]
-          .Delivery_Note.arrivalActualTime
-          ? new Date(
-              item.Materials[0].Inventory.Incomings[0].Delivery_Note.arrivalActualTime
-            )
+        arrivalActualDate: item.Delivery_Notes[0]?.arrivalActualDate,
+        departureActualDate: item.Delivery_Notes[0]?.departureActualDate,
+        arrivalActualTime: item.Delivery_Notes[0]?.arrivalActualTime
+          ? new Date(item.Delivery_Notes[0]?.arrivalActualTime)
               .toISOString()
               .slice(11, 16)
           : null,
-        departureActualTime: item.Materials[0].Inventory.Incomings[0]
-          .Delivery_Note.departureActualTime
-          ? new Date(
-              item.Materials[0].Inventory.Incomings[0].Delivery_Note.departureActualTime
-            )
+        departureActualTime: item.Delivery_Notes[0]?.departureActualTime
+          ? new Date(item.Delivery_Notes[0]?.departureActualTime)
               .toISOString()
               .slice(11, 16)
           : null,
-        status: item.Materials[0].Inventory.Incomings[0].Delivery_Note.status,
+        status: item.Delivery_Notes[0]?.status,
       }));
 
       return {
