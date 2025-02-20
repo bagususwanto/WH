@@ -1267,7 +1267,7 @@ export const getDnChartHistory = async (req, res) => {
       itemCount: group.items.length,
       partialCount: group.statusCount.partial,
       completedCount: group.statusCount.completed,
-      notCompleteCount: group.statusCount.notComplete,
+      notDeliveredCount: group.statusCount.notComplete,
     }));
 
     res.status(200).json({ data: result, message: "Data Delivery Note Found" });
