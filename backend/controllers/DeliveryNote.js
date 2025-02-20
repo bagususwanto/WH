@@ -1272,6 +1272,7 @@ export const getDnChartHistory = async (req, res) => {
 
     // Grouping dan Counting berdasarkan supplier
     const groupedDataSupplier = data.reduce((acc, item) => {
+      const status = item.status;
       const supplierId = item.Incoming.Delivery_Note.supplierId;
       const supplierCode = item.Incoming.Delivery_Note.Supplier.supplierCode;
       const supplierName = item.Incoming.Delivery_Note.Supplier.supplierName;
@@ -1282,11 +1283,25 @@ export const getDnChartHistory = async (req, res) => {
           supplierCode: supplierCode,
           supplierName: supplierName,
           items: [],
+          statusCount: {
+            partial: 0,
+            completed: 0,
+            notComplete: 0,
+          },
         };
       }
 
       // Tambahkan item ke grup yang sesuai
       acc[supplierId].items.push(item);
+
+      // Hitung berdasarkan status
+      if (status === "partial") {
+        acc[supplierId].statusCount.partial += 1;
+      } else if (status === "completed") {
+        acc[supplierId].statusCount.completed += 1;
+      } else if (status === "not complete") {
+        acc[supplierId].statusCount.notComplete += 1;
+      }
 
       return acc;
     }, {});
@@ -1296,7 +1311,20 @@ export const getDnChartHistory = async (req, res) => {
       supplierCode: group.supplierCode,
       supplierName: group.supplierName,
       itemCount: group.items.length,
+      partialCount: group.statusCount.partial,
+      completedCount: group.statusCount.completed,
+      notDeliveredCount: group.statusCount.notComplete,
     }));
+
+    // sort result by incomingDate
+    result.sort((a, b) => {
+      const dateA = new Date(a.incomingDate);
+      const dateB = new Date(b.incomingDate);
+      return dateA - dateB;
+    });
+
+    // sort resultSupplier by notDeliveredCount
+    resultSupplier.sort((a, b) => b.notDeliveredCount - a.notDeliveredCount);
 
     res.status(200).json({
       data: { byDate: result, bySupplier: resultSupplier },
