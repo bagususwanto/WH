@@ -16,6 +16,7 @@ import {
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
 import { Op, Sequelize } from "sequelize";
+import IncomingHistory from "../models/IncomingHistoryModel.js";
 
 // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
 const tolerance = 15 * 60 * 1000;
@@ -132,7 +133,7 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
@@ -578,7 +579,7 @@ export const getDnInquiry = async (req, res) => {
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
@@ -780,7 +781,7 @@ export const getArrivalMonitoring = async (req, res) => {
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
@@ -891,7 +892,7 @@ export const getArrivalChart = async (req, res) => {
       distinct: true,
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
@@ -1140,5 +1141,138 @@ export const updateStatusToDelayed = async (dnNumber) => {
   } catch (error) {
     console.error(error);
     throw error;
+  }
+};
+
+export const getDnChartHistory = async (req, res) => {
+  try {
+    const { plantId, month, year } = req.query;
+
+    let whereConditionPlant = { flag: 1 };
+    let whereConditionIncomingHistory = {};
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    // Filter berdasarkan bulan dan tahun jika ada
+    if (month && year) {
+      const startDate = `${year}-${month.padStart(2, "0")}-01`; // Tanggal awal bulan
+      const endDate = new Date(year, month, 1).toISOString().slice(0, 10); // Tanggal akhir bulan
+
+      whereConditionIncomingHistory.incomingDate = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    const data = await IncomingHistory.findAll({
+      where: whereConditionIncomingHistory,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status", "incomingDate"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id", "materialId", "addressId"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id", "addressRackName"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id", "storageName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id", "plantName", "warehouseId"],
+                          where: whereConditionPlant,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              model: DeliveryNote,
+              required: true,
+              include: [
+                {
+                  model: Supplier,
+                  required: true,
+                  attributes: ["id", "SupplierName", "supplierCode"],
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Delivery Note Not Found" });
+    }
+
+    // Grouping dan Counting berdasarkan incomingDate
+    const groupedData = data.reduce((acc, item) => {
+      const incomingDate = item.incomingDate;
+      const status = item.status;
+
+      if (!acc[incomingDate]) {
+        acc[incomingDate] = {
+          date: incomingDate,
+          items: [],
+          statusCount: {
+            partial: 0,
+            completed: 0,
+            notComplete: 0,
+          },
+        };
+      }
+
+      // Tambahkan item ke grup yang sesuai
+      acc[incomingDate].items.push(item);
+
+      // Hitung berdasarkan status
+      if (status === "partial") {
+        acc[incomingDate].statusCount.partial += 1;
+      } else if (status === "completed") {
+        acc[incomingDate].statusCount.completed += 1;
+      } else if (status === "not complete") {
+        acc[incomingDate].statusCount.notComplete += 1;
+      }
+
+      return acc;
+    }, {});
+
+    // Konversi menjadi array dan hitung jumlah item per tanggal
+    const result = Object.values(groupedData).map((group) => ({
+      incomingDate: group.date,
+      itemCount: group.items.length,
+      partialCount: group.statusCount.partial,
+      completedCount: group.statusCount.completed,
+      notCompleteCount: group.statusCount.notComplete,
+    }));
+
+    res.status(200).json({ data: result, message: "Data Delivery Note Found" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
