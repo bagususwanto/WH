@@ -1215,7 +1215,7 @@ export const getDnChartHistory = async (req, res) => {
                 {
                   model: Supplier,
                   required: true,
-                  attributes: ["id", "SupplierName", "supplierCode"],
+                  attributes: ["id", "supplierName", "supplierCode"],
                   where: { flag: 1 },
                 },
               ],
@@ -1270,7 +1270,38 @@ export const getDnChartHistory = async (req, res) => {
       notDeliveredCount: group.statusCount.notComplete,
     }));
 
-    res.status(200).json({ data: result, message: "Data Delivery Note Found" });
+    // Grouping dan Counting berdasarkan supplier
+    const groupedDataSupplier = data.reduce((acc, item) => {
+      const supplierId = item.Incoming.Delivery_Note.supplierId;
+      const supplierCode = item.Incoming.Delivery_Note.Supplier.supplierCode;
+      const supplierName = item.Incoming.Delivery_Note.Supplier.supplierName;
+
+      if (!acc[supplierId]) {
+        acc[supplierId] = {
+          supplierId: supplierId,
+          supplierCode: supplierCode,
+          supplierName: supplierName,
+          items: [],
+        };
+      }
+
+      // Tambahkan item ke grup yang sesuai
+      acc[supplierId].items.push(item);
+
+      return acc;
+    }, {});
+
+    // Konversi menjadi array dan hitung jumlah item per supplier
+    const resultSupplier = Object.values(groupedDataSupplier).map((group) => ({
+      supplierCode: group.supplierCode,
+      supplierName: group.supplierName,
+      itemCount: group.items.length,
+    }));
+
+    res.status(200).json({
+      data: { byDate: result, bySupplier: resultSupplier },
+      message: "Data Delivery Note Found",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
