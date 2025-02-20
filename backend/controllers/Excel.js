@@ -1353,7 +1353,7 @@ export const uploadDeliveryNote = async (req, res) => {
         const dnNumber = Number(row[1]);
         const deliveryDate = row[4];
         const materialNo = row[9];
-        const planning = Number(row[11]);
+        const planning = Number(row[11]?.toString().replace(/,/g, ""));
         const supplierCode = String(row[19]?.toString().trim());
 
         if (
