@@ -404,7 +404,7 @@ export const submitDeliveryNote = async (req, res) => {
 
 export const getDeliveryNoteByDate = async (req, res) => {
   try {
-    const { importDate } = req.query;
+    const { importDate, arrivalDate } = req.query;
 
     let whereCondition = {};
     let whereConditionDn = {};
@@ -412,8 +412,8 @@ export const getDeliveryNoteByDate = async (req, res) => {
       whereCondition.importDate = importDate;
     }
 
-    if (!importDate) {
-      whereConditionDn.arrivalPlanDate = new Date().toISOString().split("T")[0]; // get date only
+    if (arrivalDate) {
+      whereConditionDn.arrivalPlanDate = arrivalDate;
     }
 
     const data = await DeliveryNote.findAll({
