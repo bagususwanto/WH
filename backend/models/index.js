@@ -42,6 +42,7 @@ import Cart from "./CartModel.js";
 import OrderHistory from "./OrderHistoryModel.js";
 import Redpost from "./RedpostModel.js";
 import DeliveryNote from "./DeliveryNoteModel.js";
+import IncomingHistory from "./IncomingHistoryModel.js";
 
 // log
 import LogApproval from "./LogApprovalModel.js";

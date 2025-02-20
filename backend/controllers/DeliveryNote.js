@@ -136,6 +136,8 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
+    // return res.status(200).json({ data: data });
+
     // mapping data
     const mappedData = data.map((item) => {
       const deliveryNotes = item.Delivery_Notes.flatMap((dn) =>
