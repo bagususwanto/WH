@@ -516,7 +516,7 @@ export const getDnInquiry = async (req, res) => {
           include: [
             {
               model: Incoming,
-              required: false,
+              required: true,
               attributes: [
                 "id",
                 "planning",
@@ -527,7 +527,7 @@ export const getDnInquiry = async (req, res) => {
               include: [
                 {
                   model: Inventory,
-                  required: false,
+                  required: true,
                   attributes: ["id", "materialId", "addressId"],
                   include: [
                     {
@@ -538,7 +538,7 @@ export const getDnInquiry = async (req, res) => {
                     },
                     {
                       model: AddressRack,
-                      required: false,
+                      required: true,
                       attributes: ["id", "addressRackName"],
                       where: { flag: 1 },
                       include: [
@@ -652,6 +652,7 @@ export const getDnInquiry = async (req, res) => {
       .status(200)
       .json({ data: mappedData, message: "Data Delivery Note Found" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
