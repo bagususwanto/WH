@@ -104,7 +104,7 @@ export const createSection = async (req, res) => {
         gicId: req.body.gicId,
         wbsId: req.body.wbsId,
       },
-      { userId: require.user.userId }
+      { userId: req.user.userId }
     );
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
@@ -137,7 +137,7 @@ export const updateSection = async (req, res) => {
           flag: 1,
         },
         individualHooks: true,
-        userId: require.user.userId,
+        userId: req.user.userId,
       }
     );
     res.status(200).json({ message: "Section Updated" });
@@ -164,7 +164,7 @@ export const deleteSection = async (req, res) => {
       {
         where: { id: sectionId, flag: 1 },
         individualHooks: true,
-        userId: require.user.userId,
+        userId: req.user.userId,
       }
     );
 
