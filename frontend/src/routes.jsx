@@ -32,6 +32,7 @@ const Line = React.lazy(() => import('./views/masterdata/line/Line'))
 const Group = React.lazy(() => import('./views/masterdata/group/Group'))
 const Section = React.lazy(() => import('./views/masterdata/section/Section'))
 const ServiceHours = React.lazy(() => import('./views/masterdata/servicehours/ServiceHours'))
+const Wbs = React.lazy(() => import('./views/masterdata/wbs/Wbs'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -66,6 +67,7 @@ const routes = [
   { path: '/group', name: 'Master / Group', element: Group },
   { path: '/section', name: 'Master / Section', element: Section },
   { path: '/service-hours', name: 'Master / Service Hours', element: ServiceHours },
+  { path: '/wbs', name: 'Master / WBS', element: Wbs },
 ]
 
 export default routes
