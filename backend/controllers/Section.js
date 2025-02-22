@@ -108,7 +108,7 @@ export const createSection = async (req, res) => {
     );
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -142,7 +142,7 @@ export const updateSection = async (req, res) => {
     );
     res.status(200).json({ message: "Section Updated" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
