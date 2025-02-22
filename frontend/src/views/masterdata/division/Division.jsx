@@ -457,7 +457,7 @@ const Division = () => {
                 <h5>Division Information</h5>
               </CCol>
 
-              <CCol className="mb-3" sm={12} md={12} lg={6}>
+              <CCol className="mb-3" sm={12} md={12} lg={12}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="group">
                     Division Name
