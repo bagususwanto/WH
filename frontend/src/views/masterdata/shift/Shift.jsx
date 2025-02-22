@@ -34,14 +34,15 @@ import 'flatpickr/dist/flatpickr.min.css'
 
 const MySwal = withReactContent(swal)
 
-const Category = () => {
-  const [category, setCategory] = useState([])
+const Shift = () => {
+  const [shift, setShift] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
-  const [currentCategory, setCurrentCategory] = useState({
+  const [currentShift, setCurrentShift] = useState({
     id: '',
-    categoryName: '',
+    shiftCode: '',
+    shiftName: '',
   })
   const [loading, setLoading] = useState(true)
   const [visibleColumns, setVisibleColumns] = useState([])
@@ -57,17 +58,17 @@ const Category = () => {
       matchMode: FilterMatchMode.EQUALS,
     },
 
-    category: {
+    shift: {
       value: null,
       matchMode: FilterMatchMode.EQUALS,
     },
   })
 
-  const apiCategory = 'category'
-  const apiCategoryDelete = 'category-delete'
+  const apiShift = 'shift'
+  const apiShiftDelete = 'shift-delete'
 
   useEffect(() => {
-    getCategory()
+    getShift()
     setLoading(false)
   }, [])
 
@@ -96,10 +97,10 @@ const Category = () => {
     setVisibleColumns(orderedSelectedColumns)
   }
 
-  const getCategory = async () => {
+  const getShift = async () => {
     setLoading(true)
     try {
-      const response = await getMasterData(apiCategory)
+      const response = await getMasterData(apiShift)
 
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
@@ -121,19 +122,20 @@ const Category = () => {
           importBy,
         }
       })
-      setCategory(dataWithFormattedFields)
+      setShift(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching category:', error)
+      console.error('Error fetching shift:', error)
     } finally {
       setLoading(false) // Set loading to false after data is fetched
     }
   }
 
-  const handleAddCategory = () => {
+  const handleAddShift = () => {
     setIsEdit(false)
-    setCurrentCategory({
+    setCurrentShift({
       id: '',
-      categoryName: '',
+      shiftCode: '',
+      shiftName: '',
     })
     setModal(true)
   }
@@ -144,30 +146,31 @@ const Category = () => {
         label="Edit"
         icon="pi pi-pencil"
         className="p-button-success"
-        onClick={() => handleEditCategory(rowData)}
+        onClick={() => handleEditShift(rowData)}
       />
       <Button
         label="Delete"
         icon="pi pi-trash"
         className="p-button-danger"
-        onClick={() => handleDeleteCategory(rowData.id)}
+        onClick={() => handleDeleteShift(rowData.id)}
       />
     </div>
   )
 
-  const handleEditCategory = (category) => {
+  const handleEditShift = (shift) => {
     setIsEdit(true)
-    setCurrentCategory({
-      id: category.id,
-      categoryName: category.categoryName,
+    setCurrentShift({
+      id: shift.id,
+      shiftCode: shift.shiftCode,
+      shiftName: shift.shiftName,
     })
     setModal(true)
   }
 
-  const handleDeleteCategory = (categoryId) => {
+  const handleDeleteShift = (shiftId) => {
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'This category cannot be recovered!',
+      text: 'This shift cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -175,26 +178,26 @@ const Category = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(categoryId)
+        confirmDelete(shiftId)
       }
     })
   }
 
-  const confirmDelete = async (categoryId) => {
+  const confirmDelete = async (shiftId) => {
     try {
-      await deleteMasterDataById(apiCategoryDelete, categoryId)
-      await getCategory() // Refresh the list after deletion
-      MySwal.fire('Deleted!', 'Category deleted successfully.', 'success')
+      await deleteMasterDataById(apiShiftDelete, shiftId)
+      await getShift() // Refresh the list after deletion
+      MySwal.fire('Deleted!', 'Shift deleted successfully.', 'success')
     } catch (error) {
-      console.error('Error menghapus category:', error)
+      console.error('Error menghapus shift:', error)
     }
   }
 
-  const validateCategory = (category) => {
-    const requiredFields = [{ field: 'categoryName', message: 'Category is required' }]
+  const validateShift = (shift) => {
+    const requiredFields = [{ field: 'shiftName', message: 'Shift is required' }]
 
     for (const { field, message } of requiredFields) {
-      if (!category[field]) {
+      if (!shift[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -202,28 +205,28 @@ const Category = () => {
     return true
   }
 
-  const handleSaveCategory = async () => {
+  const handleSaveShift = async () => {
     setLoading(true)
-    if (!validateCategory(currentCategory)) {
+    if (!validateShift(currentShift)) {
       setLoading(false)
       return
     }
 
     try {
-      const categoryToSave = { ...currentCategory }
+      const shiftToSave = { ...currentShift }
 
       if (isEdit) {
-        await updateMasterDataById(apiCategory, currentCategory.id, categoryToSave)
-        await getCategory()
-        MySwal.fire('Updated!', 'Category has been updated.', 'success')
+        await updateMasterDataById(apiShift, currentShift.id, shiftToSave)
+        await getShift()
+        MySwal.fire('Updated!', 'Shift has been updated.', 'success')
       } else {
-        delete categoryToSave.id
-        await postMasterData(apiCategory, categoryToSave)
-        await getCategory()
-        MySwal.fire('Added!', 'Category has been added.', 'success')
+        delete shiftToSave.id
+        await postMasterData(apiShift, shiftToSave)
+        await getShift()
+        MySwal.fire('Added!', 'Shift has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving category:', error)
+      console.error('Error saving shift:', error)
     } finally {
       setLoading(false)
       setModal(false)
@@ -239,14 +242,14 @@ const Category = () => {
     setGlobalFilterValue(value)
   }
 
-  const filteredCategory = useMemo(() => {
+  const filteredShift = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
-    return category.filter((item) => {
+    return shift.filter((item) => {
       return Object.values(item).some(
         (val) => val && val.toString().toLowerCase().includes(globalFilter),
       )
     })
-  }, [category, filters.global.value])
+  }, [shift, filters.global.value])
 
   const renderHeader = () => {
     return (
@@ -279,9 +282,9 @@ const Category = () => {
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = category.map((item, index) => ({
+      const mappedData = shift.map((item, index) => ({
         no: index + 1,
-        category: item.categoryName,
+        shift: item.shiftName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -291,7 +294,7 @@ const Category = () => {
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'category')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'shift')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -300,7 +303,7 @@ const Category = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_category')
+      saveAsExcelFile(excelBuffer, 'master_data_shift')
     })
   }
 
@@ -314,7 +317,7 @@ const Category = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_category') {
+        if (fileName === 'template_master_data_shift') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -332,7 +335,7 @@ const Category = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading category data...</p>
+      <p>Loading shift data...</p>
     </div>
   )
 
@@ -340,7 +343,7 @@ const Category = () => {
     <CRow>
       <CCol>
         <CCard className="mb-4">
-          <CCardHeader>Master Data Category</CCardHeader>
+          <CCardHeader>Master Data Shift</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent />
@@ -355,7 +358,7 @@ const Category = () => {
                         icon="pi pi-plus"
                         severity="primary"
                         className="rounded-5 me-2 mb-2"
-                        onClick={handleAddCategory}
+                        onClick={handleAddShift}
                         data-pr-tooltip="XLS"
                       />
                       <Button
@@ -374,7 +377,7 @@ const Category = () => {
                   </CCol>
                 </CRow>
                 <DataTable
-                  value={filteredCategory}
+                  value={filteredShift}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
@@ -395,11 +398,13 @@ const Category = () => {
                     sortable
                   />
                   <Column
-                    field="categoryName"
-                    header="Category"
-                    style={{ width: '25%' }}
+                    header="Shift Code"
+                    field="shiftCode"
+                    frozen
+                    alignFrozen="left"
                     sortable
                   />
+                  <Column field="shiftName" header="Shift Name" style={{ width: '25%' }} sortable />
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -421,27 +426,43 @@ const Category = () => {
 
       <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
-          <CModalTitle>{isEdit ? 'Edit Category' : 'Add Category'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Shift' : 'Add Shift'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
-              {/* Section: Informasi Category */}
+              {/* Section: Informasi Shift */}
               <CCol xs={12}>
-                <h5>Category Information</h5>
+                <h5>Shift Information</h5>
               </CCol>
-              {/* Form Category */}
+              {/* Form Shift */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="category">
-                  Category <span>*</span>
+                <label className="mb-2 required-label" htmlFor="shiftCode">
+                  Shift Code {!isEdit && <span>*</span>}
                 </label>
                 <CFormInput
-                  id="category"
-                  value={currentCategory.categoryName}
+                  id="shiftCode"
+                  value={currentShift.shiftCode}
                   onChange={(e) =>
-                    setCurrentCategory({
-                      ...currentCategory,
-                      categoryName: e.target.value,
+                    setCurrentShift({
+                      ...currentShift,
+                      shiftCode: e.target.value,
+                    })
+                  }
+                  disabled={isEdit}
+                />
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="shiftName">
+                  Shift Name <span>*</span>
+                </label>
+                <CFormInput
+                  id="shiftName"
+                  value={currentShift.shiftName}
+                  onChange={(e) =>
+                    setCurrentShift({
+                      ...currentShift,
+                      shiftName: e.target.value,
                     })
                   }
                 />
@@ -460,7 +481,7 @@ const Category = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleSaveCategory}>
+            <CButton color="primary" onClick={handleSaveShift}>
               {loading ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />
@@ -477,4 +498,4 @@ const Category = () => {
   )
 }
 
-export default Category
+export default Shift
