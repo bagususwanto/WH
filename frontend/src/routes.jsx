@@ -27,6 +27,7 @@ const Packaging = React.lazy(() => import('./views/masterdata/packaging/Packagin
 const Organization = React.lazy(() => import('./views/masterdata/organization/Organization'))
 const Division = React.lazy(() => import('./views/masterdata/division/Division'))
 const Department = React.lazy(() => import('./views/masterdata/department/Department'))
+const Warehouse = React.lazy(() => import('./views/masterdata/warehouse/Warehouse'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -56,6 +57,7 @@ const routes = [
   { path: '/organization', name: 'Master / Organization', element: Organization },
   { path: '/division', name: 'Master / Division', element: Division },
   { path: '/department', name: 'Master / Department', element: Department },
+  { path: '/warehouse', name: 'Master / Warehouse', element: Warehouse },
 ]
 
 export default routes
