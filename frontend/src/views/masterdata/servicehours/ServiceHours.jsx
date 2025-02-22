@@ -35,16 +35,16 @@ import Select from 'react-select'
 
 const MySwal = withReactContent(swal)
 
-const Plant = () => {
-  const [plant, setPlant] = useState([])
+const ServiceHours = () => {
+  const [serviceHours, setServiceHours] = useState([])
   const [modal, setModal] = useState(false)
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
-  const [currentPlant, setCurrentPlant] = useState({
+  const [currentServiceHours, setCurrentServiceHours] = useState({
     id: '',
-    plantCode: '',
-    plantName: '',
     warehouseId: '',
+    shiftId: '',
+    time: '',
   })
   const [loading, setLoading] = useState(true)
   const [visibleColumns, setVisibleColumns] = useState([])
@@ -57,12 +57,12 @@ const Plant = () => {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   })
 
-  const apiPlant = 'plant'
-  const apiPlantDelete = 'plant-delete'
+  const apiServiceHours = 'serviceHours'
+  const apiServiceHoursDelete = 'serviceHours-delete'
   const apiWarehouse = 'warehouse'
 
   useEffect(() => {
-    getPlant()
+    getServiceHours()
     getWarehouse()
     setLoading(false)
   }, [])
@@ -92,10 +92,10 @@ const Plant = () => {
     setVisibleColumns(orderedSelectedColumns)
   }
 
-  const getPlant = async () => {
+  const getServiceHours = async () => {
     setLoading(true)
     try {
-      const response = await getMasterData(apiPlant)
+      const response = await getMasterData(apiServiceHours)
 
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
@@ -117,9 +117,9 @@ const Plant = () => {
           importBy,
         }
       })
-      setPlant(dataWithFormattedFields)
+      setServiceHours(dataWithFormattedFields)
     } catch (error) {
-      console.error('Error fetching plant:', error)
+      console.error('Error fetching serviceHours:', error)
     } finally {
       setLoading(false) // Set loading to false after data is fetched
     }
@@ -138,13 +138,13 @@ const Plant = () => {
     }
   }
 
-  const handleAddPlant = () => {
+  const handleAddServiceHours = () => {
     setIsEdit(false)
-    setCurrentPlant({
-      id: '',
-      plantCode: '',
-      plantName: '',
-      warehouseId: '',
+    setCurrentServiceHours({
+       id: '',
+    warehouseId: '',
+    shiftId: '',
+    time: '',
     })
     setModal(true)
   }
@@ -155,33 +155,35 @@ const Plant = () => {
         label="Edit"
         icon="pi pi-pencil"
         className="p-button-success"
-        onClick={() => handleEditPlant(rowData)}
+        onClick={() => handleEditServiceHours(rowData)}
       />
       <Button
         label="Delete"
         icon="pi pi-trash"
         className="p-button-danger"
-        onClick={() => handleDeletePlant(rowData.id)}
+        onClick={() => handleDeleteServiceHours(rowData.id)}
       />
     </div>
   )
 
-  const handleEditPlant = (plant) => {
-    const selectedWarehouse = warehouseOptions.find((option) => option.value === plant.warehouseId)
+  const handleEditServiceHours = (serviceHours) => {
+    const selectedWarehouse = warehouseOptions.find(
+      (option) => option.value === serviceHours.warehouseId,
+    )
     setIsEdit(true)
-    setCurrentPlant({
-      id: plant.id,
-      plantCode: plant.plantCode,
-      plantName: plant.plantName,
-      warehouseId: selectedWarehouse || '',
+    setCurrentServiceHours({
+      id: '',
+    warehouseId: '',
+    shiftId: '',
+    time: '',
     })
     setModal(true)
   }
 
-  const handleDeletePlant = (plantId) => {
+  const handleDeleteServiceHours = (serviceHoursId) => {
     MySwal.fire({
       title: 'Are you sure?',
-      text: 'This plant cannot be recovered!',
+      text: 'This serviceHours cannot be recovered!',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -189,30 +191,30 @@ const Plant = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(plantId)
+        confirmDelete(serviceHoursId)
       }
     })
   }
 
-  const confirmDelete = async (plantId) => {
+  const confirmDelete = async (serviceHoursId) => {
     try {
-      await deleteMasterDataById(apiPlantDelete, plantId)
-      await getPlant() // Refresh the list after deletion
-      MySwal.fire('Deleted!', 'Plant deleted successfully.', 'success')
+      await deleteMasterDataById(apiServiceHoursDelete, serviceHoursId)
+      await getServiceHours() // Refresh the list after deletion
+      MySwal.fire('Deleted!', 'ServiceHours deleted successfully.', 'success')
     } catch (error) {
-      console.error('Error menghapus plant:', error)
+      console.error('Error menghapus serviceHours:', error)
     }
   }
 
-  const validatePlant = (plant) => {
+  const validateServiceHours = (serviceHours) => {
     const requiredFields = [
-      { field: 'plantCode', message: 'Plant Code is required' },
-      { field: 'plantName', message: 'Plant is required' },
+      { field: 'serviceHoursCode', message: 'ServiceHours Code is required' },
+      { field: 'serviceHoursName', message: 'ServiceHours is required' },
       { field: 'warehouseId', message: 'Warehouse is required' },
     ]
 
     for (const { field, message } of requiredFields) {
-      if (!plant[field]) {
+      if (!serviceHours[field]) {
         MySwal.fire('Error', message, 'error')
         return false
       }
@@ -220,37 +222,37 @@ const Plant = () => {
     return true
   }
 
-  const handleSavePlant = async () => {
+  const handleSaveServiceHours = async () => {
     setLoading(true)
-    if (!validatePlant(currentPlant)) {
+    if (!validateServiceHours(currentServiceHours)) {
       setLoading(false)
       return
     }
 
     try {
-      const plantToSave = { ...currentPlant }
+      const serviceHoursToSave = { ...currentServiceHours }
 
       if (isEdit) {
-        await updateMasterDataById(apiPlant, currentPlant.id, {
-          ...plantToSave,
-          warehouseId: plantToSave.warehouseId.value,
-          plantName: plantToSave.plantName,
+        await updateMasterDataById(apiServiceHours, currentServiceHours.id, {
+          ...serviceHoursToSave,
+          warehouseId: serviceHoursToSave.warehouseId.value,
+          serviceHoursName: serviceHoursToSave.serviceHoursName,
         })
-        await getPlant()
-        MySwal.fire('Updated!', 'Plant has been updated.', 'success')
+        await getServiceHours()
+        MySwal.fire('Updated!', 'ServiceHours has been updated.', 'success')
       } else {
-        delete plantToSave.id
-        await postMasterData(apiPlant, {
-          ...plantToSave,
-          warehouseId: plantToSave.warehouseId.value,
-          plantName: plantToSave.plantName,
-          plantCode: plantToSave.plantCode,
+        delete serviceHoursToSave.id
+        await postMasterData(apiServiceHours, {
+          ...serviceHoursToSave,
+          warehouseId: serviceHoursToSave.warehouseId.value,
+          serviceHoursName: serviceHoursToSave.serviceHoursName,
+          serviceHoursCode: serviceHoursToSave.serviceHoursCode,
         })
-        await getPlant()
-        MySwal.fire('Added!', 'Plant has been added.', 'success')
+        await getServiceHours()
+        MySwal.fire('Added!', 'ServiceHours has been added.', 'success')
       }
     } catch (error) {
-      console.error('Error saving plant:', error)
+      console.error('Error saving serviceHours:', error)
     } finally {
       setLoading(false)
       setModal(false)
@@ -266,14 +268,14 @@ const Plant = () => {
     setGlobalFilterValue(value)
   }
 
-  const filteredPlant = useMemo(() => {
+  const filteredServiceHours = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
-    return plant.filter((item) => {
+    return serviceHours.filter((item) => {
       return Object.values(item).some(
         (val) => val && val.toString().toLowerCase().includes(globalFilter),
       )
     })
-  }, [plant, filters.global.value])
+  }, [serviceHours, filters.global.value])
 
   const renderHeader = () => {
     return (
@@ -306,10 +308,10 @@ const Plant = () => {
 
   const exportExcel = () => {
     import('xlsx').then((xlsx) => {
-      const mappedData = plant.map((item, index) => ({
+      const mappedData = serviceHours.map((item, index) => ({
         no: index + 1,
-        plantCode: item.plantCode,
-        plantName: item.plantName,
+        serviceHoursCode: item.serviceHoursCode,
+        serviceHoursName: item.serviceHoursName,
         warehouseName: item.Warehouse.warehouseName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
@@ -320,7 +322,7 @@ const Plant = () => {
       // Deklarasikan worksheet hanya sekali
       const worksheet = xlsx.utils.json_to_sheet(mappedData)
       const workbook = xlsx.utils.book_new()
-      xlsx.utils.book_append_sheet(workbook, worksheet, 'plant')
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'serviceHours')
 
       // Tulis workbook ke dalam buffer array
       const excelBuffer = xlsx.write(workbook, {
@@ -329,7 +331,7 @@ const Plant = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_plant')
+      saveAsExcelFile(excelBuffer, 'master_data_serviceHours')
     })
   }
 
@@ -343,7 +345,7 @@ const Plant = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_plant') {
+        if (fileName === 'template_master_data_serviceHours') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -361,7 +363,7 @@ const Plant = () => {
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
-      <p>Loading plant data...</p>
+      <p>Loading serviceHours data...</p>
     </div>
   )
 
@@ -369,7 +371,7 @@ const Plant = () => {
     <CRow>
       <CCol>
         <CCard className="mb-4">
-          <CCardHeader>Master Data Plant</CCardHeader>
+          <CCardHeader>Master Data ServiceHours</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent />
@@ -384,7 +386,7 @@ const Plant = () => {
                         icon="pi pi-plus"
                         severity="primary"
                         className="rounded-5 me-2 mb-2"
-                        onClick={handleAddPlant}
+                        onClick={handleAddServiceHours}
                         data-pr-tooltip="XLS"
                       />
                       <Button
@@ -403,7 +405,7 @@ const Plant = () => {
                   </CCol>
                 </CRow>
                 <DataTable
-                  value={filteredPlant}
+                  value={filteredServiceHours}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
@@ -424,14 +426,19 @@ const Plant = () => {
                     sortable
                   />
                   <Column
-                    header="Plant Code"
-                    field="plantCode"
+                    header="ServiceHours Code"
+                    field="serviceHoursCode"
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
                     sortable
                   />
-                  <Column field="plantName" header="Plant Name" style={{ width: '25%' }} sortable />
+                  <Column
+                    field="serviceHoursName"
+                    header="ServiceHours Name"
+                    style={{ width: '25%' }}
+                    sortable
+                  />
                   <Column
                     field="Warehouse.warehouseName"
                     header="Warehouse Name"
@@ -459,43 +466,43 @@ const Plant = () => {
 
       <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
-          <CModalTitle>{isEdit ? 'Edit Plant' : 'Add Plant'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit ServiceHours' : 'Add ServiceHours'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
-              {/* Section: Informasi Plant */}
+              {/* Section: Informasi ServiceHours */}
               <CCol xs={12}>
-                <h5>Plant Information</h5>
+                <h5>ServiceHours Information</h5>
               </CCol>
-              {/* Form Plant */}
+              {/* Form ServiceHours */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="plantCode">
-                  Plant Code {!isEdit && <span>*</span>}
+                <label className="mb-2 required-label" htmlFor="serviceHoursCode">
+                  ServiceHours Code {!isEdit && <span>*</span>}
                 </label>
                 <CFormInput
-                  id="plantCode"
-                  value={currentPlant.plantCode}
+                  id="serviceHoursCode"
+                  value={currentServiceHours.serviceHoursCode}
                   onChange={(e) =>
-                    setCurrentPlant({
-                      ...currentPlant,
-                      plantCode: e.target.value,
+                    setCurrentServiceHours({
+                      ...currentServiceHours,
+                      serviceHoursCode: e.target.value,
                     })
                   }
                   disabled={isEdit}
                 />
               </CCol>
               <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="plantName">
-                  Plant Name <span>*</span>
+                <label className="mb-2 required-label" htmlFor="serviceHoursName">
+                  ServiceHours Name <span>*</span>
                 </label>
                 <CFormInput
-                  id="plantName"
-                  value={currentPlant.plantName}
+                  id="serviceHoursName"
+                  value={currentServiceHours.serviceHoursName}
                   onChange={(e) =>
-                    setCurrentPlant({
-                      ...currentPlant,
-                      plantName: e.target.value,
+                    setCurrentServiceHours({
+                      ...currentServiceHours,
+                      serviceHoursName: e.target.value,
                     })
                   }
                 />
@@ -506,13 +513,15 @@ const Plant = () => {
                     Warehouse Name <span>*</span>
                   </label>
                   <Select
-                    value={currentPlant.warehouseId}
+                    value={currentServiceHours.warehouseId}
                     options={warehouseOptions}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={true}
                     id="warehouseId"
-                    onChange={(e) => setCurrentPlant({ ...currentPlant, warehouseId: e })}
+                    onChange={(e) =>
+                      setCurrentServiceHours({ ...currentServiceHours, warehouseId: e })
+                    }
                     styles={customStyles}
                   />
                 </div>
@@ -531,7 +540,7 @@ const Plant = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleSavePlant}>
+            <CButton color="primary" onClick={handleSaveServiceHours}>
               {loading ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />
@@ -548,4 +557,4 @@ const Plant = () => {
   )
 }
 
-export default Plant
+export default ServiceHours
