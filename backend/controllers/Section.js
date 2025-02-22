@@ -99,6 +99,7 @@ export const createSection = async (req, res) => {
 
     await Section.create(
       {
+        sectionCode: req.body.sectionCode,
         sectionName: req.body.sectionName,
         gicId: req.body.gicId,
         wbsId: req.body.wbsId,
@@ -107,7 +108,7 @@ export const createSection = async (req, res) => {
     );
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -124,17 +125,24 @@ export const updateSection = async (req, res) => {
       return res.status(404).json({ message: "Section not found" });
     }
 
-    await Section.update(req.body, {
-      where: {
-        id: sectionId,
-        flag: 1,
+    await Section.update(
+      {
+        sectionName: req.body.sectionName,
+        gicId: req.body.gicId,
+        wbsId: req.body.wbsId,
       },
-      individualHooks: true,
-      userId: require.user.userId,
-    });
+      {
+        where: {
+          id: sectionId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: require.user.userId,
+      }
+    );
     res.status(200).json({ message: "Section Updated" });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
