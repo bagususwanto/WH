@@ -76,14 +76,21 @@ export const getSectionById = async (req, res) => {
 
 export const createSection = async (req, res) => {
   try {
-    const sectionName = await Section.findOne({
-      where: { sectionName: req.body.sectionName, flag: 1 },
+    const sectionCode = await Section.findOne({
+      where: { sectionCode: req.body.sectionCode, flag: 1 },
     });
-    if (sectionName) {
+    if (sectionCode) {
       return res.status(400).json({ message: "Section already exists" });
     }
 
-    await Section.create(req.body, { userId: require.user.userId });
+    await Section.create(
+      {
+        sectionName: req.body.sectionName,
+        gicId: req.body.gicId,
+        wbsId: req.body.wbsId,
+      },
+      { userId: require.user.userId }
+    );
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
     console.log(error.message);

@@ -27,19 +27,12 @@ import {
   CSpinner,
   CImage,
 } from '@coreui/react'
-import { CIcon } from '@coreui/icons-react'
-import { cilImagePlus, cilXCircle } from '@coreui/icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import Select from 'react-select'
-import makeAnimated from 'react-select/animated'
 import { format, parseISO } from 'date-fns'
 import 'flatpickr/dist/flatpickr.min.css'
-import config from '../../../utils/Config'
-import { IMaskMixin } from 'react-imask'
 
 const MySwal = withReactContent(swal)
 
@@ -49,14 +42,11 @@ const Organization = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [isEdit, setIsEdit] = useState(false)
   const [plantOptions, setPlantOptions] = useState([])
-  const [positionOptions, setPositionOptions] = useState([])
-  const [roleOptions, setRoleOptions] = useState([])
   const [groupOptions, setGroupOptions] = useState([])
   const [lineOptions, setLineOptions] = useState([])
   const [sectionOptions, setSectionOptions] = useState([])
   const [departmentOptions, setDepartmentOptions] = useState([])
   const [divisionOptions, setDivisionOptions] = useState([])
-  const [warehouseOptions, setWarehouseOptions] = useState([])
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentOrg, setCurrentOrg] = useState({
     id: '',
@@ -70,69 +60,32 @@ const Organization = () => {
   const [loading, setLoading] = useState(true)
   const [visibleColumns, setVisibleColumns] = useState([])
   const [isClearable, setIsClearable] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [roleValid, setRoleValid] = useState([])
-  const [orgOptions, setOrgOptions] = useState([])
 
-  const animatedComponents = makeAnimated()
-
-  const {
-    getMasterData,
-    deleteMasterDataById,
-    updateMasterDataById,
-    postMasterData,
-    uploadImageMaterial,
-  } = useMasterDataService()
+  const { getMasterData, deleteMasterDataById, updateMasterDataById, postMasterData } =
+    useMasterDataService()
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-    plant: {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
-
-    storage: {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
-
-    type: {
-      value: null,
-      matchMode: FilterMatchMode.EQUALS,
-    },
   })
 
-  const apiUser = 'organizations'
-  const apiMasterUserOrg = 'organizations-org'
-  const apiUserDelete = 'organizations-delete'
-  const apiDeleteImgUser = 'organizations-delete-image'
-  const apiUploadImageUser = 'organizations-upload-image'
-  const apiPosition = 'position'
-  const apiRole = 'role-public'
+  const apiOrgDelete = 'organization-delete'
   const apiGroup = 'group-public'
   const apiLine = 'line-public'
   const apiSection = 'section-public'
   const apiDepartment = 'department-public'
   const apiDivision = 'division-public'
   const apiPlant = 'plant-public'
-  const apiWarehouse = 'warehouse-public'
   const apiOrg = 'organization'
 
   useEffect(() => {
     setLoading(false)
     getOrganizations()
-    // getPosition()
-    // getRole()
-    // getGroup()
-    // getLine()
-    // getSection()
-    // getDepartment()
-    // getDivision()
-    // getPlant()
-    // getWarehouse()
-    // getOrg()
+    getGroup()
+    getLine()
+    getSection()
+    getDepartment()
+    getDivision()
+    getPlant()
   }, [])
 
   useEffect(() => {
@@ -145,27 +98,6 @@ const Organization = () => {
       ...provided,
       height: '38px', // Sesuaikan dengan tinggi CFormInput
       minHeight: '38px', // Hindari auto-resize
-    }),
-  }
-
-  const customStylesMultiSelct = {
-    menu: (provided) => ({
-      ...provided,
-      zIndex: 9999, // Pastikan dropdown selalu terlihat di atas elemen lain
-    }),
-    control: (provided) => ({
-      ...provided,
-      minHeight: '38px', // Tinggi minimum komponen Select
-    }),
-    valueContainer: (provided) => ({
-      ...provided,
-      maxHeight: '200px', // Maksimum tinggi kontainer nilai
-      overflowY: 'auto', // Gulir jika tinggi melebihi batas
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      display: 'flex',
-      alignItems: 'center',
     }),
   }
 
@@ -183,37 +115,6 @@ const Organization = () => {
     )
 
     setVisibleColumns(orderedSelectedColumns)
-  }
-
-  const getPosition = async () => {
-    try {
-      const response = await getMasterData(apiPosition)
-      const positionOptions = response.data.map((position) => ({
-        label: position.position,
-        value: position.position,
-        id: position.id,
-      }))
-      setPositionOptions(positionOptions)
-    } catch (error) {
-      console.error('Error fetching Position:', error)
-    }
-  }
-
-  const getRole = async () => {
-    try {
-      const response = await getMasterData(apiRole)
-      const roleOptions = response.data.map((role) => ({
-        label: role.roleName
-          .split(' ')
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' '),
-        value: role.roleName,
-        id: role.id,
-      }))
-      setRoleOptions(roleOptions)
-    } catch (error) {
-      console.error('Error fetching Role:', error)
-    }
   }
 
   const getGroup = async () => {
@@ -300,46 +201,6 @@ const Organization = () => {
     }
   }
 
-  const getOrg = async () => {
-    try {
-      const response = await getMasterData(apiOrg)
-      const orgOptions = response.data.map((org) => ({
-        groupId: org.groupId,
-        lineId: org.lineId,
-        sectionId: org.sectionId,
-        departmentId: org.departmentId,
-        divisionId: org.divisionId,
-      }))
-      setOrgOptions(orgOptions)
-    } catch (error) {
-      console.error('Error fetching Plant:', error)
-    }
-  }
-
-  const getWarehouse = async () => {
-    try {
-      const response = await getMasterData(apiWarehouse)
-      const warehouseOptions = response.data.map((warehouse) => ({
-        label: warehouse.warehouseName,
-        value: warehouse.warehouseName,
-        id: warehouse.id,
-      }))
-      setWarehouseOptions(warehouseOptions)
-    } catch (error) {
-      console.error('Error fetching Warehouse:', error)
-    }
-  }
-
-  const isWarehouseOptions = [
-    { label: 'Warehouse', value: 1 },
-    { label: 'Non Warehouse', value: 0 },
-  ]
-
-  const isProductionOptions = [
-    { label: 'Production', value: 1 },
-    { label: 'Non Production', value: 0 },
-  ]
-
   const getOrganizations = async () => {
     setLoading(true)
     try {
@@ -396,31 +257,42 @@ const Organization = () => {
         label="Delete"
         icon="pi pi-trash"
         className="p-button-danger"
-        onClick={() => handleDeleteUser(rowData.id)}
+        onClick={() => handleDeleteOrg(rowData.id)}
       />
     </div>
   )
 
   const handleEditOrg = (organizations) => {
-    console.log('organizations:', organizations)
-    const selectedPosition = positionOptions.find(
-      (option) => option.value === organizations.position,
+    const selectedGroup = groupOptions.find((group) => group.id === organizations.groupId)
+
+    const selectedLine = lineOptions.find((line) => line.id === organizations.lineId)
+
+    const selectedSection = sectionOptions.find((section) => section.id === organizations.sectionId)
+
+    const selectedDepartment = departmentOptions.find(
+      (department) => department.id === organizations.departmentId,
     )
+
+    const selectedDivision = divisionOptions.find(
+      (division) => division.id === organizations.divisionId,
+    )
+
+    const selectedPlant = plantOptions.find((plant) => plant.id === organizations.plantId)
 
     setIsEdit(true)
     setCurrentOrg({
-      id: '',
-      groupId: '',
-      lineId: '',
-      sectionId: '',
-      departmentId: '',
-      divisionId: '',
-      plantId: '',
+      id: organizations.id,
+      groupId: selectedGroup || '',
+      lineId: selectedLine || '',
+      sectionId: selectedSection || '',
+      departmentId: selectedDepartment || '',
+      divisionId: selectedDivision || '',
+      plantId: selectedPlant || '',
     })
     setModal(true)
   }
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteOrg = (org) => {
     MySwal.fire({
       title: 'Are you sure?',
       text: 'This organizations cannot be recovered!',
@@ -431,14 +303,14 @@ const Organization = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(userId)
+        confirmDelete(org)
       }
     })
   }
 
-  const confirmDelete = async (userId) => {
+  const confirmDelete = async (org) => {
     try {
-      await deleteMasterDataById(apiUserDelete, userId)
+      await deleteMasterDataById(apiOrgDelete, org)
       MySwal.fire('Deleted!', 'Organization deleted successfully.', 'success')
       setShouldFetch(true)
     } catch (error) {
@@ -446,101 +318,15 @@ const Organization = () => {
     }
   }
 
-  const validateUser = (organizations) => {
-    if (!isEdit) {
-      // validasi password dan confirm password
-      if (organizations.password !== organizations.confirmPassword) {
-        MySwal.fire('Error', 'Password and Confirm Password must be the same', 'error')
-        return false
-      }
-    }
-
-    // validasi untuk role warehouse member dan warehouse staff hanya bisa 1 warehouseIds
-    if (['warehouse member', 'warehouse staff'].includes(roleValid)) {
-      if (organizations.warehouseIds.length > 1) {
-        MySwal.fire('Error', 'Warehouse Access can only be 1 for this role', 'error')
-        return false
-      }
-    }
-
-    let requiredFields = []
-    if (roleValid.includes('group head')) {
-      requiredFields = [
-        { field: 'username', message: 'Username is required' },
-        { field: 'name', message: 'Fullname is required' },
-        { field: 'roleId', message: 'Role is required' },
-        { field: 'position', message: 'Position is required' },
-        { field: 'groupId', message: 'Group is required' },
-        { field: 'lineId', message: 'Line is required' },
-        { field: 'sectionId', message: 'Section is required' },
-        { field: 'departmentId', message: 'Department is required' },
-        { field: 'divisionId', message: 'Division is required' },
-        { field: 'warehouseIds', message: 'Warehouse Access are required' },
-        { field: 'plantId', message: 'Plant is required' },
-        { field: 'isProduction', message: 'Production is required' },
-        { field: 'isWarehouse', message: 'Warehouse is required' },
-      ]
-    } else if (roleValid.includes('line head')) {
-      requiredFields = [
-        { field: 'username', message: 'Username is required' },
-        { field: 'name', message: 'Fullname is required' },
-        { field: 'roleId', message: 'Role is required' },
-        { field: 'position', message: 'Position is required' },
-        { field: 'lineId', message: 'Line is required' },
-        { field: 'sectionId', message: 'Section is required' },
-        { field: 'departmentId', message: 'Department is required' },
-        { field: 'divisionId', message: 'Division is required' },
-        { field: 'warehouseIds', message: 'Warehouse Access are required' },
-        { field: 'plantId', message: 'Plant is required' },
-        { field: 'isProduction', message: 'Production is required' },
-        { field: 'isWarehouse', message: 'Warehouse is required' },
-      ]
-    } else if (roleValid.includes('section head')) {
-      requiredFields = [
-        { field: 'username', message: 'Username is required' },
-        { field: 'name', message: 'Fullname is required' },
-        { field: 'roleId', message: 'Role is required' },
-        { field: 'position', message: 'Position is required' },
-        { field: 'sectionId', message: 'Section is required' },
-        { field: 'departmentId', message: 'Department is required' },
-        { field: 'divisionId', message: 'Division is required' },
-        { field: 'warehouseIds', message: 'Warehouse Access are required' },
-        { field: 'plantId', message: 'Plant is required' },
-        { field: 'isProduction', message: 'Production is required' },
-        { field: 'isWarehouse', message: 'Warehouse is required' },
-      ]
-    } else if (roleValid.includes('department head')) {
-      requiredFields = [
-        { field: 'username', message: 'Username is required' },
-        { field: 'name', message: 'Fullname is required' },
-        { field: 'roleId', message: 'Role is required' },
-        { field: 'position', message: 'Position is required' },
-        { field: 'departmentId', message: 'Department is required' },
-        { field: 'divisionId', message: 'Division is required' },
-        { field: 'warehouseIds', message: 'Warehouse Access are required' },
-        { field: 'plantId', message: 'Plant is required' },
-        { field: 'isProduction', message: 'Production is required' },
-        { field: 'isWarehouse', message: 'Warehouse is required' },
-      ]
-    } else {
-      requiredFields = [
-        { field: 'username', message: 'Username is required' },
-        { field: 'name', message: 'Fullname is required' },
-        { field: 'roleId', message: 'Role is required' },
-        { field: 'position', message: 'Position is required' },
-        { field: 'warehouseIds', message: 'Warehouse Access are required' },
-        { field: 'isProduction', message: 'Production is required' },
-        { field: 'isWarehouse', message: 'Warehouse is required' },
-      ]
-    }
-
-    // Tambahkan password dan confirmPassword ke requiredFields jika isEdit adalah false
-    if (!isEdit) {
-      requiredFields.push(
-        { field: 'password', message: 'Password is required' },
-        { field: 'confirmPassword', message: 'Confirm Password is required' },
-      )
-    }
+  const validateOrg = (organizations) => {
+    const requiredFields = [
+      { field: 'groupId', message: 'Group is required' },
+      { field: 'lineId', message: 'Line is required' },
+      { field: 'sectionId', message: 'Section is required' },
+      { field: 'departmentId', message: 'Department is required' },
+      { field: 'divisionId', message: 'Division is required' },
+      { field: 'plantId', message: 'Plant is required' },
+    ]
 
     for (const { field, message } of requiredFields) {
       if (!organizations[field]) {
@@ -551,23 +337,39 @@ const Organization = () => {
     return true
   }
 
-  const handleSaveUser = async () => {
+  const handleSaveOrg = async () => {
     setLoading(true)
 
-    if (!validateUser(currentOrg)) {
+    if (!validateOrg(currentOrg)) {
       setLoading(false)
       return
     }
 
     try {
-      const userToSave = { ...currentOrg }
+      const orgToSave = { ...currentOrg }
 
       if (isEdit) {
-        await updateMasterDataById(apiMasterUserOrg, currentOrg.id, userToSave)
+        await updateMasterDataById(apiOrg, currentOrg.id, {
+          ...orgToSave,
+          groupId: orgToSave.groupId.id,
+          lineId: orgToSave.lineId.id,
+          sectionId: orgToSave.sectionId.id,
+          departmentId: orgToSave.departmentId.id,
+          divisionId: orgToSave.divisionId.id,
+          plantId: orgToSave.plantId.id,
+        })
         MySwal.fire('Updated!', 'Organization has been updated.', 'success')
       } else {
-        delete userToSave.id
-        await postMasterData(apiMasterUserOrg, userToSave)
+        delete orgToSave.id
+        await postMasterData(apiOrg, {
+          ...orgToSave,
+          groupId: orgToSave.groupId.id,
+          lineId: orgToSave.lineId.id,
+          sectionId: orgToSave.sectionId.id,
+          departmentId: orgToSave.departmentId.id,
+          divisionId: orgToSave.divisionId.id,
+          plantId: orgToSave.plantId.id,
+        })
         MySwal.fire('Added!', 'Organization has been added.', 'success')
       }
     } catch (error) {
@@ -587,13 +389,18 @@ const Organization = () => {
     })
     setGlobalFilterValue(value)
   }
-
+  
   const filteredOrganizations = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
     return organizations.filter((item) => {
-      return Object.values(item).some(
-        (val) => val && val.toString().toLowerCase().includes(globalFilter),
-      )
+      return [
+        item.Department?.departmentName,
+        item.Division?.divisionName,
+        item.Group?.groupName,
+        item.Line?.lineName,
+        item.Plant?.plantName,
+        item.Section?.sectionName,
+      ].some((val) => val?.toLowerCase().includes(globalFilter))
     })
   }, [organizations, filters.global.value])
 
@@ -630,21 +437,12 @@ const Organization = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = organizations.map((item, index) => ({
         No: index + 1,
-        Username: item.username,
-        Name: item.name,
-        Email: item.email,
-        'Phone Number': item.noHandphone,
-        Position: item.position,
-        Role: item.Role?.roleName,
-        Group: item.Organization?.Group?.groupName,
-        Line: item.Organization?.Line?.lineName,
-        Section: item.Organization?.Section?.sectionName,
-        Department: item.Organization?.Department?.departmentName,
-        Division: item.Organization?.Division?.divisionName,
-        Plant: item.Organization?.Plant?.plantName,
-        'Warehouse Access': item.warehouses,
-        Production: item.isProduction == 1 ? 'Production' : 'Non Production',
-        Warehouse: item.isWarehouse == 1 ? 'Warehouse' : 'Non Warehouse',
+        Group: item.Group?.groupName,
+        Line: item.Line?.lineName,
+        Section: item.Section?.sectionName,
+        Department: item.Department?.departmentName,
+        Division: item.Division?.divisionName,
+        Plant: item.Plant?.plantName,
         'Created At': item.formattedCreatedAt,
         'Updated At': item.formattedUpdatedAt,
         'Created By': item.createdBy,
@@ -663,7 +461,7 @@ const Organization = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_user')
+      saveAsExcelFile(excelBuffer, 'master_data_organization')
     })
   }
 
@@ -677,7 +475,7 @@ const Organization = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_material') {
+        if (fileName === 'template_master_data_organization') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -698,113 +496,6 @@ const Organization = () => {
       <p>Loading organizations data...</p>
     </div>
   )
-
-  const imageBodyTemplate = (rowData) => {
-    return (
-      <img src={`${config.BACKEND_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
-    )
-  }
-
-  const handleDeleteImage = async (id) => {
-    try {
-      const result = await MySwal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        reverseButtons: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!',
-      })
-
-      if (result.isConfirmed) {
-        await updateMasterDataById(apiDeleteImgUser, id)
-        setCurrentOrg({
-          ...currentOrg,
-          img: '',
-        })
-        MySwal.fire('Success', 'Image deleted successfully', 'success')
-        setShouldFetch(true)
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error)
-    }
-  }
-
-  const handleAddImage = async (id) => {
-    try {
-      // Membuat elemen input file secara dinamis
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = 'image/*' // Hanya menerima file gambar
-
-      // Menangani pemilihan file
-      input.onchange = async (event) => {
-        const file = event.target.files[0]
-        if (!file) {
-          return MySwal.fire('Error', 'No file selected', 'error')
-        }
-
-        // Membuat FormData untuk mengirim file ke backend
-        const formData = new FormData()
-        formData.append('image', file)
-
-        try {
-          // Melakukan request POST ke endpoint backend
-          const response = await uploadImageMaterial(apiUploadImageUser, id, formData)
-          console.log('Image uploaded successfully:', response.data)
-
-          setCurrentOrg({
-            ...currentOrg,
-            img: response.data.imgPath,
-          })
-          MySwal.fire('Success', 'Image added successfully', 'success')
-          setShouldFetch(true) // Memperbarui data setelah upload sukses
-        } catch (error) {
-          console.error('Error uploading image:', error)
-        }
-      }
-
-      // Memicu dialog pemilihan file
-      input.click()
-    } catch (error) {
-      console.error('Error adding image:', error)
-    }
-  }
-
-  const CFormInputWithMask = IMaskMixin(({ inputRef, ...props }) => (
-    <CFormInput {...props} ref={inputRef} />
-  ))
-
-  const inputRef = useRef(null) // Ref untuk input
-
-  const handleOnAcceptNoHandphone = (value) => {
-    // Menghapus angka 0 setelah +62
-    if (value.startsWith('+62 0')) {
-      value = '+62 ' + value.slice(5)
-    }
-
-    // Hanya perbarui state jika nilai berubah
-    if (currentOrg.noHandphone !== value) {
-      setCurrentOrg((prevState) => ({
-        ...prevState,
-        noHandphone: value,
-      }))
-
-      // Kembalikan fokus ke input setelah state diperbarui
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 0)
-    }
-  }
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
-
-  const togglePasswordVisibilityConfirm = () => {
-    setShowConfirmPassword(!showConfirmPassword)
-  }
 
   return (
     <CRow>
@@ -929,8 +620,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="group">
-                    Group
-                    {['group head'].includes(roleValid) ? <span>*</span> : ''}
+                    Group <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.groupId}
@@ -939,47 +629,7 @@ const Organization = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="group"
-                    onChange={(e) => {
-                      if (!e) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          groupId: '',
-                          lineId: '',
-                          sectionId: '',
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const org = orgOptions.find((org) => org.groupId === e.id)
-                      if (!org) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          groupId: e,
-                          lineId: '',
-                          sectionId: '',
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const line = lineOptions.find((line) => line.id === org.lineId)
-                      const section = sectionOptions.find((section) => section.id === org.sectionId)
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      setCurrentOrg({
-                        ...currentOrg,
-                        groupId: e,
-                        lineId: line ? line : '',
-                        sectionId: section ? section : '',
-                        departmentId: department ? department : '',
-                        divisionId: division ? division : '',
-                      })
-                    }}
+                    onChange={(e) => setCurrentOrg({ ...currentOrg, groupId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -987,7 +637,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="line">
-                    Line {['group head', 'line head'].includes(roleValid) ? <span>*</span> : ''}
+                    Line <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.lineId}
@@ -996,43 +646,7 @@ const Organization = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="line"
-                    onChange={(e) => {
-                      if (!e) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          lineId: '',
-                          sectionId: '',
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const org = orgOptions.find((org) => org.lineId === e.id)
-                      if (!org) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          lineId: e,
-                          sectionId: '',
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const section = sectionOptions.find((section) => section.id === org.sectionId)
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      setCurrentOrg({
-                        ...currentOrg,
-                        lineId: e,
-                        sectionId: section ? section : '',
-                        departmentId: department ? department : '',
-                        divisionId: division ? division : '',
-                      })
-                    }}
+                    onChange={(e) => setCurrentOrg({ ...currentOrg, lineId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1040,12 +654,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="section">
-                    Section{' '}
-                    {['group head', 'line head', 'section head'].includes(roleValid) ? (
-                      <span>*</span>
-                    ) : (
-                      ''
-                    )}
+                    Section <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.sectionId}
@@ -1054,39 +663,7 @@ const Organization = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="section"
-                    onChange={(e) => {
-                      if (!e) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          sectionId: '',
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const org = orgOptions.find((org) => org.sectionId === e.id)
-                      if (!org) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          sectionId: e,
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      setCurrentOrg({
-                        ...currentOrg,
-                        sectionId: e,
-                        departmentId: department ? department : '',
-                        divisionId: division ? division : '',
-                      })
-                    }}
+                    onChange={(e) => setCurrentOrg({ ...currentOrg, sectionId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1094,14 +671,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="department">
-                    Department{' '}
-                    {['group head', 'line head', 'section head', 'department head'].includes(
-                      roleValid,
-                    ) ? (
-                      <span>*</span>
-                    ) : (
-                      ''
-                    )}
+                    Department <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.departmentId}
@@ -1110,33 +680,7 @@ const Organization = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="department"
-                    onChange={(e) => {
-                      if (!e) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          departmentId: '',
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const org = orgOptions.find((org) => org.departmentId === e.id)
-                      if (!org) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          departmentId: e,
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      setCurrentOrg({
-                        ...currentOrg,
-                        departmentId: e,
-                        divisionId: division ? division : '',
-                      })
-                    }}
+                    onChange={(e) => setCurrentOrg({ ...currentOrg, departmentId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1144,14 +688,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="division">
-                    Division{' '}
-                    {['group head', 'line head', 'section head', 'department head'].includes(
-                      roleValid,
-                    ) ? (
-                      <span>*</span>
-                    ) : (
-                      ''
-                    )}
+                    Division <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.divisionId}
@@ -1160,16 +697,7 @@ const Organization = () => {
                     classNamePrefix="select"
                     isClearable={isClearable}
                     id="division"
-                    onChange={(e) => {
-                      if (!e) {
-                        setCurrentOrg({
-                          ...currentOrg,
-                          divisionId: '',
-                        })
-                        return
-                      }
-                      setCurrentOrg({ ...currentOrg, divisionId: e })
-                    }}
+                    onChange={(e) => setCurrentOrg({ ...currentOrg, divisionId: e })}
                     styles={customStyles}
                   />
                 </div>
@@ -1177,14 +705,7 @@ const Organization = () => {
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="plant">
-                    Plant{' '}
-                    {['group head', 'line head', 'section head', 'department head'].includes(
-                      roleValid,
-                    ) ? (
-                      <span>*</span>
-                    ) : (
-                      ''
-                    )}
+                    Plant <span>*</span>
                   </label>
                   <Select
                     value={currentOrg.plantId}
@@ -1212,7 +733,7 @@ const Organization = () => {
               </div>
             }
           >
-            <CButton color="primary" onClick={handleSaveUser}>
+            <CButton color="primary" onClick={handleSaveOrg}>
               {loading ? (
                 <>
                   <CSpinner component="span" size="sm" variant="grow" className="me-2" />
