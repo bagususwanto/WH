@@ -74,10 +74,10 @@ export const getShiftById = async (req, res) => {
 
 export const createShift = async (req, res) => {
   try {
-    const shiftName = await Shift.findOne({
-      where: { shiftName: req.body.shiftName, flag: 1 },
+    const shiftCode = await Shift.findOne({
+      where: { shiftCode: req.body.shiftCode, flag: 1 },
     });
-    if (shiftName) {
+    if (shiftCode) {
       return res.status(400).json({ message: "Shift already exists" });
     }
 
@@ -101,14 +101,19 @@ export const updateShift = async (req, res) => {
       return res.status(404).json({ message: "Shift not found" });
     }
 
-    await Shift.update(req.body, {
-      where: {
-        id: shiftId,
-        flag: 1,
+    await Shift.update(
+      {
+        shiftName: req.body.shiftName,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: shiftId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Shift Updated" });
   } catch (error) {
     console.log(error.message);
