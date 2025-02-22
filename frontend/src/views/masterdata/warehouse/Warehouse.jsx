@@ -41,6 +41,7 @@ const Warehouse = () => {
   const [isEdit, setIsEdit] = useState(false)
   const [currentWarehouse, setCurrentWarehouse] = useState({
     id: '',
+    warehouseCode: '',
     warehouseName: '',
   })
   const [loading, setLoading] = useState(true)
@@ -123,6 +124,7 @@ const Warehouse = () => {
     setIsEdit(false)
     setCurrentWarehouse({
       id: '',
+      warehouseCode: '',
       warehouseName: '',
     })
     setModal(true)
@@ -149,12 +151,13 @@ const Warehouse = () => {
     setIsEdit(true)
     setCurrentWarehouse({
       id: warehouse.id,
+      warehouseCode: warehouse.warehouseCode,
       warehouseName: warehouse.warehouseName,
     })
     setModal(true)
   }
 
-  const handleDeleteWarehouse = (categoryId) => {
+  const handleDeleteWarehouse = (warehouseId) => {
     MySwal.fire({
       title: 'Are you sure?',
       text: 'This warehouse cannot be recovered!',
@@ -165,14 +168,14 @@ const Warehouse = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        confirmDelete(categoryId)
+        confirmDelete(warehouseId)
       }
     })
   }
 
-  const confirmDelete = async (categoryId) => {
+  const confirmDelete = async (warehouseId) => {
     try {
-      await deleteMasterDataById(apiWarehouseDelete, categoryId)
+      await deleteMasterDataById(apiWarehouseDelete, warehouseId)
       await getWarehouse() // Refresh the list after deletion
       MySwal.fire('Deleted!', 'Warehouse deleted successfully.', 'success')
     } catch (error) {
@@ -181,7 +184,10 @@ const Warehouse = () => {
   }
 
   const validateWarehouse = (warehouse) => {
-    const requiredFields = [{ field: 'warehouseName', message: 'Warehouse is required' }]
+    const requiredFields = [
+      { field: 'warehouseName', message: 'Warehouse is required' },
+      { field: 'warehouseCode', message: 'Warehouse Code is required' },
+    ]
 
     for (const { field, message } of requiredFields) {
       if (!warehouse[field]) {
@@ -200,15 +206,15 @@ const Warehouse = () => {
     }
 
     try {
-      const categoryToSave = { ...currentWarehouse }
+      const warehouseToSave = { ...currentWarehouse }
 
       if (isEdit) {
-        await updateMasterDataById(apiWarehouse, currentWarehouse.id, categoryToSave)
+        await updateMasterDataById(apiWarehouse, currentWarehouse.id, warehouseToSave)
         await getWarehouse()
         MySwal.fire('Updated!', 'Warehouse has been updated.', 'success')
       } else {
-        delete categoryToSave.id
-        await postMasterData(apiWarehouse, categoryToSave)
+        delete warehouseToSave.id
+        await postMasterData(apiWarehouse, warehouseToSave)
         await getWarehouse()
         MySwal.fire('Added!', 'Warehouse has been added.', 'success')
       }
@@ -271,7 +277,8 @@ const Warehouse = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = warehouse.map((item, index) => ({
         no: index + 1,
-        warehouse: item.warehouseName,
+        warehouseCode: item.warehouseCode,
+        warehouseName: item.warehouseName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -290,7 +297,7 @@ const Warehouse = () => {
       })
 
       // Panggil fungsi untuk menyimpan file Excel
-      saveAsExcelFile(excelBuffer, 'master_data_category')
+      saveAsExcelFile(excelBuffer, 'master_data_warehouse')
     })
   }
 
@@ -304,7 +311,7 @@ const Warehouse = () => {
           type: EXCEL_TYPE,
         })
 
-        if (fileName === 'template_master_data_category') {
+        if (fileName === 'template_master_data_warehouse') {
           module.default.saveAs(
             data,
             fileName + '_download_' + new Date().getTime() + EXCEL_EXTENSION,
@@ -431,10 +438,26 @@ const Warehouse = () => {
               {/* Form Warehouse */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
                 <label className="mb-2 required-label" htmlFor="warehouse">
-                  Warehouse <span>*</span>
+                  Warehouse Code {!isEdit && <span>*</span>}
                 </label>
                 <CFormInput
                   id="warehouse"
+                  value={currentWarehouse.warehouseCode}
+                  onChange={(e) =>
+                    setCurrentWarehouse({
+                      ...currentWarehouse,
+                      warehouseCode: e.target.value,
+                    })
+                  }
+                  disabled={isEdit}
+                />
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="warehouseName">
+                  Warehouse Name <span>*</span>
+                </label>
+                <CFormInput
+                  id="warehouseName"
                   value={currentWarehouse.warehouseName}
                   onChange={(e) =>
                     setCurrentWarehouse({
