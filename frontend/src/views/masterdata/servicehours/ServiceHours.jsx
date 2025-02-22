@@ -30,6 +30,7 @@ import useMasterDataService from '../../../services/MasterDataService'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { format, parseISO } from 'date-fns'
+import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/flatpickr.min.css'
 import Select from 'react-select'
 
@@ -49,6 +50,7 @@ const ServiceHours = () => {
   const [loading, setLoading] = useState(true)
   const [visibleColumns, setVisibleColumns] = useState([])
   const [warehouseOptions, setWarehouseOptions] = useState([])
+  const [shiftOptions, setShiftOptions] = useState([])
 
   const { getMasterData, deleteMasterDataById, updateMasterDataById, postMasterData } =
     useMasterDataService()
@@ -57,13 +59,15 @@ const ServiceHours = () => {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   })
 
-  const apiServiceHours = 'serviceHours'
-  const apiServiceHoursDelete = 'serviceHours-delete'
+  const apiServiceHours = 'service-hours'
+  const apiServiceHoursDelete = 'service-hours-delete'
   const apiWarehouse = 'warehouse'
+  const apiShift = 'shift'
 
   useEffect(() => {
     getServiceHours()
     getWarehouse()
+    getShift()
     setLoading(false)
   }, [])
 
@@ -138,13 +142,26 @@ const ServiceHours = () => {
     }
   }
 
+  const getShift = async () => {
+    try {
+      const response = await getMasterData(apiShift)
+      const shiftOptions = response.data.map((shift) => ({
+        label: shift.shiftName,
+        value: shift.id,
+      }))
+      setShiftOptions(shiftOptions)
+    } catch (error) {
+      console.error('Error fetching shift:', error)
+    }
+  }
+
   const handleAddServiceHours = () => {
     setIsEdit(false)
     setCurrentServiceHours({
-       id: '',
-    warehouseId: '',
-    shiftId: '',
-    time: '',
+      id: '',
+      warehouseId: '',
+      shiftId: '',
+      time: '',
     })
     setModal(true)
   }
@@ -170,12 +187,15 @@ const ServiceHours = () => {
     const selectedWarehouse = warehouseOptions.find(
       (option) => option.value === serviceHours.warehouseId,
     )
+
+    const selectedShift = shiftOptions.find((option) => option.value === serviceHours.shiftId)
+
     setIsEdit(true)
     setCurrentServiceHours({
-      id: '',
-    warehouseId: '',
-    shiftId: '',
-    time: '',
+      id: serviceHours.id,
+      warehouseId: selectedWarehouse || '',
+      shiftId: selectedShift || '',
+      time: serviceHours.time,
     })
     setModal(true)
   }
@@ -208,9 +228,9 @@ const ServiceHours = () => {
 
   const validateServiceHours = (serviceHours) => {
     const requiredFields = [
-      { field: 'serviceHoursCode', message: 'ServiceHours Code is required' },
-      { field: 'serviceHoursName', message: 'ServiceHours is required' },
       { field: 'warehouseId', message: 'Warehouse is required' },
+      { field: 'shiftId', message: 'Shift is required' },
+      { field: 'time', message: 'Time is required' },
     ]
 
     for (const { field, message } of requiredFields) {
@@ -231,12 +251,14 @@ const ServiceHours = () => {
 
     try {
       const serviceHoursToSave = { ...currentServiceHours }
-
+      console.log('serviceHoursToSave', serviceHoursToSave)
+      const formattedTime = format(serviceHoursToSave.time[0], 'HH:mm')
       if (isEdit) {
-        await updateMasterDataById(apiServiceHours, currentServiceHours.id, {
+        await updateMasterDataById(apiServiceHours, serviceHoursToSave.id, {
           ...serviceHoursToSave,
           warehouseId: serviceHoursToSave.warehouseId.value,
-          serviceHoursName: serviceHoursToSave.serviceHoursName,
+          shiftId: serviceHoursToSave.shiftId.value,
+          time: formattedTime,
         })
         await getServiceHours()
         MySwal.fire('Updated!', 'ServiceHours has been updated.', 'success')
@@ -245,8 +267,8 @@ const ServiceHours = () => {
         await postMasterData(apiServiceHours, {
           ...serviceHoursToSave,
           warehouseId: serviceHoursToSave.warehouseId.value,
-          serviceHoursName: serviceHoursToSave.serviceHoursName,
-          serviceHoursCode: serviceHoursToSave.serviceHoursCode,
+          shiftId: serviceHoursToSave.shiftId.value,
+          time: formattedTime,
         })
         await getServiceHours()
         MySwal.fire('Added!', 'ServiceHours has been added.', 'success')
@@ -310,9 +332,9 @@ const ServiceHours = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = serviceHours.map((item, index) => ({
         no: index + 1,
-        serviceHoursCode: item.serviceHoursCode,
-        serviceHoursName: item.serviceHoursName,
-        warehouseName: item.Warehouse.warehouseName,
+        warehouse: item.Warehouse.warehouseName,
+        shift: item.Shift.shiftName,
+        time: item.time,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
@@ -371,7 +393,7 @@ const ServiceHours = () => {
     <CRow>
       <CCol>
         <CCard className="mb-4">
-          <CCardHeader>Master Data ServiceHours</CCardHeader>
+          <CCardHeader>Master Data Service Hours</CCardHeader>
           <CCardBody>
             {loading ? (
               <LoadingComponent />
@@ -426,25 +448,20 @@ const ServiceHours = () => {
                     sortable
                   />
                   <Column
-                    header="ServiceHours Code"
-                    field="serviceHoursCode"
+                    header="Warehouse"
+                    field="Warehouse.warehouseName"
                     style={{ width: '25%' }}
                     frozen
                     alignFrozen="left"
                     sortable
                   />
                   <Column
-                    field="serviceHoursName"
-                    header="ServiceHours Name"
+                    field="Shift.shiftName"
+                    header="Shift"
                     style={{ width: '25%' }}
                     sortable
                   />
-                  <Column
-                    field="Warehouse.warehouseName"
-                    header="Warehouse Name"
-                    style={{ width: '25%' }}
-                    sortable
-                  />
+                  <Column field="time" header="Time" style={{ width: '25%' }} sortable />
                   {visibleColumns.map((col, index) => (
                     <Column
                       key={index}
@@ -466,51 +483,20 @@ const ServiceHours = () => {
 
       <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
         <CModalHeader onClose={() => setModal(false)}>
-          <CModalTitle>{isEdit ? 'Edit ServiceHours' : 'Add ServiceHours'}</CModalTitle>
+          <CModalTitle>{isEdit ? 'Edit Service Hours' : 'Add Service Hours'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm>
             <CRow>
               {/* Section: Informasi ServiceHours */}
               <CCol xs={12}>
-                <h5>ServiceHours Information</h5>
+                <h5>Service Hours Information</h5>
               </CCol>
               {/* Form ServiceHours */}
               <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="serviceHoursCode">
-                  ServiceHours Code {!isEdit && <span>*</span>}
-                </label>
-                <CFormInput
-                  id="serviceHoursCode"
-                  value={currentServiceHours.serviceHoursCode}
-                  onChange={(e) =>
-                    setCurrentServiceHours({
-                      ...currentServiceHours,
-                      serviceHoursCode: e.target.value,
-                    })
-                  }
-                  disabled={isEdit}
-                />
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
-                <label className="mb-2 required-label" htmlFor="serviceHoursName">
-                  ServiceHours Name <span>*</span>
-                </label>
-                <CFormInput
-                  id="serviceHoursName"
-                  value={currentServiceHours.serviceHoursName}
-                  onChange={(e) =>
-                    setCurrentServiceHours({
-                      ...currentServiceHours,
-                      serviceHoursName: e.target.value,
-                    })
-                  }
-                />
-              </CCol>
-              <CCol xs={12} md={12} lg={6} className="mb-3">
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="warehouseId">
-                    Warehouse Name <span>*</span>
+                    Warehouse <span>*</span>
                   </label>
                   <Select
                     value={currentServiceHours.warehouseId}
@@ -525,6 +511,45 @@ const ServiceHours = () => {
                     styles={customStyles}
                   />
                 </div>
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <div className="form-group">
+                  <label className="mb-2 required-label" htmlFor="shiftId">
+                    Shift <span>*</span>
+                  </label>
+                  <Select
+                    value={currentServiceHours.shiftId}
+                    options={shiftOptions}
+                    className="basic-single"
+                    classNamePrefix="select"
+                    isClearable={true}
+                    id="shiftId"
+                    onChange={(e) => setCurrentServiceHours({ ...currentServiceHours, shiftId: e })}
+                    styles={customStyles}
+                  />
+                </div>
+              </CCol>
+              <CCol xs={12} md={12} lg={6} className="mb-3">
+                <label className="mb-2 required-label" htmlFor="time">
+                  Time <span>*</span>
+                </label>
+                <Flatpickr
+                  value={currentServiceHours.time}
+                  options={{
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: 'H:i',
+                  }}
+                  onChange={(e) => setCurrentServiceHours({ ...currentServiceHours, time: e })}
+                  className="form-control mb-2"
+                  placeholder="Select a time"
+                  style={{
+                    width: '100%',
+                    borderRadius: '5px',
+                    border: '1px solid #a5acb3',
+                    height: '38px',
+                  }}
+                />
               </CCol>
             </CRow>
           </CForm>

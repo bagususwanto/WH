@@ -1,12 +1,26 @@
 import LogMaster from "../models/LogMasterModel.js";
 import ServiceHours from "../models/ServiceHoursModel.js";
+import Shift from "../models/ShiftModel.js";
 import User from "../models/UserModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const getServiceHours = async (req, res) => {
   try {
     const response = await ServiceHours.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: Warehouse,
+          required: true,
+          attributes: ["id", "warehouseName"],
+          where: { flag: 1 },
+        },
+        {
+          model: Shift,
+          required: true,
+          attributes: ["id", "shiftName"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,
@@ -87,6 +101,7 @@ export const createServiceHours = async (req, res) => {
       where: {
         shiftId: shiftId,
         warehouseId: warehouseId,
+        time: time,
         flag: 1,
       },
     });
@@ -106,12 +121,13 @@ export const createServiceHours = async (req, res) => {
 export const updateServiceHours = async (req, res) => {
   try {
     const { id } = req.params;
-    const { shiftId, warehouseId } = req.body;
+    const { shiftId, warehouseId, time } = req.body;
 
     const existingServiceHours = await ServiceHours.findOne({
       where: {
         shiftId: shiftId,
         warehouseId: warehouseId,
+        time: time,
         flag: 1,
       },
     });
