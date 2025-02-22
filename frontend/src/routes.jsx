@@ -26,6 +26,7 @@ const Compare = React.lazy(() => import('./views/dashboard/SohCompare'))
 const Packaging = React.lazy(() => import('./views/masterdata/packaging/Packaging'))
 const Organization = React.lazy(() => import('./views/masterdata/organization/Organization'))
 const Division = React.lazy(() => import('./views/masterdata/division/Division'))
+const Department = React.lazy(() => import('./views/masterdata/department/Department'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -54,6 +55,7 @@ const routes = [
   { path: '/history-request', name: 'History Request', element: HistoryRequest },
   { path: '/organization', name: 'Master / Organization', element: Organization },
   { path: '/division', name: 'Master / Division', element: Division },
+  { path: '/department', name: 'Master / Department', element: Department },
 ]
 
 export default routes
