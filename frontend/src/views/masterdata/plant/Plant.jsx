@@ -167,12 +167,13 @@ const Plant = () => {
   )
 
   const handleEditPlant = (plant) => {
+    const selectedWarehouse = warehouseOptions.find((option) => option.value === plant.warehouseId)
     setIsEdit(true)
     setCurrentPlant({
-      id: '',
-      plantCode: '',
-      plantName: '',
-      warehouseId: '',
+      id: plant.id,
+      plantCode: plant.plantCode,
+      plantName: plant.plantName,
+      warehouseId: selectedWarehouse || '',
     })
     setModal(true)
   }
@@ -228,7 +229,7 @@ const Plant = () => {
 
     try {
       const plantToSave = { ...currentPlant }
-      console.log('plantToSave', plantToSave)
+
       if (isEdit) {
         await updateMasterDataById(apiPlant, currentPlant.id, {
           ...plantToSave,
@@ -307,7 +308,9 @@ const Plant = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = plant.map((item, index) => ({
         no: index + 1,
-        plant: item.plantName,
+        plantCode: item.plantCode,
+        plantName: item.plantName,
+        warehouseName: item.Warehouse.warehouseName,
         createdAt: item.formattedCreatedAt,
         updatedAt: item.formattedUpdatedAt,
         createdBy: item.createdBy,
