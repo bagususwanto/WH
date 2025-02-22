@@ -1,12 +1,19 @@
 import LogMaster from "../models/LogMasterModel.js";
 import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const getPlant = async (req, res) => {
   try {
     const response = await Plant.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: Warehouse,
+          required: true,
+          attributes: ["id", "warehouseName"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,

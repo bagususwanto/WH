@@ -1,14 +1,28 @@
+import GIC from "../models/GICModel.js";
 import LogMaster from "../models/LogMasterModel.js";
 import Organization from "../models/OrganizationModel.js";
 import Plant from "../models/PlantModel.js";
 import Section from "../models/SectionModel.js";
 import User from "../models/UserModel.js";
+import WBS from "../models/WBSModel.js";
 
 export const getSection = async (req, res) => {
   try {
     const response = await Section.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: GIC,
+          required: true,
+          attributes: ["id", "gicNumber"],
+          where: { flag: 1 },
+        },
+        {
+          model: WBS,
+          required: true,
+          attributes: ["id", "wbsNumber"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,
