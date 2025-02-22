@@ -255,7 +255,7 @@ const Wbs = () => {
     setGlobalFilterValue(value)
   }
   
-  const filteredSections = useMemo(() => {
+  const filteredWbs = useMemo(() => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
     return wbs.filter((item) => {
       return [
@@ -392,7 +392,7 @@ const Wbs = () => {
                   </CCol>
                 </CRow>
                 <DataTable
-                  value={filteredSections}
+                  value={filteredWbs}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
