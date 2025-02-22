@@ -151,8 +151,8 @@ const Section = () => {
         const formattedUpdatedAt = item.updatedAt
           ? format(parseISO(item.updatedAt), 'yyyy-MM-dd HH:mm:ss')
           : ''
-        const createdBy = item.createdBy?.[0]?.Organization?.username
-        const updatedBy = item.updatedBy?.[0]?.Organization?.username
+        const createdBy = item.createdBy?.[0]?.User?.username
+        const updatedBy = item.updatedBy?.[0]?.User?.username
         return {
           ...item,
           formattedCreatedAt,
