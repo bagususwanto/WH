@@ -1262,38 +1262,30 @@ export const uploadDeliveryNote = async (req, res) => {
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
     const sheetName = "DNInquiry";
-
-    // Read the Excel file
     const workbook = XLSX.readFile(path);
     const sheet = workbook.Sheets[sheetName];
-
     if (!sheet) {
       return res
         .status(400)
-        .send({ message: `Sheet "${sheetName}" not found!` });
+        .send({ message: `Sheet \"${sheetName}\" not found!` });
     }
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
     if (rows.length <= 1) {
       return res.status(400).send({ message: "No data found in the sheet!" });
     }
-
     const header = rows.shift();
-
     if (rows.length > 5000) {
       return res
         .status(400)
         .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
     }
-
     if (!validateHeaderDN(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
     transaction = await db.transaction();
 
-    // Create a log for this batch import
     const logImportDN = await LogImport.create(
       {
         typeLog: "delivery note",
@@ -1314,7 +1306,6 @@ export const uploadDeliveryNote = async (req, res) => {
       { transaction }
     );
 
-    // Pre-fetch necessary data
     const [
       existingMaterials,
       existingInventories,
@@ -1330,27 +1321,24 @@ export const uploadDeliveryNote = async (req, res) => {
     const materialMap = new Map(
       existingMaterials.map((mat) => [mat.materialNo, mat.id])
     );
-
     const inventoryMap = new Map(
       existingInventories.map((inv) => [inv.materialId, inv.id])
     );
-
     const deliveryNoteMap = new Map(
-      existingDeliveryNotes.map((del) => [del.dnNumber, del.id])
+      existingDeliveryNotes.map((del) => [del.dnNumber, del])
     );
-
     const supplierMap = new Map(
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
 
     const newIncomings = [];
-    const newDeliveryNotes = [];
+    const updateDeliveryNotes = [];
+    const updatedIncomings = [];
     const validationErrors = [];
-    const processedDNNumbers = new Set();
 
     for (const row of rows) {
       try {
-        const dnNumber = Number(row[1]);
+        const dnNumber = row[1];
         const deliveryDate = row[4];
         const materialNo = row[9];
         const planning = Number(row[11]?.toString().replace(/,/g, ""));
@@ -1370,19 +1358,26 @@ export const uploadDeliveryNote = async (req, res) => {
         const inventoryId = inventoryMap.get(materialId);
         const existingSupplier = supplierMap.get(supplierCode);
         const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+        const existingIncoming = inventoryId
+          ? await Incoming.findOne({
+              where: {
+                inventoryId,
+                incomingDate: deliveryDate,
+              },
+              attributes: ["id"],
+            })
+          : null;
 
         if (!materialId) {
           validationErrors.push({ error: `Material not found: ${materialNo}` });
           continue;
         }
-
         if (!inventoryId) {
           validationErrors.push({
             error: `Inventory not found for material: ${materialNo}`,
           });
           continue;
         }
-
         if (!existingSupplier) {
           validationErrors.push({
             error: `Supplier not found: ${supplierCode}`,
@@ -1391,89 +1386,80 @@ export const uploadDeliveryNote = async (req, res) => {
         }
 
         if (existingDeliveryNote) {
-          validationErrors.push({
-            error: `Delivery Note already exists: ${dnNumber}`,
+          updateDeliveryNotes.push({
+            id: existingDeliveryNote.id,
+            arrivalPlanDate: deliveryDate,
+            departurePlanDate: deliveryDate,
+            supplierId: existingSupplier,
           });
-          continue;
-        }
 
-        const incomingData = {
-          inventoryId,
-          planning,
-          incomingDate: deliveryDate,
-          status: "not complete",
-          dnNumber,
-          deliveryNoteId: null,
-          logImportId: logImportIncoming.id,
-        };
+          updatedIncomings.push({
+            id: existingIncoming.id,
+            inventoryId,
+            planning,
+            incomingDate: deliveryDate,
+            deliveryNoteId: existingDeliveryNote.id,
+            logImportId: logImportIncoming.id,
+          });
+        } else {
+          const newDeliveryNote = await DeliveryNote.create(
+            {
+              dnNumber,
+              arrivalPlanDate: deliveryDate,
+              departurePlanDate: deliveryDate,
+              supplierId: existingSupplier,
+              status: "scheduled",
+              logImportId: logImportDN.id,
+            },
+            { transaction }
+          );
 
-        const deliveryNoteData = {
-          dnNumber,
-          arrivalPlanDate: deliveryDate,
-          departurePlanDate: deliveryDate,
-          supplierId: existingSupplier,
-          status: "scheduled",
-          logImportId: logImportDN.id,
-        };
-
-        if (processedDNNumbers.has(dnNumber)) {
-          newIncomings.push(incomingData);
-        }
-
-        if (
-          materialId &&
-          inventoryId &&
-          existingSupplier &&
-          !existingDeliveryNote &&
-          !processedDNNumbers.has(dnNumber)
-        ) {
-          newIncomings.push(incomingData);
-          newDeliveryNotes.push(deliveryNoteData);
-          processedDNNumbers.add(dnNumber);
+          newIncomings.push({
+            inventoryId,
+            planning,
+            incomingDate: deliveryDate,
+            status: "not complete",
+            dnNumber,
+            deliveryNoteId: newDeliveryNote.id,
+            logImportId: logImportIncoming.id,
+          });
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
       }
     }
 
-    // Bulk insert new Delivery Notes
-    if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
-      const createdDeliveryNotes = await DeliveryNote.bulkCreate(
-        newDeliveryNotes,
-        {
+    if (updateDeliveryNotes.length > 0) {
+      for (const updateData of updateDeliveryNotes) {
+        await DeliveryNote.update(updateData, {
+          where: { id: updateData.id },
           transaction,
-          returning: true, // Mengembalikan data hasil insert
-        }
-      );
+        });
+      }
+    }
 
-      // Map DN Number ke ID untuk lookup cepat
-      const createdDNMap = new Map(
-        createdDeliveryNotes.map((dn) => [dn.dnNumber, dn.id])
-      );
+    if (updatedIncomings.length > 0) {
+      for (const updateData of updatedIncomings) {
+        await Incoming.update(updateData, {
+          where: { id: updateData.id },
+          transaction,
+        });
+      }
+    }
 
-      // Update Incoming Data dengan deliveryNoteId menggunakan createdDNMap
-      newIncomings.forEach((incoming) => {
-        const deliveryNoteId = createdDNMap.get(incoming.dnNumber);
-        if (deliveryNoteId) {
-          incoming.deliveryNoteId = deliveryNoteId;
-        }
-      });
-
-      // Bulk insert new Incoming
+    if (newIncomings.length > 0) {
       await Incoming.bulkCreate(newIncomings, { transaction });
     }
 
     await transaction.commit();
-
     res.status(200).send({
-      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      message: `Uploaded successfully: ${req.file.originalname}`,
       errors: validationErrors.length > 0 ? validationErrors : "",
     });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error(error);
     res.status(500).send({
-      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+      message: `Could not upload: ${req.file?.originalname}. ${error}`,
     });
   }
 };
