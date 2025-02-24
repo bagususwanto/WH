@@ -421,6 +421,11 @@ export const getDeliveryNoteByDate = async (req, res) => {
       where: whereConditionDn,
       include: [
         {
+          model: Supplier,
+          required: true,
+          attributes: ["id", "supplierName", "supplierCode"],
+        },
+        {
           model: Incoming,
           required: true,
           attributes: ["id", "planning", "actual", "status"],
@@ -469,6 +474,7 @@ export const getDeliveryNoteByDate = async (req, res) => {
     const mappedData = data.flatMap((item) =>
       item.Incomings.map((incoming) => ({
         dnNumber: item.dnNumber,
+        supplierName: item.Supplier.supplierName,
         arrivalPlanDate: item.arrivalPlanDate,
         materialNo: incoming.Inventory.Material.materialNo,
         description: incoming.Inventory.Material.description,
