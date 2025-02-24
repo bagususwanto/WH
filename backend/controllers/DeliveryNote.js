@@ -653,11 +653,11 @@ export const getDnInquiry = async (req, res) => {
             status: incoming.status,
             viewOnly:
               incoming.status === "completed" && incoming.incomingDate !== today
-                ? false
+                ? true
                 : !allowedStatus.includes(incoming.status) &&
                   incoming.status !== "completed"
-                ? false
-                : true,
+                ? true
+                : false,
           })),
         };
       });
