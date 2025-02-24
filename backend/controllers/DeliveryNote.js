@@ -611,6 +611,9 @@ export const getDnInquiry = async (req, res) => {
 
         const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
+        // Validasi status
+        const allowedStatus = ["partial", "not complete"];
+
         return {
           dnNumber: dn.dnNumber,
           supplierName: item.supplierName,
@@ -648,7 +651,13 @@ export const getDnInquiry = async (req, res) => {
             receivedQuantity: incoming.actual,
             remain: incoming.actual - incoming.planning,
             status: incoming.status,
-            viewOnly: today > incoming.incomingDate,
+            viewOnly:
+              incoming.status === "completed" && incoming.incomingDate !== today
+                ? false
+                : !allowedStatus.includes(incoming.status) &&
+                  incoming.status !== "completed"
+                ? false
+                : true,
           })),
         };
       });
