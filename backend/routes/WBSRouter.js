@@ -1,10 +1,17 @@
 import express from "express";
-import { getWBS, getWBSById, createWBS, updateWBS, deleteWBS } from "../controllers/WBS.js";
+import {
+  getWBS,
+  getWBSById,
+  createWBS,
+  updateWBS,
+  deleteWBS,
+} from "../controllers/WBS.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
 router.get("/wbs", checkRole(["super admin"]), getWBS);
+router.get("/wbs-public", getWBS);
 router.get("/wbs/:id", checkRole(["super admin"]), getWBSById);
 router.post("/wbs", checkRole(["super admin"]), createWBS);
 router.put("/wbs/:id", checkRole(["super admin"]), updateWBS);
