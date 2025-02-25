@@ -98,7 +98,6 @@ const Confirm = () => {
       setIsPickup(false)
     }
   }, [savedConfirmWarehouse])
-  console.log('initial', savedConfirmWarehouse)
 
   // Simpan perubahan Confirmwarehouse ke localStorage
   useEffect(() => {
@@ -234,9 +233,7 @@ const Confirm = () => {
           const data = {
             remarks: rejectionReason,
           }
-          console.log('warehouse', warehouse)
-          console.log('selectedProduct', selectedProduct)
-          console.log('dataaa', data)
+         
           const response = await rejectWarehouseConfirm(warehouse.id, selectedProduct.id, data)
           // Update Confirmapproval state by removing the deleted item
           const updatedDetailOrders = Confirmwarehouse.Detail_Orders.filter(

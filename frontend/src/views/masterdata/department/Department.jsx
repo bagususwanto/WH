@@ -103,7 +103,6 @@ const Department = () => {
   const getDepartments = async () => {
     try {
       const response = await getMasterData(apiDepartment)
-      console.log(response)
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
         ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
@@ -155,7 +154,6 @@ const Department = () => {
   )
 
   const handleEditDepartment = (department) => {
-    // console.log('division:', division)
     // const selectedPosition = positionOptions.find(
     //   (option) => option.value === organizations.position,
     // )

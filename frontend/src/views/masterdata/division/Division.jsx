@@ -175,7 +175,6 @@ const Division = () => {
   )
 
   const handleEditDivision = (division) => {
-    console.log('division:', division)
     // const selectedPosition = positionOptions.find(
     //   (option) => option.value === organizations.position,
     // )

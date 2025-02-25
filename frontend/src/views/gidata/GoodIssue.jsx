@@ -168,7 +168,6 @@ const GoodIssue = () => {
         sectionId ? sectionId : '',
         statusOrder ? statusOrder : '',
       )
-      console.log('response.data', response.data)
       // Transform data
       const dataWithDetailsExpanded = response.data.flatMap((item, parentIndex) =>
         item.Detail_Orders.map((detail, childIndex) => ({
@@ -190,7 +189,6 @@ const GoodIssue = () => {
           uom: detail.Inventory.Material.uom,
         })),
       )
-      console.log(dataWithDetailsExpanded)
 
       setGoodIssue(dataWithDetailsExpanded)
     } catch (error) {
@@ -294,7 +292,6 @@ const GoodIssue = () => {
 
   const applyFilters = () => {
     let filteredData = [...goodIssue]
-    console.log('goodIssue', goodIssue)
 
     if (filters['global'].value) {
       const globalFilterValue = filters['global'].value.toLowerCase()
@@ -317,7 +314,6 @@ const GoodIssue = () => {
     if (filters['status'].value) {
       filteredData = filteredData.filter((item) => item.status === filters['status'].value)
     }
-    console.log('filteredData', filteredData)
     setVisibleData(filteredData)
   }
 
@@ -431,7 +427,6 @@ const GoodIssue = () => {
       <p>Loading goodIssue data...</p>
     </div>
   )
-  console.log('visibleData', visibleData)
   return (
     <CRow>
       <CCol>

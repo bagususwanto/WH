@@ -90,7 +90,6 @@ const Address = () => {
     },
   })
 
-  console.log('filters', filters)
 
   const apiPlant = 'plant-public'
   const apiStorage = 'storage-plant'
@@ -167,7 +166,6 @@ const Address = () => {
   const getAddress = async () => {
     setLoading(true)
     try {
-      console.log('plantId', plantId)
       if (!plantId && !storageId) {
         setAddress([])
         setLoading(false)
@@ -581,7 +579,6 @@ const Address = () => {
   const handleStorageChange = (e) => {
     const selectedStorageId = e.value
     const selectedStorage = storage.find((s) => s.value === selectedStorageId) // Cari objek storage berdasarkan storageName
-    console.log('selectedStorage', selectedStorage)
     const storageId = selectedStorage?.value // Dapatkan storage.id
 
     setStorageId(storageId)

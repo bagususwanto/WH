@@ -156,7 +156,6 @@ const Redpost = () => {
         plantId ? plantId : '',
         sectionId ? sectionId : '',
       )
-      console.log('response.data', response.data)
       const dataWithFormattedFields = response.data.map((item) => {
         const date = format(parseISO(item.date), 'yyyy-MM-dd')
         const materialNo = item.Detail_Order.Inventory.Material.materialNo
@@ -282,7 +281,6 @@ const Redpost = () => {
 
   const applyFilters = () => {
     let filteredData = [...redpost]
-    console.log('redpost', redpost)
 
     if (filters['global'].value) {
       const globalFilterValue = filters['global'].value.toLowerCase()
@@ -305,7 +303,6 @@ const Redpost = () => {
     if (filters['status'].value) {
       filteredData = filteredData.filter((item) => item.status === filters['status'].value)
     }
-    console.log('filteredData', filteredData)
     setVisibleData(filteredData)
   }
 
@@ -418,7 +415,6 @@ const Redpost = () => {
       <p>Loading redpost data...</p>
     </div>
   )
-  console.log('visibleData', visibleData)
   return (
     <CRow>
       <CCol>

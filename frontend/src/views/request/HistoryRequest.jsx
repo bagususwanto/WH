@@ -311,7 +311,6 @@ const ApprovalRequest = () => {
                         key={page}
                         active={currentPage === page}
                         onClick={() => {
-                          console.log("page:", page)
                           setCurrentPage(page)
                         }}
                       >
@@ -322,7 +321,6 @@ const ApprovalRequest = () => {
                     <CPaginationItem
                       disabled={currentPage === totalPages}
                       onClick={() => {
-                        console.log("currentPage in pagination:", currentPage)
                         setCurrentPage(currentPage + 1)
                       }}
                     >

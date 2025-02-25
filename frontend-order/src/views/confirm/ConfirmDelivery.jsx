@@ -131,7 +131,6 @@ const ApproveAll = () => {
       setIsPickup(false)
     }
   }, [savedConfirmWarehouse])
-  console.log('initial', savedConfirmWarehouse)
 
   // Simpan perubahan Confirmwarehouse ke localStorage
   useEffect(() => {
@@ -205,8 +204,6 @@ const ApproveAll = () => {
       }
     })
   }
-  console.log('confirm', Confirmwarehouse)
-  console.log('saved', savedConfirmWarehouse)
   const toggleSelectItem = (index) => {
     setSelectedItems((prev) => ({
       ...prev,

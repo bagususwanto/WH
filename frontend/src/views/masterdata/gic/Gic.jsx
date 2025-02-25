@@ -107,7 +107,6 @@ const GIC = () => {
   const getCostCenter = async() => {
     try {
         const response = await getMasterData(apiCostCenter)
-      //   console.log("response wbs:", response)
         const ccOption = response.data.map((cc) => ({
           label: `${cc.costCenter} - ${cc.costCenterName}`,
           value: `${cc.costCenter} - ${cc.costCenterName}`,
@@ -122,7 +121,6 @@ const GIC = () => {
   const getGics = async () => {
     try {
       const response = await getMasterData(apiGic)
-      console.log(response)
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
         ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
@@ -185,7 +183,6 @@ const GIC = () => {
   )
 
   const handleEditGic = (gic) => {
-    console.log('division:', gic)
     const selectedCC = costCenterOptions.find((option) => option.id === gic.costCenterId) || ""
 
     setIsEdit(true)

@@ -137,7 +137,6 @@ const ConfirmApp = () => {
       setIsPickup(false)
     }
   }, [initialConfirmApproval])
-  console.log('initial', initialConfirmApproval)
 
   // This is where currentProducts is initialized
   const indexOfLastItem = currentPage * itemsPerPage

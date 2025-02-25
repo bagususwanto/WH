@@ -112,7 +112,6 @@ const Section = () => {
   const getWbs = async () => {
     try {
       const response = await getMasterData(apiWbs)
-    //   console.log("response wbs:", response)
       const wbsOption = response.data.map((wbs) => ({
         label: wbs.wbsNumber,
         value: wbs.wbsNumber,
@@ -127,7 +126,6 @@ const Section = () => {
   const getGic = async () => {
     try {
       const response = await getMasterData(apiGic)
-    //   console.log("response gic:", response)
       const gicOption = response.data.map((gic) => ({
         label: gic.gicNumber,
         value: gic.gicNumber,
@@ -143,7 +141,6 @@ const Section = () => {
     setLoading(true)
     try {
       const response = await getMasterData(apiSection)
-      console.log("response section:", response)
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
           ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')
@@ -258,7 +255,6 @@ const Section = () => {
   }
 
   const handleSaveSection = async () => {
-    console.log("body save: ", currentSection)
     setLoading(true)
 
     if (!validateSection(currentSection)) {
@@ -604,7 +600,6 @@ const Section = () => {
                     isClearable={isClearable}
                     id="gic"
                     onChange={(e) => {
-                        console.log('selected e:', e)
                         setCurrentSection({ ...currentSection, gicId: e })
                     }}
                     styles={customStyles}

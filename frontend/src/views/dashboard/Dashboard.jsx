@@ -138,7 +138,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log('Fetching data every 10 seconds...');
       
       fetchInventoryCriticalStock(itemNb, order, selectedPlant.value);
     }, 10000);
@@ -188,7 +187,6 @@ const Dashboard = () => {
           const createdAt = item.Log_Entries?.[0]?.createdAt
             ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss') // Format incomingDate
             : ''
-          console.log('apa', createdAt)
           return {
             ...item,
             incomingDate,
@@ -198,7 +196,6 @@ const Dashboard = () => {
             createdAt,
           }
         })
-        console.log('data', dataWithFormattedFields)
 
         setInventoriesCritical(dataWithFormattedFields)
       } else {
@@ -782,7 +779,6 @@ const Dashboard = () => {
     setLoadingSave(true)
 
     try {
-      console.log('Saving data:', editData)
 
       // Validasi plantId
       const plantId = editData?.plantId
@@ -807,7 +803,6 @@ const Dashboard = () => {
       setModalDashboard(false)
     } catch (error) {
       console.error('Error saving data:', error)
-      alert('Failed to save data.')
     } finally {
       setLoadingSave(false)
 
@@ -821,7 +816,6 @@ const Dashboard = () => {
     setLoadingSave(true)
 
     try {
-      console.log('Saving data:', editData)
 
       // Validasi plantId
       const plantId = editData?.plantId
@@ -840,7 +834,6 @@ const Dashboard = () => {
       }
 
 
- console.log('Update data Actual:', editData.actual);
  
       await updateIncoming(incomingId,warehouseId, {
         actual: editData.actual,
@@ -851,7 +844,6 @@ const Dashboard = () => {
       setModalActual(false)
     } catch (error) {
       console.error('Error saving data:', error)
-      alert('Failed to save data.')
     } finally {
       setLoadingSave(false)
 

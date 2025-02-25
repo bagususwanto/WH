@@ -105,7 +105,6 @@ const Wbs = () => {
     setLoading(true)
     try {
       const response = await getMasterData(apiWbs)
-      console.log("response section:", response)
       const dataWithFormattedFields = response.data.map((item) => {
         const formattedCreatedAt = item.createdAt
           ? format(parseISO(item.createdAt), 'yyyy-MM-dd HH:mm:ss')

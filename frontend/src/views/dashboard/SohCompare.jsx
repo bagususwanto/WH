@@ -98,21 +98,14 @@ const Inventory = () => {
     const selectedStorageId = storageId || "";
     const selectedTypeId = "direct"; // Biarkan kosong jika tidak dipilih
   
-    console.log("Fetching inventory with:", { 
-      plantId: selectedPlantId, 
-      storageId: selectedStorageId, 
-      type: selectedTypeId 
-    });
   
     try {
       const response = await getInventory(selectedPlantId, selectedStorageId, selectedTypeId);
       
       if (response?.data) {
-        console.log("Fetched Inventory Data:", response.data);
         setInventory(response.data);
         setVisibleData(response.data); // Set data yang terlihat di tabel
       } else {
-        console.warn("No data received from API.");
         setInventory([]);
         setVisibleData([]);
       }

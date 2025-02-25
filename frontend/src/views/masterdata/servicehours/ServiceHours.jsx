@@ -251,7 +251,6 @@ const ServiceHours = () => {
 
     try {
       const serviceHoursToSave = { ...currentServiceHours }
-      console.log('serviceHoursToSave', serviceHoursToSave)
       const formattedTime = format(serviceHoursToSave.time[0], 'HH:mm')
       if (isEdit) {
         await updateMasterDataById(apiServiceHours, serviceHoursToSave.id, {

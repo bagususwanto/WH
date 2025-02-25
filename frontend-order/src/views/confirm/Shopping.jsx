@@ -300,7 +300,6 @@ const Shopping = () => {
   }, [modalConfirm]) // Atur setiap kali modalConfirm berubah
 
   const handleModalCart = (product) => {
-    console.log('adagak?', product)
     setSelectedProduct(product)
     setModalConfirm(true) // Tampilkan modal
   }
