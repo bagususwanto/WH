@@ -76,11 +76,11 @@ Incoming.belongsTo(Inventory, {
 
 DeliveryNote.hasMany(Incoming, {
   foreignKey: "deliveryNoteId",
-  onDelete: "NO ACTION",
+  onDelete: "CASCADE",
 });
 Incoming.belongsTo(DeliveryNote, {
   foreignKey: "deliveryNoteId",
-  onDelete: "NO ACTION",
+  onDelete: "CASCADE",
 });
 
 export default Incoming;

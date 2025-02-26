@@ -38,7 +38,13 @@ const IncomingHistory = db.define(
   }
 );
 
-Incoming.hasMany(IncomingHistory, { foreignKey: "incomingId" });
-IncomingHistory.belongsTo(Incoming, { foreignKey: "incomingId" });
+Incoming.hasMany(IncomingHistory, {
+  foreignKey: "incomingId",
+  onDelete: "CASCADE",
+});
+IncomingHistory.belongsTo(Incoming, {
+  foreignKey: "incomingId",
+  onDelete: "CASCADE",
+});
 
 export default IncomingHistory;

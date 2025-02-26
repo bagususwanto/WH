@@ -1306,26 +1306,18 @@ export const uploadDeliveryNote = async (req, res) => {
       { transaction }
     );
 
-    const [
-      existingMaterials,
-      existingInventories,
-      existingDeliveryNotes,
-      existingSuppliers,
-    ] = await Promise.all([
-      Material.findAll({ where: { flag: 1 } }),
-      Inventory.findAll(),
-      DeliveryNote.findAll(),
-      Supplier.findAll({ where: { flag: 1 } }),
-    ]);
+    const [existingMaterials, existingInventories, existingSuppliers] =
+      await Promise.all([
+        Material.findAll({ where: { flag: 1 } }),
+        Inventory.findAll(),
+        Supplier.findAll({ where: { flag: 1 } }),
+      ]);
 
     const materialMap = new Map(
       existingMaterials.map((mat) => [mat.materialNo, mat.id])
     );
     const inventoryMap = new Map(
       existingInventories.map((inv) => [inv.materialId, inv.id])
-    );
-    const deliveryNoteMap = new Map(
-      existingDeliveryNotes.map((del) => [del.dnNumber, del])
     );
     const supplierMap = new Map(
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
@@ -1357,7 +1349,12 @@ export const uploadDeliveryNote = async (req, res) => {
         const materialId = materialMap.get(materialNo);
         const inventoryId = inventoryMap.get(materialId);
         const existingSupplier = supplierMap.get(supplierCode);
-        const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+        const existingDeliveryNote = DeliveryNote.findOne({
+          where: {
+            dnNumber,
+            deliveryDate,
+          },
+        });
         const existingIncoming = inventoryId
           ? await Incoming.findOne({
               where: {
@@ -1385,6 +1382,7 @@ export const uploadDeliveryNote = async (req, res) => {
           continue;
         }
 
+        let newDeliveryNote;
         if (existingDeliveryNote) {
           updateDeliveryNotes.push({
             id: existingDeliveryNote.id,
@@ -1392,17 +1390,8 @@ export const uploadDeliveryNote = async (req, res) => {
             departurePlanDate: deliveryDate,
             supplierId: existingSupplier,
           });
-
-          updatedIncomings.push({
-            id: existingIncoming.id,
-            inventoryId,
-            planning,
-            incomingDate: deliveryDate,
-            deliveryNoteId: existingDeliveryNote.id,
-            logImportId: logImportIncoming.id,
-          });
         } else {
-          const newDeliveryNote = await DeliveryNote.create(
+          newDeliveryNote = await DeliveryNote.create(
             {
               dnNumber,
               arrivalPlanDate: deliveryDate,
@@ -1413,7 +1402,18 @@ export const uploadDeliveryNote = async (req, res) => {
             },
             { transaction }
           );
+        }
 
+        if (existingIncoming) {
+          updatedIncomings.push({
+            id: existingIncoming.id,
+            inventoryId,
+            planning,
+            incomingDate: deliveryDate,
+            deliveryNoteId: existingDeliveryNote.id,
+            logImportId: logImportIncoming.id,
+          });
+        } else {
           newIncomings.push({
             inventoryId,
             planning,
