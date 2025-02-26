@@ -1264,6 +1264,7 @@ export const uploadDeliveryNote = async (req, res) => {
     const sheetName = "DNInquiry";
     const workbook = XLSX.readFile(path);
     const sheet = workbook.Sheets[sheetName];
+
     if (!sheet) {
       return res
         .status(400)
@@ -1274,12 +1275,8 @@ export const uploadDeliveryNote = async (req, res) => {
     if (rows.length <= 1) {
       return res.status(400).send({ message: "No data found in the sheet!" });
     }
+
     const header = rows.shift();
-    if (rows.length > 5000) {
-      return res
-        .status(400)
-        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
-    }
     if (!validateHeaderDN(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
@@ -1323,8 +1320,12 @@ export const uploadDeliveryNote = async (req, res) => {
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
 
+    const deliveryNoteMap = new Map();
+    const incomingMap = new Map();
+
+    const newDeliveryNotes = [];
+    const updatedDeliveryNotes = [];
     const newIncomings = [];
-    const updateDeliveryNotes = [];
     const updatedIncomings = [];
     const validationErrors = [];
 
@@ -1348,22 +1349,7 @@ export const uploadDeliveryNote = async (req, res) => {
 
         const materialId = materialMap.get(materialNo);
         const inventoryId = inventoryMap.get(materialId);
-        const existingSupplier = supplierMap.get(supplierCode);
-        const existingDeliveryNote = DeliveryNote.findOne({
-          where: {
-            dnNumber,
-            deliveryDate,
-          },
-        });
-        const existingIncoming = inventoryId
-          ? await Incoming.findOne({
-              where: {
-                inventoryId,
-                incomingDate: deliveryDate,
-              },
-              attributes: ["id"],
-            })
-          : null;
+        const supplierId = supplierMap.get(supplierCode);
 
         if (!materialId) {
           validationErrors.push({ error: `Material not found: ${materialNo}` });
@@ -1375,42 +1361,68 @@ export const uploadDeliveryNote = async (req, res) => {
           });
           continue;
         }
-        if (!existingSupplier) {
+        if (!supplierId) {
           validationErrors.push({
             error: `Supplier not found: ${supplierCode}`,
           });
           continue;
         }
 
-        let newDeliveryNote;
-        if (existingDeliveryNote) {
-          updateDeliveryNotes.push({
-            id: existingDeliveryNote.id,
-            arrivalPlanDate: deliveryDate,
-            departurePlanDate: deliveryDate,
-            supplierId: existingSupplier,
+        let existingDeliveryNoteId = deliveryNoteMap.get(dnNumber);
+        if (!existingDeliveryNoteId) {
+          const existingDeliveryNote = await DeliveryNote.findOne({
+            where: { dnNumber },
           });
-        } else {
-          newDeliveryNote = await DeliveryNote.create(
-            {
-              dnNumber,
-              arrivalPlanDate: deliveryDate,
-              departurePlanDate: deliveryDate,
-              supplierId: existingSupplier,
-              status: "scheduled",
-              logImportId: logImportDN.id,
-            },
-            { transaction }
-          );
+
+          if (existingDeliveryNote) {
+            existingDeliveryNoteId = existingDeliveryNote.id;
+            deliveryNoteMap.set(dnNumber, existingDeliveryNoteId);
+          }
         }
 
-        if (existingIncoming) {
+        if (existingDeliveryNoteId) {
+          updatedDeliveryNotes.push({
+            id: existingDeliveryNoteId,
+            arrivalPlanDate: deliveryDate,
+            departurePlanDate: deliveryDate,
+            supplierId,
+            logImportId: logImportDN.id,
+          });
+        } else {
+          newDeliveryNotes.push({
+            dnNumber,
+            arrivalPlanDate: deliveryDate,
+            departurePlanDate: deliveryDate,
+            supplierId,
+            status: "scheduled",
+            logImportId: logImportDN.id,
+          });
+        }
+
+        let existingIncomingId = incomingMap.get(
+          `${inventoryId}-${deliveryDate}`
+        );
+        if (!existingIncomingId) {
+          const existingIncoming = await Incoming.findOne({
+            where: { inventoryId, incomingDate: deliveryDate },
+          });
+
+          if (existingIncoming) {
+            existingIncomingId = existingIncoming.id;
+            incomingMap.set(
+              `${inventoryId}-${deliveryDate}`,
+              existingIncomingId
+            );
+          }
+        }
+
+        if (existingIncomingId) {
           updatedIncomings.push({
-            id: existingIncoming.id,
+            id: existingIncomingId,
             inventoryId,
             planning,
             incomingDate: deliveryDate,
-            deliveryNoteId: existingDeliveryNote.id,
+            deliveryNoteId: existingDeliveryNoteId,
             logImportId: logImportIncoming.id,
           });
         } else {
@@ -1419,8 +1431,7 @@ export const uploadDeliveryNote = async (req, res) => {
             planning,
             incomingDate: deliveryDate,
             status: "not complete",
-            dnNumber,
-            deliveryNoteId: newDeliveryNote.id,
+            deliveryNoteId: existingDeliveryNoteId,
             logImportId: logImportIncoming.id,
           });
         }
@@ -1429,26 +1440,79 @@ export const uploadDeliveryNote = async (req, res) => {
       }
     }
 
-    if (updateDeliveryNotes.length > 0) {
-      for (const updateData of updateDeliveryNotes) {
-        await DeliveryNote.update(updateData, {
-          where: { id: updateData.id },
-          transaction,
-        });
+    if (updatedDeliveryNotes.length > 0) {
+      for (const dn of updatedDeliveryNotes) {
+        await DeliveryNote.update(
+          {
+            arrivalPlanDate: dn.arrivalPlanDate,
+            departurePlanDate: dn.departurePlanDate,
+            supplierId: dn.supplierId,
+            logImportId: dn.logImportId,
+          },
+          {
+            where: { id: dn.id },
+            transaction,
+          }
+        );
       }
     }
 
     if (updatedIncomings.length > 0) {
-      for (const updateData of updatedIncomings) {
-        await Incoming.update(updateData, {
-          where: { id: updateData.id },
-          transaction,
-        });
+      for (const inc of updatedIncomings) {
+        await Incoming.update(
+          {
+            inventoryId: inc.inventoryId,
+            planning: inc.planning,
+            incomingDate: inc.incomingDate,
+            deliveryNoteId: inc.deliveryNoteId,
+          },
+          {
+            where: { id: inc.id },
+            transaction,
+          }
+        );
       }
     }
 
-    if (newIncomings.length > 0) {
-      await Incoming.bulkCreate(newIncomings, { transaction });
+    for (const dn of newDeliveryNotes) {
+      const [existingDN, created] = await DeliveryNote.findOrCreate({
+        where: { dnNumber: dn.dnNumber },
+        defaults: {
+          arrivalPlanDate: dn.arrivalPlanDate,
+          departurePlanDate: dn.departurePlanDate,
+          supplierId: dn.supplierId,
+          status: dn.status,
+          logImportId: dn.logImportId,
+        },
+        transaction, // Pakai transaction agar data tetap konsisten
+      });
+
+      if (created) {
+        deliveryNoteMap.set(dn.dnNumber, existingDN.id);
+      }
+    }
+
+    for (const inc of newIncomings) {
+      const [existingInc, created] = await Incoming.findOrCreate({
+        where: {
+          inventoryId: inc.inventoryId,
+          incomingDate: inc.incomingDate,
+        },
+        defaults: {
+          planning: inc.planning,
+          status: inc.status,
+          deliveryNoteId: inc.deliveryNoteId,
+          logImportId: inc.logImportId,
+        },
+        transaction, // Pakai transaction agar data tetap konsisten
+      });
+
+      if (created) {
+        incomingMap.set(
+          `${inc.inventoryId}-${inc.incomingDate}`,
+          existingInc.id
+        );
+      }
     }
 
     await transaction.commit();
@@ -1459,7 +1523,7 @@ export const uploadDeliveryNote = async (req, res) => {
   } catch (error) {
     if (transaction) await transaction.rollback();
     res.status(500).send({
-      message: `Could not upload: ${req.file?.originalname}. ${error}`,
+      message: `Could not upload: ${req.file?.originalname}. ${error.message}`,
     });
   }
 };
