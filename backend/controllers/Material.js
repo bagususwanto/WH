@@ -16,119 +16,94 @@ import AddressRack from "../models/AddressRackModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 
+let batchSize = 1000; // Set batch size sesuai kebutuhan
+
 export const getMaterial = async (req, res) => {
   try {
     const { storageId, plantId, type } = req.query;
 
-    let whereCondition = { flag: 1 };
-    let whereConditionStorage = { flag: 1 };
-    let whereConditionPlant = { flag: 1 };
+    const whereCondition = { flag: 1, ...(type && { type }) };
+    const whereConditionStorage = storageId
+      ? { flag: 1, id: storageId }
+      : { flag: 1 };
+    const whereConditionPlant = plantId
+      ? { flag: 1, id: plantId }
+      : { flag: 1 };
 
-    if (type) {
-      whereCondition.type = type;
+    // Hitung total jumlah data
+    const totalCount = await Material.count({ where: whereCondition });
+
+    // Hitung jumlah batch
+    const totalBatches = Math.ceil(totalCount / batchSize);
+
+    let allData = [];
+
+    for (let batch = 0; batch < totalBatches; batch++) {
+      const offset = batch * batchSize;
+
+      const batchData = await Material.findAll({
+        where: whereCondition,
+        limit: parseInt(batchSize), // Ambil batchSize per iterasi
+        offset: offset, // Mulai dari posisi offset
+        include: [
+          { model: Packaging, required: false, where: { flag: 1 } },
+          { model: Category, where: { flag: 1 } },
+          { model: Supplier, required: false, where: { flag: 1 } },
+          {
+            model: Inventory,
+            required: true,
+            attributes: ["id", "materialId", "addressId"],
+            include: [
+              {
+                model: AddressRack,
+                required: true,
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Storage,
+                    required: true,
+                    where: whereConditionStorage,
+                    include: [
+                      {
+                        model: Plant,
+                        required: true,
+                        where: whereConditionPlant,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          ...["create", "update"].map((action) => ({
+            model: LogMaster,
+            required: false,
+            as: `${action}dBy`,
+            attributes: ["id", "createdAt", "userId"],
+            where: { masterType: "Material", action },
+            include: [
+              { model: User, required: false, attributes: ["id", "username"] },
+            ],
+            order: [["createdAt", "DESC"]],
+            limit: 1,
+          })),
+          {
+            model: LogImport,
+            required: false,
+            attributes: ["id", "createdAt", "userId"],
+            include: [
+              { model: User, required: false, attributes: ["id", "username"] },
+            ],
+          },
+        ],
+      });
+
+      allData = allData.concat(batchData);
     }
 
-    if (storageId) {
-      whereConditionStorage.id = storageId;
-    }
-
-    if (plantId) {
-      whereConditionPlant.id = plantId;
-    }
-
-    // Fetch a batch of 1000 records
-    const response = await Material.findAll({
-      where: whereCondition,
-      // subQuery: false,
-      include: [
-        {
-          model: Packaging,
-          required: false,
-          where: { flag: 1 },
-        },
-        {
-          model: Category,
-          where: { flag: 1 },
-        },
-        {
-          model: Supplier,
-          required: false,
-          where: { flag: 1 },
-        },
-        {
-          model: Inventory,
-          required: true,
-          attributes: ["id", "materialId", "addressId"],
-          include: [
-            {
-              model: AddressRack,
-              required: true,
-              where: { flag: 1 },
-              include: [
-                {
-                  model: Storage,
-                  required: true,
-                  where: whereConditionStorage,
-                  include: [
-                    {
-                      model: Plant,
-                      required: true,
-                      where: whereConditionPlant,
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "createdBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Material", action: "create" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "updatedBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Material" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-          order: [["createdAt", "DESC"]],
-          limit: 1,
-        },
-        {
-          model: LogImport,
-          attributes: ["id", "createdAt", "userId"],
-          required: false,
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-      ],
-    });
-
-    res.status(200).json(response);
+    res.status(200).json(allData);
   } catch (error) {
-    console.log(error.message);
+    console.error("Error fetching materials:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
