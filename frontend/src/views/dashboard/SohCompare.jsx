@@ -7,6 +7,7 @@ import
   CRow,
   CFormTextarea,
   CCardTitle,
+  CFormSelect ,
   CSpinner,
   CFormInput,
   CButton,
@@ -49,6 +50,7 @@ const MySwal = withReactContent(Swal)
 const Inventory = () => {
   const [inventory, setInventory] = useState([])
   const [plant, setPlant] = useState([])
+  const [warehouse, setWarehouse] = useState([])
   const [shop, setShop] = useState([])
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [storage, setStorage] = useState([])
@@ -59,27 +61,36 @@ const Inventory = () => {
   const [loadingImport, setLoadingImport] = useState(false)
   const [plantId, setPlantId] = useState()
   const [storageId, setStorageId] = useState()
+  const [warehouseId, setWarehouseId] = useState()
+  const [uploadData, setUploadData] = useState()
+  const [shopId, setShopId] = useState()
   const [typeId, setTypeId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
+   const [plantName, setPlantName] = useState()
   const [typeMaterial, setTypeMaterial] = useState()
   const [remarks, setRemarks] = useState('') // State to store remarks entered in CModal
-  const { getInventory, updateInventoryById, executeInventory } = useManageStockService()
+  const { getInventory,uploadInventorySoh, updateInventoryById, executeInventory } = useManageStockService()
   const { getMasterData, getMasterDataById } = useMasterDataService()
-  const [filters, setFilters] = useState({
+  const [filter, setFilter] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
+  
 
  
-
+  // const apiShop = 'shop-plant'
   const apiTypeMaterial = 'material-type'
   const apiPlant = 'plant'
-  const apiStorage = 'storage'
+  const apiStorage = 'storage-plant'
+   const apiWarehousePlant = 'warehouse'
+
 
 
   useEffect(() => {
     getPlant();
-    getStorageByPlantId() // Fetch plant and storage
+    getStorageByPlantId(); // Fetch plant and storage
+    // getShopByPlantId();
     getTypeMaterial(); // Fetching type material on component mount
+    
   }, []);
 
   useEffect(() => {
@@ -96,11 +107,13 @@ const Inventory = () => {
     // Menentukan nilai default jika plantId atau storageId kosong
     const selectedPlantId = plantId || "";
     const selectedStorageId = storageId || "";
+    // const selectedShopId = shopId || "";
     const selectedTypeId = "direct"; // Biarkan kosong jika tidak dipilih
   
     console.log("Fetching inventory with:", { 
       plantId: selectedPlantId, 
       storageId: selectedStorageId, 
+      // shopId: selectedShopId,
       type: selectedTypeId 
     });
   
@@ -122,6 +135,24 @@ const Inventory = () => {
       setLoading(false);
     }
   };
+
+
+  // const getShopByPlantId = async (id) => {
+  //   if (!id) {
+  //     return
+  //   }
+  //   try {
+  //     const response = await getMasterDataById(apiShop, id)
+  //     const shopOptions = response.map((shop) => ({
+  //       label: shop.shopName,
+  //       value: shop.shopName,
+  //       id: shop?.id,
+  //     }))
+  //     setShop(shopOptions)
+  //   } catch (error) {
+  //     console.error('Error fetching shop by ID:', error)
+  //   }
+  // }
 
   const getTypeMaterial = async () => {
     try {
@@ -153,6 +184,30 @@ const Inventory = () => {
     }
   }
 
+  const getWarehouse = async (plantId) => {
+    try {
+      const response = await getMasterData(apiWarehousePlant,plantId)
+      console.log("API Response for Wh:", response.data); // Debugging
+      const WarehouseOptions = response.data.map((warehouse) => ({
+        label: warehouse.warehouseName,
+        value: warehouse.id,
+        id: warehouse.id,
+      }))
+      setWarehouse(WarehouseOptions)
+    } catch (error) {
+      console.error('Error fetching Warehouse:', error)
+    }
+  }
+  useEffect(() => {
+    if (plantId) {
+        getWarehouse(plantId);
+    }
+}, [plantId]); // Jalankan hanya jika plantId berubah
+
+useEffect(() => {
+  console.log("Warehouse state updated:", warehouse);
+}, [warehouse]);
+
 
   const getStorageByPlantId = async (id) => {
     if (!id) {
@@ -171,115 +226,166 @@ const Inventory = () => {
     }
   }
 
-  const LoadingComponent = () => (
-    <div className="text-center">
-      <CSpinner color="primary" />
-      <p>Loading inventory data...</p>
-    </div>
-  )
 
-   const exportExcel = () => {
-      import('xlsx').then((xlsx) => {
-        // Mapping data untuk ekspor
-        const mappedData = visibleData.map((item) => {
-          const { quantityActualCheck, Material } = item
-          const minStock = Material?.minStock
-          const maxStock = Material?.maxStock
+  // const handleShopChange = (e) => {
+  //   const selectedShopName = e.value
+  //   const selectedShop = shop.find((s) => s.value === selectedShopName) // Cari objek shop berdasarkan shopName
+  //   const shopId = selectedShop?.id // Dapatkan shop.id
+
+  //   setShopId(shopId)
+  //   setShouldFetch(true)
+
+  //   let _filters = { ...filters }
+  //   _filters['Address_Rack.Storage.Shop.shopName'].value = selectedShopName
+  //   setFilters(_filters)
+  // }
+  console.log("Dropdown warehouse options:", warehouse);
+  console.log("Dropdown warehouseId options:", warehouseId);
+  const handleWarehouse = (e) => {
+    console.log("Event:", e.target.value); // Debugging, cek apakah event benar
+    
+    const selectedWarehouseId = e.target.value; // Ambil ID dari dropdown
+    setWarehouseId(selectedWarehouseId);
+    setShouldFetch(true);
+};
+
+
+  const handleStorageChange = (e) => {
+    const selectedStorageName = e.value
+    const selectedStorage = storage.find((s) => s.value === selectedStorageName) // Cari objek storage berdasarkan storageName
+    const storageId = selectedStorage?.id // Dapatkan storage.id
+
+    setStorageId(storageId)
+    setShouldFetch(true)
+    let _filters = { ...filters }
+    _filters['Address_Rack.Storage.storageName'].value = e.value
+    setFilters(_filters)
+  }
+
+  const handlePlantChange = (e) => {
+    const selectedPlantName = e.value
+    setPlantName(selectedPlantName)
+    const selectedPlant = plant.find((p) => p.value === selectedPlantName) // Cari objek plant berdasarkan plantName
+    const plantId = selectedPlant?.id // Dapatkan plant.id
+    setPlantId(plantId)
+    setShouldFetch(true)
+    getStorageByPlantId(plantId)
+    // getShopByPlantId (plantId)
+
+    let _filters = { ...filters }
+    _filters['Address_Rack.Storage.Plant.plantName'].value = selectedPlantName
+    setFilters(_filters)
+  }
+
+  const exportExcel = () => {
+    import('xlsx').then((xlsx) => {
+      // Mapping data untuk ekspor
+      const mappedData = visibleData.map((item) => {
+        const { quantityActualCheck, Material, soh } = item;
+        const minStock = Material?.minStock;
+        const maxStock = Material?.maxStock;
   
-          let evaluation
-          if (quantityActualCheck < minStock) {
-            evaluation = 'minim'
-          } else if (quantityActualCheck > maxStock) {
-            evaluation = 'over'
-          } else {
-            evaluation = 'ok'
-          }
+        // Hitung DIFF langsung
+        const diff = quantityActualCheck == null ? "-" : quantityActualCheck - (soh ?? quantityActualCheck);
   
-          return {
-            'Material No': Material.materialNo,
-            Description: Material.description,
-            Address: item.Address_Rack.addressRackName,
-            Type: Material.type,
-            UoM: Material.uom,
-            Stock: quantityActualCheck,
-            'SOH': 'soH',
-            'DIFF': 'diff',
-            'Status': '',
-            Storage: item.Address_Rack.Storage.storageName,
-            Plant: item.Address_Rack.Storage.Plant.plantName,
-            'Update At': item.lastUpdate
-              ? format(parseISO(item.lastUpdate), 'yyyy-MM-dd HH:mm:ss')
-              : '', // Kosongkan jika lastUpdate tidak valid
-          }
-        })
+      // Hitung STATUS langsung
+      let status = "-";
+      if (quantityActualCheck != null) {
+        if (diff > 0) {
+          status = "Receiving Check";
+        } else if (diff < 0) {
+          status = "Good Issue Doc Check";
+        } else {
+          status = "Receiving Check";
+        }
+      }
   
-        // Timestamp download untuk baris atas
-        const downloadTimestamp = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
-        const downloadAtRow = [
-          {
-            'Material No': `downloadAt: ${downloadTimestamp}`,
-            Description: '',
-            Address: '',
-            Type: '',
-            UoM: '',
-            Stock: '',
-            'SOH': '',
-            'DIFF': '',
-            Status: '',
-            Storage: '',
-            Plant: '',
-            'Update At': '',
-          },
-        ]
+        return {
+          'Material No': Material.materialNo,
+          Description: Material.description,
+          Address: item.Address_Rack.addressRackName,
+          Type: Material.type,
+          UoM: Material.uom,
+          Stock: quantityActualCheck,
+          'SOH': soh,
+          'DIFF': diff, // ✅ Pastikan DIFF dihitung di sini
+          'Status': status,
+          Storage: item.Address_Rack.Storage.storageName,
+          Plant: item.Address_Rack.Storage.Plant.plantName,
+          // 'Update At': item.lastUpdate
+          //   ? format(parseISO(item.lastUpdate), 'yyyy-MM-dd HH:mm:ss')
+          //   : '', // Kosongkan jika lastUpdate tidak valid
+        };
+      });
   
-        // Header data utama
-        const headerRow = [
-          {
-            'Material No': 'Material No',
-            Description: 'Description',
-            Address: 'Address',
-            Type: 'Type',
-            UoM: 'UoM',
-            Stock: 'Stock',
-            'SOH': 'SoH',
-            'DIFF': 'Diff',
-            Status: 'Status',
-            Storage: 'Storage',
-            Plant: 'Plant',
-            'Update At': 'Update At',
-          },
-        ]
+      // Timestamp download untuk baris atas
+      const downloadTimestamp = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+      const downloadAtRow = [
+        {
+          'Material No': `downloadAt: ${downloadTimestamp}`,
+          Description: '',
+          Address: '',
+          Type: '',
+          UoM: '',
+          Stock: '',
+          'SOH': '',
+          'DIFF': '',
+          Status: '',
+          Storage: '',
+          Plant: '',
+          // 'Update At': '',
+        },
+      ];
   
-        // Gabungkan baris downloadAt, header utama, dan data
-        const finalData = [...downloadAtRow, ...headerRow, ...mappedData]
+      // Header data utama
+      const headerRow = [
+        {
+          'Material No': 'Material No',
+          Description: 'Description',
+          Address: 'Address',
+          Type: 'Type',
+          UoM: 'UoM',
+          Stock: 'Stock',
+          'SOH': 'SoH',
+          'DIFF': 'Diff',
+          Status: 'Status',
+          Storage: 'Storage',
+          Plant: 'Plant',
+          // 'Update At': 'Update At',
+        },
+      ];
   
-        // Mengkonversi data ke worksheet tanpa menambahkan header otomatis
-        const worksheet = xlsx.utils.json_to_sheet(finalData, { skipHeader: true })
+      // Gabungkan baris downloadAt, header utama, dan data
+      const finalData = [...downloadAtRow, ...headerRow, ...mappedData];
   
-        // Auto-width untuk kolom
-        const colWidth = finalData.reduce((acc, row) => {
-          Object.keys(row).forEach((key) => {
-            const cellValue = row[key] ? row[key].toString() : ''
-            const currentWidth = acc[key] || 0
-            acc[key] = Math.max(currentWidth, cellValue.length)
-          })
-          return acc
-        }, {})
+      // Mengkonversi data ke worksheet tanpa menambahkan header otomatis
+      const worksheet = xlsx.utils.json_to_sheet(finalData, { skipHeader: true });
   
-        // Menetapkan lebar kolom ke worksheet
-        worksheet['!cols'] = Object.keys(colWidth).map((key) => ({
-          wch: colWidth[key] + 2, // Menambahkan padding ekstra untuk kolom
-        }))
+      // Auto-width untuk kolom
+      const colWidth = finalData.reduce((acc, row) => {
+        Object.keys(row).forEach((key) => {
+          const cellValue = row[key] ? row[key].toString() : '';
+          const currentWidth = acc[key] || 0;
+          acc[key] = Math.max(currentWidth, cellValue.length);
+        });
+        return acc;
+      }, {});
   
-        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] }
-        const excelBuffer = xlsx.write(workbook, {
-          bookType: 'xlsx',
-          type: 'array',
-        })
+      // Menetapkan lebar kolom ke worksheet
+      worksheet['!cols'] = Object.keys(colWidth).map((key) => ({
+        wch: colWidth[key] + 2, // Menambahkan padding ekstra untuk kolom
+      }));
   
-        saveAsExcelFile(excelBuffer, 'inventory')
-      })
-    }
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array',
+      });
+  
+      saveAsExcelFile(excelBuffer, 'inventory');
+    });
+  };
+  
   
     const saveAsExcelFile = (buffer, fileName) => {
       import('file-saver').then((module) => {
@@ -320,7 +426,7 @@ const Inventory = () => {
 
       const onGlobalFilterChange = (e) => {
         const value = e.target.value;
-        setFilters((prevFilters) => ({
+        setFilter((prevFilters) => ({
           ...prevFilters,
           global: { value, matchMode: FilterMatchMode.CONTAINS },
         }));
@@ -357,17 +463,17 @@ const Inventory = () => {
           );
         };
         
-        // Fungsi untuk menangani perubahan data setelah diedit
-        const onCellEditComplete = (e) => {
-          let { rowData, newValue, field } = e;
-          let updatedInventory = [...inventory];
+        // // Fungsi untuk menangani perubahan data setelah diedit
+        // const onCellEditComplete = (e) => {
+        //   let { rowData, newValue, field } = e;
+        //   let updatedInventory = [...inventory];
         
-          let index = updatedInventory.findIndex((item) => item.id === rowData.id);
-          if (index !== -1) {
-            updatedInventory[index][field] = newValue;
-            setInventory(updatedInventory);
-          }
-        };
+        //   let index = updatedInventory.findIndex((item) => item.id === rowData.id);
+        //   if (index !== -1) {
+        //     updatedInventory[index][field] = newValue;
+        //     setInventory(updatedInventory);
+        //   }
+        // };
         
         // Template tampilan SoH dengan ikon edit
         const sohBodyTemplate = (rowData) => {
@@ -383,7 +489,7 @@ const Inventory = () => {
         // Hitung Diff (Act - SoH)
         const calculateDiff = (rowData) => {
           if (rowData.quantityActualCheck == null) return "-"; // Jika ACT kosong, diff "-"
-          return rowData.quantityActualCheck - (rowData.soH ?? rowData.quantityActualCheck);
+          return rowData.quantityActualCheck - (rowData.soh ?? rowData.quantityActualCheck);
         };
 
         const statusBodyTemplate = (rowData) => {
@@ -397,9 +503,9 @@ const Inventory = () => {
         
           const diff = calculateDiff(rowData);
         
-          if (diff > 0) return <Tag value="Lakukan Konfirmasi Ke Tim Receiving" severity={getSeverity("over")} />;
-          if (diff < 0) return <Tag value="Segera Input Good Issue" severity={getSeverity("minim")} />;
-          return <Tag value="Lakukan Konfirmasi Ke Tim Receiving" severity="warning" />;
+          if (diff > 0) return <Tag value="Receiving Check" severity={getSeverity("over")} />;
+          if (diff < 0) return <Tag value="Good Issue Doc Check" severity={getSeverity("minim")} />;
+          return <Tag value="Receiving Check" severity="warning" />;
         };
           const getSeverity = (status) => {
             switch (status) {
@@ -411,6 +517,73 @@ const Inventory = () => {
           }
           const centeredHeader = (title) => <div style={{ textAlign: "center", width: "100%" }}>{title}</div>;
 
+           const [filters, setFilters] = useState({
+              global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+              'Address_Rack.Storage.storageName': {
+                value: null,
+                matchMode: FilterMatchMode.EQUALS,
+              },
+              'Address_Rack.Storage.Plant.plantName': {
+                value: null,
+                matchMode: FilterMatchMode.EQUALS,
+              },
+              'Address_Rack.Storage.Plant.shopName': {
+                value: null,
+                matchMode: FilterMatchMode.EQUALS,
+              },
+            })
+              // Placeholder component for loading
+              const LoadingComponent = () => (
+                <div className="text-center">
+                  <CSpinner color="primary" />
+                  <p>Loading inventory data...</p>
+                </div>
+              )
+
+              const handleImport = async () => {
+                setLoadingImport(true);
+                try {
+                    if (!uploadData.file) {
+                        MySwal.fire('Error', 'Please select a file', 'error');
+                        return;
+                    }
+                    if (!uploadData.importDate) {
+                        MySwal.fire('Error', 'Please select an import date', 'error');
+                        return;
+                    }
+                    if (!warehouseId) {
+                        MySwal.fire('Error', 'Please select a warehouse', 'error');
+                        return;
+                    }
+            
+                    const formData = new FormData();
+                    formData.append('file', uploadData.file);
+                    formData.append('importDate', uploadData.importDate);
+            
+                    console.log("Form Data:", [...formData.entries()]); // Debugging
+            
+                    const response = await uploadInventorySoh(warehouseId, formData);
+                    console.log("API Response:", response.data); // Debugging
+            
+                    // Cek apakah API response valid
+                    if (response.data && response.data.message) {
+                        MySwal.fire('Success', response.data.message, 'success');
+                    } 
+                    // setImported(true);
+                    setShouldFetch(true);
+                } catch (error) {
+                    console.error('Error during import:', error);
+                    console.log('Error response:', error.response?.data); // Debugging error dari API
+            
+                    MySwal.fire('Error', error.response?.data?.message || 'Failed to import data', 'error');
+                } finally {
+                    setLoadingImport(false);
+                    setModalUpload(false);
+                }
+            };
+            
+            
+
 
   return (
     <CRow>
@@ -419,7 +592,7 @@ const Inventory = () => {
                   <CCardHeader>Filter</CCardHeader>
                   <CCardBody>
                     <CRow>
-                      <CCol xs={12} sm={6} md={4}>
+                      <CCol xs={12} sm={6} md={3}>
                         <Dropdown
                           value={filters['Address_Rack.Storage.Plant.plantName'].value}
                           options={plant}
@@ -431,7 +604,7 @@ const Inventory = () => {
                           id={filters['Address_Rack.Storage.Plant.id']?.value}
                         />
                       </CCol>
-                      <CCol xs={12} sm={6} md={4}>
+                      <CCol xs={12} sm={6} md={3}>
                         <Dropdown
                           value={filters['Address_Rack.Storage.storageName'].value}
                           options={storage}
@@ -442,6 +615,7 @@ const Inventory = () => {
                           style={{ width: '100%', borderRadius: '5px' }}
                         />
                       </CCol>
+                     
                     </CRow>
                   </CCardBody>
                 </CCard>
@@ -489,7 +663,7 @@ const Inventory = () => {
 
                 <DataTable
                   value={inventory}
-                  filters={filters} // 🔍 Filter untuk pencarian global
+                  filters={filter} // 🔍 Filter untuk pencarian global
                   globalFilterFields={["Material.materialNo", "Material.description"]} // 🎯 Pencarian berdasarkan Material No & Description
                   tableStyle={{ minWidth: "50rem" }}
                   className="p-datatable-gridlines text-nowrap custom-table"
@@ -502,7 +676,7 @@ const Inventory = () => {
                   scrollable
                   removableSort
                   editMode="cell" 
-                  onCellEditComplete={onCellEditComplete} 
+                  // onCellEditComplete={onCellEditComplete} 
                 >
                   <Column
                     field="Material.materialNo"
@@ -522,10 +696,8 @@ const Inventory = () => {
                   <Column field="Material.uom" header="UoM" sortable />
                   <Column field="quantityActualCheck" header="Act" sortable />
                   <Column
-                    field="soH"
+                    field="soh"
                     header="SoH"
-                    editor={(options) => sohEditor(options)}
-                    body={(rowData) => sohBodyTemplate(rowData)}
                     sortable
                   />
                   <Column
@@ -551,7 +723,8 @@ const Inventory = () => {
                 <CModalTitle id="LiveDemoExampleLabel">Upload Master SoH By IWMS</CModalTitle>
               </CModalHeader>
               <CModalBody>
-                <div className="mb-3">
+                <CRow className="mb-3">
+                  <CCol md={5}>
                   <CFormLabel>Date</CFormLabel>
                   <Flatpickr
                     value={date}
@@ -564,7 +737,23 @@ const Inventory = () => {
                     className="form-control"
                     placeholder="Select a date"
                   />
-                </div>
+                  </CCol>
+              
+                   <CCol xs={12} sm={6} md={7}>
+                   <CFormLabel>Warehouse Select</CFormLabel>
+                   <CFormSelect
+                  onChange={handleWarehouse} 
+                  style={{ width: '100%', borderRadius: '5px' }}
+                >
+                  <option value="">Select Warehouse</option>
+                  {warehouse.map((wh) => (
+                    <option key={wh.id} value={wh.id}>
+                      {wh.label}
+                    </option>
+                  ))}
+                </CFormSelect>
+                  </CCol>
+                    </CRow>
                 <div className="mb-3">
                   <CFormInput
                     onChange={handleFileChange} // Handle perubahan file

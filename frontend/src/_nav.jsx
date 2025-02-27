@@ -118,7 +118,6 @@ const useNavigation = () => {
     } 
     // NAV INVENTORY
     if (
-      roleName === 'super admin' ||
       roleName === 'warehouse staff' ||
       roleName === 'warehouse member'
     ) {
@@ -174,7 +173,8 @@ const useNavigation = () => {
       (isWarehouse == 1 && roleName === 'group head') ||
       (isWarehouse == 1 && roleName === 'line head') ||
       (isWarehouse == 1 && roleName === 'section head') ||
-      (isWarehouse == 1 && roleName === 'department head')
+      (isWarehouse == 1 && roleName === 'department head')||
+      (isWarehouse == 1 && roleName === 'super admin')
     ) {
       baseNav.push(
         {

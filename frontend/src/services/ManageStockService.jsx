@@ -169,6 +169,18 @@ const useManageStockService = () => {
       handleError(error, 'Error fetching inventory:')
     }
   }
+  const uploadInventorySoh = async (warehouseId, data) => {
+    try {
+      const response = await axiosJWT.post(`/upload-soh/${warehouseId}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response.data // Returning the data instead of the whole response
+    } catch (error) {
+      handleError(error, 'Error update inventory:')
+    }
+  }
 
   return {
     getInventory,
@@ -182,6 +194,7 @@ const useManageStockService = () => {
     updateInventorySubmit,
     getGoodIssue,
     getRedpost,
+    uploadInventorySoh
   }
 }
 
