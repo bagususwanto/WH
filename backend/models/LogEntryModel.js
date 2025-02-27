@@ -56,16 +56,28 @@ const LogEntry = db.define(
   }
 );
 
-Inventory.hasMany(LogEntry, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
-LogEntry.belongsTo(Inventory, { foreignKey: "inventoryId", onDelete: "NO ACTION" });
+Inventory.hasMany(LogEntry, {
+  foreignKey: "inventoryId",
+  onDelete: "NO ACTION",
+});
+LogEntry.belongsTo(Inventory, {
+  foreignKey: "inventoryId",
+  onDelete: "NO ACTION",
+});
 
 User.hasMany(LogEntry, { foreignKey: "userId", onDelete: "NO ACTION" });
 LogEntry.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 
-Incoming.hasMany(LogEntry, { foreignKey: "incomingId", onDelete: "NO ACTION" });
-LogEntry.belongsTo(Incoming, { foreignKey: "incomingId", onDelete: "NO ACTION" });
+Incoming.hasMany(LogEntry, { foreignKey: "incomingId", onDelete: "CASCADE" });
+LogEntry.belongsTo(Incoming, { foreignKey: "incomingId", onDelete: "CASCADE" });
 
-DetailOrder.hasMany(LogEntry, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
-LogEntry.belongsTo(DetailOrder, { foreignKey: "detailOrderId", onDelete: "NO ACTION" });
+DetailOrder.hasMany(LogEntry, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
+LogEntry.belongsTo(DetailOrder, {
+  foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
 
 export default LogEntry;

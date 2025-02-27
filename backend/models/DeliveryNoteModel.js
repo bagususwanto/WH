@@ -9,7 +9,7 @@ const DeliveryNote = db.define(
   "Delivery_Note",
   {
     dnNumber: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     arrivalPlanDate: {

@@ -71,7 +71,6 @@ const Profile = () => {
   const fetchProfileData = async () => {
     try {
       const profileData = await getMasterData(apiProfile)
-      console.log('Profile data fetched successfully:', profileData)
       // Ensure the data is set as an array
       setUserData(profileData.data)
     } catch (error) {
@@ -79,7 +78,6 @@ const Profile = () => {
     }
   }
 
-  console.log('userData', userData)
 
   // Memanggil fetchProfileData saat komponen di-mount
   useEffect(() => {
@@ -153,7 +151,6 @@ const Profile = () => {
   // Function to handle photo reset (reset to API image)
   const handleResetPhoto = () => {
     setSelectedImage(apiImage) // Reset the selected image to the one from API
-    console.log('Photo has been reset to the API version.')
   }
 
   // Function to toggle the modal visibility
@@ -167,7 +164,6 @@ const Profile = () => {
     setVisibleNotifCount((prevCount) => prevCount + 7) // Menambah 7 notifikasi lagi
   }
 
-  console.log('passData', passData)
 
   const clearForm = () => {
     // Reset the password data fields

@@ -1262,38 +1262,27 @@ export const uploadDeliveryNote = async (req, res) => {
 
     const path = `./resources/uploads/excel/${req.file.filename}`;
     const sheetName = "DNInquiry";
-
-    // Read the Excel file
     const workbook = XLSX.readFile(path);
     const sheet = workbook.Sheets[sheetName];
 
     if (!sheet) {
       return res
         .status(400)
-        .send({ message: `Sheet "${sheetName}" not found!` });
+        .send({ message: `Sheet \"${sheetName}\" not found!` });
     }
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
     if (rows.length <= 1) {
       return res.status(400).send({ message: "No data found in the sheet!" });
     }
 
     const header = rows.shift();
-
-    if (rows.length > 5000) {
-      return res
-        .status(400)
-        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
-    }
-
     if (!validateHeaderDN(header)) {
       return res.status(400).send({ message: "Invalid header!" });
     }
 
     transaction = await db.transaction();
 
-    // Create a log for this batch import
     const logImportDN = await LogImport.create(
       {
         typeLog: "delivery note",
@@ -1314,46 +1303,38 @@ export const uploadDeliveryNote = async (req, res) => {
       { transaction }
     );
 
-    // Pre-fetch necessary data
-    const [
-      existingMaterials,
-      existingInventories,
-      existingDeliveryNotes,
-      existingSuppliers,
-    ] = await Promise.all([
-      Material.findAll({ where: { flag: 1 } }),
-      Inventory.findAll(),
-      DeliveryNote.findAll(),
-      Supplier.findAll({ where: { flag: 1 } }),
-    ]);
+    const [existingMaterials, existingInventories, existingSuppliers] =
+      await Promise.all([
+        Material.findAll({ where: { flag: 1 } }),
+        Inventory.findAll(),
+        Supplier.findAll({ where: { flag: 1 } }),
+      ]);
 
     const materialMap = new Map(
       existingMaterials.map((mat) => [mat.materialNo, mat.id])
     );
-
     const inventoryMap = new Map(
       existingInventories.map((inv) => [inv.materialId, inv.id])
     );
-
-    const deliveryNoteMap = new Map(
-      existingDeliveryNotes.map((del) => [del.dnNumber, del.id])
-    );
-
     const supplierMap = new Map(
       existingSuppliers.map((sup) => [sup.supplierCode, sup.id])
     );
 
-    const newIncomings = [];
+    const deliveryNoteMap = new Map();
+    const incomingMap = new Map();
+
     const newDeliveryNotes = [];
+    const updatedDeliveryNotes = [];
+    const newIncomings = [];
+    const updatedIncomings = [];
     const validationErrors = [];
-    const processedDNNumbers = new Set();
 
     for (const row of rows) {
       try {
-        const dnNumber = Number(row[1]);
+        const dnNumber = row[1];
         const deliveryDate = row[4];
         const materialNo = row[9];
-        const planning = Number(row[11]);
+        const planning = Number(row[11]?.toString().replace(/,/g, ""));
         const supplierCode = String(row[19]?.toString().trim());
 
         if (
@@ -1368,112 +1349,181 @@ export const uploadDeliveryNote = async (req, res) => {
 
         const materialId = materialMap.get(materialNo);
         const inventoryId = inventoryMap.get(materialId);
-        const existingSupplier = supplierMap.get(supplierCode);
-        const existingDeliveryNote = deliveryNoteMap.get(dnNumber);
+        const supplierId = supplierMap.get(supplierCode);
 
         if (!materialId) {
           validationErrors.push({ error: `Material not found: ${materialNo}` });
           continue;
         }
-
         if (!inventoryId) {
           validationErrors.push({
             error: `Inventory not found for material: ${materialNo}`,
           });
           continue;
         }
-
-        if (!existingSupplier) {
+        if (!supplierId) {
           validationErrors.push({
             error: `Supplier not found: ${supplierCode}`,
           });
           continue;
         }
 
-        if (existingDeliveryNote) {
-          validationErrors.push({
-            error: `Delivery Note already exists: ${dnNumber}`,
+        let existingDeliveryNoteId = deliveryNoteMap.get(dnNumber);
+        if (!existingDeliveryNoteId) {
+          const existingDeliveryNote = await DeliveryNote.findOne({
+            where: { dnNumber },
           });
-          continue;
+
+          if (existingDeliveryNote) {
+            existingDeliveryNoteId = existingDeliveryNote.id;
+            deliveryNoteMap.set(dnNumber, existingDeliveryNoteId);
+          }
         }
 
-        const incomingData = {
-          inventoryId,
-          planning,
-          incomingDate: deliveryDate,
-          status: "not complete",
-          dnNumber,
-          deliveryNoteId: null,
-          logImportId: logImportIncoming.id,
-        };
-
-        const deliveryNoteData = {
-          dnNumber,
-          arrivalPlanDate: deliveryDate,
-          departurePlanDate: deliveryDate,
-          supplierId: existingSupplier,
-          status: "scheduled",
-          logImportId: logImportDN.id,
-        };
-
-        if (processedDNNumbers.has(dnNumber)) {
-          newIncomings.push(incomingData);
+        if (existingDeliveryNoteId) {
+          updatedDeliveryNotes.push({
+            id: existingDeliveryNoteId,
+            arrivalPlanDate: deliveryDate,
+            departurePlanDate: deliveryDate,
+            supplierId,
+            logImportId: logImportDN.id,
+          });
+        } else {
+          newDeliveryNotes.push({
+            dnNumber,
+            arrivalPlanDate: deliveryDate,
+            departurePlanDate: deliveryDate,
+            supplierId,
+            status: "scheduled",
+            logImportId: logImportDN.id,
+          });
         }
 
-        if (
-          materialId &&
-          inventoryId &&
-          existingSupplier &&
-          !existingDeliveryNote &&
-          !processedDNNumbers.has(dnNumber)
-        ) {
-          newIncomings.push(incomingData);
-          newDeliveryNotes.push(deliveryNoteData);
-          processedDNNumbers.add(dnNumber);
+        let existingIncomingId = incomingMap.get(
+          `${inventoryId}-${deliveryDate}`
+        );
+        if (!existingIncomingId) {
+          const existingIncoming = await Incoming.findOne({
+            where: { inventoryId, incomingDate: deliveryDate },
+          });
+
+          if (existingIncoming) {
+            existingIncomingId = existingIncoming.id;
+            incomingMap.set(
+              `${inventoryId}-${deliveryDate}`,
+              existingIncomingId
+            );
+          }
+        }
+
+        if (existingIncomingId) {
+          updatedIncomings.push({
+            id: existingIncomingId,
+            inventoryId,
+            planning,
+            incomingDate: deliveryDate,
+            deliveryNoteId: existingDeliveryNoteId,
+            logImportId: logImportIncoming.id,
+          });
+        } else {
+          newIncomings.push({
+            inventoryId,
+            planning,
+            incomingDate: deliveryDate,
+            status: "not complete",
+            deliveryNoteId: existingDeliveryNoteId,
+            logImportId: logImportIncoming.id,
+          });
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
       }
     }
 
-    // Bulk insert new Delivery Notes
-    if (newDeliveryNotes.length > 0 && newIncomings.length > 0) {
-      const createdDeliveryNotes = await DeliveryNote.bulkCreate(
-        newDeliveryNotes,
-        {
-          transaction,
-          returning: true, // Mengembalikan data hasil insert
-        }
-      );
+    if (updatedDeliveryNotes.length > 0) {
+      for (const dn of updatedDeliveryNotes) {
+        await DeliveryNote.update(
+          {
+            arrivalPlanDate: dn.arrivalPlanDate,
+            departurePlanDate: dn.departurePlanDate,
+            supplierId: dn.supplierId,
+            logImportId: dn.logImportId,
+          },
+          {
+            where: { id: dn.id },
+            transaction,
+          }
+        );
+      }
+    }
 
-      // Map DN Number ke ID untuk lookup cepat
-      const createdDNMap = new Map(
-        createdDeliveryNotes.map((dn) => [dn.dnNumber, dn.id])
-      );
+    if (updatedIncomings.length > 0) {
+      for (const inc of updatedIncomings) {
+        await Incoming.update(
+          {
+            inventoryId: inc.inventoryId,
+            planning: inc.planning,
+            incomingDate: inc.incomingDate,
+            deliveryNoteId: inc.deliveryNoteId,
+          },
+          {
+            where: { id: inc.id },
+            transaction,
+          }
+        );
+      }
+    }
 
-      // Update Incoming Data dengan deliveryNoteId menggunakan createdDNMap
-      newIncomings.forEach((incoming) => {
-        const deliveryNoteId = createdDNMap.get(incoming.dnNumber);
-        if (deliveryNoteId) {
-          incoming.deliveryNoteId = deliveryNoteId;
-        }
+    for (const dn of newDeliveryNotes) {
+      const [existingDN, created] = await DeliveryNote.findOrCreate({
+        where: { dnNumber: dn.dnNumber },
+        defaults: {
+          arrivalPlanDate: dn.arrivalPlanDate,
+          departurePlanDate: dn.departurePlanDate,
+          supplierId: dn.supplierId,
+          status: dn.status,
+          logImportId: dn.logImportId,
+        },
+        transaction, // Pakai transaction agar data tetap konsisten
       });
 
-      // Bulk insert new Incoming
-      await Incoming.bulkCreate(newIncomings, { transaction });
+      if (created) {
+        deliveryNoteMap.set(dn.dnNumber, existingDN.id);
+      }
+    }
+
+    for (const inc of newIncomings) {
+      const [existingInc, created] = await Incoming.findOrCreate({
+        where: {
+          inventoryId: inc.inventoryId,
+          incomingDate: inc.incomingDate,
+        },
+        defaults: {
+          planning: inc.planning,
+          status: inc.status,
+          deliveryNoteId: inc.deliveryNoteId,
+          logImportId: inc.logImportId,
+        },
+        transaction, // Pakai transaction agar data tetap konsisten
+      });
+
+      if (created) {
+        incomingMap.set(
+          `${inc.inventoryId}-${inc.incomingDate}`,
+          existingInc.id
+        );
+      }
     }
 
     await transaction.commit();
-
     res.status(200).send({
-      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      message: `Uploaded successfully: ${req.file.originalname}`,
       errors: validationErrors.length > 0 ? validationErrors : "",
     });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error(error);
     res.status(500).send({
-      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+      message: `Could not upload: ${req.file?.originalname}. ${error.message}`,
     });
   }
 };
@@ -1969,6 +2019,170 @@ export const uploadMappingMaterialAddress = async (req, res) => {
           )
         )
       );
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};
+
+const validateHeaderStockIWMS = (header) => {
+  const expectedHeader = ["materialNo", "SoH"];
+
+  // Periksa apakah semua kolom yang diharapkan ada dalam header
+  return expectedHeader.every((column) =>
+    header.some(
+      (headerValue) => headerValue.trim().toLowerCase() === column.toLowerCase()
+    )
+  );
+};
+
+export const uploadStockIWMS = async (req, res) => {
+  let transaction;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+
+    // Read the Excel file
+    const workbook = XLSX.readFile(path);
+    const sheet = workbook.Sheets[sheetName];
+
+    if (!sheet) {
+      return res
+        .status(400)
+        .send({ message: `Sheet "${sheetName}" not found!` });
+    }
+
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    if (rows.length <= 1) {
+      return res.status(400).send({ message: "No data found in the sheet!" });
+    }
+
+    const header = rows.shift();
+
+    if (rows.length > 15000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnMaterialNo = 0;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = `${row[checkColumnMaterialNo]}`; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({
+          rowNumber: index + 1,
+          data: row,
+        }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
+    if (!validateHeaderStockIWMS(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImport = await LogImport.create(
+      {
+        typeLog: "stock iwms",
+        fileName: req.file.originalname,
+        userId: req.user.userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportId = logImport.id;
+
+    // Pre-fetch necessary data
+    const [existingMaterials] = await Promise.all([
+      Material.findAll({ where: { flag: 1, type: "DIRECT" } }),
+    ]);
+
+    const materialMap = new Map(
+      existingMaterials.map((mat) => [mat.materialNo, mat.id])
+    );
+
+    const updatedSohs = [];
+    const validationErrors = [];
+
+    for (const row of rows) {
+      try {
+        const materialNo = row[0]?.trim();
+        const soh = row[1];
+
+        if (!materialNo) {
+          throw new Error(`Invalid data in row for material: ${materialNo}`);
+        }
+
+        if (soh !== parseInt(soh)) {
+          throw new Error(
+            `Invalid data in row for material: ${materialNo}, soh must be integer`
+          );
+        }
+
+        // get material id
+        const materialId = materialMap.get(materialNo);
+
+        if (materialId) {
+          updatedSohs.push({
+            materialId,
+            soh,
+            logImportId,
+          });
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk update existing materials
+    if (updatedSohs.length > 0) {
+      const updatePromises = updatedSohs.map((soh) =>
+        Inventory.update(
+          {
+            soh: soh.soh,
+            logImportId: soh.logImportId,
+          },
+          { where: { materialId: soh.materialId }, transaction }
+        )
+      );
+      await Promise.all(updatePromises);
     }
 
     await transaction.commit();

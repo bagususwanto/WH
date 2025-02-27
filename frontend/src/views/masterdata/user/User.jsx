@@ -370,7 +370,6 @@ const User = () => {
     setLoading(true)
     try {
       const response = await getMasterData(apiUser)
-      console.log('response:', response)
       const dataWithFormattedFields = response.data.map((item) => {
         const production = item.isProduction == 1 ? 'Production' : 'Non Production'
         const warehouse = item.warehouse == 1 ? 'Warehouse' : 'Non Warehouse'
@@ -447,7 +446,6 @@ const User = () => {
   )
 
   const handleEditUser = (user) => {
-    console.log('user:', user)
     const selectedRole = roleOptions.find((option) => option.value === user.Role.roleName)
     setRoleValid(selectedRole.value)
     const selectedPosition = positionOptions.find((option) => option.value === user.position)
@@ -836,7 +834,6 @@ const User = () => {
         try {
           // Melakukan request POST ke endpoint backend
           const response = await uploadImageMaterial(apiUploadImageUser, id, formData)
-          console.log('Image uploaded successfully:', response.data)
 
           setCurrentUser({
             ...currentUser,

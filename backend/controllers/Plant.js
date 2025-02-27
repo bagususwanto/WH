@@ -1,12 +1,19 @@
 import LogMaster from "../models/LogMasterModel.js";
 import Plant from "../models/PlantModel.js";
 import User from "../models/UserModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const getPlant = async (req, res) => {
   try {
     const response = await Plant.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: Warehouse,
+          required: true,
+          attributes: ["id", "warehouseName"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,
@@ -79,7 +86,7 @@ export const createPlant = async (req, res) => {
     });
 
     if (plantCode) {
-      return res.status(400).json({ message: "Plant Code already exist" });
+      return res.status(400).json({ message: "Plant already exist" });
     }
 
     await Plant.create(req.body, { userId: req.user.userId });
@@ -102,14 +109,20 @@ export const updatePlant = async (req, res) => {
       return res.status(404).json({ message: "Plant not found" });
     }
 
-    await Plant.update(req.body, {
-      where: {
-        id: plantId,
-        flag: 1,
+    await Plant.update(
+      {
+        plantName: req.body.plantName,
+        warehouseId: req.body.warehouseId,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: plantId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Plant Updated" });
   } catch (error) {
     console.log(error.message);

@@ -71,7 +71,6 @@ const Wishlist = () => {
     try {
       // Cek inventoryId yang sesuai dari product
       const inventoryId = product.Inventory ? product.Inventory.id : product.id
-      console.log('cart', cart)
 
       // Cari produk yang ada di cart berdasarkan inventoryId
       const existingProduct = cart.find((item) => item.inventoryId === inventoryId)

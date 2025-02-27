@@ -24,6 +24,18 @@ const HistoryRequest = React.lazy(() => import('./views/request/HistoryRequest')
 const ApprovalRequest = React.lazy(() => import('./views/request/ApprovalRequest'))
 const Compare = React.lazy(() => import('./views/dashboard/SohCompare'))
 const Packaging = React.lazy(() => import('./views/masterdata/packaging/Packaging'))
+const Organization = React.lazy(() => import('./views/masterdata/organization/Organization'))
+const Division = React.lazy(() => import('./views/masterdata/division/Division'))
+const Department = React.lazy(() => import('./views/masterdata/department/Department'))
+const Warehouse = React.lazy(() => import('./views/masterdata/warehouse/Warehouse'))
+const Line = React.lazy(() => import('./views/masterdata/line/Line'))
+const Group = React.lazy(() => import('./views/masterdata/group/Group'))
+const Section = React.lazy(() => import('./views/masterdata/section/Section'))
+const ServiceHours = React.lazy(() => import('./views/masterdata/servicehours/ServiceHours'))
+const Wbs = React.lazy(() => import('./views/masterdata/wbs/Wbs'))
+const Shift = React.lazy(() => import('./views/masterdata/shift/Shift'))
+const CostCenter = React.lazy(() => import('./views/masterdata/costcenter/CostCenter'))
+const GIC = React.lazy(() => import('./views/masterdata/gic/Gic'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -50,6 +62,18 @@ const routes = [
   { path: '/approval-request/sect-head', name: 'Approval Request', element: ApprovalRequest },
   { path: '/compare-inventory', name: 'Compare Inventory', element: Compare },
   { path: '/history-request', name: 'History Request', element: HistoryRequest },
+  { path: '/organization', name: 'Master / Organization', element: Organization },
+  { path: '/division', name: 'Master / Division', element: Division },
+  { path: '/department', name: 'Master / Department', element: Department },
+  { path: '/warehouse', name: 'Master / Warehouse', element: Warehouse },
+  { path: '/line', name: 'Master / Line', element: Line },
+  { path: '/group', name: 'Master / Group', element: Group },
+  { path: '/section', name: 'Master / Section', element: Section },
+  { path: '/service-hours', name: 'Master / Service Hours', element: ServiceHours },
+  { path: '/wbs', name: 'Master / WBS', element: Wbs },
+  { path: '/shift', name: 'Master / Shift', element: Shift },
+  { path: '/cc', name: 'Master / Cost Center', element: CostCenter },
+  { path: '/gic', name: 'Master / GI Card', element: GIC },
 ]
 
 export default routes

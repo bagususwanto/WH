@@ -440,20 +440,23 @@ export const processIncomingUpdate = async (
   const today = new Date();
   const incomingDate = new Date(incoming.incomingDate);
 
-  if (incomingDate.getDate() !== today.getDate()) {
-    throw new Error("Cannot update data on a different day");
+  // Validasi status
+  const allowedStatus = ["partial", "not complete"];
+  if (
+    incoming.status === "completed" &&
+    incomingDate.getDate() !== today.getDate()
+  ) {
+    throw new Error("Cannot update completed data on a different day");
   }
 
-  const allowedStatus = ["partial", "not complete"];
-  if (!allowedStatus.includes(incoming.status)) {
+  if (
+    !allowedStatus.includes(incoming.status) &&
+    incoming.status !== "completed"
+  ) {
     throw new Error(
       "Cannot update data for a fully received or not yet received data"
     );
   }
-
-  // if (quantity < 0) {
-  //   throw new Error("Quantity not allowed under 0");
-  // }
 
   await updateQuantitySistem(
     incoming.Inventory.id,

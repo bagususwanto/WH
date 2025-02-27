@@ -85,10 +85,10 @@ export const getGICById = async (req, res) => {
 
 export const createGIC = async (req, res) => {
   try {
-    const gicName = await GIC.findOne({
-      where: { gicName: req.body.gicName, flag: 1 },
+    const gicNumber = await GIC.findOne({
+      where: { gicNumber: req.body.gicNumber, flag: 1 },
     });
-    if (gicName) {
+    if (gicNumber) {
       return res.status(400).json({ message: "GIC already exists" });
     }
 
@@ -112,14 +112,19 @@ export const updateGIC = async (req, res) => {
       return res.status(404).json({ message: "GIC not found" });
     }
 
-    await GIC.update(req.body, {
-      where: {
-        id: gicId,
-        flag: 1,
+    await GIC.update(
+      {
+        costCenterId: req.body.costCenterId,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: gicId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "GIC Updated" });
   } catch (error) {
     console.log(error.message);

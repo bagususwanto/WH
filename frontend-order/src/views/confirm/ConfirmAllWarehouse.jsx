@@ -98,7 +98,6 @@ const ApproveAll = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true) // Add loading state
-  console.log('order', orderHistory)
   useEffect(() => {
     // Simulate data fetching or processing delay
     const timeout = setTimeout(() => {
@@ -148,7 +147,6 @@ const ApproveAll = () => {
             endDate: endDate,
             q: searchQuery,
           })
-          console.log('masuk if')
         } else {
           response = await getWarehouseConfirm({
             id: warehouse.id,
@@ -158,14 +156,12 @@ const ApproveAll = () => {
             endDate: endDate,
             q: searchQuery,
           })
-          console.log('masuk else')
         }
         if (!response?.data?.data) {
           console.error('No confirm found')
           setProductsData([])
           return
         }
-        console.log('response', response)
         const newData = response.data.data
         setProductsData((prevData) => [...prevData, ...newData])
         setTotalPages(response.data.totalPages)
@@ -178,7 +174,6 @@ const ApproveAll = () => {
     try {
       const response = await getOrderHistory(id)
       setOrderHistory(response.data)
-      console.log('respon', response)
     } catch (error) {
       console.error('Error fetching Order History:', error)
     }
@@ -215,7 +210,6 @@ const ApproveAll = () => {
     // } else {
     //   status = newStatus
     // }
-    console.log('status', newStatus)
 
     setActiveTab(newStatus)
     setProductsData([])
@@ -304,7 +298,6 @@ const ApproveAll = () => {
         return cilClipboard // Default icon
     }
   }
-  console.log('productsData', productsData)
   const totalQuantity = new Set(
     (selectedProduct?.Detail_Orders || []).map((detail) => detail.Inventory.Material.description),
   ).size
@@ -410,7 +403,6 @@ const ApproveAll = () => {
                 </CRow>
               ) : (
                 <CRow className="mt-1">
-                  {console.log('coba', productsData)}
                   {productsData
                    .filter((product) => product.Detail_Orders?.length > 0) // Filter produk dengan total item lebih dari 0
                     .map((product) => (

@@ -1,12 +1,26 @@
 import LogMaster from "../models/LogMasterModel.js";
 import ServiceHours from "../models/ServiceHoursModel.js";
+import Shift from "../models/ShiftModel.js";
 import User from "../models/UserModel.js";
+import Warehouse from "../models/WarehouseModel.js";
 
 export const getServiceHours = async (req, res) => {
   try {
     const response = await ServiceHours.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: Warehouse,
+          required: true,
+          attributes: ["id", "warehouseName"],
+          where: { flag: 1 },
+        },
+        {
+          model: Shift,
+          required: true,
+          attributes: ["id", "shiftName"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,
@@ -106,10 +120,24 @@ export const createServiceHours = async (req, res) => {
 
 export const updateServiceHours = async (req, res) => {
   try {
-    const { shiftId, plantId } = req.params;
+    const { id } = req.params;
+    const { shiftId, warehouseId, time } = req.body;
+
+    const existingServiceHours = await ServiceHours.findOne({
+      where: {
+        shiftId: shiftId,
+        warehouseId: warehouseId,
+        time: time,
+        flag: 1,
+      },
+    });
+
+    if (existingServiceHours && existingServiceHours.id !== id) {
+      return res.status(404).json({ message: "ServiceHours already exists" });
+    }
 
     const serviceHours = await ServiceHours.findOne({
-      where: { plantId: plantId, shiftId: shiftId, flag: 1 },
+      where: { id, flag: 1 },
     });
 
     if (!serviceHours) {
@@ -117,7 +145,7 @@ export const updateServiceHours = async (req, res) => {
     }
 
     await ServiceHours.update(req.body, {
-      where: { plantId: plantId, shiftId: shiftId, flag: 1 },
+      where: { id, flag: 1 },
       individualHooks: true,
       userId: req.user.userId,
     });
@@ -131,11 +159,11 @@ export const updateServiceHours = async (req, res) => {
 
 export const deleteServiceHours = async (req, res) => {
   try {
-    const { shiftId, plantId } = req.params; // Mengambil shiftId dan plantId dari parameter URL
+    const { id } = req.params; // Mengambil shiftId dan plantId dari parameter URL
 
     // Cek apakah relasi antara Division dan Plant dengan flag 1 (aktif) ada
     const serviceHours = await ServiceHours.findOne({
-      where: { shiftId: shiftId, plantId: plantId, flag: 1 }, // Hanya mencari relasi aktif (flag = 1)
+      where: { id, flag: 1 }, // Hanya mencari relasi aktif (flag = 1)
     });
 
     if (!serviceHours) {
@@ -148,7 +176,7 @@ export const deleteServiceHours = async (req, res) => {
     await ServiceHours.update(
       { flag: 0 }, // Mengubah flag menjadi 0 (menandai sebagai "dihapus")
       {
-        where: { shiftId: shiftId, plantId: plantId, flag: 1 },
+        where: { id, flag: 1 },
         individualHooks: true,
         userId: req.user.userId,
       }

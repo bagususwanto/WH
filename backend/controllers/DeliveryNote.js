@@ -16,6 +16,7 @@ import {
 import LogImport from "../models/LogImportModel.js";
 import User from "../models/UserModel.js";
 import { Op, Sequelize } from "sequelize";
+import IncomingHistory from "../models/IncomingHistoryModel.js";
 
 // Define tolerance in milliseconds (15 minutes = 15 * 60 * 1000 ms)
 const tolerance = 15 * 60 * 1000;
@@ -68,60 +69,60 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       include: [
         {
           model: DeliverySchedule,
-          required: true,
+          required: false,
           where: whereConditionDs,
         },
         {
-          model: Material,
+          model: DeliveryNote,
           required: true,
-          attributes: ["id", "materialNo", "description", "uom"],
-          where: { flag: 1 },
+          where: {
+            dnNumber: dn,
+          },
           include: [
             {
-              model: Inventory,
-              attributes: ["id", "materialId", "addressId"],
+              model: Incoming,
               required: true,
               include: [
                 {
-                  model: AddressRack,
+                  model: Inventory,
+                  attributes: ["id", "materialId", "addressId"],
                   required: true,
-                  attributes: ["id", "addressRackName"],
-                  where: { flag: 1 },
                   include: [
                     {
-                      model: Storage,
+                      model: Material,
                       required: true,
-                      attributes: ["id", "storageName"],
+                      attributes: ["id", "materialNo", "description", "uom"],
+                      where: { flag: 1 },
+                    },
+                    {
+                      model: AddressRack,
+                      required: true,
+                      attributes: ["id", "addressRackName"],
                       where: { flag: 1 },
                       include: [
                         {
-                          model: Plant,
+                          model: Storage,
                           required: true,
-                          attributes: ["id", "plantName"],
+                          attributes: ["id", "storageName"],
                           where: { flag: 1 },
                           include: [
                             {
-                              model: Warehouse,
+                              model: Plant,
                               required: true,
-                              attributes: ["id", "warehouseName"],
+                              attributes: ["id", "plantName"],
                               where: { flag: 1 },
+                              include: [
+                                {
+                                  model: Warehouse,
+                                  required: true,
+                                  attributes: ["id", "warehouseName"],
+                                  where: { flag: 1 },
+                                },
+                              ],
                             },
                           ],
                         },
                       ],
-                    },
-                  ],
-                },
-                {
-                  model: Incoming,
-                  required: true,
-                  include: [
-                    {
-                      model: DeliveryNote,
-                      required: true,
-                      where: {
-                        dnNumber: dn,
-                      },
                     },
                   ],
                 },
@@ -132,22 +133,24 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
+    // return res.status(200).json({ data: data });
+
     // mapping data
     const mappedData = data.map((item) => {
-      const deliveryNotes = item.Materials.flatMap((material) =>
-        material.Inventory.Incomings.map((incoming) => ({
+      const deliveryNotes = item.Delivery_Notes.flatMap((dn) =>
+        dn.Incomings.map((incoming) => ({
           incomingId: incoming.id,
           warehouseId:
-            material.Inventory.Address_Rack.Storage.Plant.Warehouse.id,
-          dnNumber: incoming.Delivery_Note.dnNumber,
-          materialNo: material.materialNo,
-          address: material.Inventory.Address_Rack.addressRackName,
-          description: material.description,
-          uom: material.uom,
+            incoming.Inventory.Address_Rack.Storage.Plant.Warehouse.id,
+          dnNumber: dn.dnNumber,
+          materialNo: incoming.Inventory.Material.materialNo,
+          address: incoming.Inventory.Address_Rack.addressRackName,
+          description: incoming.Inventory.Material.description,
+          uom: incoming.Inventory.Material.uom,
           reqQuantity: incoming.planning,
           receivedQuantity: incoming.actual,
           remain: incoming.actual - incoming.planning,
@@ -161,39 +164,25 @@ export const getDeliveryNoteByDnNo = async (req, res) => {
         truckStation: schedule.truckStation,
         rit: schedule.rit,
         day: dayName,
-        arrivalPlanDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .arrivalPlanDate,
+        arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate,
         arrivalPlanTime: new Date(schedule.arrival).toISOString().slice(11, 16),
-        departurePlanDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .departurePlanDate,
+        departurePlanDate: item.Delivery_Notes[0]?.departurePlanDate,
         departurePlanTime: new Date(schedule.departure)
           .toISOString()
           .slice(11, 16),
-        arrivalActualDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .arrivalActualDate,
-        departureActualDate:
-          item.Materials[0].Inventory.Incomings[0].Delivery_Note
-            .departureActualDate,
-        arrivalActualTime: item.Materials[0].Inventory.Incomings[0]
-          .Delivery_Note.arrivalActualTime
-          ? new Date(
-              item.Materials[0].Inventory.Incomings[0].Delivery_Note.arrivalActualTime
-            )
+        arrivalActualDate: item.Delivery_Notes[0]?.arrivalActualDate,
+        departureActualDate: item.Delivery_Notes[0]?.departureActualDate,
+        arrivalActualTime: item.Delivery_Notes[0]?.arrivalActualTime
+          ? new Date(item.Delivery_Notes[0]?.arrivalActualTime)
               .toISOString()
               .slice(11, 16)
           : null,
-        departureActualTime: item.Materials[0].Inventory.Incomings[0]
-          .Delivery_Note.departureActualTime
-          ? new Date(
-              item.Materials[0].Inventory.Incomings[0].Delivery_Note.departureActualTime
-            )
+        departureActualTime: item.Delivery_Notes[0]?.departureActualTime
+          ? new Date(item.Delivery_Notes[0]?.departureActualTime)
               .toISOString()
               .slice(11, 16)
           : null,
-        status: item.Materials[0].Inventory.Incomings[0].Delivery_Note.status,
+        status: item.Delivery_Notes[0]?.status,
       }));
 
       return {
@@ -416,7 +405,7 @@ export const submitDeliveryNote = async (req, res) => {
 
 export const getDeliveryNoteByDate = async (req, res) => {
   try {
-    const { importDate } = req.query;
+    const { importDate, arrivalDate } = req.query;
 
     let whereCondition = {};
     let whereConditionDn = {};
@@ -424,13 +413,18 @@ export const getDeliveryNoteByDate = async (req, res) => {
       whereCondition.importDate = importDate;
     }
 
-    if (!importDate) {
-      whereConditionDn.arrivalPlanDate = new Date().toISOString().split("T")[0]; // get date only
+    if (arrivalDate) {
+      whereConditionDn.arrivalPlanDate = arrivalDate;
     }
 
     const data = await DeliveryNote.findAll({
       where: whereConditionDn,
       include: [
+        {
+          model: Supplier,
+          required: true,
+          attributes: ["id", "supplierName", "supplierCode"],
+        },
         {
           model: Incoming,
           required: true,
@@ -480,6 +474,7 @@ export const getDeliveryNoteByDate = async (req, res) => {
     const mappedData = data.flatMap((item) =>
       item.Incomings.map((incoming) => ({
         dnNumber: item.dnNumber,
+        supplierName: item.Supplier.supplierName,
         arrivalPlanDate: item.arrivalPlanDate,
         materialNo: incoming.Inventory.Material.materialNo,
         description: incoming.Inventory.Material.description,
@@ -516,51 +511,56 @@ export const getDnInquiry = async (req, res) => {
       };
     }
 
-    const data = await DeliveryNote.findAll({
-      where: whereConditionDn,
-      order: [["arrivalPlanTime", "ASC"]],
+    const data = await Supplier.findAll({
+      attributes: ["id", "supplierName", "supplierCode"],
+      where: { flag: 1 },
       include: [
         {
-          model: Incoming,
-          required: false,
-          attributes: ["id", "planning", "actual", "status", "incomingDate"],
+          model: DeliveryNote,
+          required: true,
+          where: whereConditionDn,
           include: [
             {
-              model: Inventory,
-              required: false,
-              attributes: ["id", "materialId", "addressId"],
+              model: Incoming,
+              required: true,
+              attributes: [
+                "id",
+                "planning",
+                "actual",
+                "status",
+                "incomingDate",
+              ],
               include: [
                 {
-                  model: Material,
+                  model: Inventory,
                   required: true,
-                  attributes: ["id", "materialNo", "description", "uom"],
-                  where: { flag: 1 },
+                  attributes: ["id", "materialId", "addressId"],
                   include: [
                     {
-                      model: Supplier,
+                      model: Material,
                       required: true,
-                      attributes: ["id", "supplierName", "supplierCode"],
+                      attributes: ["id", "materialNo", "description", "uom"],
                       where: { flag: 1 },
                     },
-                  ],
-                },
-                {
-                  model: AddressRack,
-                  required: false,
-                  attributes: ["id", "addressRackName"],
-                  where: { flag: 1 },
-                  include: [
                     {
-                      model: Storage,
+                      model: AddressRack,
                       required: true,
-                      attributes: ["id", "storageName"],
+                      attributes: ["id", "addressRackName"],
                       where: { flag: 1 },
                       include: [
                         {
-                          model: Plant,
+                          model: Storage,
                           required: true,
-                          attributes: ["id", "plantName", "warehouseId"],
-                          where: whereConditionPlant,
+                          attributes: ["id", "storageName"],
+                          where: { flag: 1 },
+                          include: [
+                            {
+                              model: Plant,
+                              required: true,
+                              attributes: ["id", "plantName", "warehouseId"],
+                              where: whereConditionPlant,
+                            },
+                          ],
                         },
                       ],
                     },
@@ -568,99 +568,106 @@ export const getDnInquiry = async (req, res) => {
                 },
               ],
             },
-          ],
-        },
-        {
-          model: LogImport,
-          required: true,
-          attributes: ["id", "typeLog", "fileName", "importDate"],
-          include: [
             {
-              model: User,
+              model: LogImport,
               required: true,
-              attributes: ["id", "username"],
+              attributes: ["id", "typeLog", "fileName", "importDate"],
+              include: [
+                {
+                  model: User,
+                  required: true,
+                  attributes: ["id", "username"],
+                },
+              ],
             },
           ],
         },
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
     // mapping data
-    const mappedData = data.map((item) => {
-      // Pastikan arrivalActualTime adalah string
-      const actualTime = item.arrivalActualTime
-        ? new Date(item.arrivalActualTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
+    const mappedData = data.flatMap((item) => {
+      return item.Delivery_Notes.map((dn) => {
+        // Pastikan arrivalActualTime adalah string
+        const actualTime = dn.arrivalActualTime
+          ? new Date(dn.arrivalActualTime).toISOString().slice(11, 19)
+          : "00:00:00"; // Default value jika null atau undefined
 
-      // Pastikan arrivalPlanTime adalah string
-      const plannedTime = item.arrivalPlanTime
-        ? new Date(item.arrivalPlanTime).toISOString().slice(11, 19) // Konversi ke ISO string dan ambil bagian waktu
-        : "00:00:00"; // Default value jika null atau undefined
+        // Pastikan arrivalPlanTime adalah string
+        const plannedTime = dn.arrivalPlanTime
+          ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 19)
+          : "00:00:00"; // Default value jika null atau undefined
 
-      // Gabungkan date dan time
-      const actualArrival = new Date(`${item.arrivalActualDate}T${actualTime}`);
-      const plannedArrival = new Date(`${item.arrivalPlanDate}T${plannedTime}`);
+        // Gabungkan date dan time
+        const actualArrival = new Date(`${dn.arrivalActualDate}T${actualTime}`);
+        const plannedArrival = new Date(`${dn.arrivalPlanDate}T${plannedTime}`);
 
-      // Hitung delay dalam milidetik
-      const delay = actualArrival - plannedArrival;
+        // Hitung delay dalam milidetik
+        const delay = actualArrival - plannedArrival;
 
-      const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
-      const deliveryNotes = {
-        dnNumber: item.dnNumber,
-        supplierName:
-          item.Incomings[0].Inventory.Material.Supplier.supplierName,
-        supplierCode:
-          item.Incomings[0].Inventory.Material.Supplier.supplierCode,
-        truckStation: item.truckStation,
-        rit: item.rit,
-        arrivalPlanDate: item.arrivalPlanDate,
-        arrivalPlanTime: new Date(item.arrivalPlanTime)
-          .toISOString()
-          .slice(11, 16),
-        departurePlanDate: item.departurePlanDate,
-        departurePlanTime: new Date(item.departurePlanTime)
-          .toISOString()
-          .slice(11, 16),
-        arrivalActualDate: item.arrivalActualDate,
-        departureActualDate: item.departureActualDate,
-        arrivalActualTime: item.arrivalActualTime
-          ? new Date(item.arrivalActualTime).toISOString().slice(11, 16)
-          : null,
-        departureActualTime: item.departureActualTime
-          ? new Date(item.departureActualTime).toISOString().slice(11, 16)
-          : null,
-        status: item.status,
-        delayTime: delay > 0 ? convertDelay(delay) : "0s",
-        warehouseId:
-          item.Incomings[0].Inventory.Address_Rack.Storage.Plant.warehouseId,
-        Materials: item.Incomings.map((incoming) => ({
-          incomingId: incoming.id,
-          materialNo: incoming.Inventory.Material.materialNo,
-          description: incoming.Inventory.Material.description,
-          uom: incoming.Inventory.Material.uom,
-          address: incoming.Inventory.Address_Rack.addressRackName,
-          reqQuantity: incoming.planning,
-          receivedQuantity: incoming.actual,
-          remain: incoming.actual - incoming.planning,
-          status: incoming.status,
-          viewOnly: today > incoming.incomingDate ? true : false,
-        })),
-      };
+        // Validasi status
+        const allowedStatus = ["partial", "not complete"];
 
-      return {
-        deliveryNotes,
-      };
+        return {
+          dnNumber: dn.dnNumber,
+          supplierName: item.supplierName,
+          supplierCode: item.supplierCode,
+          truckStation: dn.truckStation,
+          rit: dn.rit,
+          arrivalPlanDate: dn.arrivalPlanDate,
+          arrivalPlanTime: dn.arrivalPlanTime
+            ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 16)
+            : "00:00",
+          departurePlanDate: dn.departurePlanDate,
+          departurePlanTime: dn.departurePlanTime
+            ? new Date(dn.departurePlanTime).toISOString().slice(11, 16)
+            : "00:00",
+          arrivalActualDate: dn.arrivalActualDate,
+          departureActualDate: dn.departureActualDate,
+          arrivalActualTime: dn.arrivalActualTime
+            ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
+            : null,
+          departureActualTime: dn.departureActualTime
+            ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
+            : null,
+          status: dn.status,
+          delayTime: delay > 0 ? convertDelay(delay) : "0s",
+          warehouseId:
+            dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant
+              ?.warehouseId,
+          Materials: dn.Incomings.map((incoming) => ({
+            incomingId: incoming.id,
+            materialNo: incoming.Inventory.Material.materialNo,
+            description: incoming.Inventory.Material.description,
+            uom: incoming.Inventory.Material.uom,
+            address: incoming.Inventory.Address_Rack.addressRackName,
+            reqQuantity: incoming.planning,
+            receivedQuantity: incoming.actual,
+            remain: incoming.actual - incoming.planning,
+            status: incoming.status,
+            viewOnly:
+              incoming.status === "completed" && incoming.incomingDate !== today
+                ? true
+                : !allowedStatus.includes(incoming.status) &&
+                  incoming.status !== "completed"
+                ? true
+                : false,
+          })),
+        };
+      });
     });
 
     res
       .status(200)
       .json({ data: mappedData, message: "Data Delivery Note Found" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -790,7 +797,7 @@ export const getArrivalMonitoring = async (req, res) => {
       ],
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
@@ -901,11 +908,62 @@ export const getArrivalChart = async (req, res) => {
       distinct: true,
     });
 
-    if (!data) {
+    if (data.length === 0) {
       return res.status(404).json({ message: "Data Delivery Note Not Found" });
     }
 
     // return res.status(200).json({ data, message: "Data Delivery Note Found" });
+
+    const totalIncomingMaterials = data.reduce((total, item) => {
+      return (
+        total +
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
+          return dnTotal + ((dn.Incomings || []).length || 0);
+        }, 0)
+      );
+    }, 0);
+
+    const totalPartialIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            (dn.Incomings || []).filter(
+              (incoming) => incoming.status === "partial"
+            ).length
+          );
+        }, 0)
+      );
+    }, 0);
+
+    const totalNotCompleteIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            (dn.Incomings || []).filter(
+              (incoming) => incoming.status === "not complete"
+            ).length
+          );
+        }, 0)
+      );
+    }, 0);
+
+    const totalCompletedIncomings = data.reduce((total, item) => {
+      return (
+        total +
+        (item.Delivery_Notes || []).reduce((dnTotal, dn) => {
+          return (
+            dnTotal +
+            (dn.Incomings || []).filter(
+              (incoming) => incoming.status === "completed"
+            ).length
+          );
+        }, 0)
+      );
+    }, 0);
 
     const mappedData = data.flatMap((item) => {
       const tanggal = new Date(item.Delivery_Notes[0].arrivalPlanDate);
@@ -939,10 +997,11 @@ export const getArrivalChart = async (req, res) => {
       return schedules.map((ds) => {
         let status = "scheduled";
 
-        // Cari data Delivery Note yang cocok
-        const deliveryNote = item.Delivery_Notes.find(
-          (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
-        );
+        // filter data Delivery Note yang cocok
+        const deliveryNotes =
+          item.Delivery_Notes?.filter(
+            (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
+          ) || [];
 
         const planArrivalTime = new Date(ds.arrival)
           .toISOString()
@@ -958,14 +1017,18 @@ export const getArrivalChart = async (req, res) => {
         if (delay > 0) {
           status = "delayed";
         }
-        const completeMaterials = deliveryNote?.Incomings.filter(
-          (inc) => inc.status === "completed"
-        );
 
-        const totalMaterials = deliveryNote?.Incomings?.length || 0;
+        let totalComplete = 0;
+        let totalMaterials = 0;
 
-        // Menghitung jumlah complete
-        const totalComplete = completeMaterials?.length || 0;
+        deliveryNotes.forEach((dn) => {
+          const completeMaterials = dn?.Incomings?.filter(
+            (inc) => inc.status === "completed"
+          );
+
+          totalComplete += completeMaterials?.length || 0;
+          totalMaterials += dn?.Incomings?.length || 0;
+        });
 
         // Format hasil statusMaterial
         const statusMaterial = `${totalComplete} / ${totalMaterials}`;
@@ -979,49 +1042,38 @@ export const getArrivalChart = async (req, res) => {
           arrivalPlanDate: item.Delivery_Notes[0]?.arrivalPlanDate || null, // Antisipasi jika null
           arrivalPlanTime: new Date(ds.arrival).toISOString().slice(11, 16),
           departurePlanTime: new Date(ds.departure).toISOString().slice(11, 16),
-          departureActualTime: deliveryNote?.departureActualTime
-            ? new Date(deliveryNote?.departureActualTime)
+          departureActualTime: deliveryNotes[0]?.departureActualTime
+            ? new Date(deliveryNotes[0]?.departureActualTime)
                 .toISOString()
                 .slice(11, 16)
             : null,
-          arrivalActualDate: deliveryNote?.arrivalActualDate || null,
-          arrivalActualTime: deliveryNote?.arrivalActualTime
-            ? new Date(deliveryNote?.arrivalActualTime)
+          arrivalActualDate: deliveryNotes[0]?.arrivalActualDate || null,
+          arrivalActualTime: deliveryNotes[0]?.arrivalActualTime
+            ? new Date(deliveryNotes[0]?.arrivalActualTime)
                 .toISOString()
                 .slice(11, 16)
             : null,
           statusMaterial: statusMaterial,
-          status: deliveryNote?.status || status,
-          Materials: deliveryNote?.Incomings.map((inc) => {
+          status: deliveryNotes[0]?.status || status,
+          deliveryNotes: deliveryNotes?.map((dn) => {
             return {
-              incomingId: inc.id,
-              dnNumber: deliveryNote.dnNumber,
-              materialNo: inc.Inventory.Material.materialNo,
-              description: inc.Inventory.Material.description,
-              uom: inc.Inventory.Material.uom,
-              address: inc.Inventory.Address_Rack.addressRackName,
-              reqQuantity: inc.planning,
-              actQuantity: inc.actual,
-              remain: inc.planning - inc.actual,
-              status: inc.status,
+              dnNumber: dn.dnNumber,
+              Materials: dn.Incomings?.map((inc) => {
+                return {
+                  incomingId: inc.id,
+                  dnNumber: dn.dnNumber,
+                  materialNo: inc.Inventory.Material.materialNo,
+                  description: inc.Inventory.Material.description,
+                  uom: inc.Inventory.Material.uom,
+                  address: inc.Inventory.Address_Rack.addressRackName,
+                  reqQuantity: inc.planning,
+                  actQuantity: inc.actual,
+                  remain: inc.planning - inc.actual,
+                  status: inc.status,
+                };
+              }),
             };
           }),
-          // Materials: item.Delivery_Notes.flatMap((dn) =>
-          //   dn.Incomings.map((inc) => {
-          //     return {
-          //       incomingId: inc.id,
-          //       dnNumber: dn.dnNumber,
-          //       materialNo: inc.Inventory.Material.materialNo,
-          //       description: inc.Inventory.Material.description,
-          //       uom: inc.Inventory.Material.uom,
-          //       address: inc.Inventory.Address_Rack.addressRackName,
-          //       reqQuantity: inc.planning,
-          //       actQuantity: inc.actual,
-          //       remain: inc.planning - inc.actual,
-          //       status: inc.status,
-          //     };
-          //   })
-          // ),
         };
       });
     });
@@ -1043,6 +1095,12 @@ export const getArrivalChart = async (req, res) => {
     // Return sorted data
     return res.status(200).json({
       data: mappedData,
+      summaryMaterial: {
+        completed: totalCompletedIncomings,
+        notCompleted: totalPartialIncomings,
+        notDelivered: totalNotCompleteIncomings,
+        total: totalIncomingMaterials,
+      },
       message: "Data Delivery Note Found",
     });
   } catch (error) {
@@ -1099,5 +1157,197 @@ export const updateStatusToDelayed = async (dnNumber) => {
   } catch (error) {
     console.error(error);
     throw error;
+  }
+};
+
+export const getDnChartHistory = async (req, res) => {
+  try {
+    const { plantId, month, year } = req.query;
+
+    let whereConditionPlant = { flag: 1 };
+    let whereConditionIncomingHistory = {};
+
+    if (plantId) {
+      whereConditionPlant.id = plantId;
+    }
+
+    // Filter berdasarkan bulan dan tahun jika ada
+    if (month && year) {
+      const startDate = `${year}-${month.padStart(2, "0")}-01`; // Tanggal awal bulan
+      const endDate = new Date(year, month, 1).toISOString().slice(0, 10); // Tanggal akhir bulan
+
+      whereConditionIncomingHistory.incomingDate = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    const data = await IncomingHistory.findAll({
+      where: whereConditionIncomingHistory,
+      include: [
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status", "incomingDate"],
+          include: [
+            {
+              model: Inventory,
+              required: true,
+              attributes: ["id", "materialId", "addressId"],
+              include: [
+                {
+                  model: Material,
+                  required: true,
+                  attributes: ["id", "materialNo", "description", "uom"],
+                  where: { flag: 1 },
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  attributes: ["id", "addressRackName"],
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Storage,
+                      required: true,
+                      attributes: ["id", "storageName"],
+                      where: { flag: 1 },
+                      include: [
+                        {
+                          model: Plant,
+                          required: true,
+                          attributes: ["id", "plantName", "warehouseId"],
+                          where: whereConditionPlant,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              model: DeliveryNote,
+              required: true,
+              include: [
+                {
+                  model: Supplier,
+                  required: true,
+                  attributes: ["id", "supplierName", "supplierCode"],
+                  where: { flag: 1 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Delivery Note Not Found" });
+    }
+
+    // Grouping dan Counting berdasarkan incomingDate
+    const groupedData = data.reduce((acc, item) => {
+      const incomingDate = item.incomingDate;
+      const status = item.status;
+
+      if (!acc[incomingDate]) {
+        acc[incomingDate] = {
+          date: incomingDate,
+          items: [],
+          statusCount: {
+            partial: 0,
+            completed: 0,
+            notComplete: 0,
+          },
+        };
+      }
+
+      // Tambahkan item ke grup yang sesuai
+      acc[incomingDate].items.push(item);
+
+      // Hitung berdasarkan status
+      if (status === "partial") {
+        acc[incomingDate].statusCount.partial += 1;
+      } else if (status === "completed") {
+        acc[incomingDate].statusCount.completed += 1;
+      } else if (status === "not complete") {
+        acc[incomingDate].statusCount.notComplete += 1;
+      }
+
+      return acc;
+    }, {});
+
+    // Konversi menjadi array dan hitung jumlah item per tanggal
+    const result = Object.values(groupedData).map((group) => ({
+      incomingDate: group.date,
+      itemCount: group.items.length,
+      partialCount: group.statusCount.partial,
+      completedCount: group.statusCount.completed,
+      notDeliveredCount: group.statusCount.notComplete,
+    }));
+
+    // Grouping dan Counting berdasarkan supplier
+    const groupedDataSupplier = data.reduce((acc, item) => {
+      const status = item.status;
+      const supplierId = item.Incoming.Delivery_Note.supplierId;
+      const supplierCode = item.Incoming.Delivery_Note.Supplier.supplierCode;
+      const supplierName = item.Incoming.Delivery_Note.Supplier.supplierName;
+
+      if (!acc[supplierId]) {
+        acc[supplierId] = {
+          supplierId: supplierId,
+          supplierCode: supplierCode,
+          supplierName: supplierName,
+          items: [],
+          statusCount: {
+            partial: 0,
+            completed: 0,
+            notComplete: 0,
+          },
+        };
+      }
+
+      // Tambahkan item ke grup yang sesuai
+      acc[supplierId].items.push(item);
+
+      // Hitung berdasarkan status
+      if (status === "partial") {
+        acc[supplierId].statusCount.partial += 1;
+      } else if (status === "completed") {
+        acc[supplierId].statusCount.completed += 1;
+      } else if (status === "not complete") {
+        acc[supplierId].statusCount.notComplete += 1;
+      }
+
+      return acc;
+    }, {});
+
+    // Konversi menjadi array dan hitung jumlah item per supplier
+    const resultSupplier = Object.values(groupedDataSupplier).map((group) => ({
+      supplierCode: group.supplierCode,
+      supplierName: group.supplierName,
+      itemCount: group.items.length,
+      partialCount: group.statusCount.partial,
+      completedCount: group.statusCount.completed,
+      notDeliveredCount: group.statusCount.notComplete,
+    }));
+
+    // sort result by incomingDate
+    result.sort((a, b) => {
+      const dateA = new Date(a.incomingDate);
+      const dateB = new Date(b.incomingDate);
+      return dateA - dateB;
+    });
+
+    // sort resultSupplier by notDeliveredCount
+    resultSupplier.sort((a, b) => b.notDeliveredCount - a.notDeliveredCount);
+
+    res.status(200).json({
+      data: { byDate: result, bySupplier: resultSupplier },
+      message: "Data Delivery Note Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

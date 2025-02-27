@@ -77,7 +77,6 @@ export const createWBS = async (req, res) => {
     const wbsNumber = await WBS.findOne({
       where: {
         wbsNumber: req.body.wbsNumber,
-        wbsYear: req.body.wbsYear,
         flag: 1,
       },
     });
@@ -105,14 +104,19 @@ export const updateWBS = async (req, res) => {
       return res.status(404).json({ message: "WBS not found" });
     }
 
-    await WBS.update(req.body, {
-      where: {
-        id: wbsId,
-        flag: 1,
+    await WBS.update(
+      {
+        wbsYear: req.body.wbsYear,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: wbsId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "WBS Updated" });
   } catch (error) {
     console.log(error.message);

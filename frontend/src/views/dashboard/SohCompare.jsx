@@ -121,11 +121,9 @@ const Inventory = () => {
       const response = await getInventory(selectedPlantId, selectedStorageId, selectedTypeId);
       
       if (response?.data) {
-        console.log("Fetched Inventory Data:", response.data);
         setInventory(response.data);
         setVisibleData(response.data); // Set data yang terlihat di tabel
       } else {
-        console.warn("No data received from API.");
         setInventory([]);
         setVisibleData([]);
       }

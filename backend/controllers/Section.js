@@ -1,14 +1,28 @@
+import GIC from "../models/GICModel.js";
 import LogMaster from "../models/LogMasterModel.js";
 import Organization from "../models/OrganizationModel.js";
 import Plant from "../models/PlantModel.js";
 import Section from "../models/SectionModel.js";
 import User from "../models/UserModel.js";
+import WBS from "../models/WBSModel.js";
 
 export const getSection = async (req, res) => {
   try {
     const response = await Section.findAll({
       where: { flag: 1 },
       include: [
+        {
+          model: GIC,
+          required: true,
+          attributes: ["id", "gicNumber"],
+          where: { flag: 1 },
+        },
+        {
+          model: WBS,
+          required: true,
+          attributes: ["id", "wbsNumber"],
+          where: { flag: 1 },
+        },
         {
           model: LogMaster,
           required: false,
@@ -76,17 +90,25 @@ export const getSectionById = async (req, res) => {
 
 export const createSection = async (req, res) => {
   try {
-    const sectionName = await Section.findOne({
-      where: { sectionName: req.body.sectionName, flag: 1 },
+    const sectionCode = await Section.findOne({
+      where: { sectionCode: req.body.sectionCode, flag: 1 },
     });
-    if (sectionName) {
+    if (sectionCode) {
       return res.status(400).json({ message: "Section already exists" });
     }
 
-    await Section.create(req.body, { userId: require.user.userId });
+    await Section.create(
+      {
+        sectionCode: req.body.sectionCode,
+        sectionName: req.body.sectionName,
+        gicId: req.body.gicId,
+        wbsId: req.body.wbsId,
+      },
+      { userId: req.user.userId }
+    );
     res.status(201).json({ message: "Section Created" });
   } catch (error) {
-    console.log(error.message);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -103,17 +125,24 @@ export const updateSection = async (req, res) => {
       return res.status(404).json({ message: "Section not found" });
     }
 
-    await Section.update(req.body, {
-      where: {
-        id: sectionId,
-        flag: 1,
+    await Section.update(
+      {
+        sectionName: req.body.sectionName,
+        gicId: req.body.gicId,
+        wbsId: req.body.wbsId,
       },
-      individualHooks: true,
-      userId: require.user.userId,
-    });
+      {
+        where: {
+          id: sectionId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Section Updated" });
   } catch (error) {
-    console.log(error.message);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -135,7 +164,7 @@ export const deleteSection = async (req, res) => {
       {
         where: { id: sectionId, flag: 1 },
         individualHooks: true,
-        userId: require.user.userId,
+        userId: req.user.userId,
       }
     );
 

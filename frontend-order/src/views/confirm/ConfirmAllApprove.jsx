@@ -150,11 +150,9 @@ const ApproveAll = () => {
           })
         }
         if (!response?.data?.orders) {
-          console.error('No orders found')
           setMyApprovalData([])
           return
         }
-        console.log('response', response)
         const newData = response.data.orders
         setMyApprovalData((prevData) => [...prevData, ...newData])
         setTotalPages(response.data.totalPages)
@@ -190,9 +188,7 @@ const ApproveAll = () => {
   //   getApprove(0)
   //   getUsers
   // }, [warehouse])
-  // console.log('aba', myApprovalData)
-  // console.log('aca', warehouse.id)
-  // console.log('ada', activeTab)
+
 
   const filteredProducts = selectedDate
     ? productsData.filter((product) => {
@@ -293,7 +289,6 @@ const ApproveAll = () => {
     getOrderHistories(approval.id)
     setSelectedProduct(approval)
     setVisible(true)
-    console.log('aa', approval)
   }
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -539,7 +534,6 @@ const ApproveAll = () => {
             <CRow className="mt-1">
               <CCard style={{ border: 'none' }}>
                 {/* Scrollable product cards */}
-                {console.log('coba data', myApprovalData)}
                 <CRow className="g-1 mt-1">
                   {isLoading ? (
                     // Skeleton loading untuk kartu persetujuan
@@ -653,7 +647,6 @@ const ApproveAll = () => {
                 </CRow>
               </CCard>
             </CRow>
-            {console.log('111111', orderHistory)}
 
             {selectedProduct && (
               <CModal visible={visible} onClose={() => setVisible(false)} className="modal-lg">

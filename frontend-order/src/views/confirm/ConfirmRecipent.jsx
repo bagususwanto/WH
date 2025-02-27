@@ -63,7 +63,6 @@ const Confirm = () => {
   const location = useLocation()
   const MySwal = withReactContent(Swal)
   const { verifiedCartItems } = location.state
-  console.log('aa', verifiedCartItems)
   const [loading, setLoading] = useState(false) // To control the loading overlay
 
   const totalQuantity = verifiedCartItems.reduce((acc, product) => {

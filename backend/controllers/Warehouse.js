@@ -76,11 +76,11 @@ export const getWarehouseById = async (req, res) => {
 
 export const createWarehouse = async (req, res) => {
   try {
-    const warehouseName = await Warehouse.findOne({
-      where: { warehouseName: req.body.warehouseName, flag: 1 },
+    const warehouseCode = await Warehouse.findOne({
+      where: { warehouseCode: req.body.warehouseCode, flag: 1 },
     });
 
-    if (warehouseName) {
+    if (warehouseCode) {
       return res.status(400).json({ message: "Warehouse already exists" });
     }
 
@@ -104,14 +104,19 @@ export const updateWarehouse = async (req, res) => {
       return res.status(404).json({ message: "Warehouse not found" });
     }
 
-    await Warehouse.update(req.body, {
-      where: {
-        id: warehouseId,
-        flag: 1,
+    await Warehouse.update(
+      {
+        warehouseName: req.body.warehouseName,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: warehouseId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "Warehouse Updated" });
   } catch (error) {
     console.log(error.message);

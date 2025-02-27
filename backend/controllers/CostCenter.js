@@ -102,14 +102,19 @@ export const updateCostCenter = async (req, res) => {
       return res.status(404).json({ message: "CostCenter not found" });
     }
 
-    await CostCenter.update(req.body, {
-      where: {
-        id: costCenterId,
-        flag: 1,
+    await CostCenter.update(
+      {
+        costCenterName: req.body.costCenterName,
       },
-      individualHooks: true,
-      userId: req.user.userId,
-    });
+      {
+        where: {
+          id: costCenterId,
+          flag: 1,
+        },
+        individualHooks: true,
+        userId: req.user.userId,
+      }
+    );
     res.status(200).json({ message: "CostCenter Updated" });
   } catch (error) {
     console.log(error.message);
