@@ -234,15 +234,17 @@ export const createMaterial = async (req, res) => {
       });
     }
 
-    // Cek packaging
-    const existPackaging = await Packaging.findOne({
-      where: { id: packaging.value, flag: 1 },
-    });
-    if (!existPackaging) {
-      return res.status(400).json({
-        message:
-          "Packaging not found, please check it out first Packaging master data",
+    if (packaging) {
+      // Cek packaging
+      const existPackaging = await Packaging.findOne({
+        where: { id: packaging.value, flag: 1 },
       });
+      if (!existPackaging) {
+        return res.status(400).json({
+          message:
+            "Packaging not found, please check it out first Packaging master data",
+        });
+      }
     }
 
     // Cek address rack
@@ -268,7 +270,7 @@ export const createMaterial = async (req, res) => {
         minStock,
         maxStock,
         minOrder,
-        packagingId: packaging.value,
+        packagingId: packaging?.value,
         categoryId: category.value,
         supplierId: supplier.value,
       },
@@ -418,15 +420,17 @@ export const updateMaterial = async (req, res) => {
       });
     }
 
-    // Cek packaging
-    const existPackaging = await Packaging.findOne({
-      where: { id: packaging.value, flag: 1 },
-    });
-    if (!existPackaging) {
-      return res.status(400).json({
-        message:
-          "Packaging not found, please check it out first Packaging master data",
+    if (packaging) {
+      // Cek packaging
+      const existPackaging = await Packaging.findOne({
+        where: { id: packaging.value, flag: 1 },
       });
+      if (!existPackaging) {
+        return res.status(400).json({
+          message:
+            "Packaging not found, please check it out first Packaging master data",
+        });
+      }
     }
 
     // Cek address rack
@@ -494,7 +498,7 @@ export const updateMaterial = async (req, res) => {
         minStock,
         maxStock,
         minOrder,
-        packagingId: packaging.value,
+        packagingId: packaging?.value,
         categoryId: category.value,
         supplierId: supplier.value,
       },
