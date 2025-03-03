@@ -803,7 +803,7 @@ const Inventory = () => {
                 <DataTable
                   value={visibleData}
                   tableStyle={{ minWidth: '50rem' }}
-                  className="p-datatable-gridlines  text-nowrap"
+                  className="p-datatable-gridlines custom-datatable text-nowrap"
                   paginator
                   rowsPerPageOptions={[10, 50, 100, 500]}
                   rows={10}
