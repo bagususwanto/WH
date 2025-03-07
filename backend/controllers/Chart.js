@@ -20,7 +20,8 @@ endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 //   .toISOString()
 //   .split("T")[0];
 
-const today = new Date().toLocaleDateString("en-CA"); // Format 'YYYY-MM-DD'
+// const today = new Date().toLocaleDateString("en-CA"); // Format 'YYYY-MM-DD'
+const today = new Date().toISOString().split("T")[0];
 
 export const getInventoryDashboard = async (req, res) => {
   try {
