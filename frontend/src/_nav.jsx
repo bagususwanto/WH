@@ -113,10 +113,7 @@ const useNavigation = () => {
       })
     }
     // NAV INVENTORY
-    if (
-      roleName === 'warehouse staff' ||
-      roleName === 'warehouse member'
-    ) {
+    if (roleName === 'warehouse staff' || roleName === 'warehouse member') {
       baseNav.push(
         {
           component: CNavTitle,
@@ -167,7 +164,7 @@ const useNavigation = () => {
       (isWarehouse == 1 && roleName === 'group head') ||
       (isWarehouse == 1 && roleName === 'line head') ||
       (isWarehouse == 1 && roleName === 'section head') ||
-      (isWarehouse == 1 && roleName === 'department head')||
+      (isWarehouse == 1 && roleName === 'department head') ||
       (isWarehouse == 1 && roleName === 'super admin')
     ) {
       baseNav.push(
@@ -181,6 +178,12 @@ const useNavigation = () => {
           to: '/inventory',
           icon: <CIcon icon={cilTablet} customClassName="nav-icon" />,
           items: [
+            {
+              component: CNavItem,
+              name: 'Input Inventory',
+              to: '/inventory/input',
+              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+            },
             {
               component: CNavItem,
               name: 'Data Inventory',
