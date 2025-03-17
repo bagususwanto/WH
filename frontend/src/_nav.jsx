@@ -670,7 +670,7 @@ const useNavigation = () => {
       {
         component: CNavItem,
         name: 'Profile',
-        to: '/dummy-route', // Internal route, just a placeholder
+        to: '/profile', // Internal route, just a placeholder
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
         onClick: (e) => {
           e.preventDefault() // Prevent the default behavior of `to`
