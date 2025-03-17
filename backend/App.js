@@ -51,6 +51,7 @@ import deliveryScheduleRouter from "./routes/DeliveryScheduleRouter.js";
 import deliveryNoteRouter from "./routes/DeliveryNoteRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
+import { checkPasswordExpiration } from "./middleware/CheckPasswordExpiration.js";
 
 dotenv.config();
 const app = express();
@@ -112,6 +113,7 @@ app.use(express.json());
 app.use("/api", authRouter);
 
 app.use(verifyToken);
+// app.use(checkPasswordExpiration);
 
 // Master data router
 app.use("/api", categoryRouter);

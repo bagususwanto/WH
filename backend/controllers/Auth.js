@@ -3,6 +3,7 @@ import Role from "../models/RoleModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserWarehouse from "../models/UserWarehouseModel.js";
+import { PASSWORD_EXPIRATION_DAYS } from "../middleware/CheckPasswordExpiration.js";
 
 // Function to generate access and refresh tokens
 const generateTokens = (
@@ -89,6 +90,21 @@ export const login = async (req, res) => {
         .status(400)
         .json({ message: "Username atau password tidak sesuai" });
     }
+
+    // **Cek Password Expired Sebelum Mengembalikan Token**
+    // const now = new Date();
+    // const lastUpdated = user.passwordUpdatedAt
+    //   ? new Date(user.passwordUpdatedAt)
+    //   : null;
+    // const diffDays = lastUpdated
+    //   ? Math.floor((now - lastUpdated) / (1000 * 60 * 60 * 24))
+    //   : PASSWORD_EXPIRATION_DAYS + 1;
+
+    // if (diffDays > PASSWORD_EXPIRATION_DAYS) {
+    //   return res.status(403).json({
+    //     message: "Password has expired. Please reset it.",
+    //   });
+    // }
 
     const {
       id: userId,
