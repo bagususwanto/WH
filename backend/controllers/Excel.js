@@ -1564,6 +1564,12 @@ const cleanAndUppercaseData = (data) => {
   return data.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase();
 };
 
+const formatTime = (dateTime) => {
+  if (!dateTime) return null; // Pastikan tidak null atau undefined
+  const date = new Date(dateTime);
+  return date.toISOString().split("T")[1].split(".")[0]; // Ambil HH:mm:ss
+};
+
 export const uploadMasterDeliverySchedule = async (req, res) => {
   let transaction;
 
@@ -1671,8 +1677,8 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
       try {
         const supplierCode = String(row[0]?.toString().trim());
         const schedule = cleanAndUppercaseData(row[1]);
-        const arrival = row[2];
-        const departure = row[3];
+        const arrival = formatTime(row[2]);
+        const departure = formatTime(row[3]);
         const truckStation = row[4];
         const rit = row[5];
         const plantCode = row[6];
