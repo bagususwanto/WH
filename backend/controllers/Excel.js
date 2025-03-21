@@ -1737,7 +1737,15 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
     // Bulk update existing materials
     if (updatedDeliverySchedules.length > 0) {
       const updatePromises = updatedDeliverySchedules.map((ds) =>
-        DeliverySchedule.update(ds, { where: { id: ds.id }, transaction })
+        DeliverySchedule.update(
+          {
+            ...ds,
+            arrival: ds.arrival,
+            departure: ds.departure,
+            truckStation: ds.truckStation,
+          },
+          { where: { id: ds.id }, transaction }
+        )
       );
       await Promise.all(updatePromises);
     }
