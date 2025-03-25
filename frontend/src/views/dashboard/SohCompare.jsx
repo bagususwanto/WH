@@ -41,9 +41,9 @@ import { MultiSelect } from 'primereact/multiselect'
 import useManageStockService from '../../services/ManageStockService'
 import useMasterDataService from '../../services/MasterDataService'
 import {
-
- 
 } from '@coreui/react'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBoxOpen } from "@fortawesome/free-solid-svg-icons";
 
 const MySwal = withReactContent(Swal)
 
@@ -66,7 +66,7 @@ const Inventory = () => {
   const [shopId, setShopId] = useState()
   const [typeId, setTypeId] = useState()
   const [shouldFetch, setShouldFetch] = useState(false)
-   const [plantName, setPlantName] = useState()
+   const [plantName, setPlantName] = useState("Karawang 1")
   const [typeMaterial, setTypeMaterial] = useState()
   const [remarks, setRemarks] = useState('') // State to store remarks entered in CModal
   const { getInventory,uploadInventorySoh, updateInventoryById, executeInventory } = useManageStockService()
@@ -591,6 +591,9 @@ useEffect(() => {
                   <CCardBody>
                     <CRow>
                       <CCol xs={12} sm={6} md={3}>
+                      <CFormLabel  style={{ fontSize: '12px' }}>
+                      Plant
+                    </CFormLabel>
                         <Dropdown
                           value={filters['Address_Rack.Storage.Plant.plantName'].value}
                           options={plant}
@@ -603,6 +606,9 @@ useEffect(() => {
                         />
                       </CCol>
                       <CCol xs={12} sm={6} md={3}>
+                      <CFormLabel  style={{ fontSize: '12px' }}>
+                      Storage
+                      </CFormLabel>
                         <Dropdown
                           value={filters['Address_Rack.Storage.storageName'].value}
                           options={storage}
@@ -624,10 +630,7 @@ useEffect(() => {
             </CButton>
             </CCardHeader>
           <CCardBody>
-          {loading ? (
-              <LoadingComponent /> // Render loading component when loading is true
-            ) : (
-              <>
+         
                
             <CRow>
             <CCol xs={12} sm={12} md={8} lg={8} xl={8}>
@@ -643,7 +646,7 @@ useEffect(() => {
                 />
              <Button
                 type="button"
-                label="Upload"
+                label="Upload SoH"
                 icon="pi pi-file-import"
                 severity="primary"
                 className="rounded-5 me-2 mb-2"
@@ -669,7 +672,12 @@ useEffect(() => {
                   rowsPerPageOptions={[12, 50, 100, 500]}
                   rows={12}
                   dataKey="id"
-                  emptyMessage="No inventory found."
+                  emptyMessage={
+                    <div className="text-center py-3">
+                      <FontAwesomeIcon icon={faBoxOpen} size="2x" color="gray" />
+                      <p>Silahkan Pilih Plant terlebih dahulu</p>
+                    </div>
+                  }
                   size="small"
                   scrollable
                   removableSort
@@ -713,8 +721,8 @@ useEffect(() => {
                   />
                 </DataTable>
                 </CRow>
-              </>
-            )}
+              
+            
           </CCardBody>
             <CModal visible={modalUpload} onClose={() => setModalUpload(false)}>
               <CModalHeader>

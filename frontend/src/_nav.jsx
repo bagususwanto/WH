@@ -202,7 +202,7 @@ const useNavigation = () => {
               icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
               onClick: (e) => {
                 e.preventDefault() // Prevent the default behavior of `to`
-                window.open(`${config.REDPOST_URL}/#/dashboard`, '_blank') // Opens URL in a new tab
+                window.open(`${config.REDPOST_URL}`) // Opens URL in a new tab
               },
             },
           ],
