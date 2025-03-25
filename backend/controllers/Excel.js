@@ -1323,9 +1323,9 @@ export const uploadDeliveryNote = async (req, res) => {
     const deliveryNoteMap = new Map();
     const incomingMap = new Map();
 
-    const newDeliveryNotes = [];
     const updatedDeliveryNotes = [];
     const newIncomings = [];
+    const newDeliveryNotes = [];
     const updatedIncomings = [];
     const validationErrors = [];
 
@@ -1391,10 +1391,10 @@ export const uploadDeliveryNote = async (req, res) => {
         } else {
           newDeliveryNotes.push({
             dnNumber,
+            status: "scheduled",
             arrivalPlanDate: deliveryDate,
             departurePlanDate: deliveryDate,
             supplierId,
-            status: "scheduled",
             logImportId: logImportDN.id,
           });
         }
@@ -1428,16 +1428,49 @@ export const uploadDeliveryNote = async (req, res) => {
         } else {
           newIncomings.push({
             inventoryId,
+            dnNumber,
             planning,
             incomingDate: deliveryDate,
             status: "not complete",
-            deliveryNoteId: existingDeliveryNoteId,
+            deliveryNoteId: null,
             logImportId: logImportIncoming.id,
           });
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
       }
+    }
+
+    if (newDeliveryNotes.length > 0) {
+      const createdNotes = await DeliveryNote.bulkCreate(newDeliveryNotes, {
+        transaction,
+        returning: true, // Mendapatkan kembali ID hasil insert
+      });
+
+      // Update mapping dengan ID hasil insert
+      for (const note of createdNotes) {
+        deliveryNoteMap.set(note.dnNumber, note.id);
+      }
+    }
+
+    // Update `newIncomings` dengan ID yang benar dari `deliveryNoteMap`
+    for (const inc of newIncomings) {
+      inc.deliveryNoteId = deliveryNoteMap.get(inc.dnNumber);
+    }
+
+    // Insert semua `Incoming` baru sekaligus
+    if (newIncomings.length > 0) {
+      await Incoming.bulkCreate(
+        newIncomings.map((inc) => ({
+          planning: inc.planning,
+          inventoryId: inc.inventoryId,
+          logImportId: inc.logImportId,
+          incomingDate: inc.incomingDate,
+          status: inc.status,
+          deliveryNoteId: inc.deliveryNoteId,
+        })),
+        { transaction }
+      );
     }
 
     if (updatedDeliveryNotes.length > 0) {
@@ -1474,46 +1507,28 @@ export const uploadDeliveryNote = async (req, res) => {
       }
     }
 
-    for (const dn of newDeliveryNotes) {
-      const [existingDN, created] = await DeliveryNote.findOrCreate({
-        where: { dnNumber: dn.dnNumber },
-        defaults: {
-          arrivalPlanDate: dn.arrivalPlanDate,
-          departurePlanDate: dn.departurePlanDate,
-          supplierId: dn.supplierId,
-          status: dn.status,
-          logImportId: dn.logImportId,
-        },
-        transaction, // Pakai transaction agar data tetap konsisten
-      });
+    // for (const inc of newIncomings) {
+    //   const [existingInc, created] = await Incoming.findOrCreate({
+    //     where: {
+    //       inventoryId: inc.inventoryId,
+    //       incomingDate: inc.incomingDate,
+    //     },
+    //     defaults: {
+    //       planning: inc.planning,
+    //       status: inc.status,
+    //       deliveryNoteId: inc.deliveryNoteId,
+    //       logImportId: inc.logImportId,
+    //     },
+    //     transaction, // Pakai transaction agar data tetap konsisten
+    //   });
 
-      if (created) {
-        deliveryNoteMap.set(dn.dnNumber, existingDN.id);
-      }
-    }
-
-    for (const inc of newIncomings) {
-      const [existingInc, created] = await Incoming.findOrCreate({
-        where: {
-          inventoryId: inc.inventoryId,
-          incomingDate: inc.incomingDate,
-        },
-        defaults: {
-          planning: inc.planning,
-          status: inc.status,
-          deliveryNoteId: inc.deliveryNoteId,
-          logImportId: inc.logImportId,
-        },
-        transaction, // Pakai transaction agar data tetap konsisten
-      });
-
-      if (created) {
-        incomingMap.set(
-          `${inc.inventoryId}-${inc.incomingDate}`,
-          existingInc.id
-        );
-      }
-    }
+    //   if (created) {
+    //     incomingMap.set(
+    //       `${inc.inventoryId}-${inc.incomingDate}`,
+    //       existingInc.id
+    //     );
+    //   }
+    // }
 
     await transaction.commit();
     res.status(200).send({
@@ -1547,6 +1562,12 @@ const validateHeaderDeliverySchedule = (header) => {
 const cleanAndUppercaseData = (data) => {
   // Gunakan RegExp untuk menghapus semua simbol kecuali huruf dan angka
   return data.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase();
+};
+
+const formatTime = (dateTime) => {
+  if (!dateTime) return null; // Pastikan tidak null atau undefined
+  const date = new Date(dateTime);
+  return date.toISOString().split("T")[1].split(".")[0]; // Ambil HH:mm:ss
 };
 
 export const uploadMasterDeliverySchedule = async (req, res) => {
@@ -1656,8 +1677,8 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
       try {
         const supplierCode = String(row[0]?.toString().trim());
         const schedule = cleanAndUppercaseData(row[1]);
-        const arrival = row[2];
-        const departure = row[3];
+        const arrival = formatTime(row[2]);
+        const departure = formatTime(row[3]);
         const truckStation = row[4];
         const rit = row[5];
         const plantCode = row[6];
@@ -1722,7 +1743,15 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
     // Bulk update existing materials
     if (updatedDeliverySchedules.length > 0) {
       const updatePromises = updatedDeliverySchedules.map((ds) =>
-        DeliverySchedule.update(ds, { where: { id: ds.id }, transaction })
+        DeliverySchedule.update(
+          {
+            ...ds,
+            arrival: ds.arrival,
+            departure: ds.departure,
+            truckStation: ds.truckStation,
+          },
+          { where: { id: ds.id }, transaction }
+        )
       );
       await Promise.all(updatePromises);
     }

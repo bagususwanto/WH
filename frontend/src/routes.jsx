@@ -36,6 +36,7 @@ const Wbs = React.lazy(() => import('./views/masterdata/wbs/Wbs'))
 const Shift = React.lazy(() => import('./views/masterdata/shift/Shift'))
 const CostCenter = React.lazy(() => import('./views/masterdata/costcenter/CostCenter'))
 const GIC = React.lazy(() => import('./views/masterdata/gic/Gic'))
+const ResetPassword = React.lazy(() => import('./views/pages/resetpassword/ResetPassword'))
 
 const routes = [
   { path: '/login', name: '', element: Login },
@@ -74,6 +75,7 @@ const routes = [
   { path: '/shift', name: 'Master / Shift', element: Shift },
   { path: '/cc', name: 'Master / Cost Center', element: CostCenter },
   { path: '/gic', name: 'Master / GI Card', element: GIC },
+  { path: '/reset-password', name: '', element: ResetPassword },
 ]
 
 export default routes

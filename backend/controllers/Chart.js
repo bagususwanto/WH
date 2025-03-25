@@ -20,7 +20,8 @@ endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
 //   .toISOString()
 //   .split("T")[0];
 
-const today = new Date().toLocaleDateString("en-CA"); // Format 'YYYY-MM-DD'
+// const today = new Date().toLocaleDateString("en-CA"); // Format 'YYYY-MM-DD'
+// const today = new Date().toISOString().split("T")[0];
 
 export const getInventoryDashboard = async (req, res) => {
   try {
@@ -30,6 +31,8 @@ export const getInventoryDashboard = async (req, res) => {
     const value = parseFloat(req.query.value) || 0; // Value, default 0
     const status = req.query.status || "critical";
     const plant = req.query.plant || null;
+
+    const today = new Date().toISOString().split("T")[0];
 
     let rumus;
     let rumus2;
