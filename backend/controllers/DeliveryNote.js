@@ -214,6 +214,8 @@ const formatTimeToHHMMSS = (time) => {
 };
 
 export const submitDeliveryNote = async (req, res) => {
+  let transaction;
+
   try {
     const {
       dnNumber,
@@ -257,16 +259,13 @@ export const submitDeliveryNote = async (req, res) => {
 
     // validasi max dnNumber 10 digit dan hanya angka
     if (
-      dnNumber.length > 10 ||
-      dnNumber.length < 10 ||
+      dnNumber.length !== 10 || // Cukup satu kondisi untuk panjang 10
       !/^\d+$/.test(dnNumber)
     ) {
       return res.status(400).json({ message: "Invalid Delivery Note Number" });
     }
 
-    const dn = await DeliveryNote.findOne({
-      where: { dnNumber },
-    });
+    const dn = await DeliveryNote.findOne({ where: { dnNumber } });
 
     if (!dn) {
       return res.status(404).json({ message: "Delivery Note not found" });
@@ -275,7 +274,7 @@ export const submitDeliveryNote = async (req, res) => {
     const tanggal = new Date(dn.arrivalPlanDate);
     const day = tanggal.getDay();
 
-    const transaction = await db.transaction();
+    transaction = await db.transaction(); // Assign transaksi ke variabel yang dideklarasikan di luar try
 
     const checkDnNo = await DeliveryNote.findAll(
       {
@@ -325,13 +324,13 @@ export const submitDeliveryNote = async (req, res) => {
       { transaction }
     );
 
-    // Check if DN Number is not found
-    if (!checkDnNo) {
+    if (!checkDnNo || checkDnNo.length === 0) {
+      await transaction.rollback();
       return res.status(404).json({ message: "Delivery Note not found" });
     }
 
-    // Check if DN Number is already processeds
     if (checkDnNo.rit) {
+      await transaction.rollback();
       return res
         .status(400)
         .json({ message: "Delivery Note already processed" });
@@ -381,7 +380,6 @@ export const submitDeliveryNote = async (req, res) => {
     );
 
     try {
-      // Update data in Incoming
       await handleUpdateIncoming(
         incomingIds,
         receivedQuantities,
@@ -394,10 +392,9 @@ export const submitDeliveryNote = async (req, res) => {
     }
 
     await transaction.commit();
-
     res.status(200).json({ message: "Delivery Note Updated" });
   } catch (error) {
-    await transaction.rollback();
+    if (transaction) await transaction.rollback(); // Pastikan rollback hanya dilakukan jika transaksi ada
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
