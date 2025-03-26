@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react'
-import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormTextarea } from '@coreui/react'
+import { CCard, CCardHeader, CCardBody, CCol, CRow, CFormTextarea, CFormText } from '@coreui/react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Dropdown } from 'primereact/dropdown'
@@ -18,6 +18,8 @@ import withReactContent from 'sweetalert2-react-content'
 import { MultiSelect } from 'primereact/multiselect'
 import useManageStockService from '../../services/ManageStockService'
 import useMasterDataService from '../../services/MasterDataService'
+import { BarChart, Bar, XAxis, YAxis, Tooltip,LabelList, ResponsiveContainer } from 'recharts';
+
 import {
   CFormInput,
   CModal,
@@ -27,6 +29,9 @@ import {
   CModalFooter,
   CSpinner,
   CButton,
+  CProgress,
+  CProgressBar,
+  CBadge 
 } from '@coreui/react'
 
 const MySwal = withReactContent(Swal)
@@ -41,6 +46,7 @@ const Inventory = () => {
   const [visibleData, setVisibleData] = useState([]) // Data yang terlihat di tabel
   const [editData, setEditData] = useState({})
   const [modalInventory, setModalInventory] = useState(false)
+  const [modalDetail, setModalDetail] = useState(false)
   const [loadingSave, setLoadingSave] = useState(false)
   const [plantId, setPlantId] = useState()
   const [storageId, setStorageId] = useState()
@@ -619,6 +625,17 @@ const Inventory = () => {
     return <Tag value="ok" severity={getSeverity('ok')} />
   }
 
+  const statusDetailTemplate = (rowData) => (
+    <div className="d-flex justify-content-center align-items-center">
+      <Button
+        icon="pi pi-file"
+        className="p-row-editor-init p-link"
+        onClick={() => setModalDetail(rowData)} // Simpan data baris ke state
+      />
+    </div>
+  );
+
+
   // const discrepancyBodyTemplate = (rowData) => {
   //   const { quantityActual, quantitySistem } = rowData
 
@@ -707,6 +724,19 @@ const Inventory = () => {
       <p>Loading inventory data...</p>
     </div>
   )
+
+    const calculateProgress = () => {
+      if (!modalDetail?.Material || modalDetail.quantityActual === null) return 0;
+  
+      const { minStock, maxStock } = modalDetail.Material;
+      const quantityActual = modalDetail.quantityActual || 0; // Jika null, asumsikan 0
+  
+      if (quantityActual <= minStock) return 0;
+      if (quantityActual >= maxStock) return 100;
+  
+      return ((quantityActual - minStock) / (maxStock - minStock)) * 100;
+    };
+
 
   return (
     <CRow>
@@ -818,6 +848,13 @@ const Inventory = () => {
                     e.stopPropagation()
                   }}
                 >
+                  <Column
+                    field="detail"
+                    header="Detail"
+                    body={statusDetailTemplate} // Menggunakan fungsi evaluasi
+                    frozen
+                    alignFrozen="left"
+                  />
                   <Column
                     field="Material.materialNo"
                     header="Material"
@@ -959,6 +996,156 @@ const Inventory = () => {
               )}
             </CButton>
           </Suspense>
+        </CModalFooter>
+      </CModal>
+      
+      <CModal   size="lg" className='' visible={modalDetail} onClose={() => setModalDetail(false)}>
+        <CModalHeader>
+          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+        {modalDetail?.Material && (
+          <CRow className="mb-3">
+            <CRow className='mb-2 mt-1'>
+            <CCol xs={3}>
+              <strong>Material Number:</strong>
+            </CCol>
+           
+            <CCol xs={5}>
+              {modalDetail.Material.materialNo}{' '}
+            </CCol>
+            <CCol className="d-flex justify-content-end" xs={4}>
+              <span className="text-muted" style={{ fontSize: "12px" }}>
+              min: ({modalDetail.Material.minStock}) / max: ({modalDetail.Material.maxStock})
+              </span>
+            </CCol>
+            </CRow>
+            <CRow className='mb-2 mt-1'>
+            <CCol xs={3}>
+              <strong>Description:</strong>
+            </CCol>
+            <CCol xs={8}>
+              {modalDetail.Material.description}{' '}
+            </CCol>
+            </CRow>
+            <CRow className='mb-2 mt-1'>
+            <CCol xs={3}>
+              <strong>Address:</strong>
+            </CCol>
+            <CCol xs={8}>
+              {modalDetail.Address_Rack.addressRackName}{' '}
+            </CCol>
+            </CRow>
+            <hr/>
+            <CRow className='mb-2 '>
+            <CCol xs={3}><strong>Stock Level:</strong></CCol>
+            <CCol xs={8} className="d-flex align-items-center">
+              {(() => {
+                const minStock = modalDetail?.Material?.minStock ?? 1;
+                const maxStock = modalDetail?.Material?.maxStock ?? minStock * 2;
+                const quantityActual = modalDetail?.quantityActualCheck ?? 0;
+
+                // Hitung persentase progress
+                let progress = ((quantityActual - minStock) / (maxStock - minStock)) * 100;
+                progress = isFinite(progress) ? Math.max(0, Math.min(progress, 100)) : 0;
+
+                // Tentukan warna progress
+                let color = "danger";
+                if (progress >= 30) color = "warning";
+                if (progress >= 31) color = "success";
+
+                return (
+                  <div className="w-100 position-relative">
+                    <div style={{ fontSize: "12px" }} className="mt-1 text-muted d-flex justify-content-between">
+                      {quantityActual} / {maxStock} {modalDetail?.Material?.uom}
+                    </div>
+
+                    <div className="d-flex align-items-center">
+                      <CProgress className="mt-2 w-100">
+                        <CProgressBar 
+                          className={`bg-${color} progress-bar-striped progress-bar-animated`} 
+                          value={progress}
+                        >
+                          {quantityActual < minStock ? "Habis" : `${progress.toFixed(1)}%`}
+                        </CProgressBar>
+                      </CProgress>
+
+                      {/* Badges untuk kondisi stok di sebelah kanan progress bar */}
+                      <div className="ms-1">
+                        {quantityActual < minStock && (
+                          <CBadge color="danger">Critical Stock</CBadge>
+                        )}
+                        {quantityActual >= minStock && progress < 40 && (
+                          <CBadge color="warning">Minim Stock</CBadge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </CCol>  
+          </CRow> 
+
+          {/* Gunakan progress lagi di sini setelah dideklarasikan ulang */}
+          {(() => {
+            const minStock = modalDetail?.Material?.minStock ?? 1;
+            const maxStock = modalDetail?.Material?.maxStock ?? minStock * 2;
+            const quantityActual = modalDetail?.quantityActualCheck ?? 0;
+
+            // Hitung ulang progress untuk digunakan di luar fungsi sebelumnya
+            let progress = ((quantityActual - minStock) / (maxStock - minStock)) * 100;
+            progress = isFinite(progress) ? Math.max(0, Math.min(progress, 100)) : 0;
+
+            return progress < 90 ? (
+              <CRow className='mb-2 mt-1'>
+                <CCol xs={3}><strong>Stock Shift:</strong></CCol>
+                <CCol xs={8} className="d-flex align-items-center">
+                  {(() => {
+                    const minStock = modalDetail?.Material?.minStock ?? 1;
+                    const quantityActual = modalDetail?.quantityActualCheck ?? 0;
+
+                    let shiftValue = (quantityActual / minStock) / 2.5;
+                    shiftValue = isFinite(shiftValue) ? Math.max(0, shiftValue) : 0;
+
+                    return (
+                      <div style={{ width: "100%", position: "relative" }}>
+                        <div style={{
+                          width: "100%",
+                          height: "20px",
+                          backgroundColor: "#ddd",
+                          borderRadius: "4px",
+                          position: "relative"
+                        }}>
+                          <div style={{
+                            width: `${shiftValue * 100}%`,
+                            maxWidth: "100%",
+                            height: "100%",
+                            backgroundColor: "red",
+                            borderRadius: "4px"
+                          }}></div>
+                        </div>
+
+                        <div style={{
+                          position: "absolute",
+                          top: "50%",
+                          right: "10px",
+                          transform: "translateY(-50%)",
+                          fontSize: "14px",
+                          fontWeight: "bold"
+                        }}>
+                          {shiftValue.toFixed(2)}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CCol>
+              </CRow>
+            ) : null;
+          })()}              
+          </CRow>
+           )}
+        </CModalBody>
+        <CModalFooter>
         </CModalFooter>
       </CModal>
     </CRow>
