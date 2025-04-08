@@ -257,11 +257,9 @@ export const submitDeliveryNote = async (req, res) => {
         .json({ message: "Received quantities cannot be null" });
     }
 
+    const dnNumberStr = String(dnNumber);
     // validasi max dnNumber 10 digit dan hanya angka
-    if (
-      dnNumber.length !== 10 || // Cukup satu kondisi untuk panjang 10
-      !/^\d+$/.test(dnNumber)
-    ) {
+    if (dnNumberStr.length !== 10) {
       return res.status(400).json({ message: "Invalid Delivery Note Number" });
     }
 
