@@ -1,6 +1,9 @@
+import { pl } from "date-fns/locale";
+
 const dummyData = [
     {
       reqNo: "REQ001",
+      plant: "Plant 1",
       reqForm: "Form A",
       requser: "User1",
       materialRequestion: "Steel Rods",
@@ -12,6 +15,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ002",
+      plant: "Plant 2",
       reqForm: "Form B",
       requser: "User2",
       materialRequestion: "Cement Bags",
@@ -22,6 +26,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ003",
+      plant: "Plant 2",
       reqForm: "Form C",
       requser: "User3",
       materialRequestion: "Bricks",
@@ -32,6 +37,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ004",
+      plant: "Plant 2",
       reqForm: "Form D",
       requser: "User4",
       materialRequestion: "Wood Planks",
@@ -42,6 +48,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ005",
+      plant: "Plant 1",
       reqForm: "Form E",
       requser: "User5",
       materialRequestion: "Nails",
@@ -52,6 +59,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ006",
+      plant: "Plant 1",
       reqForm: "Form F",
       requser: "User6",
       materialRequestion: "Glass Sheets",
@@ -62,6 +70,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ007",
+      plant: "Plant 1",
       reqForm: "Form G",
       requser: "User7",
       materialRequestion: "PVC Pipes",
@@ -72,6 +81,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ008",
+      plant: "Plant 2",
       reqForm: "Form H",
       requser: "User8",
       materialRequestion: "Paint Cans",
@@ -82,6 +92,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ009",
+      plant: "Plant 3",
       reqForm: "Form I",
       requser: "User9",
       materialRequestion: "Electrical Wires",
@@ -92,6 +103,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ010",
+      plant: "Plant 3",
       reqForm: "Form J",
       requser: "User10",
       materialRequestion: "Tiles",
@@ -102,6 +114,7 @@ const dummyData = [
     },
     {
       reqNo: "REQ011",
+      plant: "Plant 1",
       reqForm: "Form K",
       requser: "User11",
       materialRequestion: "Concrete Blocks",
@@ -112,11 +125,34 @@ const dummyData = [
     },
     {
       reqNo: "REQ012",
+      plant: "Plant 1",
       reqForm: "Form L",
       requser: "User12",
       materialRequestion: "Sand Bags",
       reqDate: "2025-02-12",
       status: "Rejected",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "REQ013",
+      plant: "Plant 1",
+      reqForm: "Form M",
+      requser: "User12",
+      materialRequestion: "Sand Obeng +",
+      reqDate: "2025-02-12",
+      status: "Rejected",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "REQ014",
+      plant: "Plant 1",
+      reqForm: "Form N",
+      requser: "User12",
+      materialRequestion: "Obeng -",
+      reqDate: "2025-02-12",
+      status: "Pending",
       createdAt:'2024-02-15T10:30:00Z',
       remarks: 'Everything looks good',
     }

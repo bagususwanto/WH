@@ -88,12 +88,8 @@ const ApprovalRequest = () => {
   const [selectedRow, setSelectedRow] = useState(null); 
   const [visiblePages, setVisiblePages] = useState([])
   const [selectedStatus, setSelectedStatus] = useState(null);
-  const [isVisible, setIsVisible] = useState(true); // State to control visibility
-  const [ dataDNInquery, setDataDNInquery ] = useState([])
    const [totalPages, setTotalPages] = useState(1);
-   const [plants, setPlants] = useState([]); // Plants fetched from API
    const [limitPerPage, setLimitPerPage] = useState({name: 10, code: 10})
-   const [isFilterVisible, setIsFilterVisible] = useState(false);
    const [showModal, setShowModal] = useState(false); // State for modal visibility
    const vendorScheduleRef = useRef(null);
    const [ showModalInput, setShowModalInput] = useState({
@@ -133,9 +129,10 @@ const ApprovalRequest = () => {
           <span
             style={{
               backgroundColor: getStatusColor(rowData.status),
+              fontSize: "0.8rem",
               color: "white",
-              padding: "5px 10px",
-              borderRadius: "5px",
+              padding: "2px 6px",
+              borderRadius: "2px",
               display: "inline-block",
             }}
           >
@@ -207,7 +204,7 @@ const ApprovalRequest = () => {
               </button>
             </CTooltip>
             <CCardTitle className="text-center fs-4" style={{ flexGrow: 1 }}>
-              TABLE MATERIAL REQUESTION FORM
+              YOUR HISTORY MATERIAL REQUESTION FORM
             </CCardTitle>
           </div>
         </CCardHeader>
@@ -215,8 +212,8 @@ const ApprovalRequest = () => {
           <CRow >
             <CCard className='p-0 overflow-hidden'>
               <CCardBody className="p-0">
-                <CCol md='2'>
-                    {/* <div>
+                {/* <CCol md='2'>
+                    <div>
                   <CFormText>Filter Plant</CFormText>
                   <Select
                     className="basic-single"
@@ -245,7 +242,7 @@ const ApprovalRequest = () => {
                       })
                     }}
                   />
-                </div> */}
+                </div>
                 <div>
                 <label className="font-semibold text-gray-700">Filter by Status</label>
                 <Select
@@ -256,25 +253,25 @@ const ApprovalRequest = () => {
                 options={groupedOptions}
               />
                 </div>
-                </CCol>
+                </CCol> */}
                 <DataTable
                   removableSort
                   showGridlines 
                   size="small"
                   value={data}
-                  // paginator
+                  paginator
                   rows={10}
-                  rowsPerPageOptions={[15, 25, 50, 100]}
+                  rowsPerPageOptions={[10, 25, 50, 100]}
                   tableStyle={{ minWidth: '50rem' }}
                   filterDisplay="row"
-                  className="custom-table"
+                  className="custom-table mt-2"
                 >
                     <Column className='' header="No" body={(rowBody, {rowIndex})=>rowIndex+1}></Column>
-                    <Column className='' field='reqNo'  header="Req No"></Column>
-                    <Column className='' field='reqForm'  header="Req Form" ></Column>
-                    <Column className='' field='requser'  header="Req User" ></Column>
-                    <Column className='' field='materialRequestion'  header="Material Requestion" ></Column>
                     <Column className='' field='reqDate'  header="Req Date" ></Column>
+                    <Column className='' field='plant'  header="Plant" ></Column>
+                    <Column className='' field='reqNo'  header="Req No"></Column>
+                    {/* <Column className='' field='reqForm'  header="Req Form" ></Column> */}
+                    <Column className='' field='materialRequestion'  header="Material Requestion" ></Column>
                     <Column 
                         className='' 
                         field='status'  
@@ -291,155 +288,98 @@ const ApprovalRequest = () => {
                         bodyStyle={{ textAlign: 'center' }} 
                         ></Column>
                 </DataTable>
-                <CCol className="d-flex justify-content-center py-3" style={{ position: "relative" }}>
-                  <CPagination aria-label="Page navigation">
-                    <CPaginationItem
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(1)}
-                    >
-                      <FaAnglesLeft/>
-                    </CPaginationItem>
-                    <CPaginationItem
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                    >
-                      <FaChevronLeft/>
-                    </CPaginationItem>
-
-                    {visiblePages.map((page) => (
-                      <CPaginationItem
-                        key={page}
-                        active={currentPage === page}
-                        onClick={() => {
-                          setCurrentPage(page)
-                        }}
-                      >
-                        {page}
-                      </CPaginationItem>
-                    ))}
-
-                    <CPaginationItem
-                      disabled={currentPage === totalPages}
-                      onClick={() => {
-                        setCurrentPage(currentPage + 1)
-                      }}
-                    >
-                      <FaChevronRight/>
-                    </CPaginationItem>
-                    <CPaginationItem
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(totalPages)}
-                    >
-                      <FaAnglesRight/>
-                    </CPaginationItem>
-                  </CPagination>
-               
-                  <div style={{ position: "absolute", right: "30%"}}>
-                    <Dropdown 
-                      value={limitPerPage} 
-                      onChange={(e) => {
-                        fetchChartReceivingData(selectedStatus, 1, e.value.code)
-                        setLimitPerPage(e.value)
-                      }} 
-                      options={[
-                        {name: 10, code: 10},
-                        {name: 25, code: 25},
-                        {name: 50, code: 50},
-                      ]} 
-                      optionLabel="name" 
-                      // placeholder="Select a City" 
-                      className="w-full md:w-14rem" 
-                    />
-                  </div>
-                </CCol>
               </CCardBody>
             {/* Detail Modal */}
-            <CModal   visible={showModal} onClose={() => setShowModal(false)} size="xl">
-              <CModalHeader>
-                <CModalTitle>Detail Information</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                {selectedRow && (
-                  <CRow>
-                    <CCol sm="6">
-                      <CFormText>Req No</CFormText>
-                      <CFormLabel>{selectedRow.reqNo}</CFormLabel>
-                    </CCol>
-                    <CCol sm="6">
-                      <CFormText>Request Form</CFormText>
-                      <CFormLabel>{selectedRow.reqForm}</CFormLabel>
-                    </CCol>
-                    <CCol sm="6">
-                      <CFormText>User</CFormText>
-                      <CFormLabel>{selectedRow.requser}</CFormLabel>
-                    </CCol>
-                    <CCol sm="6">
-                      <CFormText>Status</CFormText>
-                      <CFormLabel>{selectedRow.status}</CFormLabel>
-                    </CCol>
-                    <hr/>
-<CRow
-                    key={item.id}
-                    className="mb-3" // Margin bawah antar item
-                    style={{
-                        alignItems: 'center', // Pastikan elemen rata
-                    }}
-                    >
-                    {/* Kolom Tanggal dan Waktu */}
-                    <CCol xs="auto">
-                        <label
-                        style={{
-                            fontSize: '0.8rem',
-                            color: isFirst ? '#000' : '#6c757d', // Hitam untuk yang pertama, abu-abu untuk lainnya
-                        }}
-                        >
-                        {format(parseISO(item.createdAt), 'dd MMM yyyy')}
-                        {', '}
-                        {format(parseISO(item.createdAt), 'HH:mm')}
-                        </label>
-                    </CCol>
+            <CModal visible={showModal} onClose={() => setShowModal(false)} size="xl">
+            <CModalHeader>
+              <CModalTitle>Detail Information</CModalTitle>
+            </CModalHeader>
+            <CModalBody>
+              {selectedRow && (
+                <CRow>
+                  <CCol sm="6">
+                    <CFormText>Req No</CFormText>
+                    <CFormLabel>{selectedRow.reqNo}</CFormLabel>
+                  </CCol>
+                  <CCol sm="6">
+                    <CFormText>Request Form</CFormText>
+                    <CFormLabel>{selectedRow.reqForm}</CFormLabel>
+                  </CCol>
+                  <CCol sm="6">
+                    <CFormText>User</CFormText>
+                    <CFormLabel>{selectedRow.requser}</CFormLabel>
+                  </CCol>
+                  <CCol sm="6">
+                    <CFormText>Status</CFormText>
+                    <CFormLabel>{selectedRow.status}</CFormLabel>
+                  </CCol>
 
-                    {/* Kolom Ikon */}
-                    <CCol xs="auto">
-                        <div
-                        style={{
-                            border: `2px solid ${isFirst ? '#000' : '#6c757d'}`, // Warna hitam untuk ikon pertama
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}
-                        >
-                        <CIcon
-                            icon={icons[item.icon]}
-                            size="lg"
-                            style={{ color: isFirst ? '#000' : '#6c757d' }} // Warna ikon sesuai status
-                        />
-                        </div>
-                    </CCol>
+                  <hr />
 
-                    {/* Kolom Status */}
-                    <CCol>
-                        <div
-                        style={{
-                            fontSize: '0.91rem',
-                            textTransform: 'capitalize',
-                            color: isFirst ? '#000' : '#495057', // Hitam untuk status pertama, abu-abu gelap untuk lainnya
-                        }}
-                        >
-                        <label style={{ fontSize: '0.96em' }}>{item.status}</label>
-                        <div>By : {item.requser}</div>
-                        <div>Remark : {item.remarks}</div>
-                        </div>
-                    </CCol>
-                    </CRow>
-                  </CRow>
-               
-                )}
-              </CModalBody>
-            </CModal>
+                  {/* Timeline / Status History */}
+                  {selectedRow.history?.map((item, index) => {
+                    const isFirst = index === 0;
+
+                    return (
+                      <CRow
+                        key={item.id}
+                        className="mb-3"
+                        style={{ alignItems: 'center' }}
+                      >
+                        {/* Date & Time */}
+                        <CCol xs="auto">
+                          <label
+                            style={{
+                              fontSize: '0.8rem',
+                              color: isFirst ? '#000' : '#6c757d',
+                            }}
+                          >
+                            {format(parseISO(item.createdAt), 'dd MMM yyyy')}, {format(parseISO(item.createdAt), 'HH:mm')}
+                          </label>
+                        </CCol>
+
+                        {/* Icon */}
+                        <CCol xs="auto">
+                          <div
+                            style={{
+                              border: `2px solid ${isFirst ? '#000' : '#6c757d'}`,
+                              borderRadius: '50%',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <CIcon
+                              icon={icons[item.icon]}
+                              size="lg"
+                              style={{ color: isFirst ? '#000' : '#6c757d' }}
+                            />
+                          </div>
+                        </CCol>
+
+                        {/* Status Info */}
+                        <CCol>
+                          <div
+                            style={{
+                              fontSize: '0.91rem',
+                              textTransform: 'capitalize',
+                              color: isFirst ? '#000' : '#495057',
+                            }}
+                          >
+                            <label style={{ fontSize: '0.96em' }}>{item.status}</label>
+                            <div>By : {item.requser}</div>
+                            <div>Remark : {item.remarks}</div>
+                          </div>
+                        </CCol>
+                      </CRow>
+                    );
+                  })}
+                </CRow>
+              )}
+            </CModalBody>
+          </CModal>
             </CCard>
             </CRow>
        </CCardBody>   

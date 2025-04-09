@@ -1,3 +1,6 @@
+.custom-table {
+  font-size: 15px; /* Atur ukuran teks keseluruhan */
+}
 /* Garis di antara header dan tabel */
 .custom-table thead tr th {
     border-bottom: none !important; /* Hapus garis di bawah header */
@@ -13,7 +16,7 @@
   }
   
   .custom-table tbody tr td {
-    padding: 7px; /* Jarak dalam sel */
+    padding: 3px; /* Jarak dalam sel */
     border-right: 1px solid #d3d3d3; /* Garis vertikal antar kolom */
   }
   
@@ -36,7 +39,7 @@
   
   /* Beri jarak antar baris */
   .custom-row td {
-    padding: 15px 20px; /* Atur padding agar lebih rapi */
+    padding: 11px 18px; /* Atur padding agar lebih rapi */
   }
   
   /* Tambahkan garis header */
