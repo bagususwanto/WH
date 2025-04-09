@@ -21,7 +21,9 @@ const GoodIssue = React.lazy(() => import('./views/gidata/GoodIssue'))
 const Redpost = React.lazy(() => import('./views/redpostdata/Redpost'))
 const Request = React.lazy(() => import('./views/request/Request'))
 const HistoryRequest = React.lazy(() => import('./views/request/HistoryRequest'))
-const ApprovalRequest = React.lazy(() => import('./views/request/ApprovalRequest'))
+const ApprovalRequestSec = React.lazy(() => import('./views/request/ApprovalRequest'))
+const ApprovalRequestDept = React.lazy(() => import('./views/request/ApprovalRequestDept'))
+const ApprovalRequestDiv = React.lazy(() => import('./views/request/ApprovalRequestDiv'))
 const Compare = React.lazy(() => import('./views/dashboard/SohCompare'))
 const Packaging = React.lazy(() => import('./views/masterdata/packaging/Packaging'))
 const Organization = React.lazy(() => import('./views/masterdata/organization/Organization'))
@@ -60,7 +62,9 @@ const routes = [
   { path: '/redpost', name: 'Redpost', element: Redpost },
   { path: '/input-request', name: 'Request', element: Request },
   { path: '/packaging', name: 'Master / Packaging', element: Packaging },
-  { path: '/approval-request/sect-head', name: 'Approval Request', element: ApprovalRequest },
+  { path: '/approval-request/sect-head', name: 'Approval Request Sect', element: ApprovalRequestSec },
+  { path: '/approval-request/dept-head', name: 'Approval Request Dept', element: ApprovalRequestDept },
+  { path: '/approval-request/div-head', name: 'Approval Request Div', element: ApprovalRequestDiv },
   { path: '/compare-inventory', name: 'Compare Inventory', element: Compare },
   { path: '/history-request', name: 'History Request', element: HistoryRequest },
   { path: '/organization', name: 'Master / Organization', element: Organization },

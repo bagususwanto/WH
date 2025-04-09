@@ -110,6 +110,7 @@ const ApproveAll = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [currentPage, setCurrentPage] = useState(1)
 
+
   const apiCategory = 'category'
   const apiUser = 'user'
   const icons = {
@@ -121,6 +122,7 @@ const ApproveAll = () => {
     cilWalk,
     cilCircle,
   }
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsLoading(false)

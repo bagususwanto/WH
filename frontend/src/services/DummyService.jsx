@@ -157,8 +157,81 @@ const dummyData = [
       remarks: 'Everything looks good',
     }
   ];
+
+
+  const approvalData = [
+    {
+      reqNo: "1",
+      plant: "Plant 1",
+      reqForm: "Form 111111",
+      formUser: "User1",
+      materialRequestion: "Steel Rods",
+      reqDate: "2025-02-01",
+      status: "Pending",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+
+    },
+    {
+      reqNo: "2",
+      plant: "Plant 2",
+      reqForm: "Form 111112",
+      formUser: "User2",
+      materialRequestion: "Cement Bags",
+      reqDate: "2025-02-02",
+      status: "Approved",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "3",
+      plant: "Plant 2",
+      reqForm: "Form 111113",
+      formUser: "User3",
+      materialRequestion: "Bricks",
+      reqDate: "2025-02-03",
+      status: "Rejected",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "4",
+      plant: "Plant 2",
+      reqForm: "Form 111114",
+      formUser: "User4",
+      materialRequestion: "Wood Planks",
+      reqDate: "2025-02-04",
+      status: "Pending",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "5",
+      plant: "Plant 1",
+      reqForm: "Form E",
+      formUser: "User5",
+      materialRequestion: "Nails",
+      reqDate: "2025-02-05",
+      status: "Approved",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+    {
+      reqNo: "6",
+      plant: "Plant 1",
+      reqForm: "Form F",
+      formUser: "User6",
+      materialRequestion: "Glass Sheets",
+      reqDate: "2025-02-06",
+      status: "Rejected",
+      createdAt:'2024-02-15T10:30:00Z',
+      remarks: 'Everything looks good',
+    },
+  ];
+  
   
   export const getDummyData = () => dummyData;
+  export const getDummyApproval = () => approvalData;
   
   export default dummyData;
   

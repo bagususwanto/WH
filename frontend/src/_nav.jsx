@@ -577,17 +577,14 @@ const useNavigation = () => {
       )
     }
     if (
-      roleName === 'super admin' ||
-      roleName === 'line head' ||
-      roleName === 'section head' ||
-      roleName === 'department head'
+      roleName === 'super admin' 
     ) {
       baseNav.push(
         {
           component: CNavTitle,
           name: 'Form Request',
         },
-        ...(roleName === 'line head' || roleName === 'super admin'
+        ...(roleName === 'super admin'
           ? [
               {
                 component: CNavGroup,
@@ -615,9 +612,7 @@ const useNavigation = () => {
     }
 
     if (
-      roleName === 'super admin' ||
-      roleName === 'section head' ||
-      roleName === 'department head'
+      roleName === 'super admin' 
     ) {
       baseNav.push({
         component: CNavGroup,
@@ -636,7 +631,7 @@ const useNavigation = () => {
               ]
             : []),
 
-          ...(roleName === 'department head' || roleName === 'super admin'
+          ...( roleName === 'super admin'
             ? [
                 {
                   component: CNavItem,
