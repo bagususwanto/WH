@@ -58,6 +58,8 @@ import useApprovalService from '../../services/ApprovalService'
 import useOrderService from '../../services/OrderService'
 import { GlobalContext } from '../../context/GlobalProvider'
 import Pagination from '../../components/Pagination'
+import Flatpickr from 'react-flatpickr'
+import 'flatpickr/dist/flatpickr.css'
 
 import 'react-datepicker/dist/react-datepicker.css' // Import datepicker style
 
@@ -162,8 +164,6 @@ const ApproveAll = () => {
     }
   }
 
-
-
   const getOrderHistories = async (id) => {
     try {
       const response = await getOrderHistory(id)
@@ -188,7 +188,6 @@ const ApproveAll = () => {
   //   getApprove(0)
   //   getUsers
   // }, [warehouse])
-
 
   const filteredProducts = selectedDate
     ? productsData.filter((product) => {
@@ -710,7 +709,7 @@ const ApproveAll = () => {
                               <label
                                 style={{ fontSize: '0.8rem', lineHeight: '2', fontWeight: '300' }}
                               >
-                               ( {`${detail.quantity} ${detail.Inventory.Material.uom}`})
+                                ( {`${detail.quantity} ${detail.Inventory.Material.uom}`})
                               </label>
                             </CCol>
                             <CCol
