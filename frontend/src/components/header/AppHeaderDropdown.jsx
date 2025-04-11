@@ -64,11 +64,7 @@ const AppHeaderDropdown = () => {
 
   return (
     <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
-      <CDropdownToggle
-        className="py-0 pe-0 d-flex align-items-center"
-        caret={false}
-        onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
-      >
+      <CDropdownToggle className="py-0 pe-0 d-flex align-items-center" caret={false}>
         <CAvatar src={imgProfile ? `${config.BACKEND_URL}${imgProfile}` : profile} size="md" />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
