@@ -1592,15 +1592,16 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
     // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
     const checkColumnSupplier = 0;
     const checkColumnSchedule = 1;
-    const checkColumnRit = 2;
-    const checkColumnPlant = 3;
+    const checkColumnTruckStation = 4;
+    const checkColumnRit = 5;
+    const checkColumnPlant = 6;
 
     // Gunakan Set untuk memeriksa duplikasi
     const seen = new Set();
     const duplicates = [];
 
     rows.forEach((row, index) => {
-      const key = `${row[checkColumnSupplier]}-${row[checkColumnSchedule]}-${row[checkColumnRit]}-${row[checkColumnPlant]}`; // Ambil nilai kolom yang akan diperiksa
+      const key = `${row[checkColumnSupplier]}-${row[checkColumnSchedule]}-${row[checkColumnRit]}-${row[checkColumnPlant]}-${row[checkColumnTruckStation]}`; // Ambil nilai kolom yang akan diperiksa
       if (seen.has(key)) {
         duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
       } else {
@@ -1705,10 +1706,10 @@ export const uploadMasterDeliverySchedule = async (req, res) => {
         if (!plantId) throw new Error(`Plant not found: ${plantCode}`);
 
         const scheduleCode = daysMap.get(schedule);
-        const supplierIdScheduleRitAndPlant = `${supplierId}-${scheduleCode}-${rit}-${plantId}`;
+        const supplierIdScheduleRitTruckstationAndPlant = `${supplierId}-${scheduleCode}-${rit}-${plantId}-${truckStation}`;
 
         const existingDeliverySchedule = deliveryScheduleMap.get(
-          supplierIdScheduleRitAndPlant
+          supplierIdScheduleRitTruckstationAndPlant
         );
 
         const deliveryScheduleData = {
