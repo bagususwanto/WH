@@ -5111,7 +5111,7 @@
           <mxGeometry x="115" y="100" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="SKRdqwXZ5IjyV-iza4Xp-343" value="List Of Delivery Notes Sent Now" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="15" y="190" width="190" height="30" as="geometry" />
+          <mxGeometry x="25" y="190" width="190" height="30" as="geometry" />
         </mxCell>
         <mxCell id="SKRdqwXZ5IjyV-iza4Xp-346" value="Cycle/Rit:" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
           <mxGeometry x="45" y="140" width="70" height="30" as="geometry" />
