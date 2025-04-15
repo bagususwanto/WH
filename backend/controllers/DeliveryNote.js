@@ -993,7 +993,10 @@ export const getArrivalChart = async (req, res) => {
         // filter data Delivery Note yang cocok
         const deliveryNotes =
           item.Delivery_Notes?.filter(
-            (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
+            (dn) =>
+              dn.supplierId === ds.supplierId &&
+              dn.rit === ds.rit &&
+              dn.truckStation === ds.truckStation
           ) || [];
 
         const planArrivalTime = new Date(ds.arrival)
