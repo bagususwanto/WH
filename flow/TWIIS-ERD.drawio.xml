@@ -5092,8 +5092,8 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-332" value="Vertical Container" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1825" y="1610" width="445" height="650" as="geometry" />
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-332" value="Container" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1825" y="1610" width="605" height="410" as="geometry" />
         </mxCell>
         <mxCell id="SKRdqwXZ5IjyV-iza4Xp-336" value="Select Vendor" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
           <mxGeometry x="15" y="30" width="100" height="30" as="geometry" />
@@ -5134,32 +5134,26 @@
         <mxCell id="SKRdqwXZ5IjyV-iza4Xp-359" value="" style="shape=sumEllipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
           <mxGeometry x="25" y="235" width="15" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-360" value="V" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="270.5" y="230" width="30" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-361" value="V" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="270.5" y="270" width="30" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-365" value="&lt;b&gt;DN - 2100207288&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="15" y="360" width="120" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-366" value="Arrival Actual Date: 2025-04-20" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="15" y="390" width="190" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-367" value="Arrival Actual TIme: 08:20" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="15" y="430" width="160" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-368" value="| No | Mat No | Desc&amp;nbsp; &amp;nbsp; &amp;nbsp;| Planning | Actual | UoM | Status&amp;nbsp; &amp;nbsp; &amp;nbsp;|" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="15" y="480" width="340" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-369" value="| 1&amp;nbsp; | A001 | ABCD&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;|&amp;nbsp; &amp;nbsp;20&amp;nbsp; &amp;nbsp; | [ 20 ] | pcs&amp;nbsp; &amp;nbsp; | OK&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;|" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="25" y="510" width="330" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-373" value="Submit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="300.5" y="610" width="125" height="20" as="geometry" />
-        </mxCell>
         <mxCell id="SKRdqwXZ5IjyV-iza4Xp-375" value="Tambah Cycle Manual" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
           <mxGeometry x="265" y="145" width="125" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-365" value="&lt;b&gt;DN - 2100207288&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="2050" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-366" value="Arrival Actual Date: 2025-04-20" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="2080" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-367" value="Arrival Actual TIme: 08:20" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="2120" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-368" value="| No | Mat No | Desc&amp;nbsp; &amp;nbsp; &amp;nbsp;| Planning | Actual | UoM | Status&amp;nbsp; &amp;nbsp; &amp;nbsp;|" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="2170" width="340" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-369" value="| 1&amp;nbsp; | A001 | ABCD&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;|&amp;nbsp; &amp;nbsp;20&amp;nbsp; &amp;nbsp; | [ 20 ] | pcs&amp;nbsp; &amp;nbsp; | OK&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;|" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="2200" width="330" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="SKRdqwXZ5IjyV-iza4Xp-373" value="Submit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="1">
+          <mxGeometry x="2280" y="1980" width="125" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
