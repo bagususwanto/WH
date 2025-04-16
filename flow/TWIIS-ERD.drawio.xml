@@ -5144,10 +5144,10 @@
           <mxGeometry x="20" y="30" width="750" height="150" as="geometry" />
         </mxCell>
         <mxCell id="FN39XfjDfCpeh35rlHOs-48" value="Arrival Actual" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="605" y="55" width="90" height="30" as="geometry" />
+          <mxGeometry x="625" y="55" width="90" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="FN39XfjDfCpeh35rlHOs-47" value="Arrival Plan" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
-          <mxGeometry x="455" y="55" width="80" height="30" as="geometry" />
+        <mxCell id="FN39XfjDfCpeh35rlHOs-47" value="Arrival - Departure" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="SKRdqwXZ5IjyV-iza4Xp-332">
+          <mxGeometry x="435" y="55" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="FN39XfjDfCpeh35rlHOs-1" value="Departure" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="2770" y="1610" width="790" height="410" as="geometry" />
