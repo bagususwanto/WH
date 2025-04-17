@@ -680,7 +680,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="jqbic0K7EUvz2VtcstvH" name="ERD">
-    <mxGraphModel dx="3157" dy="3077" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="5780" dy="4656" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -5224,6 +5224,45 @@
               <mxPoint x="2700" y="1850" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-49" value="Vendor" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1825" y="2240" width="790" height="410" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-50" value="Vendor Input" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="15" y="30" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-51" value="Vendor Code:" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="15" y="60" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-52" value="Vendor Name:" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="15" y="100" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-53" value="Search &amp;amp; Select" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="115" y="65" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-54" value="[Auto After Select]" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="115" y="100" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-56" value="Rit:" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="75" y="140" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-57" value="Select" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="115" y="145" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-63" value="Tambah Rit Manual" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;gradientColor=#b3b3b3;strokeColor=#666666;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="265" y="145" width="125" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-64" value="Submit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="645" y="370" width="125" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-66" value="Arrival Actual" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="625" y="55" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-67" value="Arrival - Departure" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="FN39XfjDfCpeh35rlHOs-49">
+          <mxGeometry x="435" y="55" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FN39XfjDfCpeh35rlHOs-65" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1845" y="2675" width="750" height="150" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
