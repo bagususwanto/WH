@@ -224,6 +224,7 @@ export const submitDeliveryNote = async (req, res) => {
       departureActualDate,
       departureActualTime,
       rit,
+      truckStation,
       incomingIds,
       receivedQuantities,
     } = req.body;
@@ -305,6 +306,7 @@ export const submitDeliveryNote = async (req, res) => {
                             required: true,
                             where: {
                               rit,
+                              truckStation,
                               schedule: day,
                               flag: 1,
                             },
@@ -347,10 +349,6 @@ export const submitDeliveryNote = async (req, res) => {
     )
       .toISOString()
       .slice(11, 16); // time only format
-
-    const truckStation =
-      checkDnNo[0].Incomings[0]?.Inventory.Material.Supplier
-        .Delivery_Schedules[0]?.truckStation;
 
     // Combine actual and plan dates with times
     const actualArrival = new Date(`${arrivalActualDate}T${arrivalActualTime}`);
@@ -995,7 +993,10 @@ export const getArrivalChart = async (req, res) => {
         // filter data Delivery Note yang cocok
         const deliveryNotes =
           item.Delivery_Notes?.filter(
-            (dn) => dn.supplierId === ds.supplierId && dn.rit === ds.rit
+            (dn) =>
+              dn.supplierId === ds.supplierId &&
+              dn.rit === ds.rit &&
+              dn.truckStation === ds.truckStation
           ) || [];
 
         const planArrivalTime = new Date(ds.arrival)
