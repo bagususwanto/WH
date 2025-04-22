@@ -612,7 +612,7 @@ const Dashboard = () => {
                   label: {
                     display: true, // Menampilkan label
                     content: 'Critical Stock 1.5 Shift', // Isi label
-                    position: 'end', // Posisi label di akhir garis
+                    position: 'start', // Posisi label di akhir garis
                     font: {
                       size: 8,
                       weight: 'bold', // Menambah ketebalan font jika diperlukan

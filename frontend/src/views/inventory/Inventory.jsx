@@ -1001,7 +1001,7 @@ const Inventory = () => {
       
       <CModal   size="lg" className='' visible={modalDetail} onClose={() => setModalDetail(false)}>
         <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Inventory Input</CModalTitle>
+          <CModalTitle id="LiveDemoExampleLabel">Detail Stock Item</CModalTitle>
         </CModalHeader>
         <CModalBody>
         {modalDetail?.Material && (
