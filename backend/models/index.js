@@ -43,6 +43,8 @@ import OrderHistory from "./OrderHistoryModel.js";
 import Redpost from "./RedpostModel.js";
 import DeliveryNote from "./DeliveryNoteModel.js";
 import IncomingHistory from "./IncomingHistoryModel.js";
+import VendorMovement from "./VendorMovementModel.js";
+import DeliveryNoteVendorMovement from "./DeliveryNoteVendorMovementModel.js";
 
 // log
 import LogApproval from "./LogApprovalModel.js";
@@ -50,7 +52,7 @@ import LogEntry from "./LogEntryModel.js";
 import LogMaster from "./LogMasterModel.js";
 
 // Association
-import logMasterAssociations from "./LogMasterAssociatios.js";
+import { logMasterAssociations } from "./Association.js";
 
 (async () => {
   try {
@@ -58,7 +60,7 @@ import logMasterAssociations from "./LogMasterAssociatios.js";
     // await db.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await db.sync({ alter: true });
+    // await VendorMovement.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

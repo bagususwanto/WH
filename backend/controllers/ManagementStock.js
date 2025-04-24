@@ -329,9 +329,9 @@ export const handleUpdateIncoming = async (
           throw new Error(`Incoming with ID ${incomingIds[i]} not found`);
         }
 
-        if (incoming.actual !== null) {
-          throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
-        }
+        // if (incoming.actual !== null) {
+        //   throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
+        // }
 
         const quantity = quantities[i];
         // if (quantity < 0) {

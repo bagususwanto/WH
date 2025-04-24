@@ -18,6 +18,7 @@ import { createNotification } from "./Notification.js";
 import Plant from "../models/PlantModel.js";
 import Storage from "../models/StorageModel.js";
 import Redpost from "../models/RedpostModel.js";
+import UserWarehouse from "../models/UserWarehouseModel.js";
 
 export const getOrderWarehouse = async (req, res) => {
   try {
@@ -353,32 +354,31 @@ const isAuthorized = async (orderId, userId) => {
   try {
     const order = await Order.findOne({
       where: { id: orderId },
-      include: [
-        {
-          model: User,
-          where: { flag: 1 },
-        },
-      ],
+      attributes: ["userId"],
     });
+
+    if (!order) return false;
 
     const userAcc = await User.findOne({
       where: { id: userId, flag: 1 },
+      attributes: ["warehouseId"],
     });
 
-    if (!order) {
-      return false;
+    if (!userAcc || !userAcc.warehouseId) return false;
+
+    const userOrderWarehouses = await UserWarehouse.findAll({
+      where: { userId: order.userId, flag: 1 },
+      attributes: ["warehouseId"],
+    });
+
+    const warehouseIds = userOrderWarehouses.map((uw) => uw.warehouseId);
+
+    // Cek apakah userAcc.warehouseId ada dalam list warehouse pemilik order
+    if (warehouseIds.includes(userAcc.warehouseId)) {
+      return true;
     }
 
-    if (!userAcc.warehouseId) {
-      return false;
-    }
-
-    // cek authorize accepted
-    if (order.User.anotherWarehouseId !== userAcc.warehouseId) {
-      return false;
-    }
-
-    return true;
+    return false;
   } catch (error) {
     console.log(error);
     return false;
@@ -514,6 +514,13 @@ export const processOrder = async (req, res) => {
     //   }
     // }
 
+    if (!isAuthorized(orderId, userId)) {
+      await transaction.rollback(); // Batalkan transaksi jika warehouse staff tidak memiliki akses
+      return res.status(401).json({
+        message: "Unauthorized, does not have access to this order",
+      });
+    }
+
     // Buat riwayat approval di tabel Approval
     await Approval.create(
       {
@@ -635,6 +642,14 @@ export const shopingOrder = async (req, res) => {
         });
       }
     }
+
+    if (!isAuthorized(orderId, userId)) {
+      await transaction.rollback(); // Batalkan transaksi jika warehouse staff tidak memiliki akses
+      return res.status(401).json({
+        message: "Unauthorized, does not have access to this order",
+      });
+    }
+    
     const updatedOrders = [];
 
     // Lakukan update quantity berdasarkan detailOrderId

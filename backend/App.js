@@ -49,9 +49,11 @@ import redpostRouter from "./routes/RedpostRouter.js";
 import materialStorageRouter from "./routes/MaterialStorageRouter.js";
 import deliveryScheduleRouter from "./routes/DeliveryScheduleRouter.js";
 import deliveryNoteRouter from "./routes/DeliveryNoteRouter.js";
+import vendorMovementRouter from "./routes/VendorMovementRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
-import { checkPasswordExpiration } from "./middleware/CheckPasswordExpiration.js";
+import logger from "./middleware/logger.js";
+// import { checkPasswordExpiration } from "./middleware/CheckPasswordExpiration.js";
 
 dotenv.config();
 const app = express();
@@ -103,11 +105,19 @@ app.use(
       "https://twiis-gi-toyota.web.app",
       "https://twiis-receiving-toyota.web.app",
       "https://redpost-warehouse.web.app",
+      "https://g5xqwfz1-3001.asse.devtunnels.ms",
     ],
   })
 );
 app.use(cookieParser());
 app.use(express.json());
+
+// Middleware untuk log
+app.use((req, res, next) => {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  logger.info(`Client IP: ${ip}`); // Menyimpan log menggunakan winston
+  next();
+});
 
 // Auth router
 app.use("/api", authRouter);
@@ -182,6 +192,9 @@ app.use("/api", chartRouter);
 
 // Notifications router
 app.use("/api", notificationRouter);
+
+// Vendor movement router
+app.use("/api", vendorMovementRouter);
 
 // Membuat server HTTPS
 https.createServer(credentials, app).listen(port, () => {

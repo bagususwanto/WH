@@ -7,6 +7,8 @@ import AddressRack from "../models/AddressRackModel.js";
 import Storage from "../models/StorageModel.js";
 import Plant from "../models/PlantModel.js";
 import LogEntry from "../models/LogEntryModel.js";
+import DeliverySchedule from "../models/DeliveryScheduleModel.js";
+import VendorMovement from "../models/VendorMovementModel.js";
 
 const { Op } = Sequelize;
 const startOfToday = new Date();
@@ -247,5 +249,67 @@ export const getInventoryDashboard = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getArrivalMonitoring = async (req, res) => {
+  try {
+    const { plantId, status, vendorId } = req.query;
+    const currDate = new Date();
+    const day = currDate.getDay();
+
+    let whereConditionVendorMovement = {
+      movementDate: currDate.toDateString("en-CA"),
+    };
+    let whereConditionSupplier = { flag: 1 };
+    let whereConditionDeliverySchedule = { schedule: day, flag: 1 };
+
+    if (plantId) {
+      whereConditionDeliverySchedule.plantId = plantId;
+    }
+
+    if (status) {
+      whereConditionVendorMovement.status = status;
+    }
+
+    if (vendorId) {
+      whereConditionSupplier.status = status;
+    }
+
+    const data = await Supplier.findAll({
+      where: whereConditionSupplier,
+      order: [["Delivery_Schedules", "arrival", "ASC"]],
+      include: [
+        {
+          model: DeliverySchedule,
+          required: true,
+          where: whereConditionDeliverySchedule,
+        },
+        {
+          model: VendorMovement,
+          required: false,
+          where: whereConditionVendorMovement,
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Data Vendor Arrival Monitoring Not Found" });
+    }
+
+    return res
+      .status(200)
+      .json({ data, message: "Data Vendor Arrival Monitoring Found" });
+
+    // Return sorted data
+    return res.status(200).json({
+      data: mappedData,
+      message: "Data Vendor Arrival Monitoring Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -1303,6 +1303,8 @@ export const uploadDeliveryNote = async (req, res) => {
       { transaction }
     );
 
+    // const dnNumbers = rows.map((row) => row[1]);
+
     const [existingMaterials, existingInventories, existingSuppliers] =
       await Promise.all([
         Material.findAll({ where: { flag: 1 } }),
@@ -1328,6 +1330,7 @@ export const uploadDeliveryNote = async (req, res) => {
     const newDeliveryNotes = [];
     const updatedIncomings = [];
     const validationErrors = [];
+    const dnNumberSet = new Set();
 
     for (const row of rows) {
       try {
@@ -1368,35 +1371,26 @@ export const uploadDeliveryNote = async (req, res) => {
           continue;
         }
 
-        let existingDeliveryNoteId = deliveryNoteMap.get(dnNumber);
-        if (!existingDeliveryNoteId) {
-          const existingDeliveryNote = await DeliveryNote.findOne({
-            where: { dnNumber },
-          });
+        const existingDeliveryNote = await DeliveryNote.findOne({
+          where: { dnNumber },
+        });
 
-          if (existingDeliveryNote) {
-            existingDeliveryNoteId = existingDeliveryNote.id;
-            deliveryNoteMap.set(dnNumber, existingDeliveryNoteId);
-          }
-        }
-
-        if (existingDeliveryNoteId) {
+        if (existingDeliveryNote) {
+          deliveryNoteMap.set(dnNumber, existingDeliveryNote.id);
           updatedDeliveryNotes.push({
-            id: existingDeliveryNoteId,
-            arrivalPlanDate: deliveryDate,
-            departurePlanDate: deliveryDate,
+            id: existingDeliveryNote.id,
+            deliveryDate,
             supplierId,
             logImportId: logImportDN.id,
           });
-        } else {
+        } else if (!dnNumberSet.has(dnNumber)) {
           newDeliveryNotes.push({
             dnNumber,
-            status: "scheduled",
-            arrivalPlanDate: deliveryDate,
-            departurePlanDate: deliveryDate,
+            deliveryDate,
             supplierId,
             logImportId: logImportDN.id,
           });
+          dnNumberSet.add(dnNumber); // tandai bahwa dnNumber ini sudah ditambahkan
         }
 
         let existingIncomingId = incomingMap.get(
@@ -1422,7 +1416,7 @@ export const uploadDeliveryNote = async (req, res) => {
             inventoryId,
             planning,
             incomingDate: deliveryDate,
-            deliveryNoteId: existingDeliveryNoteId,
+            deliveryNoteId: existingDeliveryNote.id,
             logImportId: logImportIncoming.id,
           });
         } else {
@@ -1477,8 +1471,7 @@ export const uploadDeliveryNote = async (req, res) => {
       for (const dn of updatedDeliveryNotes) {
         await DeliveryNote.update(
           {
-            arrivalPlanDate: dn.arrivalPlanDate,
-            departurePlanDate: dn.departurePlanDate,
+            deliveryDate: dn.deliveryDate,
             supplierId: dn.supplierId,
             logImportId: dn.logImportId,
           },
@@ -1506,29 +1499,6 @@ export const uploadDeliveryNote = async (req, res) => {
         );
       }
     }
-
-    // for (const inc of newIncomings) {
-    //   const [existingInc, created] = await Incoming.findOrCreate({
-    //     where: {
-    //       inventoryId: inc.inventoryId,
-    //       incomingDate: inc.incomingDate,
-    //     },
-    //     defaults: {
-    //       planning: inc.planning,
-    //       status: inc.status,
-    //       deliveryNoteId: inc.deliveryNoteId,
-    //       logImportId: inc.logImportId,
-    //     },
-    //     transaction, // Pakai transaction agar data tetap konsisten
-    //   });
-
-    //   if (created) {
-    //     incomingMap.set(
-    //       `${inc.inventoryId}-${inc.incomingDate}`,
-    //       existingInc.id
-    //     );
-    //   }
-    // }
 
     await transaction.commit();
     res.status(200).send({
