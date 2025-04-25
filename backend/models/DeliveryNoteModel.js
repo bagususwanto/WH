@@ -16,6 +16,16 @@ const DeliveryNote = db.define(
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
+    completeItems: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    totalItems: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
     supplierId: {
       type: DataTypes.INTEGER,
       allowNull: false,

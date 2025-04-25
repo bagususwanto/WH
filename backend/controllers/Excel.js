@@ -1331,6 +1331,7 @@ export const uploadDeliveryNote = async (req, res) => {
     const updatedIncomings = [];
     const validationErrors = [];
     const dnNumberSet = new Set();
+    const dnCountMap = {};
 
     for (const row of rows) {
       try {
@@ -1353,6 +1354,9 @@ export const uploadDeliveryNote = async (req, res) => {
         const materialId = materialMap.get(materialNo);
         const inventoryId = inventoryMap.get(materialId);
         const supplierId = supplierMap.get(supplierCode);
+
+        if (!dnNumber || !materialId) continue;
+        dnCountMap[dnNumber] = (dnCountMap[dnNumber] || 0) + 1;
 
         if (!materialId) {
           validationErrors.push({ error: `Material not found: ${materialNo}` });
@@ -1379,8 +1383,10 @@ export const uploadDeliveryNote = async (req, res) => {
           deliveryNoteMap.set(dnNumber, existingDeliveryNote.id);
           updatedDeliveryNotes.push({
             id: existingDeliveryNote.id,
+            dnNumber,
             deliveryDate,
             supplierId,
+            totalItems: null,
             logImportId: logImportDN.id,
           });
         } else if (!dnNumberSet.has(dnNumber)) {
@@ -1388,6 +1394,7 @@ export const uploadDeliveryNote = async (req, res) => {
             dnNumber,
             deliveryDate,
             supplierId,
+            totalItems: null,
             logImportId: logImportDN.id,
           });
           dnNumberSet.add(dnNumber); // tandai bahwa dnNumber ini sudah ditambahkan
@@ -1433,6 +1440,16 @@ export const uploadDeliveryNote = async (req, res) => {
       } catch (error) {
         validationErrors.push({ error: error.message });
       }
+    }
+
+    // Update `newDeliveryNotes` dengan `totalItems`
+    for (const note of newDeliveryNotes) {
+      note.totalItems = dnCountMap[note.dnNumber] || 1;
+    }
+
+    // Update `updateDeliveryNotes` dengan `totalItems`
+    for (const note of updatedDeliveryNotes) {
+      note.totalItems = dnCountMap[note.dnNumber] || 1;
     }
 
     if (newDeliveryNotes.length > 0) {

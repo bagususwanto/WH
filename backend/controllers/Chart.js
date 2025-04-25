@@ -9,6 +9,7 @@ import Plant from "../models/PlantModel.js";
 import LogEntry from "../models/LogEntryModel.js";
 import DeliverySchedule from "../models/DeliveryScheduleModel.js";
 import VendorMovement from "../models/VendorMovementModel.js";
+import DeliveryNote from "../models/DeliveryNoteModel.js";
 
 const { Op } = Sequelize;
 const startOfToday = new Date();
@@ -284,11 +285,26 @@ export const getArrivalMonitoring = async (req, res) => {
           model: DeliverySchedule,
           required: true,
           where: whereConditionDeliverySchedule,
+          include: [
+            {
+              model: Plant,
+              required: true,
+              attributes: ["id", "plantName"],
+              where: { flag: 1 },
+            },
+          ],
         },
         {
           model: VendorMovement,
           required: false,
           where: whereConditionVendorMovement,
+          include: [
+            {
+              model: DeliveryNote,
+              required: false,
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
     });
@@ -299,9 +315,34 @@ export const getArrivalMonitoring = async (req, res) => {
         .json({ message: "Data Vendor Arrival Monitoring Not Found" });
     }
 
-    return res
-      .status(200)
-      .json({ data, message: "Data Vendor Arrival Monitoring Found" });
+    // return res
+    //   .status(200)
+    //   .json({ data, message: "Data Vendor Arrival Monitoring Found" });
+
+    const mappedData = data.flatMap((item) =>
+      item.Delivery_Schedules.map((ds) => {
+        // data actual berdasarkan supplierId, movementDate, rit, plantId
+        const actualData = item.Vendor_Movements.find(
+          (vm) =>
+            vm.supplierId === ds.supplierId &&
+            vm.movementDate === currDate.toISOString().split("T")[0] &&
+            vm.rit === ds.rit &&
+            vm.plantId === ds.plantId
+        );
+
+        return {
+          actualData: actualData || null,
+          id: item.id,
+          planTime: `${formatTime(ds.arrival)} - ${formatTime(ds.departure)}`,
+          vendorName: item.supplierName,
+          truckStation: ds.truckStation,
+          rit: ds.rit,
+          plantName: ds.Plant.plantName,
+          arrivedTime: actualData?.arrivalActualTime || null,
+          status: actualData?.status || "scheduled",
+        };
+      })
+    );
 
     // Return sorted data
     return res.status(200).json({
@@ -312,4 +353,11 @@ export const getArrivalMonitoring = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+const formatTime = (time) => {
+  if (!(time instanceof Date)) return "";
+  const hours = time.getUTCHours().toString().padStart(2, "0");
+  const minutes = time.getUTCMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
 };

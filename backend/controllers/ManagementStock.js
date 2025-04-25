@@ -9,6 +9,7 @@ import Plant from "../models/PlantModel.js";
 import { Op } from "sequelize";
 import db from "../utils/Database.js";
 import Packaging from "../models/PackagingModel.js";
+import DeliveryNote from "../models/DeliveryNoteModel.js";
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
@@ -320,6 +321,7 @@ export const handleUpdateIncoming = async (
       const updates = [];
       const logEntries = [];
       const inventoryUpdates = [];
+      const dnCompletedCountMap = {};
 
       for (let i = 0; i < incomingIds.length; i++) {
         const incoming = incomingData.find(
@@ -340,6 +342,11 @@ export const handleUpdateIncoming = async (
 
         // Tentukan status berdasarkan quantity
         const status = quantity < incoming.planning ? "partial" : "completed";
+
+        if (status === "completed") {
+          dnCompletedCountMap[incoming.deliveryNoteId] =
+            (dnCompletedCountMap[incoming.deliveryNoteId] || 0) + 1;
+        }
 
         // Siapkan data untuk update bulk
         updates.push({
@@ -363,6 +370,26 @@ export const handleUpdateIncoming = async (
           quantity: quantity,
         });
       }
+
+      const deliveryNoteId = Object.keys(dnCompletedCountMap)[0];
+      const totalCompleted = dnCompletedCountMap[deliveryNoteId];
+      const dn = await DeliveryNote.findOne(
+        {
+          where: { id: deliveryNoteId },
+          attributes: ["id", "completeItems"],
+        },
+        { transaction }
+      );
+
+      await DeliveryNote.update(
+        {
+          completeItems: dn.completeItems + totalCompleted,
+        },
+        {
+          where: { id: deliveryNoteId },
+          transaction,
+        }
+      );
 
       // Lakukan bulk insert untuk LogEntry
       await LogEntry.bulkCreate(logEntries, { transaction });
@@ -471,6 +498,40 @@ export const processIncomingUpdate = async (
   );
 
   const status = quantity < incoming.planning ? "partial" : "completed";
+
+  if (status === "completed" && incoming.status !== "completed") {
+    const dn = await DeliveryNote.findOne({
+      where: { id: incoming.deliveryNoteId },
+      attributes: ["id", "completeItems"],
+    });
+
+    await DeliveryNote.update(
+      {
+        completeItems: dn.completeItems + 1,
+      },
+      {
+        where: { id: dn.id },
+        transaction,
+      }
+    );
+  }
+
+  if (status === "partial" && incoming.status === "completed") {
+    const dn = await DeliveryNote.findOne({
+      where: { id: incoming.deliveryNoteId },
+      attributes: ["id", "completeItems"],
+    });
+
+    await DeliveryNote.update(
+      {
+        completeItems: dn.completeItems - 1,
+      },
+      {
+        where: { id: dn.id },
+        transaction,
+      }
+    );
+  }
 
   await Incoming.update(
     {
