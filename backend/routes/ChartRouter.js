@@ -1,6 +1,8 @@
 import express from "express";
 import {
   getArrivalMonitoring,
+  getDailyMaterialsArrive,
+  getDnChartHistory,
   getInventoryDashboard,
 } from "../controllers/Chart.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
@@ -37,6 +39,38 @@ router.get(
     [1]
   ),
   getArrivalMonitoring
+);
+router.get(
+  "/dn-chart-history",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getDnChartHistory
+);
+router.get(
+  "/chart-material-arrive",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getDailyMaterialsArrive
 );
 
 export default router;
