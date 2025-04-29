@@ -1,7 +1,9 @@
+import { Op } from "sequelize";
 import Plant from "../models/PlantModel.js";
 import Supplier from "../models/SupplierModel.js";
 import VendorMovement from "../models/VendorMovementModel.js";
 import db from "../utils/Database.js";
+import LogEntry from "../models/LogEntryModel.js";
 
 // Define tolerance in milliseconds (15 minutes)
 const tolerance = 15;
@@ -71,7 +73,7 @@ export const createVendorMovement = async (req, res) => {
       tolerance;
 
     // Buat vendor movement baru
-    await VendorMovement.create(
+    const vendorMovement = await VendorMovement.create(
       {
         supplierId,
         movementDate: new Date().toLocaleDateString("en-CA"),
@@ -82,6 +84,15 @@ export const createVendorMovement = async (req, res) => {
         rit,
         plantId,
         status: delay > 0 ? "overdue" : "on schedule",
+      },
+      { transaction }
+    );
+
+    await LogEntry.create(
+      {
+        userId: req.user.userId,
+        typeLogEntry: "create vendor movement",
+        vendorMovementId: vendorMovement.id,
       },
       { transaction }
     );
@@ -97,4 +108,27 @@ export const createVendorMovement = async (req, res) => {
   }
 };
 
+export const getVendorMovement = async (req, res) => {
+  const { plantId, startDate, endDate } = req.query;
+  let whereCondition = {};
 
+  if (plantId) {
+    whereCondition.plantId = plantId;
+  }
+
+  if (startDate && endDate) {
+    whereCondition.movementDate = {
+      [Op.between]: [startDate, endDate],
+    };
+  }
+
+  try {
+    const vendorMovement = await VendorMovement.findAll({
+      where: whereCondition,
+    });
+    res.status(200).json(vendorMovement);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

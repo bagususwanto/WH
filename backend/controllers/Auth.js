@@ -188,10 +188,16 @@ export const refreshToken = async (req, res) => {
   try {
     const user = await Users.findOne({
       where: { refreshToken, flag: 1 },
-      include: {
-        model: Role,
-        where: { flag: 1 },
-      },
+      include: [
+        {
+          model: Role,
+          where: { flag: 1 },
+        },
+        {
+          model: Organization,
+          where: { flag: 1 },
+        },
+      ],
     });
     if (!user) return res.status(401).json({ message: "Unauthorized access!" });
 
@@ -214,6 +220,7 @@ export const refreshToken = async (req, res) => {
           img,
         } = user;
         const roleName = user.Role.roleName;
+        const plantId = user.Organization.plantId;
         const { accessToken } = generateTokens(
           userId,
           username,
@@ -222,7 +229,8 @@ export const refreshToken = async (req, res) => {
           isWarehouse,
           roleName,
           anotherWarehouseId,
-          img
+          img,
+          plantId
         );
 
         res.json({ accessToken });
