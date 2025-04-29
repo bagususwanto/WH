@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserWarehouse from "../models/UserWarehouseModel.js";
 import { PASSWORD_EXPIRATION_DAYS } from "../middleware/CheckPasswordExpiration.js";
+import Organization from "../models/OrganizationModel.js";
 
 // Function to generate access and refresh tokens
 const generateTokens = (
@@ -14,7 +15,8 @@ const generateTokens = (
   isWarehouse,
   roleName,
   anotherWarehouseId,
-  img
+  img,
+  plantId
 ) => {
   const accessToken = jwt.sign(
     {
@@ -26,6 +28,7 @@ const generateTokens = (
       roleName,
       anotherWarehouseId,
       img,
+      plantId,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -42,6 +45,7 @@ const generateTokens = (
       roleName,
       anotherWarehouseId,
       img,
+      plantId,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
@@ -73,6 +77,10 @@ export const login = async (req, res) => {
       include: [
         {
           model: Role,
+          where: { flag: 1 },
+        },
+        {
+          model: Organization,
           where: { flag: 1 },
         },
       ],
@@ -115,6 +123,7 @@ export const login = async (req, res) => {
       img,
     } = user;
     const roleName = user.Role.roleName;
+    const plantId = user.Organization.plantId;
 
     const { accessToken, refreshToken } = generateTokens(
       userId,
@@ -124,7 +133,8 @@ export const login = async (req, res) => {
       isWarehouse,
       roleName,
       anotherWarehouseId,
-      img
+      img,
+      plantId
     );
 
     await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });

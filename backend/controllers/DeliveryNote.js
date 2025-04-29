@@ -764,89 +764,256 @@ export const getDeliveryNoteByDate = async (req, res) => {
   }
 };
 
+// export const getDnInquiry = async (req, res) => {
+//   try {
+//     const { plantId, startDate, endDate } = req.query;
+
+//     let whereConditionPlant = { flag: 1 };
+//     let whereConditionDn = { rit: { [Op.ne]: null } };
+
+//     if (plantId) {
+//       whereConditionPlant.id = plantId;
+//     }
+
+//     if (startDate && endDate) {
+//       whereConditionDn.arrivalPlanDate = {
+//         [Op.between]: [startDate, endDate],
+//       };
+//     }
+
+//     const data = await Supplier.findAll({
+//       attributes: ["id", "supplierName", "supplierCode"],
+//       where: { flag: 1 },
+//       include: [
+//         {
+//           model: DeliveryNote,
+//           required: true,
+//           where: whereConditionDn,
+//           include: [
+//             {
+//               model: Incoming,
+//               required: true,
+//               attributes: [
+//                 "id",
+//                 "planning",
+//                 "actual",
+//                 "status",
+//                 "incomingDate",
+//               ],
+//               include: [
+//                 {
+//                   model: Inventory,
+//                   required: true,
+//                   attributes: ["id", "materialId", "addressId"],
+//                   include: [
+//                     {
+//                       model: Material,
+//                       required: true,
+//                       attributes: ["id", "materialNo", "description", "uom"],
+//                       where: { flag: 1 },
+//                     },
+//                     {
+//                       model: AddressRack,
+//                       required: true,
+//                       attributes: ["id", "addressRackName"],
+//                       where: { flag: 1 },
+//                       include: [
+//                         {
+//                           model: Storage,
+//                           required: true,
+//                           attributes: ["id", "storageName"],
+//                           where: { flag: 1 },
+//                           include: [
+//                             {
+//                               model: Plant,
+//                               required: true,
+//                               attributes: ["id", "plantName", "warehouseId"],
+//                               where: whereConditionPlant,
+//                             },
+//                           ],
+//                         },
+//                       ],
+//                     },
+//                   ],
+//                 },
+//               ],
+//             },
+//             {
+//               model: LogImport,
+//               required: true,
+//               attributes: ["id", "typeLog", "fileName", "importDate"],
+//               include: [
+//                 {
+//                   model: User,
+//                   required: true,
+//                   attributes: ["id", "username"],
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       ],
+//     });
+
+//     if (data.length === 0) {
+//       return res.status(404).json({ message: "Delivery Note Not Found" });
+//     }
+
+//     // mapping data
+//     const mappedData = data.flatMap((item) => {
+//       return item.Delivery_Notes.map((dn) => {
+//         // Pastikan arrivalActualTime adalah string
+//         const actualTime = dn.arrivalActualTime
+//           ? new Date(dn.arrivalActualTime).toISOString().slice(11, 19)
+//           : "00:00:00"; // Default value jika null atau undefined
+
+//         // Pastikan arrivalPlanTime adalah string
+//         const plannedTime = dn.arrivalPlanTime
+//           ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 19)
+//           : "00:00:00"; // Default value jika null atau undefined
+
+//         // Gabungkan date dan time
+//         const actualArrival = new Date(`${dn.arrivalActualDate}T${actualTime}`);
+//         const plannedArrival = new Date(`${dn.arrivalPlanDate}T${plannedTime}`);
+
+//         // Hitung delay dalam milidetik
+//         const delay = actualArrival - plannedArrival;
+
+//         const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
+
+//         // Validasi status
+//         const allowedStatus = ["partial", "not complete"];
+
+//         return {
+//           dnNumber: dn.dnNumber,
+//           supplierName: item.supplierName,
+//           supplierCode: item.supplierCode,
+//           truckStation: dn.truckStation,
+//           rit: dn.rit,
+//           arrivalPlanDate: dn.arrivalPlanDate,
+//           arrivalPlanTime: dn.arrivalPlanTime
+//             ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 16)
+//             : "00:00",
+//           departurePlanDate: dn.departurePlanDate,
+//           departurePlanTime: dn.departurePlanTime
+//             ? new Date(dn.departurePlanTime).toISOString().slice(11, 16)
+//             : "00:00",
+//           arrivalActualDate: dn.arrivalActualDate,
+//           departureActualDate: dn.departureActualDate,
+//           arrivalActualTime: dn.arrivalActualTime
+//             ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
+//             : null,
+//           departureActualTime: dn.departureActualTime
+//             ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
+//             : null,
+//           status: dn.status,
+//           delayTime: delay > 0 ? convertDelay(delay) : "0s",
+//           warehouseId:
+//             dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant
+//               ?.warehouseId,
+//           Materials: dn.Incomings.map((incoming) => ({
+//             incomingId: incoming.id,
+//             materialNo: incoming.Inventory.Material.materialNo,
+//             description: incoming.Inventory.Material.description,
+//             uom: incoming.Inventory.Material.uom,
+//             address: incoming.Inventory.Address_Rack.addressRackName,
+//             reqQuantity: incoming.planning,
+//             receivedQuantity: incoming.actual,
+//             remain: incoming.actual - incoming.planning,
+//             status: incoming.status,
+//             viewOnly:
+//               incoming.status === "completed" && incoming.incomingDate !== today
+//                 ? true
+//                 : !allowedStatus.includes(incoming.status) &&
+//                   incoming.status !== "completed"
+//                 ? true
+//                 : false,
+//           })),
+//         };
+//       });
+//     });
+
+//     res
+//       .status(200)
+//       .json({ data: mappedData, message: "Data Delivery Note Found" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
 export const getDnInquiry = async (req, res) => {
   try {
     const { plantId, startDate, endDate } = req.query;
 
-    let whereConditionPlant = { flag: 1 };
-    let whereConditionDn = { rit: { [Op.ne]: null } };
+    let whereConditionStorage = { flag: 1 };
+    let whereConditionDn = {};
 
     if (plantId) {
-      whereConditionPlant.id = plantId;
+      whereConditionStorage.id = plantId;
     }
 
     if (startDate && endDate) {
-      whereConditionDn.arrivalPlanDate = {
+      whereConditionDn.deliveryDate = {
         [Op.between]: [startDate, endDate],
       };
     }
 
-    const data = await Supplier.findAll({
-      attributes: ["id", "supplierName", "supplierCode"],
-      where: { flag: 1 },
+    const data = await DeliveryNote.findAll({
+      required: true,
+      where: whereConditionDn,
       include: [
         {
-          model: DeliveryNote,
+          model: Supplier,
           required: true,
-          where: whereConditionDn,
+          where: { flag: 1 },
+        },
+        {
+          model: VendorMovement,
+          required: true,
+          attributes: [
+            "id",
+            "movementDate",
+            "arrivalPlanTime",
+            "arrivalActualTime",
+            "departurePlanTime",
+            "departureActualTime",
+            "truckStation",
+            "rit",
+            "status",
+          ],
+          through: {
+            attributes: [],
+          },
+        },
+        {
+          model: Incoming,
+          required: true,
+          attributes: ["id", "planning", "actual", "status", "incomingDate"],
           include: [
             {
-              model: Incoming,
+              model: Inventory,
               required: true,
-              attributes: [
-                "id",
-                "planning",
-                "actual",
-                "status",
-                "incomingDate",
-              ],
+              attributes: ["id"],
               include: [
                 {
-                  model: Inventory,
+                  model: Material,
                   required: true,
-                  attributes: ["id", "materialId", "addressId"],
+                  where: { flag: 1 },
+                },
+                {
+                  model: AddressRack,
+                  required: true,
+                  where: { flag: 1 },
+                  attributes: ["id", "addressRackName"],
                   include: [
                     {
-                      model: Material,
+                      model: Storage,
                       required: true,
-                      attributes: ["id", "materialNo", "description", "uom"],
-                      where: { flag: 1 },
-                    },
-                    {
-                      model: AddressRack,
-                      required: true,
-                      attributes: ["id", "addressRackName"],
-                      where: { flag: 1 },
-                      include: [
-                        {
-                          model: Storage,
-                          required: true,
-                          attributes: ["id", "storageName"],
-                          where: { flag: 1 },
-                          include: [
-                            {
-                              model: Plant,
-                              required: true,
-                              attributes: ["id", "plantName", "warehouseId"],
-                              where: whereConditionPlant,
-                            },
-                          ],
-                        },
-                      ],
+                      attributes: ["id", "plantId"],
+                      where: whereConditionStorage,
                     },
                   ],
-                },
-              ],
-            },
-            {
-              model: LogImport,
-              required: true,
-              attributes: ["id", "typeLog", "fileName", "importDate"],
-              include: [
-                {
-                  model: User,
-                  required: true,
-                  attributes: ["id", "username"],
                 },
               ],
             },
@@ -859,78 +1026,47 @@ export const getDnInquiry = async (req, res) => {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
-    // mapping data
-    const mappedData = data.flatMap((item) => {
-      return item.Delivery_Notes.map((dn) => {
-        // Pastikan arrivalActualTime adalah string
-        const actualTime = dn.arrivalActualTime
-          ? new Date(dn.arrivalActualTime).toISOString().slice(11, 19)
-          : "00:00:00"; // Default value jika null atau undefined
+    const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
-        // Pastikan arrivalPlanTime adalah string
-        const plannedTime = dn.arrivalPlanTime
-          ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 19)
-          : "00:00:00"; // Default value jika null atau undefined
+    // Validasi status
+    const allowedStatus = ["partial", "not complete"];
 
-        // Gabungkan date dan time
-        const actualArrival = new Date(`${dn.arrivalActualDate}T${actualTime}`);
-        const plannedArrival = new Date(`${dn.arrivalPlanDate}T${plannedTime}`);
-
-        // Hitung delay dalam milidetik
-        const delay = actualArrival - plannedArrival;
-
-        const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
-
-        // Validasi status
-        const allowedStatus = ["partial", "not complete"];
-
-        return {
-          dnNumber: dn.dnNumber,
-          supplierName: item.supplierName,
-          supplierCode: item.supplierCode,
-          truckStation: dn.truckStation,
-          rit: dn.rit,
-          arrivalPlanDate: dn.arrivalPlanDate,
-          arrivalPlanTime: dn.arrivalPlanTime
-            ? new Date(dn.arrivalPlanTime).toISOString().slice(11, 16)
-            : "00:00",
-          departurePlanDate: dn.departurePlanDate,
-          departurePlanTime: dn.departurePlanTime
-            ? new Date(dn.departurePlanTime).toISOString().slice(11, 16)
-            : "00:00",
-          arrivalActualDate: dn.arrivalActualDate,
-          departureActualDate: dn.departureActualDate,
-          arrivalActualTime: dn.arrivalActualTime
-            ? new Date(dn.arrivalActualTime).toISOString().slice(11, 16)
-            : null,
-          departureActualTime: dn.departureActualTime
-            ? new Date(dn.departureActualTime).toISOString().slice(11, 16)
-            : null,
-          status: dn.status,
-          delayTime: delay > 0 ? convertDelay(delay) : "0s",
-          warehouseId:
-            dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant
-              ?.warehouseId,
-          Materials: dn.Incomings.map((incoming) => ({
-            incomingId: incoming.id,
-            materialNo: incoming.Inventory.Material.materialNo,
-            description: incoming.Inventory.Material.description,
-            uom: incoming.Inventory.Material.uom,
-            address: incoming.Inventory.Address_Rack.addressRackName,
-            reqQuantity: incoming.planning,
-            receivedQuantity: incoming.actual,
-            remain: incoming.actual - incoming.planning,
-            status: incoming.status,
-            viewOnly:
-              incoming.status === "completed" && incoming.incomingDate !== today
-                ? true
-                : !allowedStatus.includes(incoming.status) &&
-                  incoming.status !== "completed"
-                ? true
-                : false,
-          })),
-        };
-      });
+    const mappedData = data.flatMap((dn) => {
+      return {
+        dnNumber: dn.dnNumber,
+        supplierName: dn.Supplier.supplierName,
+        deliveryDate: dn.deliveryDate,
+        completeItems: dn.completeItems,
+        totalItems: dn.totalItems,
+        Materials: dn.Incomings.map((incoming) => ({
+          incomingId: incoming.id,
+          materialNo: incoming.Inventory.Material.materialNo,
+          description: incoming.Inventory.Material.description,
+          uom: incoming.Inventory.Material.uom,
+          address: incoming.Inventory.Address_Rack.addressRackName,
+          reqQuantity: incoming.planning,
+          receivedQuantity: incoming.actual,
+          remain: incoming.actual - incoming.planning,
+          status: incoming.status,
+          viewOnly:
+            incoming.status === "completed" && incoming.incomingDate !== today
+              ? true
+              : !allowedStatus.includes(incoming.status) &&
+                incoming.status !== "completed"
+              ? true
+              : false,
+        })),
+        VendorMovements: dn.Vendor_Movements.map((vm) => ({
+          movementDate: vm.movementDate,
+          arrivalPlanTime: vm.arrivalPlanTime,
+          arrivalActualTime: vm.arrivalActualTime,
+          departurePlanTime: vm.departurePlanTime,
+          departureActualTime: vm.departureActualTime,
+          truckStation: vm.truckStation,
+          rit: vm.rit,
+          status: vm.status,
+        })),
+      };
     });
 
     res

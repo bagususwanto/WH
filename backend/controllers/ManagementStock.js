@@ -322,6 +322,7 @@ export const handleUpdateIncoming = async (
       const logEntries = [];
       const inventoryUpdates = [];
       const dnCompletedCountMap = {};
+      const dnPartialCountMap = {};
 
       for (let i = 0; i < incomingIds.length; i++) {
         const incoming = incomingData.find(
@@ -348,6 +349,11 @@ export const handleUpdateIncoming = async (
             (dnCompletedCountMap[incoming.deliveryNoteId] || 0) + 1;
         }
 
+        if (status === "partial") {
+          dnPartialCountMap[incoming.deliveryNoteId] =
+            (dnPartialCountMap[incoming.deliveryNoteId] || 0) + 1;
+        }
+
         // Siapkan data untuk update bulk
         updates.push({
           id: incomingIds[i],
@@ -371,25 +377,49 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      const deliveryNoteId = Object.keys(dnCompletedCountMap)[0];
-      const totalCompleted = dnCompletedCountMap[deliveryNoteId];
-      const dn = await DeliveryNote.findOne(
-        {
-          where: { id: deliveryNoteId },
-          attributes: ["id", "completeItems"],
-        },
-        { transaction }
-      );
+      if (dnCompletedCountMap.length > 0) {
+        const deliveryNoteId = Object.keys(dnCompletedCountMap)[0];
+        const totalCompleted = dnCompletedCountMap[deliveryNoteId];
+        const dn = await DeliveryNote.findOne(
+          {
+            where: { id: deliveryNoteId },
+            attributes: ["id", "completeItems"],
+          },
+          { transaction }
+        );
 
-      await DeliveryNote.update(
-        {
-          completeItems: dn.completeItems + totalCompleted,
-        },
-        {
-          where: { id: deliveryNoteId },
-          transaction,
-        }
-      );
+        await DeliveryNote.update(
+          {
+            completeItems: dn.completeItems + totalCompleted,
+          },
+          {
+            where: { id: deliveryNoteId },
+            transaction,
+          }
+        );
+      }
+
+      if (dnPartialCountMap.length > 0) {
+        const deliveryNoteId = Object.keys(dnPartialCountMap)[0];
+        const totalPartial = dnPartialCountMap[deliveryNoteId];
+        const dn = await DeliveryNote.findOne(
+          {
+            where: { id: deliveryNoteId },
+            attributes: ["id", "completeItems"],
+          },
+          { transaction }
+        );
+
+        await DeliveryNote.update(
+          {
+            completeItems: dn.completeItems - totalPartial,
+          },
+          {
+            where: { id: deliveryNoteId },
+            transaction,
+          }
+        );
+      }
 
       // Lakukan bulk insert untuk LogEntry
       await LogEntry.bulkCreate(logEntries, { transaction });

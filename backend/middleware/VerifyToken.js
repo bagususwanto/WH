@@ -40,7 +40,6 @@ export const verifyToken = async (req, res, next) => {
       divisionId: user.divisionId,
       organizationId: user.organizationId,
       warehouseId: user.warehouseId,
-      plantId: user.Organization.plantId,
       warehouseIds: warehouseIds,
       isProduction: decoded.isProduction,
       isWarehouse: decoded.isWarehouse,
@@ -54,7 +53,6 @@ export const verifyToken = async (req, res, next) => {
 const getOrganizationByUserId = async (userId) => {
   const user = await Users.findOne({
     where: { id: userId, flag: 1 },
-    include: [{ model: Organization, where: { flag: 1 } }],
   });
   return user;
 };
