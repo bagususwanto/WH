@@ -5,6 +5,7 @@ import {
   createSupplier,
   updateSupplier,
   deleteSupplier,
+  getVendorNameByVendorCode,
 } from "../controllers/Supplier.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 
@@ -16,5 +17,6 @@ router.get("/supplier/:id", checkRole(["super admin"]), getSupplierById);
 router.post("/supplier", checkRole(["super admin"]), createSupplier);
 router.put("/supplier/:id", checkRole(["super admin"]), updateSupplier);
 router.get("/supplier-delete/:id", checkRole(["super admin"]), deleteSupplier);
+router.get("/supplier-code", getVendorNameByVendorCode);
 
 export default router;

@@ -9,6 +9,7 @@ import LogEntry from "../models/LogEntryModel.js";
 const tolerance = 15;
 
 function timeStringToMinutes(str) {
+  if (!str) return null;
   const [hours, minutes] = str.split(":").map(Number);
   return hours * 60 + minutes;
 }
@@ -30,9 +31,7 @@ export const createVendorMovement = async (req, res) => {
     // Validasi data tersedia
     if (
       !supplierId ||
-      !arrivalPlanTime ||
       !arrivalActualTime ||
-      !departurePlanTime ||
       !truckStation ||
       !rit ||
       !plantId
@@ -83,7 +82,12 @@ export const createVendorMovement = async (req, res) => {
         truckStation,
         rit,
         plantId,
-        status: delay > 0 ? "overdue" : "on schedule",
+        status:
+          arrivalPlanTime === null
+            ? "unscheduled"
+            : delay > 0
+            ? "overdue"
+            : "on schedule",
       },
       { transaction }
     );
@@ -109,7 +113,7 @@ export const createVendorMovement = async (req, res) => {
 };
 
 export const getVendorMovement = async (req, res) => {
-  const { plantId, startDate, endDate } = req.query;
+  const { plantId, startDate, endDate, status } = req.query;
   let whereCondition = {};
 
   if (plantId) {
@@ -122,11 +126,30 @@ export const getVendorMovement = async (req, res) => {
     };
   }
 
+  if (status) {
+    whereCondition.status = status;
+  }
+
   try {
     const vendorMovement = await VendorMovement.findAll({
       where: whereCondition,
+      include: [
+        {
+          model: Supplier,
+          required: true,
+          attributes: ["id", "supplierCode", "supplierName"],
+        },
+        {
+          model: Plant,
+          required: true,
+          attributes: ["id", "plantCode", "plantName"],
+        },
+      ],
     });
-    res.status(200).json(vendorMovement);
+
+    res
+      .status(200)
+      .json({ data: vendorMovement, message: "Data Vendor Movement Found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

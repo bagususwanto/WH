@@ -22,7 +22,7 @@ const VendorMovement = db.define(
     },
     arrivalPlanTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     arrivalActualTime: {
       type: DataTypes.TIME,
@@ -30,7 +30,7 @@ const VendorMovement = db.define(
     },
     departurePlanTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     departureActualTime: {
       type: DataTypes.TIME,

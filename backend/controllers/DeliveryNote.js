@@ -1012,6 +1012,14 @@ export const getDnInquiry = async (req, res) => {
                       required: true,
                       attributes: ["id", "plantId"],
                       where: whereConditionStorage,
+                      include: [
+                        {
+                          model: Plant,
+                          attributes: ["id", "plantName"],
+                          required: true,
+                          where: { flag: 1 },
+                        },
+                      ],
                     },
                   ],
                 },
@@ -1038,6 +1046,8 @@ export const getDnInquiry = async (req, res) => {
         deliveryDate: dn.deliveryDate,
         completeItems: dn.completeItems,
         totalItems: dn.totalItems,
+        plantName:
+          dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant?.plantName,
         Materials: dn.Incomings.map((incoming) => ({
           incomingId: incoming.id,
           materialNo: incoming.Inventory.Material.materialNo,

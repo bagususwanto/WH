@@ -6,6 +6,7 @@ import {
   updateDeliverySchedule,
   deleteDeliverySchedule,
   getVendorScheduleByVendorCode,
+  getTruckStationByPlant,
 } from "../controllers/DeliverySchedule.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 
@@ -107,6 +108,22 @@ router.get(
     [1]
   ),
   getVendorScheduleByVendorCode
+);
+router.get(
+  "/truck-station/:id",
+  checkRole(
+    [
+      "super admin",
+      "warehouse member",
+      "warehouse staff",
+      "group head",
+      "line head",
+      "section head",
+      "department head",
+    ],
+    [1]
+  ),
+  getTruckStationByPlant
 );
 
 export default router;

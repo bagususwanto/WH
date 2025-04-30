@@ -473,3 +473,37 @@ export const getVendorScheduleByVendorCode = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getTruckStationByPlant = async (req, res) => {
+  try {
+    const plantId = req.params.id;
+
+    const data = await DeliverySchedule.findAll({
+      attributes: ["truckStation", "rit"],
+      order: [["truckStation", "ASC"]],
+      where: {
+        plantId,
+        flag: 1,
+      },
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Truck Station & Rit Not Found" });
+    }
+
+    const uniqueTruckStations = Array.from(
+      new Set(data.map((item) => item.truckStation))
+    );
+
+    const uniqueRits = Array.from(new Set(data.map((item) => item.rit)));
+
+    // Return sorted data
+    return res.status(200).json({
+      data: { truckStations: uniqueTruckStations, rits: uniqueRits },
+      message: "Truck Station & Rit Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
