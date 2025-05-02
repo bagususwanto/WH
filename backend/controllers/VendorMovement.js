@@ -4,6 +4,11 @@ import Supplier from "../models/SupplierModel.js";
 import VendorMovement from "../models/VendorMovementModel.js";
 import db from "../utils/Database.js";
 import LogEntry from "../models/LogEntryModel.js";
+import DeliveryNote from "../models/DeliveryNoteModel.js";
+import Incoming from "../models/IncomingModel.js";
+import Inventory from "../models/InventoryModel.js";
+import Material from "../models/MaterialModel.js";
+import AddressRack from "../models/AddressRackModel.js";
 
 // Define tolerance in milliseconds (15 minutes)
 const tolerance = 15;
@@ -131,7 +136,7 @@ export const getVendorMovement = async (req, res) => {
   }
 
   try {
-    const vendorMovement = await VendorMovement.findAll({
+    const data = await VendorMovement.findAll({
       where: whereCondition,
       include: [
         {
@@ -144,12 +149,93 @@ export const getVendorMovement = async (req, res) => {
           required: true,
           attributes: ["id", "plantCode", "plantName"],
         },
+        {
+          model: DeliveryNote,
+          attributes: [
+            "id",
+            "deliveryDate",
+            "dnNumber",
+            "completeItems",
+            "totalItems",
+            "updatedAt",
+          ],
+          required: false,
+          through: { attributes: [] },
+          include: [
+            {
+              model: Incoming,
+              attributes: ["id", "planning", "actual", "status"],
+              required: true,
+              include: [
+                {
+                  model: Inventory,
+                  required: true,
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: Material,
+                      required: true,
+                      attributes: ["id", "materialNo", "description", "uom"],
+                    },
+                    {
+                      model: AddressRack,
+                      required: true,
+                      attributes: ["id", "addressRackName"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       ],
+    });
+
+    if (data.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Data Vendor Movement Not Found" });
+    }
+
+    const mappedData = data.map((item) => {
+      const deliveryNotes = item.Delivery_Notes.map((dn) => ({
+        id: dn.id,
+        dnNumber: dn.dnNumber,
+        deliveryDate: dn.deliveryDate,
+        completeItems: dn.completeItems,
+        totalItems: dn.totalItems,
+        updatedAt: dn.updatedAt,
+        Materials: dn.Incomings.map((inc) => ({
+          incomingId: inc.id,
+          materialNo: inc.Inventory.Material.materialNo,
+          description: inc.Inventory.Material.description,
+          uom: inc.Inventory.Material.uom,
+          address: inc.Inventory.Address_Rack.addressRackName,
+          reqQuantity: inc.planning,
+          actQuantity: inc.actual,
+          remain: inc.actual - inc.planning,
+          status: inc.status,
+        })),
+      }));
+
+      return {
+        id: item.id,
+        movementDate: item.movementDate,
+        supplierName: item.Supplier.supplierName,
+        plantName: item.Plant.plantName,
+        arrivalPlanTime: item.arrivalPlanTime,
+        arrivalActualTime: item.arrivalActualTime,
+        departurePlanTime: item.departurePlanTime,
+        truckStation: item.truckStation,
+        rit: item.rit,
+        status: item.status,
+        DeliveryNotes: deliveryNotes || null,
+      };
     });
 
     res
       .status(200)
-      .json({ data: vendorMovement, message: "Data Vendor Movement Found" });
+      .json({ data: mappedData, message: "Data Vendor Movement Found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

@@ -987,6 +987,14 @@ export const getDnInquiry = async (req, res) => {
           through: {
             attributes: [],
           },
+          include: [
+            {
+              model: Plant,
+              required: true,
+              attributes: ["id", "plantName"],
+              where: { flag: 1 },
+            },
+          ],
         },
         {
           model: Incoming,
@@ -1020,6 +1028,11 @@ export const getDnInquiry = async (req, res) => {
       return res.status(404).json({ message: "Delivery Note Not Found" });
     }
 
+    // return res.status(200).json({
+    //   data,
+    //   message: "Data Delivery Note Found",
+    // });
+
     const today = new Date().toISOString().slice(0, 10); // format YYYY-MM-DD
 
     // Validasi status
@@ -1032,8 +1045,8 @@ export const getDnInquiry = async (req, res) => {
         deliveryDate: dn.deliveryDate,
         completeItems: dn.completeItems,
         totalItems: dn.totalItems,
-        plantName:
-          dn.Incomings?.[0]?.Inventory?.Address_Rack?.Storage?.Plant?.plantName,
+        plantName: dn.Vendor_Movements?.[0]?.Plant?.plantName,
+        updatedAt: dn.updatedAt,
         Materials: dn.Incomings.map((incoming) => ({
           incomingId: incoming.id,
           materialNo: incoming.Inventory.Material.materialNo,

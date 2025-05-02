@@ -57,10 +57,10 @@ import { logMasterAssociations } from "./Association.js";
 (async () => {
   try {
     logMasterAssociations();
-    // await db.sync();
+    // await LogEntry.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await VendorMovement.sync({ alter: true });
+    // await LogEntry.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

@@ -268,7 +268,6 @@ export const getArrivalMonitoring = async (req, res) => {
     let whereConditionVendorMovement = {
       movementDate: currDate.toDateString("en-CA"),
     };
-    let whereConditionSupplier = { flag: 1 };
     let whereConditionDeliverySchedule = { schedule: day, flag: 1 };
 
     if (plantId) {
@@ -299,9 +298,47 @@ export const getArrivalMonitoring = async (req, res) => {
               include: [
                 {
                   model: DeliveryNote,
-                  attributes: ["id", "completeItems", "totalItems"],
+                  attributes: [
+                    "id",
+                    "deliveryDate",
+                    "dnNumber",
+                    "completeItems",
+                    "totalItems",
+                    "updatedAt",
+                  ],
                   required: false,
                   through: { attributes: [] },
+                  include: [
+                    {
+                      model: Incoming,
+                      attributes: ["id", "planning", "actual", "status"],
+                      required: true,
+                      include: [
+                        {
+                          model: Inventory,
+                          required: true,
+                          attributes: ["id"],
+                          include: [
+                            {
+                              model: Material,
+                              required: true,
+                              attributes: [
+                                "id",
+                                "materialNo",
+                                "description",
+                                "uom",
+                              ],
+                            },
+                            {
+                              model: AddressRack,
+                              required: true,
+                              attributes: ["id", "addressRackName"],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
                 },
               ],
             },
@@ -357,8 +394,28 @@ export const getArrivalMonitoring = async (req, res) => {
       const arrivalMinutes = arrival.getUTCMinutes();
       const arrivalMinutesTotal = arrivalHours * 60 + arrivalMinutes;
 
-      const isDelayed = arrivalMinutesTotal  < minutesNow;
+      const isDelayed = arrivalMinutesTotal < minutesNow;
       const status = isDelayed ? "delayed" : "scheduled";
+
+      const deliveryNotes = actualData?.Delivery_Notes.map((dn) => ({
+        id: dn.id,
+        dnNumber: dn.dnNumber,
+        deliveryDate: dn.deliveryDate,
+        completeItems: dn.completeItems,
+        totalItems: dn.totalItems,
+        updatedAt: dn.updatedAt,
+        Materials: dn.Incomings.map((inc) => ({
+          incomingId: inc.id,
+          materialNo: inc.Inventory.Material.materialNo,
+          description: inc.Inventory.Material.description,
+          uom: inc.Inventory.Material.uom,
+          address: inc.Inventory.Address_Rack.addressRackName,
+          reqQuantity: inc.planning,
+          actQuantity: inc.actual,
+          remain: inc.actual - inc.planning,
+          status: inc.status,
+        })),
+      }));
 
       return {
         id: item.id,
@@ -372,6 +429,7 @@ export const getArrivalMonitoring = async (req, res) => {
         completeItems: sumCompleteItems ?? null,
         totalItems: sumTotalItems ?? null,
         status: actualData?.status || status,
+        DeliveryNotes: deliveryNotes ?? null,
       };
     });
 

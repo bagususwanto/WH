@@ -322,7 +322,6 @@ export const handleUpdateIncoming = async (
       const logEntries = [];
       const inventoryUpdates = [];
       const dnCompletedCountMap = {};
-      const dnPartialCountMap = {};
 
       for (let i = 0; i < incomingIds.length; i++) {
         const incoming = incomingData.find(
@@ -349,11 +348,6 @@ export const handleUpdateIncoming = async (
             (dnCompletedCountMap[incoming.deliveryNoteId] || 0) + 1;
         }
 
-        if (status === "partial") {
-          dnPartialCountMap[incoming.deliveryNoteId] =
-            (dnPartialCountMap[incoming.deliveryNoteId] || 0) + 1;
-        }
-
         // Siapkan data untuk update bulk
         updates.push({
           id: incomingIds[i],
@@ -377,17 +371,14 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      if (
-        (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) ||
-        (dnPartialCountMap && Object.keys(dnPartialCountMap).length > 0)
-      ) {
+      console.log("dnCompletedCountMap", dnCompletedCountMap);
+      if (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) {
         const deliveryNoteId = parseInt(
-          Object.keys(dnCompletedCountMap || dnPartialCountMap)[0],
+          Object.keys(dnCompletedCountMap)[0],
           10
         );
 
         const totalCompleted = dnCompletedCountMap?.[deliveryNoteId] || 0;
-        const totalPartial = dnPartialCountMap?.[deliveryNoteId] || 0;
 
         const dn = await DeliveryNote.findOne(
           {
@@ -398,8 +389,8 @@ export const handleUpdateIncoming = async (
         );
 
         if (dn) {
-          const updatedCompleteItems =
-            dn.completeItems + totalCompleted - totalPartial;
+          const updatedCompleteItems = dn.completeItems + totalCompleted;
+          console.log("updatedCompleteItems", updatedCompleteItems);
 
           await DeliveryNote.update(
             {
