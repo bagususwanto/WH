@@ -377,12 +377,18 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      if (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) {
+      if (
+        (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) ||
+        (dnPartialCountMap && Object.keys(dnPartialCountMap).length > 0)
+      ) {
         const deliveryNoteId = parseInt(
-          Object.keys(dnCompletedCountMap)[0],
+          Object.keys(dnCompletedCountMap || dnPartialCountMap)[0],
           10
         );
-        const totalCompleted = dnCompletedCountMap[deliveryNoteId];
+
+        const totalCompleted = dnCompletedCountMap?.[deliveryNoteId] || 0;
+        const totalPartial = dnPartialCountMap?.[deliveryNoteId] || 0;
+
         const dn = await DeliveryNote.findOne(
           {
             where: { id: deliveryNoteId },
@@ -391,37 +397,20 @@ export const handleUpdateIncoming = async (
           { transaction }
         );
 
-        await DeliveryNote.update(
-          {
-            completeItems: dn.completeItems + totalCompleted,
-          },
-          {
-            where: { id: deliveryNoteId },
-            transaction,
-          }
-        );
-      }
+        if (dn) {
+          const updatedCompleteItems =
+            dn.completeItems + totalCompleted - totalPartial;
 
-      if (dnPartialCountMap && Object.keys(dnPartialCountMap).length > 0) {
-        const deliveryNoteId = parseInt(Object.keys(dnPartialCountMap)[0], 10);
-        const totalPartial = dnPartialCountMap[deliveryNoteId];
-        const dn = await DeliveryNote.findOne(
-          {
-            where: { id: deliveryNoteId },
-            attributes: ["id", "completeItems"],
-          },
-          { transaction }
-        );
-
-        await DeliveryNote.update(
-          {
-            completeItems: dn.completeItems - totalPartial,
-          },
-          {
-            where: { id: deliveryNoteId },
-            transaction,
-          }
-        );
+          await DeliveryNote.update(
+            {
+              completeItems: updatedCompleteItems,
+            },
+            {
+              where: { id: deliveryNoteId },
+              transaction,
+            }
+          );
+        }
       }
 
       // Lakukan bulk insert untuk LogEntry
