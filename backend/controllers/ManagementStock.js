@@ -377,8 +377,11 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      if (dnCompletedCountMap.length > 0) {
-        const deliveryNoteId = Object.keys(dnCompletedCountMap)[0];
+      if (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) {
+        const deliveryNoteId = parseInt(
+          Object.keys(dnCompletedCountMap)[0],
+          10
+        );
         const totalCompleted = dnCompletedCountMap[deliveryNoteId];
         const dn = await DeliveryNote.findOne(
           {
@@ -399,8 +402,8 @@ export const handleUpdateIncoming = async (
         );
       }
 
-      if (dnPartialCountMap.length > 0) {
-        const deliveryNoteId = Object.keys(dnPartialCountMap)[0];
+      if (dnPartialCountMap && Object.keys(dnPartialCountMap).length > 0) {
+        const deliveryNoteId = parseInt(Object.keys(dnPartialCountMap)[0], 10);
         const totalPartial = dnPartialCountMap[deliveryNoteId];
         const dn = await DeliveryNote.findOne(
           {

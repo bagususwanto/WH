@@ -946,11 +946,11 @@ export const getDnInquiry = async (req, res) => {
   try {
     const { plantId, startDate, endDate } = req.query;
 
-    let whereConditionStorage = { flag: 1 };
+    let whereCnditionVendorMovement = {};
     let whereConditionDn = {};
 
     if (plantId) {
-      whereConditionStorage.id = plantId;
+      whereCnditionVendorMovement.plantId = plantId;
     }
 
     if (startDate && endDate) {
@@ -970,6 +970,7 @@ export const getDnInquiry = async (req, res) => {
         },
         {
           model: VendorMovement,
+          where: whereCnditionVendorMovement,
           required: true,
           attributes: [
             "id",
@@ -980,6 +981,7 @@ export const getDnInquiry = async (req, res) => {
             "departureActualTime",
             "truckStation",
             "rit",
+            "plantId",
             "status",
           ],
           through: {
@@ -1006,22 +1008,6 @@ export const getDnInquiry = async (req, res) => {
                   required: true,
                   where: { flag: 1 },
                   attributes: ["id", "addressRackName"],
-                  include: [
-                    {
-                      model: Storage,
-                      required: true,
-                      attributes: ["id", "plantId"],
-                      where: whereConditionStorage,
-                      include: [
-                        {
-                          model: Plant,
-                          attributes: ["id", "plantName"],
-                          required: true,
-                          where: { flag: 1 },
-                        },
-                      ],
-                    },
-                  ],
                 },
               ],
             },

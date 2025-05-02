@@ -333,6 +333,7 @@ export const getArrivalMonitoring = async (req, res) => {
           vm.supplierId === item.supplierId &&
           vm.movementDate === currDate.toISOString().split("T")[0] &&
           vm.rit === item.rit &&
+          vm.truckStation === item.truckStation &&
           vm.plantId === item.plantId
       );
 
