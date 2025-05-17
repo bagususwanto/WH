@@ -576,6 +576,20 @@ export const updateIncoming = async (req, res) => {
     const quantity = req.body.actual;
     const userId = req.user.userId;
 
+    const incoming = await Incoming.findOne({
+      where: { id: incomingId },
+      include: [
+        {
+          model: Inventory,
+          attributes: ["id", "materialId", "addressId", "quantityActual"],
+        },
+      ],
+    });
+
+    if (incoming.Inventory.quantityActual !== null) {
+      throw new Error("Cannot be updated, material is already in inventory");
+    }
+
     try {
       await handleUpdateIncoming(incomingId, quantity, userId, transaction);
     } catch (error) {
