@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import DeliverySchedule from "../models/DeliveryScheduleModel.js";
 import LogImport from "../models/LogImportModel.js";
 import LogMaster from "../models/LogMasterModel.js";
@@ -420,5 +421,89 @@ export const deleteDeliverySchedule = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getVendorScheduleByVendorCode = async (req, res) => {
+  try {
+    const { vendorCode } = req.query;
+    const today = new Date();
+
+    const data = await Supplier.findAll({
+      where: {
+        supplierCode: vendorCode,
+        flag: 1,
+      },
+      include: [
+        {
+          model: DeliverySchedule,
+          required: true,
+          where: {
+            flag: 1,
+            schedule: today.getDay(),
+          },
+          include: [
+            {
+              model: Plant,
+              required: true,
+              attributes: ["id", "plantName"],
+              where: {
+                [Op.and]: [
+                  { warehouseId: { [Op.in]: req.user.warehouseIds } },
+                  { flag: 1 },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Schedule Not Found" });
+    }
+
+    // Return sorted data
+    return res.status(200).json({
+      vendor: data,
+      message: "Schedule Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getTruckStationByPlant = async (req, res) => {
+  try {
+    const plantId = req.params.id;
+
+    const data = await DeliverySchedule.findAll({
+      attributes: ["truckStation", "rit"],
+      order: [["truckStation", "ASC"]],
+      where: {
+        plantId,
+        flag: 1,
+      },
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Truck Station & Rit Not Found" });
+    }
+
+    const uniqueTruckStations = Array.from(
+      new Set(data.map((item) => item.truckStation))
+    );
+
+    const uniqueRits = Array.from(new Set(data.map((item) => item.rit)));
+
+    // Return sorted data
+    return res.status(200).json({
+      data: { truckStations: uniqueTruckStations, rits: uniqueRits },
+      message: "Truck Station & Rit Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

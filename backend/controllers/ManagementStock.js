@@ -9,6 +9,7 @@ import Plant from "../models/PlantModel.js";
 import { Op } from "sequelize";
 import db from "../utils/Database.js";
 import Packaging from "../models/PackagingModel.js";
+import DeliveryNote from "../models/DeliveryNoteModel.js";
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
@@ -320,6 +321,7 @@ export const handleUpdateIncoming = async (
       const updates = [];
       const logEntries = [];
       const inventoryUpdates = [];
+      const dnCompletedCountMap = {};
 
       for (let i = 0; i < incomingIds.length; i++) {
         const incoming = incomingData.find(
@@ -329,9 +331,9 @@ export const handleUpdateIncoming = async (
           throw new Error(`Incoming with ID ${incomingIds[i]} not found`);
         }
 
-        if (incoming.actual !== null) {
-          throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
-        }
+        // if (incoming.actual !== null) {
+        //   throw new Error(`Incoming with ID ${incomingIds[i]} already updated`);
+        // }
 
         const quantity = quantities[i];
         // if (quantity < 0) {
@@ -340,6 +342,11 @@ export const handleUpdateIncoming = async (
 
         // Tentukan status berdasarkan quantity
         const status = quantity < incoming.planning ? "partial" : "completed";
+
+        if (status === "completed") {
+          dnCompletedCountMap[incoming.deliveryNoteId] =
+            (dnCompletedCountMap[incoming.deliveryNoteId] || 0) + 1;
+        }
 
         // Siapkan data untuk update bulk
         updates.push({
@@ -362,6 +369,39 @@ export const handleUpdateIncoming = async (
           inventoryId: incoming.inventoryId,
           quantity: quantity,
         });
+      }
+
+      console.log("dnCompletedCountMap", dnCompletedCountMap);
+      if (dnCompletedCountMap && Object.keys(dnCompletedCountMap).length > 0) {
+        const deliveryNoteId = parseInt(
+          Object.keys(dnCompletedCountMap)[0],
+          10
+        );
+
+        const totalCompleted = dnCompletedCountMap?.[deliveryNoteId] || 0;
+
+        const dn = await DeliveryNote.findOne(
+          {
+            where: { id: deliveryNoteId },
+            attributes: ["id", "completeItems"],
+          },
+          { transaction }
+        );
+
+        if (dn) {
+          const updatedCompleteItems = dn.completeItems + totalCompleted;
+          console.log("updatedCompleteItems", updatedCompleteItems);
+
+          await DeliveryNote.update(
+            {
+              completeItems: updatedCompleteItems,
+            },
+            {
+              where: { id: deliveryNoteId },
+              transaction,
+            }
+          );
+        }
       }
 
       // Lakukan bulk insert untuk LogEntry
@@ -472,6 +512,40 @@ export const processIncomingUpdate = async (
 
   const status = quantity < incoming.planning ? "partial" : "completed";
 
+  if (status === "completed" && incoming.status !== "completed") {
+    const dn = await DeliveryNote.findOne({
+      where: { id: incoming.deliveryNoteId },
+      attributes: ["id", "completeItems"],
+    });
+
+    await DeliveryNote.update(
+      {
+        completeItems: dn.completeItems + 1,
+      },
+      {
+        where: { id: dn.id },
+        transaction,
+      }
+    );
+  }
+
+  if (status === "partial" && incoming.status === "completed") {
+    const dn = await DeliveryNote.findOne({
+      where: { id: incoming.deliveryNoteId },
+      attributes: ["id", "completeItems"],
+    });
+
+    await DeliveryNote.update(
+      {
+        completeItems: dn.completeItems - 1,
+      },
+      {
+        where: { id: dn.id },
+        transaction,
+      }
+    );
+  }
+
   await Incoming.update(
     {
       actual: quantity,
@@ -501,6 +575,20 @@ export const updateIncoming = async (req, res) => {
     const incomingId = req.params.id;
     const quantity = req.body.actual;
     const userId = req.user.userId;
+
+    const incoming = await Incoming.findOne({
+      where: { id: incomingId },
+      include: [
+        {
+          model: Inventory,
+          attributes: ["id", "materialId", "addressId", "quantityActual"],
+        },
+      ],
+    });
+
+    if (incoming.Inventory.quantityActual !== null) {
+      throw new Error("Cannot be updated, material is already in inventory");
+    }
 
     try {
       await handleUpdateIncoming(incomingId, quantity, userId, transaction);

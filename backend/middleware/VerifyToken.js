@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import Users from "../models/UserModel.js";
+import UserWarehouse from "../models/UserWarehouseModel.js";
+import Organization from "../models/OrganizationModel.js";
 
 export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization; // Akses header langsung
@@ -20,6 +22,7 @@ export const verifyToken = async (req, res, next) => {
 
     // Panggil fungsi asinkron untuk mendapatkan data organisasi
     const user = await getOrganizationByUserId(decoded.userId);
+    const warehouseIds = await getWarehouseIdsByUserId(decoded.userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });
@@ -37,6 +40,7 @@ export const verifyToken = async (req, res, next) => {
       divisionId: user.divisionId,
       organizationId: user.organizationId,
       warehouseId: user.warehouseId,
+      warehouseIds: warehouseIds,
       isProduction: decoded.isProduction,
       isWarehouse: decoded.isWarehouse,
       anotherWarehouseId: decoded.anotherWarehouseId,
@@ -47,6 +51,15 @@ export const verifyToken = async (req, res, next) => {
 };
 
 const getOrganizationByUserId = async (userId) => {
-  const user = await Users.findOne({ where: { id: userId, flag: 1 } });
+  const user = await Users.findOne({
+    where: { id: userId, flag: 1 },
+  });
   return user;
+};
+
+const getWarehouseIdsByUserId = async (userId) => {
+  const user = await UserWarehouse.findAll({
+    where: { userId: userId, flag: 1 },
+  });
+  return user.map((user) => user.warehouseId);
 };

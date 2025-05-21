@@ -1,6 +1,7 @@
 import AddressRack from "./AddressRackModel.js";
 import Category from "./CategoryModel.js";
 import CostCenter from "./CostCenterModel.js";
+import DeliveryNote from "./DeliveryNoteModel.js";
 import DeliverySchedule from "./DeliveryScheduleModel.js";
 import Department from "./DepartmentModel.js";
 import Division from "./DivisionModel.js";
@@ -21,10 +22,11 @@ import Storage from "./StorageModel.js";
 import Supplier from "./SupplierModel.js";
 import User from "./UserModel.js";
 import UserWarehouse from "./UserWarehouseModel.js";
+import VendorMovement from "./VendorMovementModel.js";
 import Warehouse from "./WarehouseModel.js";
 import WBS from "./WBSModel.js";
 
-export default function logMasterAssociations() {
+export function logMasterAssociations() {
   User.hasMany(LogMaster, { foreignKey: "userId", onDelete: "NO ACTION" });
   LogMaster.belongsTo(User, { foreignKey: "userId", onDelete: "NO ACTION" });
 

@@ -165,3 +165,30 @@ export const deleteSupplier = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getVendorNameByVendorCode = async (req, res) => {
+  try {
+    const { vendorCode } = req.query;
+
+    const data = await Supplier.findOne({
+      where: {
+        supplierCode: vendorCode,
+        flag: 1,
+      },
+      attributes: ["id", "supplierName"],
+    });
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "Vendor Not Found" });
+    }
+
+    // Return sorted data
+    return res.status(200).json({
+      data,
+      message: "Vendor Found",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

@@ -3,11 +3,11 @@ import {
   getDeliveryNoteByDnNo,
   submitDeliveryNote,
   getDeliveryNoteByDate,
-  getArrivalMonitoring,
   getDnInquiry,
-  getArrivalChart,
   updateQuantityDN,
-  getDnChartHistory,
+  // getArrivalMonitoring,
+  // getArrivalChart,
+  // getDnChartHistory,
 } from "../controllers/DeliveryNote.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { checkUserWarehouse } from "../middleware/UserWarehouseMiddleware.js";
@@ -94,53 +94,54 @@ router.post(
   ),
   updateQuantityDN
 );
-router.get(
-  "/arrival-monitoring",
-  checkRole(
-    [
-      "super admin",
-      "warehouse member",
-      "warehouse staff",
-      "group head",
-      "line head",
-      "section head",
-      "department head",
-    ],
-    [1]
-  ),
-  getArrivalMonitoring
-);
-router.get(
-  "/arrival-chart",
-  checkRole(
-    [
-      "super admin",
-      "warehouse member",
-      "warehouse staff",
-      "group head",
-      "line head",
-      "section head",
-      "department head",
-    ],
-    [1]
-  ),
-  getArrivalChart
-);
-router.get(
-  "/dn-chart-history",
-  checkRole(
-    [
-      "super admin",
-      "warehouse member",
-      "warehouse staff",
-      "group head",
-      "line head",
-      "section head",
-      "department head",
-    ],
-    [1]
-  ),
-  getDnChartHistory
-);
+// router.get(
+//   "/arrival-monitoring",
+//   checkRole(
+//     [
+//       "super admin",
+//       "warehouse member",
+//       "warehouse staff",
+//       "group head",
+//       "line head",
+//       "section head",
+//       "department head",
+//     ],
+//     [1]
+//   ),
+//   getArrivalMonitoring
+// );
+// router.get(
+//   "/arrival-chart",
+//   checkRole(
+//     [
+//       "super admin",
+//       "warehouse member",
+//       "warehouse staff",
+//       "group head",
+//       "line head",
+//       "section head",
+//       "department head",
+//     ],
+//     [1]
+//   ),
+//   getArrivalChart
+// );
+// router.get(
+//   "/dn-chart-history",
+//   checkRole(
+//     [
+//       "super admin",
+//       "warehouse member",
+//       "warehouse staff",
+//       "group head",
+//       "line head",
+//       "section head",
+//       "department head",
+//     ],
+//     [1]
+//   ),
+//   getDnChartHistory
+// );
+
 
 export default router;

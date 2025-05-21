@@ -12,49 +12,19 @@ const DeliveryNote = db.define(
       type: DataTypes.BIGINT,
       allowNull: false,
     },
-    arrivalPlanDate: {
+    deliveryDate: {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    arrivalPlanTime: {
-      type: DataTypes.TIME,
-      allowNull: true,
-    },
-    arrivalActualDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    arrivalActualTime: {
-      type: DataTypes.TIME,
-      allowNull: true,
-    },
-    departurePlanDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-    },
-    departurePlanTime: {
-      type: DataTypes.TIME,
-      allowNull: true,
-    },
-    departureActualDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    departureActualTime: {
-      type: DataTypes.TIME,
-      allowNull: true,
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    rit: {
+    completeItems: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
     },
-    truckStation: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    totalItems: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
     supplierId: {
       type: DataTypes.INTEGER,

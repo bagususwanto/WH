@@ -4,6 +4,7 @@ import Inventory from "./InventoryModel.js";
 import User from "./UserModel.js";
 import Incoming from "./IncomingModel.js";
 import DetailOrder from "./DetailOrderModel.js";
+import VendorMovement from "./VendorMovementModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -50,6 +51,14 @@ const LogEntry = db.define(
         key: "id",
       },
     },
+    vendorMovementId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: VendorMovement,
+        key: "id",
+      },
+    },
   },
   {
     freezeTableName: true,
@@ -77,6 +86,15 @@ DetailOrder.hasMany(LogEntry, {
 });
 LogEntry.belongsTo(DetailOrder, {
   foreignKey: "detailOrderId",
+  onDelete: "NO ACTION",
+});
+
+VendorMovement.hasMany(LogEntry, {
+  foreignKey: "vendorMovementId",
+  onDelete: "NO ACTION",
+});
+LogEntry.belongsTo(VendorMovement, {
+  foreignKey: "vendorMovementId",
   onDelete: "NO ACTION",
 });
 
