@@ -629,19 +629,28 @@ const Dashboard = () => {
         ],
       },
     },
-    onClick: (event, elements) => {
-      if (elements.length > 0) {
-        const index = elements[0].index
-        if (index >= 0 && index < data.length) {
-          // Ensure index is valid
-          const dataItem = data[index]
-          setSelectedData(dataItem)
-          setModalOpen(true)
-        }
-      } else {
-        console.log('No elements clicked on the chart.')
+  
+  onHover: (event, chartElement) => {
+    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
+  },
+onClick: (event, elements, chart) => {
+    const chartElements = chart.getElementsAtEventForMode(
+      event,
+      'nearest',
+      { intersect: false },
+      true
+    );
+    if (chartElements.length > 0) {
+      const index = chartElements[0].index;
+      if (index >= 0 && index < data.length) {
+        const dataItem = data[index];
+        setSelectedData(dataItem);
+        setModalOpen(true);
       }
-    },
+    } else {
+      console.log('No elements clicked on the chart.');
+    }
+  },
   })
   //Critical Grafik
 
@@ -1255,6 +1264,12 @@ const Dashboard = () => {
                         <strong>Estimation Stock:</strong>
                       </CCol>
                       <CCol xs={9}>{selectedData.stock} Shift</CCol>
+                    </CRow>
+                    <CRow className="mb-3">
+                      <CCol xs={3}>
+                        <strong>Delivery Date:</strong>
+                      </CCol>
+                      <CCol xs={9}>{selectedData.incomingDate || '-'} </CCol>
                     </CRow>
                   </>
                 )}

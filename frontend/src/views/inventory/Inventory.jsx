@@ -900,7 +900,7 @@ const Inventory = () => {
                   ))}
 
                   <Column
-                    header="Action"
+                    header="Action" 
                     body={actionBodyTemplate}
                     headerStyle={{ width: '5%' }}
                     bodyStyle={{ textAlign: 'center' }}
