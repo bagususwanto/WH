@@ -99,7 +99,7 @@ const useNavigation = () => {
         items: [
           {
             component: CNavItem,
-            name: 'Dasboard',
+            name: 'Dashboard',
             to: '/dashboard',
             icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
           },

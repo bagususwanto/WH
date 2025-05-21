@@ -42,9 +42,9 @@ const ResetPassword = React.lazy(() => import('./views/pages/resetpassword/Reset
 
 const routes = [
   { path: '/login', name: '', element: Login },
-  { path: '/dashboard', name: 'dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/home', name: '', element: Home },
-  { path: '/inventory/data', name: 'Inventory / data', element: Inventory },
+  { path: '/inventory/data', name: 'Inventory / Data', element: Inventory },
   { path: '/inventory/input', name: 'Inventory / Input', element: InputInventory },
   { path: '/incoming', name: 'Incoming', element: Incoming },
   { path: '/category', name: 'Category', element: Category },
