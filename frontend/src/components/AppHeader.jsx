@@ -133,7 +133,7 @@ const AppHeader = () => {
                   >
                     <CIcon className="me-2" icon={icon.cilMoon} size="lg" /> Dark
                   </CDropdownItem>
-                  <CDropdownItem
+                  {/* <CDropdownItem
                     active={colorMode === 'auto'}
                     className="d-flex align-items-center"
                     as="button"
@@ -144,7 +144,7 @@ const AppHeader = () => {
                     }}
                   >
                     <CIcon className="me-2" icon={icon.cilContrast} size="lg" /> Auto
-                  </CDropdownItem>
+                  </CDropdownItem> */}
                 </CDropdownMenu>
               </CDropdown>
               <li className="nav-item py-1  py-0 d-flex align-items-center">
