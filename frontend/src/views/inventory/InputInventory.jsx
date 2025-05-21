@@ -33,6 +33,7 @@ import Pagination from '../../components/Pagination'
 
 import useMasterDataService from '../../services/MasterDataService'
 import useManageStockService from '../../services/ManageStockService'
+import useStyle from '../../hooks/UseStyle'
 
 const MySwal = withReactContent(Swal)
 
@@ -71,6 +72,7 @@ const InputInventory = () => {
   const [matchedMaterialNos, setMatchedMaterialNos] = useState([])
   const [remainCounter, setRemainCounter] = useState(0)
   const itemsPerPage = 10
+  const { styleSelect } = useStyle()
 
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfLastItem2 = currentPage2 * itemsPerPage
@@ -1195,6 +1197,7 @@ const InputInventory = () => {
                 <CCol xs={12} sm={6} md={5} xl={4} className="mt-3">
                   <CFormLabel htmlFor="plant">Plant</CFormLabel>
                   <Select
+                    styles={styleSelect}
                     className="basic-single"
                     classNamePrefix="select"
                     isClearable={isClearable}
@@ -1202,7 +1205,6 @@ const InputInventory = () => {
                     id="plant"
                     onMenuOpen={handlePlantOpen}
                     onChange={handlePlantChange}
-                    styles={customStyles}
                     value={selectedPlantVal}
                   />
                 </CCol>
@@ -1215,9 +1217,8 @@ const InputInventory = () => {
                     isClearable={isClearable}
                     options={storageOptions}
                     id="storage"
-                    // onMenuOpen={handleStorageOpen}
                     onChange={handleStorageChange}
-                    // styles={customStyles}
+                    styles={styleSelect}
                     value={selectedStorageVal}
                   />
                 </CCol>
@@ -1275,6 +1276,7 @@ const InputInventory = () => {
                     id="description"
                     onChange={handleDescriptionChange}
                     value={selectedDescription}
+                    styles={styleSelect}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={6} xl={6} className="mt-3">
@@ -1294,7 +1296,10 @@ const InputInventory = () => {
                       id="materialNo"
                       onChange={handleMaterialNoChange}
                       value={selectedMaterialNo}
-                      styles={{ container: (provided) => ({ ...provided, width: '100%' }) }}
+                      styles={{
+                        ...styleSelect,
+                        container: (provided) => ({ ...provided, width: '100%' }),
+                      }}
                     />
                     <CInputGroupText id="addon-wrapping">
                       <CIcon
@@ -1323,6 +1328,7 @@ const InputInventory = () => {
                     onChange={setSelectedAddress}
                     value={selectedAddress}
                     isDisabled={true}
+                    styles={styleSelect}
                   />
                 </CCol>
                 <CCol xs={12} sm={6} md={3} xl={3} className="mt-3">

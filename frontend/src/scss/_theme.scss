@@ -62,3 +62,152 @@ body {
     }
   }
 }
+
+@include color-mode(dark) {
+  .breadcrumb-item.breadcrumb-home a {
+    color: white !important;
+  }
+  .select__control--is-disabled {
+    background-color: #323a49;
+  }
+  .select__single-value--is-disabled {
+    color: #b6b6b6 !important;
+  }
+  .p-dropdown.p-component.p-inputwrapper,
+  .p-inputtext.p-component,
+  .p-datatable-header,
+  .p-multiselect.p-component.p-inputwrapper.p-multiselect-chip,
+  .select__control,
+  .p-paginator-bottom.p-paginator.p-component,
+  .p-paginator-first.p-paginator-element.p-link,
+  .p-paginator-prev.p-paginator-element.p-link,
+  .p-paginator-page.p-paginator-element.p-link,
+  .p-paginator-next.p-paginator-element.p-link,
+  .p-paginator-last.p-paginator-element.p-link,
+  .p-datatable-emptymessage,
+  .p-dropdown-label.p-inputtext {
+    background-color: transparent;
+    color: lightgray;
+    border-color: #383c46;
+  }
+  .p-paginator-page.p-paginator-element.p-link.p-highlight {
+    background-color: #5f6063 !important;
+  }
+  .p-paginator-page.p-paginator-element.p-link:hover,
+  .p-paginator-first:hover,
+  .p-paginator-prev:hover,
+  .p-paginator-next:hover,
+  .p-paginator-last:hover {
+    background-color: #505769 !important;
+  }
+  .select__menu,
+  .p-dropdown-item,
+  .p-dropdown-items-wrapper {
+    background-color: #2e323b;
+    color: lightgray;
+  }
+  .p-dropdown-item.p-highlight,
+  .p-dropdown-item:focus,
+  .p-dropdown-item:active {
+    background-color: #5f6063;
+  }
+  .p-dropdown-item:hover {
+    background-color: #505769;
+  }
+  .p-dropdown-label.p-inputtext.p-placeholder,
+  .pi.pi-search.p-input-icon,
+  .p-multiselect-label.p-placeholder,
+  .p-multiselect-trigger,
+  .select__single-value,
+  .input-group-text {
+    color: lightgray;
+  }
+
+  .form-control,
+  .input-group-text,
+  .input-group-text svg {
+    border-color: #383c46;
+    color: lightgray !important;
+  }
+
+  .p-datatable-header {
+    background-color: #282d37;
+    border-bottom: 1px solid white;
+    border-start-start-radius: 5px;
+  }
+
+  .custom-table .p-datatable-thead {
+    border-bottom: 0;
+  }
+
+  .p-column-header-content,
+  .p-sortable-column {
+    background-color: #36393f;
+    color: white;
+  }
+
+  .custom-datatable .p-datatable-thead > tr > th {
+    background-color: #36393f;
+    color: white;
+    border: 2px solid #383c46 !important;
+    // border: 2px solid gray !important;
+  }
+
+  .p-datatable-thead {
+    border: 2px solid #383c46 !important;
+    // border: 2px solid gray !important;
+  }
+
+  .p-datatable-tbody > tr > td {
+    background-color: #2e323b !important;
+    border-color: #383c46 !important;
+    color: white;
+  }
+  .p-datatable-tbody > .p-row-odd > td {
+    background-color: #4a4f5c !important;
+    border: 2px solid #383c46 !important;
+    color: white;
+  }
+  // .p-datatable-tbody > tr {
+  //   // background-color: #596070 !important;
+  //   color: white;
+  //   border: 2px solid gray !important;
+  // }
+
+  .custom-datatable {
+    border-color: #383c46 !important;
+  }
+
+  // /* Baris tabel dengan striping */
+  // .custom-table tbody tr:nth-child(odd) {
+  //   background-color: #2e323b; /* Warna latar belakang abu-abu muda untuk baris ganjil */
+  // }
+
+  // .custom-table tbody tr:nth-child(even) {
+  //   background-color: #4a4f5c; /* Warna putih untuk baris genap */
+  // }
+
+  .p-dropdown-empty-message {
+    color: white;
+  }
+
+  .page-item.active .page-link {
+    background-color: #5f6063;
+  }
+  .page-item .page-link:hover {
+    color: white;
+    background-color: #505769;
+  }
+  .page-item .page-link {
+    color: white;
+  }
+  .btn.btn-primary,
+  .btn.btn-primary:active {
+    background-color: white;
+    color: black !important;
+  }
+
+  .dropdown-menu.show li a a {
+    color: white;
+  }
+}

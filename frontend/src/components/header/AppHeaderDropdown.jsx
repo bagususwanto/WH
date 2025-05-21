@@ -10,6 +10,7 @@ import {
 import { cilUser, cilAccountLogout } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import profile from './../../assets/images/avatars/profile.png'
+import profileDark from './../../assets/images/avatars/profile-dark.png'
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -19,7 +20,7 @@ import withReactContent from 'sweetalert2-react-content'
 import useAuthService from '../../services/AuthService'
 import config from '../../utils/Config'
 
-const AppHeaderDropdown = () => {
+const AppHeaderDropdown = ({ colorMode }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const { name, imgProfile } = useVerify()
@@ -65,7 +66,18 @@ const AppHeaderDropdown = () => {
   return (
     <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
       <CDropdownToggle className="py-0 pe-0 d-flex align-items-center" caret={false}>
-        <CAvatar src={imgProfile ? `${config.BACKEND_URL}${imgProfile}` : profile} size="md" />
+        <CAvatar
+          src={
+            imgProfile
+              ? `${config.BACKEND_URL}${imgProfile}`
+              : colorMode === 'light'
+                ? profile
+                : colorMode === 'dark'
+                  ? profileDark
+                  : ''
+          }
+          size="md"
+        />
         <div className="ms-2 d-flex flex-column">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
           <span style={{ fontSize: '1em' }}>

@@ -29,6 +29,7 @@ import {
   CDropdown,
   CDropdownItem,
   CInputGroup,
+  useColorModes,
 } from '@coreui/react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -60,6 +61,8 @@ import withReactContent from 'sweetalert2-react-content'
 import { Tag } from 'primereact/tag'
 import { Box } from '@mui/material'
 import annotationPlugin from 'chartjs-plugin-annotation'
+import { useTheme } from '../../context/ThemeProvider'
+import useStyle from '../../hooks/UseStyle'
 
 //import '../../scss/customchart.scss'
 ChartJS.register(
@@ -98,7 +101,7 @@ const Dashboard = () => {
   const { getInventoryCriticalStock } = useDashboardService() // Service
   const { getInventoryLowestStock } = useDashboardService() // Service
   const { getInventoryOverflowStock } = useDashboardService() // Service
-  const { createIncomingPlan, updateIncoming,getInventoryAll} = useDashboardService() // Service
+  const { createIncomingPlan, updateIncoming, getInventoryAll } = useDashboardService() // Service
   const [inventoriescritical, setInventoriesCritical] = useState([]) // Inventory data
   const [inventorieslowest, setInventoriesLowest] = useState([]) // Inventory data
   const [isTableVisible, setIsTableVisible] = useState(true) // Toggle for table visibility
@@ -130,6 +133,9 @@ const Dashboard = () => {
     planning: '',
     incomingDate: '',
   })
+  const { styleSelect } = useStyle()
+  const { colorModeContext } = useTheme()
+
   const today = `${format(new Date(), 'EEEE, dd MMMM yyyy', { locale: id })}`
   //Handle change Desc,Asc
   const handleOrderChange = (event) => {
@@ -138,12 +144,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      
-      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value);
-    }, 10000);
-  
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, [itemNb, order, selectedPlant.value]); 
+      fetchInventoryCriticalStock(itemNb, order, selectedPlant.value)
+    }, 10000)
+
+    return () => clearInterval(intervalId) // Cleanup on unmount
+  }, [itemNb, order, selectedPlant.value])
 
   //Size Window
   useEffect(() => {
@@ -421,7 +426,7 @@ const Dashboard = () => {
           font: {
             size: 11,
           },
-          color: 'black', // Menetapkan warna font untuk ticks pada sumbu Y menjadi hitam
+          color: colorModeContext === 'light' ? 'black' : 'white', // Menetapkan warna font untuk ticks pada sumbu Y menjadi hitam
         },
 
         title: {
@@ -430,15 +435,19 @@ const Dashboard = () => {
           font: {
             size: 11,
           },
+          color: colorModeContext === 'light' ? 'black' : 'white',
+        },
+        grid: {
+          color: colorModeContext === 'light' ? 'lightgray' : 'gray',
         },
       },
       x: {
         ticks: {
           font: {
             size: 10, // Ukuran font
-            color: 'black', // Menetapkan warna font menjadi hitam
             weight: 'bold', // Menjadikan font bold
           },
+          color: colorModeContext === 'light' ? 'gray' : 'white',
           callback: function (value, index, ticks) {
             const item = data[index]
 
@@ -465,6 +474,10 @@ const Dashboard = () => {
           font: {
             size: 10,
           },
+          color: colorModeContext === 'light' ? 'gray' : 'white',
+        },
+        grid: {
+          color: colorModeContext === 'light' ? 'lightgray' : 'gray',
         },
       },
     },
@@ -501,13 +514,13 @@ const Dashboard = () => {
           return context.dataset.label === 'Remain Stock' ? value.toLocaleString() : ''
         },
         // Second label configuration
-        backgroundColor: 'white', // Background color for better visibility
+        backgroundColor: colorModeContext === 'light' ? 'white' : '#212631', // Background color for better visibility
         borderRadius: 4, // Optional: rounded corners
         padding: 4, // Optional: padding around the label
         // Using this configuration to create another label for "Actual Stock"
+        color: colorModeContext === 'light' ? 'black' : 'white', // Color of the label text for bottom label
         label: {
           display: true,
-          color: 'black', // Color of the label text for bottom label
           anchor: 'end', // Anchor position for the bottom label
           align: 'bottom', // Align the label at the bottom of the bar
           font: {
@@ -549,15 +562,13 @@ const Dashboard = () => {
               font: {
                 size: 13,
                 weight: 'bold', // Menambah ketebalan font jika diperlukan
-                color: 'red', // Mengubah warna teks menjadi merah
               },
+              color: colorModeContext === 'light' ? 'black' : 'white',
               yAdjust: -16,
               backgroundColor: 'rgba(0,0,0,0)', // Transparan
-              color: 'black',
-
             },
           },
-         
+
           // Garis untuk 6 (Max Stock Line)
           // {
           //   type: 'line',
@@ -625,7 +636,6 @@ const Dashboard = () => {
                 },
               ]
             : []), // Jika bukan Critical Stock, tidak akan menambahkan garis ini
-          
         ],
       },
     },
@@ -788,7 +798,6 @@ onClick: (event, elements, chart) => {
     setLoadingSave(true)
 
     try {
-
       // Validasi plantId
       const plantId = editData?.plantId
       if (!plantId) {
@@ -825,26 +834,23 @@ onClick: (event, elements, chart) => {
     setLoadingSave(true)
 
     try {
-
       // Validasi plantId
       const plantId = editData?.plantId
       if (!plantId) {
         throw new Error('Plant ID is missing')
       }
 
-      const incomingId = editData?.Incomings?.[0]?.id 
-    if (!incomingId) {
-      throw new Error('Incoming ID is missing')
-    }
+      const incomingId = editData?.Incomings?.[0]?.id
+      if (!incomingId) {
+        throw new Error('Incoming ID is missing')
+      }
       // Ambil warehouseId berdasarkan plantId
       const warehouseId = await getWarehouseId(plantId)
       if (!warehouseId) {
         throw new Error('Warehouse ID is missing')
       }
 
-
- 
-      await updateIncoming(incomingId,warehouseId, {
+      await updateIncoming(incomingId, warehouseId, {
         actual: editData.actual,
         // inventoryId: editData.id,
       })
@@ -857,7 +863,7 @@ onClick: (event, elements, chart) => {
       setLoadingSave(false)
 
       // Fetch ulang data untuk refresh dengan retry mekanisme
- // Fetch ulang data untuk refresh
+      // Fetch ulang data untuk refresh
       setFetchNow(true)
       await fetchData() // Pastikan fetchData adalah fungsi yang memperbarui data di state
     }
@@ -925,7 +931,7 @@ onClick: (event, elements, chart) => {
 
   const backgroundColor =
     selectedChart === 'critical' ? '#FFAF00' : selectedChart === 'overflow' ? '#F95454' : 'white'
-     const color =
+  const color =
     selectedChart === 'critical' ? 'black' : selectedChart === 'overflow' ? 'white' : 'white'
 
   return (
@@ -950,7 +956,10 @@ onClick: (event, elements, chart) => {
                 </label>
                 <CButtonGroup id="filter-options">
                   <CFormCheck
-                    button={{ color: 'primary', variant: 'outline' }}
+                    button={{
+                      color: colorModeContext === 'light' ? 'dark' : 'light',
+                      variant: 'outline',
+                    }}
                     type="radio"
                     name="options-outlined"
                     id="primary-outlined"
@@ -961,7 +970,10 @@ onClick: (event, elements, chart) => {
                     onChange={handleOrderChange}
                   />
                   <CFormCheck
-                    button={{ color: 'primary', variant: 'outline' }}
+                    button={{
+                      color: colorModeContext === 'light' ? 'dark' : 'light',
+                      variant: 'outline',
+                    }}
                     type="radio"
                     name="options-outlined"
                     id="second-outlined"
@@ -989,7 +1001,8 @@ onClick: (event, elements, chart) => {
                   Plant:
                 </label>
                 <Select
-                  className="basic-single"
+                  // className="basic-single"
+                  styles={styleSelect}
                   classNamePrefix="select"
                   isClearable
                   options={plantOptions} // plantOptions termasuk "All"
@@ -1013,6 +1026,7 @@ onClick: (event, elements, chart) => {
                   Status By:
                 </label>
                 <Select
+                  styles={styleSelect}
                   className="basic-single"
                   classNamePrefix="select"
                   options={chartvalue.filter((option) => option.value !== 'lowest')} // Sembunyikan opsi "Lowest"
@@ -1112,7 +1126,6 @@ onClick: (event, elements, chart) => {
                         >
                           <div style={{ fontSize: '12px' }}>Follow Up by TL Up</div>
                         </div>
-                      
                       </div>
                     </CCol>
 

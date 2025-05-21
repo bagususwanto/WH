@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux'
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
 import ResetPassword from './views/pages/resetpassword/ResetPassword'
+import { ThemeProvider } from './context/ThemeProvider'
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -18,46 +19,49 @@ const Logout = React.lazy(() => import('./views/pages/logout/Logout'))
 
 const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+
   const storedTheme = useSelector((state) => state.theme)
 
   useEffect(() => {
-    // const urlParams = new URLSearchParams(window.location.href.split('?')[1])
-    // const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
-    // if (theme) {
-    //   setColorMode(theme)
-    // }
+    const urlParams = new URLSearchParams(window.location.href.split('?')[1])
+    const theme = urlParams.get('theme') && urlParams.get('theme').match(/^[A-Za-z0-9\s]+/)[0]
+    if (theme) {
+      setColorMode(theme)
+    }
 
-    // if (isColorModeSet()) {
-    //   return
-    // }
+    if (isColorModeSet()) {
+      return
+    }
 
-    setColorMode('light')
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    setColorMode(storedTheme)
+  }, [])
 
   return (
     <HashRouter>
-      <Suspense
-        fallback={
-          <div className="pt-3 text-center">
-            <CSpinner color="primary" variant="grow" />
-          </div>
-        }
-      >
-        <Routes>
-          <Route exact path="/login" name="Login Page" element={<Login />} />
-          <Route
-            exact
-            path="/reset-password"
-            name="Reset Password Page"
-            element={<ResetPassword />}
-          />
-          <Route exact path="/logout" name="Login Page" element={<Logout />} />
-          {/* <Route exact path="/register" name="Register Page" element={<Register />} /> */}
-          <Route exact path="/404" name="Page 404" element={<Page404 />} />
-          <Route exact path="/500" name="Page 500" element={<Page500 />} />
-          <Route path="*" name="Home" element={<DefaultLayout />} />
-        </Routes>
-      </Suspense>
+      <ThemeProvider>
+        <Suspense
+          fallback={
+            <div className="pt-3 text-center">
+              <CSpinner color="primary" variant="grow" />
+            </div>
+          }
+        >
+          <Routes>
+            <Route exact path="/login" name="Login Page" element={<Login />} />
+            <Route
+              exact
+              path="/reset-password"
+              name="Reset Password Page"
+              element={<ResetPassword />}
+            />
+            <Route exact path="/logout" name="Login Page" element={<Logout />} />
+            {/* <Route exact path="/register" name="Register Page" element={<Register />} /> */}
+            <Route exact path="/404" name="Page 404" element={<Page404 />} />
+            <Route exact path="/500" name="Page 500" element={<Page500 />} />
+            <Route path="*" name="Home" element={<DefaultLayout />} />
+          </Routes>
+        </Suspense>
+      </ThemeProvider>
     </HashRouter>
   )
 }

@@ -667,7 +667,7 @@ useEffect(() => {
                   filters={filter} // 🔍 Filter untuk pencarian global
                   globalFilterFields={["Material.materialNo", "Material.description"]} // 🎯 Pencarian berdasarkan Material No & Description
                   tableStyle={{ minWidth: "50rem" }}
-                  className="p-datatable-gridlines text-nowrap custom-table"
+                  className="p-datatable-gridlines text-nowrap custom-datatable"
                   paginator
                   rowsPerPageOptions={[12, 50, 100, 500]}
                   rows={12}
