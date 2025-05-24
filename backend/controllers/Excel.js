@@ -1552,9 +1552,12 @@ const cleanAndUppercaseData = (data) => {
 };
 
 const formatTime = (dateTime) => {
-  if (!dateTime) return null; // Pastikan tidak null atau undefined
+  if (!dateTime) return null;
+
   const date = new Date(dateTime);
-  return date.toISOString().split("T")[1].split(".")[0]; // Ambil HH:mm:ss
+  if (isNaN(date.getTime())) return dateTime; // Jika bukan tanggal valid, kembalikan apa adanya
+
+  return date.toISOString().split("T")[1].split(".")[0]; // Format ke HH:mm:ss
 };
 
 export const uploadMasterDeliverySchedule = async (req, res) => {
