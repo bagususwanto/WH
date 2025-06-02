@@ -512,38 +512,43 @@ export const processIncomingUpdate = async (
 
   const status = quantity < incoming.planning ? "partial" : "completed";
 
-  if (status === "completed" && incoming.status !== "completed") {
-    const dn = await DeliveryNote.findOne({
-      where: { id: incoming.deliveryNoteId },
-      attributes: ["id", "completeItems"],
-    });
+  if (
+    incoming.deliveryNoteId !== null &&
+    incoming.deliveryNoteId !== undefined
+  ) {
+    if (status === "completed" && incoming.status !== "completed") {
+      const dn = await DeliveryNote.findOne({
+        where: { id: incoming.deliveryNoteId },
+        attributes: ["id", "completeItems"],
+      });
 
-    await DeliveryNote.update(
-      {
-        completeItems: dn.completeItems + 1,
-      },
-      {
-        where: { id: dn.id },
-        transaction,
-      }
-    );
-  }
+      await DeliveryNote.update(
+        {
+          completeItems: dn.completeItems + 1,
+        },
+        {
+          where: { id: dn.id },
+          transaction,
+        }
+      );
+    }
 
-  if (status === "partial" && incoming.status === "completed") {
-    const dn = await DeliveryNote.findOne({
-      where: { id: incoming.deliveryNoteId },
-      attributes: ["id", "completeItems"],
-    });
+    if (status === "partial" && incoming.status === "completed") {
+      const dn = await DeliveryNote.findOne({
+        where: { id: incoming.deliveryNoteId },
+        attributes: ["id", "completeItems"],
+      });
 
-    await DeliveryNote.update(
-      {
-        completeItems: dn.completeItems - 1,
-      },
-      {
-        where: { id: dn.id },
-        transaction,
-      }
-    );
+      await DeliveryNote.update(
+        {
+          completeItems: dn.completeItems - 1,
+        },
+        {
+          where: { id: dn.id },
+          transaction,
+        }
+      );
+    }
   }
 
   await Incoming.update(
