@@ -591,8 +591,13 @@ export const updateIncoming = async (req, res) => {
       ],
     });
 
-    if (incoming.Inventory.quantityActual !== null) {
-      throw new Error("Cannot be updated, material is already in inventory");
+    try {
+      if (incoming.Inventory.quantityActual !== null) {
+        throw new Error("Cannot be updated, material is already in inventory");
+      }
+    } catch (error) {
+      await transaction.rollback();
+      return res.status(400).json({ message: error.message });
     }
 
     try {
