@@ -68,7 +68,7 @@ const Login = () => {
     try {
       setLoading(true)
       await login(username, password)
-      navigate('/dashboard')
+      navigate('/home')
     } catch (error) {
       if (error.response) {
         setMsg(error.response.data.msg)
@@ -82,7 +82,7 @@ const Login = () => {
 
   return (
     <div
-      className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center"
+      className="d-flex flex-row align-items-center bg-body-tertiary min-vh-100"
       style={{
         backgroundImage: `url(${colorModeContext === 'light' ? background : backgroundDark})`, // Menggunakan gambar impor
         backgroundSize: 'cover', // Agar gambar menyesuaikan dengan ukuran viewport
@@ -95,9 +95,9 @@ const Login = () => {
         <CRow className="justify-content-center">
           <CCol md={12} sm={12} lg={8} xl={7}>
             <CCardGroup className="d-flex flex-column-reverse flex-sm-row">
-              <div className="d-block d-sm-flex ">
-                <CCard className=" px-3 max-sm-width-100 max-width-50px rounded-2 rounded-end-0 card-theme-toggle">
-                  <div className="d-flex pt-2 pt-sm-5 pb-2 flex-sm-column flex-row  align-items-center justify-content-center gap-3">
+              <div className="d-block d-sm-flex">
+                <CCard className="px-3 rounded-2 rounded-end-0 max-sm-width-100 max-width-50px card-theme-toggle">
+                  <div className="d-flex flex-row flex-sm-column align-items-center justify-content-center gap-3 pt-2 pt-sm-5 pb-2">
                     <CButton
                       onClick={() => {
                         setColorModeContext('light')
@@ -163,7 +163,7 @@ const Login = () => {
                   </CCardBody>
                 </CCard>
               </div>
-              <CCard className="text-white py-5  px-1" style={{ width: '%' }}>
+              <CCard className="px-1 py-5 text-white" style={{ width: '%' }}>
                 <CCardBody className="text-center">
                   <img
                     src={colorModeContext === 'light' ? LogoTWIIS : LogoTWIISDark}
