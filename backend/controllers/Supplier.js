@@ -8,36 +8,18 @@ export const getSupplier = async (req, res) => {
     const response = await Supplier.findAll({
       where: { flag: 1 },
       include: [
-        {
+        ...["create", "update"].map((action) => ({
           model: LogMaster,
           required: false,
-          as: "createdBy",
+          as: `${action}dBy`,
           attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Supplier", action: "create" },
+          where: { masterType: "Material", action },
           include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "updatedBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Supplier" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
+            { model: User, required: false, attributes: ["id", "username"] },
           ],
           order: [["createdAt", "DESC"]],
           limit: 1,
-        },
+        })),
         {
           model: LogImport,
           attributes: ["id", "createdAt", "userId"],
