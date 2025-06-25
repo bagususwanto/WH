@@ -569,7 +569,7 @@ const Material = () => {
       options={columns}
       optionLabel="header"
       onChange={onColumnToggle}
-      className="w-full sm:w-20rem mb-2 mt-2"
+      className="mt-2 mb-2 w-full sm:w-20rem"
       display="chip"
       placeholder="Show Hiden Columns"
       style={{ borderRadius: '5px' }}
@@ -716,7 +716,6 @@ const Material = () => {
       setShouldFetch(true)
     } catch (error) {
       console.error('Error during import:', error)
-      MySwal.fire('Error', 'Failed to import data', 'error')
     } finally {
       setLoadingImport(false)
       setModalUpload(false)
@@ -924,7 +923,7 @@ const Material = () => {
                   options={plantOptions}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
@@ -935,7 +934,7 @@ const Material = () => {
                   options={storage}
                   onChange={handleStorageChange}
                   placeholder="Select Storage"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
@@ -946,7 +945,7 @@ const Material = () => {
                   options={typeOptions}
                   onChange={handleTypeChange}
                   placeholder="Select Type"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
@@ -970,7 +969,7 @@ const Material = () => {
                         label="Add"
                         icon="pi pi-plus"
                         severity="primary"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={handleAddMaterial}
                         data-pr-tooltip="XLS"
                       />
@@ -979,7 +978,7 @@ const Material = () => {
                         label="Upload"
                         icon="pi pi-file-import"
                         severity="primary"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={showModalUpload}
                         data-pr-tooltip="XLS"
                       />
@@ -988,7 +987,7 @@ const Material = () => {
                         label="Excel"
                         icon="pi pi-file-excel"
                         severity="success"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
@@ -997,7 +996,7 @@ const Material = () => {
                         label="Template"
                         icon="pi pi-download"
                         severity="success"
-                        className="rounded-5 mb-2"
+                        className="mb-2 rounded-5"
                         onClick={downloadTemplate}
                         data-pr-tooltip="XLS"
                       />
@@ -1013,7 +1012,7 @@ const Material = () => {
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
                   tableStyle={{ minWidth: '30rem' }}
-                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  className="p-datatable-gridlines p-datatable-sm text-nowrap custom-datatable"
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
@@ -1086,7 +1085,7 @@ const Material = () => {
                 <CCol
                   xs={12}
                   lg={3}
-                  className="d-flex justify-content-center align-items-center mb-3"
+                  className="d-flex align-items-center justify-content-center mb-3"
                   style={{
                     marginLeft: 'auto',
                     marginRight: 'auto',
@@ -1128,7 +1127,7 @@ const Material = () => {
                     </div>
                   ) : (
                     <div
-                      className="d-flex justify-content-center align-items-center border border-secondary"
+                      className="d-flex align-items-center justify-content-center border border-secondary"
                       style={{
                         width: '160px',
                         height: '160px',
