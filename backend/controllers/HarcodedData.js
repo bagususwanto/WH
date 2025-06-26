@@ -1032,6 +1032,10 @@ export const baseUom = [
     id: 244,
     uom: "TB",
   },
+  {
+    id: 245,
+    uom: "PACK",
+  },
 ];
 
 export const positionData = [
