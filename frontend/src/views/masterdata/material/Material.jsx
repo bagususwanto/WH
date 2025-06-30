@@ -592,6 +592,7 @@ const Material = () => {
         minOrder: item.minOrder,
         packaging: item.Packaging?.packaging,
         unitPackaging: item.Packaging?.unitPackaging,
+        supplierCode: item.Supplier?.supplierCode,
         supplier: item.Supplier?.supplierName,
         addressRack: item.Inventory.Address_Rack.addressRackName,
         storageCode: item.Inventory.Address_Rack.Storage.storageCode,
