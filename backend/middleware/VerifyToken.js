@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import Users from "../models/UserModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
-import Organization from "../models/OrganizationModel.js";
 
 export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization; // Akses header langsung
