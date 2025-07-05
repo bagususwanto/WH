@@ -782,7 +782,7 @@ const InputInventory = () => {
           const deleteRequest = store.delete(item.id)
 
           deleteRequest.onsuccess = function () {
-            console.log(`Item with id ${item.id} deleted successfully.`)
+          
           }
 
           deleteRequest.onerror = function () {

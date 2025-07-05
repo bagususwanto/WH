@@ -197,9 +197,7 @@ const ConfirmApp = () => {
             console.error('Error deleting item approval:', error)
           }
         }
-      } else {
-        console.log('warehouse id not found')
-      }
+      } 
     } catch (error) {
       console.error('Error fetching Approval:', error)
     }

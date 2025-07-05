@@ -109,13 +109,7 @@ const Inventory = () => {
     const selectedStorageId = storageId || "";
     // const selectedShopId = shopId || "";
     const selectedTypeId = "direct"; // Biarkan kosong jika tidak dipilih
-  
-    console.log("Fetching inventory with:", { 
-      plantId: selectedPlantId, 
-      storageId: selectedStorageId, 
-      // shopId: selectedShopId,
-      type: selectedTypeId 
-    });
+
   
     try {
       const response = await getInventory(selectedPlantId, selectedStorageId, selectedTypeId);
@@ -155,7 +149,6 @@ const Inventory = () => {
   const getTypeMaterial = async () => {
     try {
       const response = await getMasterData(apiTypeMaterial);
-      console.log("API Response for Type Material:", response.data); // Debugging
 
       const typeMaterialOptions = response.data.map((tm) => ({
         label: tm.type,
@@ -185,7 +178,7 @@ const Inventory = () => {
   const getWarehouse = async (plantId) => {
     try {
       const response = await getMasterData(apiWarehousePlant,plantId)
-      console.log("API Response for Wh:", response.data); // Debugging
+
       const WarehouseOptions = response.data.map((warehouse) => ({
         label: warehouse.warehouseName,
         value: warehouse.id,
@@ -237,10 +230,9 @@ useEffect(() => {
   //   _filters['Address_Rack.Storage.Shop.shopName'].value = selectedShopName
   //   setFilters(_filters)
   // }
-  console.log("Dropdown warehouse options:", warehouse);
-  console.log("Dropdown warehouseId options:", warehouseId);
+
   const handleWarehouse = (e) => {
-    console.log("Event:", e.target.value); // Debugging, cek apakah event benar
+
     
     const selectedWarehouseId = e.target.value; // Ambil ID dari dropdown
     setWarehouseId(selectedWarehouseId);
@@ -558,10 +550,10 @@ useEffect(() => {
                     formData.append('file', uploadData.file);
                     formData.append('importDate', uploadData.importDate);
             
-                    console.log("Form Data:", [...formData.entries()]); // Debugging
+                
             
                     const response = await uploadInventorySoh(warehouseId, formData);
-                    console.log("API Response:", response.data); // Debugging
+                 
             
                     // Cek apakah API response valid
                     if (response.data && response.data.message) {
@@ -571,7 +563,6 @@ useEffect(() => {
                     setShouldFetch(true);
                 } catch (error) {
                     console.error('Error during import:', error);
-                    console.log('Error response:', error.response?.data); // Debugging error dari API
             
                     MySwal.fire('Error', error.response?.data?.message || 'Failed to import data', 'error');
                 } finally {
