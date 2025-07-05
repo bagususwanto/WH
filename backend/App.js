@@ -50,6 +50,7 @@ import materialStorageRouter from "./routes/MaterialStorageRouter.js";
 import deliveryScheduleRouter from "./routes/DeliveryScheduleRouter.js";
 import deliveryNoteRouter from "./routes/DeliveryNoteRouter.js";
 import vendorMovementRouter from "./routes/VendorMovementRouter.js";
+import publicRouter from "./routes/PublicRouter.js";
 import "./jobs/CronJob.js";
 import { verifyToken } from "./middleware/VerifyToken.js";
 import logger from "./middleware/logger.js";
@@ -121,6 +122,7 @@ app.use((req, res, next) => {
 
 // Auth router
 app.use("/api", authRouter);
+app.use("/api", publicRouter);
 
 app.use(verifyToken);
 // app.use(checkPasswordExpiration);
@@ -197,11 +199,11 @@ app.use("/api", notificationRouter);
 app.use("/api", vendorMovementRouter);
 
 // Membuat server HTTPS
-https.createServer(credentials, app).listen(port, () => {
-  console.log(`Server running at https://${host}:${port}`);
-});
+// https.createServer(credentials, app).listen(port, () => {
+//   console.log(`Server running at https://${host}:${port}`);
+// });
 
 // Membuat server HTTP
-// app.listen(port, () => {
-//   console.log(`Server running at http://${host}:${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Server running at http://${host}:${port}`);
+});

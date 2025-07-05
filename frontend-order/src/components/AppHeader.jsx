@@ -500,7 +500,7 @@ const AppHeader = () => {
   // Handle ketika mouse meninggalkan tombol Category
   const handleMouseLeave = () => {
     // Dropdown tetap terbuka jika sudah terbuka, tidak menyembunyikan secara otomatis
-    if (!showCategories) setShowCategories(false) // Menyembunyikan kategori hanya jika dropdown belum terbuka
+    setShowCategories(false) // Menyembunyikan kategori hanya jika dropdown belum terbuka
   }
 
   const handleClickOutside = (e) => {
@@ -540,7 +540,7 @@ const AppHeader = () => {
   
 
   return (
-    <CHeader position="sticky" className="mb-4 p-0">
+    <CHeader position="sticky" className="mb-4 p-0" onMouseLeave={handleMouseLeave}>
       <CContainer className="border-bottom px-4 py-2 mb-2" style={{ minHeight: '10px' }} fluid>
         <span style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
           <CIcon
@@ -606,7 +606,7 @@ const AppHeader = () => {
           ref={categoryButtonRef}
           onClick={handleToggleCategories} // Toggle kategori saat diklik
           onMouseEnter={handleMouseEnter} // Menampilkan kategori saat hover
-          onMouseLeave={handleMouseLeave} // Menyembunyikan kategori saat mouse meninggalkan
+          // onMouseLeave={handleMouseLeave} // Menyembunyikan kategori saat mouse meninggalkan
           style={{
             backgroundColor: showCategories ? '#E4E0E1' : '', // Ubah warna saat kategori aktif
           }}
@@ -748,16 +748,16 @@ const AppHeader = () => {
           <CDropdown
             variant="nav-item"
             autoClose="outside"
-            visible={isCartOpen  && !isNotifOpen && !isDropdownOpen} // Hanya tampilkan Cart jika Notif tertutup
+            visible={isCartOpen && !isNotifOpen && !isDropdownOpen} // Hanya tampilkan Cart jika Notif tertutup
             onMouseEnter={() => {
               setIsCartOpen(true)
               setIsNotifOpen(false) // Tutup Notif
               setIsDropdownOpen(false) // Tutup Notif
             }}
-            onMouseLeave={() => setIsCartOpen('outside')}
+            onMouseLeave={() => setIsCartOpen(false)}
           >
             <CDropdownToggle
-              className="py-0 pe-0 d-flex align-items-center position-relative me-3"
+              className="my-1 py-0 pe-0 d-flex align-items-center position-relative me-3"
               caret={false}
             >
               <CIcon icon={cilCart} size="lg" />
@@ -860,9 +860,9 @@ const AppHeader = () => {
               setIsCartOpen(false) // Tutup Cart
               setIsDropdownOpen(false) // Tutup Cart
             }}
-            onMouseLeave={() => setIsNotifOpen("outside")}
+            onMouseLeave={() => setIsNotifOpen(false)}
           >
-            <CDropdownToggle className="d-flex align-items-center position-relative" caret={false}>
+            <CDropdownToggle className="my-1 d-flex align-items-center position-relative" caret={false}>
               <CIcon icon={cilBell} size="lg" />
               {notifCount > 0 && (
                 <CBadge
@@ -901,7 +901,7 @@ const AppHeader = () => {
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  Anda memiliki ({notifCount}) notifikasi
+                 {notifCount ? `Anda memiliki (${notifCount}) notifikasi` : "Tidak ada notifikasi"}
                 </div>
               </CDropdownHeader>
 

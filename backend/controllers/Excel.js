@@ -935,8 +935,9 @@ export const uploadMasterMaterial = async (req, res) => {
 
     const newMaterials = [];
     const updatedMaterials = [];
-    const newInventories = [];
+    const newInventoriesForExistingMaterials = [];
     const updatedInventories = [];
+    const newInventoriesForNewMaterials = []; // Untuk material baru
     const validationErrors = [];
 
     for (const row of rows) {
@@ -1035,24 +1036,32 @@ export const uploadMasterMaterial = async (req, res) => {
           logImportId,
         };
 
-        const inventoryData = {
-          materialId: existingMaterial?.id,
-          addressId,
-        };
-
         if (existingMaterial) {
+          // Material sudah ada
           updatedMaterials.push({ ...materialData, id: existingMaterial.id });
-        } else {
-          newMaterials.push(materialData);
-        }
 
-        if (existingInventory) {
-          updatedInventories.push({
-            ...inventoryData,
-            id: existingInventory.id,
-          });
+          // Cek inventory untuk material yang sudah ada
+          if (existingInventory) {
+            updatedInventories.push({
+              id: existingInventory.id,
+              materialId: existingMaterial.id,
+              addressId,
+            });
+          } else {
+            // Material ada tapi inventory belum ada
+            newInventoriesForExistingMaterials.push({
+              materialId: existingMaterial.id,
+              addressId,
+            });
+          }
         } else {
-          newInventories.push(inventoryData);
+          // Material baru
+          newMaterials.push(materialData);
+          // Simpan data inventory untuk material baru (akan diproses setelah material dibuat)
+          newInventoriesForNewMaterials.push({
+            materialNo, // Gunakan materialNo sebagai referensi sementara
+            addressId,
+          });
         }
       } catch (error) {
         validationErrors.push({ error: error.message });
@@ -1060,8 +1069,12 @@ export const uploadMasterMaterial = async (req, res) => {
     }
 
     // Bulk insert new materials
+    let createdMaterials = [];
     if (newMaterials.length > 0) {
-      await Material.bulkCreate(newMaterials, { transaction });
+      createdMaterials = await Material.bulkCreate(newMaterials, {
+        transaction,
+        returning: true, // Penting untuk mendapatkan ID yang baru dibuat
+      });
     }
 
     // Bulk update existing materials
@@ -1072,9 +1085,11 @@ export const uploadMasterMaterial = async (req, res) => {
       await Promise.all(updatePromises);
     }
 
-    // Bulk insert new inventories
-    if (newInventories.length > 0) {
-      await Inventory.bulkCreate(newInventories, { transaction });
+    // Bulk insert inventories untuk existing materials
+    if (newInventoriesForExistingMaterials.length > 0) {
+      await Inventory.bulkCreate(newInventoriesForExistingMaterials, {
+        transaction,
+      });
     }
 
     // Bulk update existing inventories
@@ -1083,6 +1098,24 @@ export const uploadMasterMaterial = async (req, res) => {
         Inventory.update(inv, { where: { id: inv.id }, transaction })
       );
       await Promise.all(updatePromises);
+    }
+
+    // Bulk insert inventories untuk new materials
+    if (
+      newInventoriesForNewMaterials.length > 0 &&
+      createdMaterials.length > 0
+    ) {
+      // Buat map dari materialNo ke material ID yang baru dibuat
+      const newMaterialMap = new Map(
+        createdMaterials.map((mat) => [mat.materialNo, mat.id])
+      );
+
+      const inventoriesToCreate = newInventoriesForNewMaterials.map((inv) => ({
+        materialId: newMaterialMap.get(inv.materialNo),
+        addressId: inv.addressId,
+      }));
+
+      await Inventory.bulkCreate(inventoriesToCreate, { transaction });
     }
 
     await transaction.commit();
@@ -1552,9 +1585,12 @@ const cleanAndUppercaseData = (data) => {
 };
 
 const formatTime = (dateTime) => {
-  if (!dateTime) return null; // Pastikan tidak null atau undefined
+  if (!dateTime) return null;
+
   const date = new Date(dateTime);
-  return date.toISOString().split("T")[1].split(".")[0]; // Ambil HH:mm:ss
+  if (isNaN(date.getTime())) return dateTime; // Jika bukan tanggal valid, kembalikan apa adanya
+
+  return date.toISOString().split("T")[1].split(".")[0]; // Format ke HH:mm:ss
 };
 
 export const uploadMasterDeliverySchedule = async (req, res) => {

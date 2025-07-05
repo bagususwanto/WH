@@ -512,38 +512,43 @@ export const processIncomingUpdate = async (
 
   const status = quantity < incoming.planning ? "partial" : "completed";
 
-  if (status === "completed" && incoming.status !== "completed") {
-    const dn = await DeliveryNote.findOne({
-      where: { id: incoming.deliveryNoteId },
-      attributes: ["id", "completeItems"],
-    });
+  if (
+    incoming.deliveryNoteId !== null &&
+    incoming.deliveryNoteId !== undefined
+  ) {
+    if (status === "completed" && incoming.status !== "completed") {
+      const dn = await DeliveryNote.findOne({
+        where: { id: incoming.deliveryNoteId },
+        attributes: ["id", "completeItems"],
+      });
 
-    await DeliveryNote.update(
-      {
-        completeItems: dn.completeItems + 1,
-      },
-      {
-        where: { id: dn.id },
-        transaction,
-      }
-    );
-  }
+      await DeliveryNote.update(
+        {
+          completeItems: dn.completeItems + 1,
+        },
+        {
+          where: { id: dn.id },
+          transaction,
+        }
+      );
+    }
 
-  if (status === "partial" && incoming.status === "completed") {
-    const dn = await DeliveryNote.findOne({
-      where: { id: incoming.deliveryNoteId },
-      attributes: ["id", "completeItems"],
-    });
+    if (status === "partial" && incoming.status === "completed") {
+      const dn = await DeliveryNote.findOne({
+        where: { id: incoming.deliveryNoteId },
+        attributes: ["id", "completeItems"],
+      });
 
-    await DeliveryNote.update(
-      {
-        completeItems: dn.completeItems - 1,
-      },
-      {
-        where: { id: dn.id },
-        transaction,
-      }
-    );
+      await DeliveryNote.update(
+        {
+          completeItems: dn.completeItems - 1,
+        },
+        {
+          where: { id: dn.id },
+          transaction,
+        }
+      );
+    }
   }
 
   await Incoming.update(
@@ -586,8 +591,13 @@ export const updateIncoming = async (req, res) => {
       ],
     });
 
-    if (incoming.Inventory.quantityActual !== null) {
-      throw new Error("Cannot be updated, material is already in inventory");
+    try {
+      if (incoming.Inventory.quantityActual !== null) {
+        throw new Error("Cannot be updated, material is already in inventory");
+      }
+    } catch (error) {
+      await transaction.rollback();
+      return res.status(400).json({ message: error.message });
     }
 
     try {

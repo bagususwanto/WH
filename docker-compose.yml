@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5010:5010"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - my-network
+
+  frontend:
+    build:
+      context: ./frontend
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    command: npm run start -- --host
+    networks:
+      - my-network
+
+  frontend-order:
+    build:
+      context: ./frontend-order
+    env_file:
+      - .env
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./frontend-order:/app
+      - /app/node_modules
+    restart: unless-stopped
+    command: npm run start -- --host
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true

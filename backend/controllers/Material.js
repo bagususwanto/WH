@@ -15,6 +15,10 @@ import Inventory from "../models/InventoryModel.js";
 import AddressRack from "../models/AddressRackModel.js";
 import MaterialStorage from "../models/MaterialStorageModel.js";
 import LogEntry from "../models/LogEntryModel.js";
+import Incoming from "../models/IncomingModel.js";
+import sequelize, { Op } from "sequelize";
+import Warehouse from "../models/WarehouseModel.js";
+import { formatDate } from "../utils/helper.js";
 
 let batchSize = 1000; // Set batch size sesuai kebutuhan
 
@@ -634,5 +638,345 @@ export const deleteImage = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getInventoryMaterialAll = async (req, res) => {
+  const limit = 1000; // Tentukan jumlah data per batch
+  let offset = 0;
+  let hasMoreData = true;
+  let allData = []; // Variabel untuk menyimpan semua data
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0); // Mengatur waktu ke 00:00:00
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999); // Mengatur waktu ke 23:59:59
+
+  try {
+    while (hasMoreData) {
+      // Mengambil data dalam batch
+      const batchData = await Inventory.findAll({
+        include: [
+          {
+            model: Material,
+            where: { flag: 1 },
+            include: [
+              {
+                model: Packaging,
+                required: false,
+                where: { flag: 1 },
+              },
+              {
+                model: Category,
+                required: false,
+                where: { flag: 1 },
+              },
+              {
+                model: Supplier,
+                required: false,
+                where: { flag: 1 },
+              },
+            ],
+          },
+          {
+            model: AddressRack,
+            where: { flag: 1 },
+            include: [
+              {
+                model: Storage,
+                where: { flag: 1 },
+                include: [
+                  {
+                    model: Plant,
+                    where: { flag: 1 },
+                    include: [
+                      {
+                        model: Warehouse,
+                        where: { flag: 1 },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: LogEntry,
+            attributes: ["id", "userId", "createdAt", "updatedAt"],
+            limit: 1,
+            order: [["createdAt", "DESC"]],
+            required: false,
+            include: [
+              {
+                model: User,
+                attributes: ["id", "username", "createdAt", "updatedAt"],
+                where: { flag: 1 },
+                required: false,
+              },
+            ],
+          },
+          // {
+          //   model: Incoming,
+          //   limit: 1,
+          //   order: [["createdAt", "DESC"]],
+          //   where: {
+          //     createdAt: {
+          //       [Op.between]: [startOfToday, endOfToday],
+          //     },
+          //   },
+          // },
+        ],
+        limit,
+        offset, // Mulai dari batch tertentu
+      });
+
+      // Tambahkan data batch ke allData
+      allData = allData.concat(batchData);
+
+      // Jika jumlah data yang diambil kurang dari limit, tidak ada lagi data yang tersisa
+      if (batchData.length < limit) {
+        hasMoreData = false;
+      } else {
+        offset += limit; // Tambahkan offset untuk batch berikutnya
+      }
+    }
+
+    allData = allData.map((item) => {
+      const material = item.Material;
+      const addressRack = item.Address_Rack;
+      const storage = addressRack.Storage;
+      const plant = storage.Plant;
+
+      const criticalMinStock = 1.5; // Faktor kritis untuk minStock dalam shift
+      const overStock = 4.5; // Faktor untuk over minStock dalam shift
+
+      const leadShift = item.quantityActualCheck
+        ? Number(
+            ((item.quantityActualCheck / material.minStock) * 2.5).toFixed(1)
+          )
+        : 0;
+
+      const leadTime = item.quantityActualCheck
+        ? Number(
+            ((item.quantityActualCheck / material.minStock) * 20).toFixed(1)
+          )
+        : 0;
+
+      let stockStatus = "Unknown";
+
+      if (leadShift <= criticalMinStock) {
+        stockStatus = "critical";
+      } else if (leadShift > criticalMinStock && leadShift < overStock) {
+        stockStatus = "normal";
+      } else if (leadShift >= overStock) {
+        stockStatus = "over";
+      }
+
+      return {
+        id: item.id,
+        materialNo: material.materialNo,
+        description: material.description,
+        addressRackName: addressRack.addressRackName,
+        storageName: storage.storageName + " - " + storage.storageCode,
+        supplier:
+          material.Supplier.supplierName +
+            " - " +
+            material.Supplier.supplierCode || "No Supplier",
+        plant: plant.plantName + " - " + plant.plantCode,
+        warehouse:
+          plant.Warehouse.warehouseName + " - " + plant.Warehouse.warehouseCode,
+        packaging: material.Packaging ? material.Packaging.packagingName : null,
+        packagingUnit: material.Packaging
+          ? material.Packaging.unitPackaging
+          : null,
+        uom: material.uom,
+        price: new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(material.price),
+        type: material.type,
+        mrpType: material.mrpType,
+        minStock: material.minStock,
+        maxStock: material.maxStock,
+        minOrder: material.minOrder,
+        category: material.Category.categoryName,
+        stock: item.quantityActualCheck,
+        leadShift,
+        leadTime,
+        stockStatus: stockStatus,
+        stockUpdatedAt: item.Log_Entries[0]
+          ? formatDate(item.Log_Entries[0].createdAt)
+          : null,
+        stockUpdatedBy: item.Log_Entries[0]?.User
+          ? item.Log_Entries[0].User.username
+          : null,
+      };
+    });
+
+    console.log(`Total data fetched: ${allData.length}`);
+
+    res.status(200).json(allData);
+  } catch (error) {
+    console.error("Error fetching inventory:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getInventoryByStatus = async (req, res) => {
+  try {
+    const { status } = req.query;
+    const limit = parseInt(req.query.limit, 10);
+    let orderBy;
+
+    if (status === "overflow") {
+      orderBy = [
+        [
+          sequelize.literal(
+            'ROUND((CAST("Inventory"."quantityActualCheck" AS FLOAT) / NULLIF(CAST("Material"."maxStock" AS FLOAT), 0)), 2)'
+          ),
+          "DESC", // overflow = nilai tertinggi di atas maxStock
+        ],
+      ];
+    } else if (status === "critical") {
+      orderBy = [
+        [
+          sequelize.literal(
+            'ROUND((CAST("Inventory"."quantityActualCheck" AS FLOAT) / NULLIF(CAST("Material"."minStock" AS FLOAT), 0) * 2.5), 2)'
+          ),
+          "ASC",
+        ],
+      ];
+    }
+
+    const allData = await Inventory.findAll({
+      include: [
+        {
+          model: Material,
+          where: { flag: 1, type: "DIRECT" },
+          include: [
+            { model: Packaging, required: false, where: { flag: 1 } },
+            { model: Category, required: false, where: { flag: 1 } },
+            { model: Supplier, required: false, where: { flag: 1 } },
+          ],
+        },
+        {
+          model: AddressRack,
+          where: { flag: 1 },
+          include: [
+            {
+              model: Storage,
+              where: { flag: 1 },
+              include: [
+                {
+                  model: Plant,
+                  where: { flag: 1 },
+                  include: [
+                    {
+                      model: Warehouse,
+                      where: { flag: 1 },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: LogEntry,
+          attributes: ["id", "userId", "createdAt", "updatedAt"],
+          limit: 1,
+          order: [["createdAt", "DESC"]],
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ["id", "username", "createdAt", "updatedAt"],
+              where: { flag: 1 },
+              required: false,
+            },
+          ],
+        },
+      ],
+      order: orderBy,
+      limit: limit,
+    });
+
+    const criticalMinStock = 1.5;
+    const overStock = 4.5;
+
+    const mappedData = allData.map((item) => {
+      const material = item.Material;
+      const addressRack = item.Address_Rack;
+      const storage = addressRack.Storage;
+      const plant = storage.Plant;
+
+      const leadShift = item.quantityActualCheck
+        ? Number(
+            ((item.quantityActualCheck / material.minStock) * 2.5).toFixed(1)
+          )
+        : 0;
+
+      const leadTime = item.quantityActualCheck
+        ? Number(
+            ((item.quantityActualCheck / material.minStock) * 20).toFixed(1)
+          )
+        : 0;
+
+      let stockStatus = "Unknown";
+      if (leadShift <= criticalMinStock) {
+        stockStatus = "critical";
+      } else if (leadShift < overStock) {
+        stockStatus = "normal";
+      } else if (leadShift >= overStock) {
+        stockStatus = "over";
+      }
+
+      return {
+        id: item.id,
+        materialNo: material.materialNo,
+        description: material.description,
+        addressRackName: addressRack.addressRackName,
+        storageName: `${storage.storageName} - ${storage.storageCode}`,
+        supplier:
+          material.Supplier?.supplierName +
+            " - " +
+            material.Supplier?.supplierCode || "No Supplier",
+        plant: `${plant.plantName} - ${plant.plantCode}`,
+        warehouse: `${plant.Warehouse?.warehouseName} - ${plant.Warehouse?.warehouseCode}`,
+        packaging: material.Packaging?.packagingName || null,
+        packagingUnit: material.Packaging?.unitPackaging || null,
+        uom: material.uom,
+        price: new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(material.price),
+        type: material.type,
+        mrpType: material.mrpType,
+        minStock: material.minStock,
+        maxStock: material.maxStock,
+        minOrder: material.minOrder,
+        category: material.Category?.categoryName,
+        stock: item.quantityActualCheck,
+        leadShift,
+        leadTime,
+        stockStatus,
+        stockUpdatedAt: item.Log_Entries?.[0]?.createdAt
+          ? formatDate(item.Log_Entries[0].createdAt)
+          : null,
+        stockUpdatedBy: item.Log_Entries?.[0]?.User?.username || null,
+      };
+    });
+
+    console.log(`Total data fetched: ${mappedData.length}`);
+
+    res.status(200).json(mappedData);
+  } catch (error) {
+    console.error("Error fetching inventory:", error);
+    res.status(500).json({ message: error.message });
   }
 };

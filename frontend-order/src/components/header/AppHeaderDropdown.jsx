@@ -134,7 +134,7 @@ const AppHeaderDropdown = () => {
         setIsCartOpen(false)
         setIsNotifOpen(false)
       }}
-      onMouseLeave={() => setIsDropdownOpen('outside')} // Tutup saat keluar
+      onMouseLeave={() => setIsDropdownOpen(false)} // Tutup saat keluar
     >
       <CDropdownToggle
         className="py-0 pe-0 d-flex align-items-center"

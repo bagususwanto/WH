@@ -69,7 +69,7 @@ const Login = () => {
     try {
       setLoading(true)
       await login(username, password)
-      navigate('/dashboard')
+      navigate('/home')
     } catch (error) {
       if (error.response) {
         setMsg(error.response.data.msg)
@@ -85,7 +85,7 @@ const Login = () => {
 
   return (
     <div
-      className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center"
+      className="d-flex flex-row align-items-center bg-body-tertiary min-vh-100"
       style={{
         backgroundImage: `url(${colorModeContext === 'light' ? background : backgroundDark})`, // Menggunakan gambar impor
         backgroundSize: 'cover', // Agar gambar menyesuaikan dengan ukuran viewport
