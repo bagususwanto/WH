@@ -5,6 +5,7 @@ import { Button } from 'primereact/button'
 import { IconField } from 'primereact/iconfield'
 import { InputIcon } from 'primereact/inputicon'
 import { InputText } from 'primereact/inputtext'
+import Flatpickr from 'react-flatpickr'
 import { FilterMatchMode } from 'primereact/api'
 import { MultiSelect } from 'primereact/multiselect'
 import 'primereact/resources/themes/nano/theme.css'
@@ -26,6 +27,7 @@ import {
   CForm,
   CSpinner,
   CImage,
+  CFormLabel,
 } from '@coreui/react'
 import { CIcon } from '@coreui/icons-react'
 import { cilImagePlus, cilXCircle } from '@coreui/icons'
@@ -86,7 +88,9 @@ const User = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [roleValid, setRoleValid] = useState([])
   const [orgOptions, setOrgOptions] = useState([])
-
+  const [modalUpload, setModalUpload] = useState(false)
+  const [loadingImport, setLoadingImport] = useState(false)
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const animatedComponents = makeAnimated()
 
   const {
@@ -426,6 +430,51 @@ const User = () => {
       isWarehouse: '',
     })
     setModal(true)
+  }
+
+  const showModalUpload = () => {
+    setModalUpload(true)
+  }
+
+  const handleDateChange = (selectedDate) => {
+    setDate(selectedDate[0])
+    setUploadData((prevData) => ({
+      ...prevData,
+      importDate: selectedDate[0],
+    }))
+  }
+
+  const downloadTemplate = () => {
+    import('xlsx').then((xlsx) => {
+      // Mapping data untuk ekspor
+      const mappedData = [
+        {
+          materialNo: '',
+          description: '',
+          uom: '',
+          price: '',
+          type: '',
+          mrpType: '',
+          minStock: '',
+          maxStock: '',
+          minOrder: '',
+          packaging: '',
+          unitPackaging: '',
+          category: '',
+          supplierCode: '',
+          addressRack: '',
+        },
+      ]
+
+      const worksheet = xlsx.utils.json_to_sheet(mappedData)
+      const workbook = { Sheets: { template: worksheet }, SheetNames: ['template'] }
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array',
+      })
+
+      saveAsExcelFile(excelBuffer, 'template_master_data_material')
+    })
   }
 
   const actionBodyTemplate = (rowData) => (
@@ -911,11 +960,29 @@ const User = () => {
                       />
                       <Button
                         type="button"
+                        label="Upload"
+                        icon="pi pi-file-import"
+                        severity="primary"
+                        className="me-2 mb-2 rounded-5"
+                        onClick={showModalUpload}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
                         label="Excel"
                         icon="pi pi-file-excel"
                         severity="success"
                         className="rounded-5 me-2 mb-2"
                         onClick={exportExcel}
+                        data-pr-tooltip="XLS"
+                      />
+                      <Button
+                        type="button"
+                        label="Template"
+                        icon="pi pi-download"
+                        severity="success"
+                        className="mb-2 rounded-5"
+                        onClick={downloadTemplate}
                         data-pr-tooltip="XLS"
                       />
                     </div>
@@ -1456,7 +1523,11 @@ const User = () => {
                         })
                         return
                       }
-                      setCurrentUser({ ...currentUser, divisionId: e })}}
+                      setCurrentUser({
+                        ...currentUser,
+                        divisionId: e,
+                      })
+                    }}
                     styles={customStyles}
                   />
                 </div>
@@ -1570,6 +1641,57 @@ const User = () => {
                 </>
               ) : (
                 <>{isEdit ? 'Update' : 'Save'}</>
+              )}
+            </CButton>
+          </Suspense>
+        </CModalFooter>
+      </CModal>
+
+      {/* Modal Upload Excel */}
+      <CModal visible={modalUpload} onClose={() => setModalUpload(false)}>
+        <CModalHeader>
+          <CModalTitle id="LiveDemoExampleLabel">Upload Users</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <div className="mb-3">
+            <CFormLabel>Date</CFormLabel>
+            <Flatpickr
+              value={date}
+              options={{
+                dateFormat: 'Y-m-d',
+                maxDate: new Date(),
+                allowInput: true,
+              }}
+              onChange={handleDateChange}
+              className="form-control"
+              placeholder="Select a date"
+            />
+          </div>
+          <div className="mb-3">
+            <CFormInput
+              // onChange={handleFileChange} // Handle perubahan file
+              type="file"
+              label="Excel File"
+              accept=".xlsx" // Hanya menerima file Excel
+            />
+          </div>
+        </CModalBody>
+        <CModalFooter>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+            <CButton color="primary" onClick={() => handleImport()}>
+              {loadingImport ? (
+                <>
+                  <CSpinner component="span" size="sm" variant="grow" className="me-2" />
+                  Importing...
+                </>
+              ) : (
+                'Import'
               )}
             </CButton>
           </Suspense>
