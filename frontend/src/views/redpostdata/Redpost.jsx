@@ -177,7 +177,7 @@ const Redpost = () => {
           orderedBy,
         }
       })
-      console.log('dataWithFormattedFields', dataWithFormattedFields)
+     
 
       setRedpost(dataWithFormattedFields)
     } catch (error) {

@@ -55,3 +55,32 @@
   .p-datatable .p-datatable-thead > tr > th {
     text-align: center !important;
   }
+/////////Login button////////
+/// 
+.login-button {
+   background-color: #1f83e1 !important;
+  border: #d3d3d3;
+  color: rgb(255, 255, 255);
+  font-size: medium;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: rgba(6, 102, 237, 0.66);
+  color: white;
+  font-size: large;
+}
+.login-button.btn-secondary{
+  background-color: rgba(18, 109, 235, 0.66);
+ 
+  color: #fff !important;
+  font-size: medium;
+}
+
+
+/* Hover untuk secondary (btn-secondary) */
+.login-button.btn-secondary:hover {
+  background-color: #6c757d !important;
+  color: #fff !important;
+  font-size: large;
+}

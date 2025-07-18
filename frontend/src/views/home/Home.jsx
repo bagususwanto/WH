@@ -8,6 +8,7 @@ import animationData4 from '../../assets/lottie/Animation - 1729593009638.json'
 import animationData5 from '../../assets/lottie/Animation - Forklift.json'
 import animationData6 from '../../assets/lottie/Animation - 1729819077387.json'
 import useVerify from '../../hooks/UseVerify'
+import {WaveDash} from '../../components/WaveDash'
 import {
   CRow,
   CCol,
@@ -82,21 +83,7 @@ const Home = () => {
   }
 
   return (
-    <div
-      className="bg-body-tertiary d-flex flex-row align-items-start"
-      style={{
-        backgroundImage: `url(${backgroundImage})`, // Using imported image
-        backgroundSize: 'cover', // Ensure the image covers the entire viewport
-        backgroundPosition: 'center', // Center the background image
-        backgroundRepeat: 'no-repeat', // Prevent the image from repeating
-        height: '88vh', // Full viewport height
-        width: '100vw', // Full viewport width
-        margin: '0', // Ensure no margin around the container
-        padding: '0', // Ensure no padding inside the container
-        overflow: 'hidden', // Prevent overflow issues
-        maxWidth: '100%',
-      }}
-    >
+<WaveDash>
       <CRow className="align-items-center mt-5  ">
         <CCol xs={6} md={6} lg={5}>
           <div style={containerStyle}>
@@ -176,7 +163,7 @@ const Home = () => {
           </div>
         </CCol>
       </CRow>
-    </div>
+    </WaveDash>
   )
 }
 
