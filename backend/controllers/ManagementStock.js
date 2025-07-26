@@ -365,10 +365,10 @@ export const handleUpdateIncoming = async (
         });
 
         // Tambahkan ID inventory ke Set
-        inventoryUpdates.push({
-          inventoryId: incoming.inventoryId,
-          quantity: quantity,
-        });
+        // inventoryUpdates.push({
+        //   inventoryId: incoming.inventoryId,
+        //   quantity: quantity,
+        // });
       }
 
       console.log("dnCompletedCountMap", dnCompletedCountMap);
@@ -415,19 +415,19 @@ export const handleUpdateIncoming = async (
         });
       }
 
-      try {
-        // Update sistem dan actual check untuk setiap inventory yang terpengaruh
-        for (const inventory of inventoryUpdates) {
-          await updateQuantitySistem(
-            inventory.inventoryId,
-            null,
-            inventory.quantity,
-            transaction
-          );
-        }
-      } catch (error) {
-        throw error;
-      }
+      // try {
+      //   // Update sistem dan actual check untuk setiap inventory yang terpengaruh
+      //   for (const inventory of inventoryUpdates) {
+      //     await updateQuantitySistem(
+      //       inventory.inventoryId,
+      //       null,
+      //       inventory.quantity,
+      //       transaction
+      //     );
+      //   }
+      // } catch (error) {
+      //   throw error;
+      // }
 
       const materialAddressPairs = [...inventoryUpdates].map((inv) => {
         const inventory = incomingData.find(
@@ -439,13 +439,13 @@ export const handleUpdateIncoming = async (
         };
       });
 
-      try {
-        for (const { materialId, addressId } of materialAddressPairs) {
-          await setQuantityActualCheck(materialId, addressId, transaction);
-        }
-      } catch (error) {
-        throw error;
-      }
+      // try {
+      //   for (const { materialId, addressId } of materialAddressPairs) {
+      //     await setQuantityActualCheck(materialId, addressId, transaction);
+      //   }
+      // } catch (error) {
+      //   throw error;
+      // }
     } else {
       // Jika bukan array, proses sebagai data tunggal
       await processIncomingUpdate(incomingIds, quantities, userId, transaction);
@@ -498,17 +498,17 @@ export const processIncomingUpdate = async (
     );
   }
 
-  await updateQuantitySistem(
-    incoming.Inventory.id,
-    incoming.id,
-    quantity,
-    transaction
-  );
-  await setQuantityActualCheck(
-    incoming.Inventory.materialId,
-    incoming.Inventory.addressId,
-    transaction
-  );
+  // await updateQuantitySistem(
+  //   incoming.Inventory.id,
+  //   incoming.id,
+  //   quantity,
+  //   transaction
+  // );
+  // await setQuantityActualCheck(
+  //   incoming.Inventory.materialId,
+  //   incoming.Inventory.addressId,
+  //   transaction
+  // );
 
   const status = quantity < incoming.planning ? "partial" : "completed";
 
@@ -591,14 +591,14 @@ export const updateIncoming = async (req, res) => {
       ],
     });
 
-    try {
-      if (incoming.Inventory.quantityActual !== null) {
-        throw new Error("Cannot be updated, material is already in inventory");
-      }
-    } catch (error) {
-      await transaction.rollback();
-      return res.status(400).json({ message: error.message });
-    }
+    // try {
+    //   if (incoming.Inventory.quantityActual !== null) {
+    //     throw new Error("Cannot be updated, material is already in inventory");
+    //   }
+    // } catch (error) {
+    //   await transaction.rollback();
+    //   return res.status(400).json({ message: error.message });
+    // }
 
     try {
       await handleUpdateIncoming(incomingId, quantity, userId, transaction);
