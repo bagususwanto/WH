@@ -22,12 +22,12 @@
 .home-container {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: 90dvh; /* Tinggi layar yang dinamis untuk mobile modern */
+    height: fit-content; /* Tinggi mengikuti konten jika lebih tinggi dari layar */
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-
     background: linear-gradient(
         47deg,
         var(--gradient-color-1),
@@ -38,7 +38,10 @@
     background-size: 400% 400%;
     animation: gradientShift 20s ease infinite;
     overflow-x: hidden;
+    overflow-y: auto;
+    flex-direction: column; /* ⬅️ Penting untuk layout mobile */
 }
+
 
 @keyframes gradientShift {
     0% { background-position: 0% 50%; }
@@ -289,20 +292,18 @@
 
 /* --- Responsivitas --- */
 @media (max-width: 1024px) {
-    .home-container {
-        min-height: 80vh;
-    }
+
     .home-container::after {
         height: 150px;
         transform: skewY(-7deg);
     }
     .text-content {
         margin-left: 50px;
-        margin-top: 120px;
+        margin-top: 90px;
         max-width: 90%;
     }
     .home-title {
-        font-size: 2.5rem;
+        font-size: 3.5rem;
     }
     @keyframes colorfulWave { /* Redefinisi untuk media query ini */
         0% { background-position: 0% 50%; transform: skewY(-7deg) scale(1); opacity: 0.9; }
@@ -316,20 +317,17 @@
 }
 
 @media (max-width: 768px) {
-    .home-container {
-        min-height: 70vh;
-    }
-    .home-container::after {
-        height: 120px;
-        transform: skewY(-5deg);
-    }
     .text-content {
         margin-left: 25px;
-        margin-top: 90px;
+        margin-top: 80px;
         max-width: 90%;
     }
+    .button-icon {
+        width: 20px; /* Ukuran ikon lebih besar di tablet */
+        height: 20px;
+    }
     .home-title {
-        font-size: 2rem;
+        font-size: 3.8rem;
         white-space: normal; /* Biarkan pecah baris di mobile */
     }
     @keyframes colorfulWave { /* Redefinisi untuk media query ini */
@@ -344,19 +342,24 @@
 }
 
 @media (max-width: 480px) {
-    .home-container {
-        min-height: 60vh;
-    }
-    .home-container::after {
-        height: 80px;
-        transform: skewY(-3deg);
-    }
+
     .text-content {
         margin-left: 15px;
         margin-top: 60px;
     }
+    .rounded-button{
+        padding: 5px 10px; /* Ukuran tombol lebih kecil di mobile */
+        font-size: 0.9rem; /* Ukuran font lebih kecil */
+    }
+    .home-Subtitle{
+        font-size: 0.8rem; /* Ukuran subtitle lebih kecil di mobile */
+    }
+     .button-icon {
+        width: 10px; /* Ukuran ikon lebih besar di tablet */
+        height: 10px;
+    }
     .home-title {
-        font-size: 1.6rem;
+        font-size: 2.6rem;
     }
     @keyframes colorfulWave { /* Redefinisi untuk media query ini */
         0% { background-position: 0% 50%; transform: skewY(-3deg) scale(1); opacity: 0.9; }
