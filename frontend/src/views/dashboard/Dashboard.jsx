@@ -381,34 +381,18 @@ const Dashboard = () => {
           }),
           borderColor: data.map((item) => {
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
-              return '#7E99A3' // Green border for incoming >= 1
+              return '#bf67A3' // Green border for incoming >= 1
             }
 
             return 'transparent' // No border by default
           }),
           borderWidth: data.map((item) => {
             if (item.Incomings && item.Incomings.length > 0 && item.Incomings[0].actual > 0) {
-              return 5 // Border width for incoming >= 1
+              return 8 // Border width for incoming >= 1
             }
 
             return 0 // No border width by default
-          }),
-          animation: data.map((item) => {
-            if (chartTitle === 'Critical Stock' && item.stock < 1.5) {
-              return {
-                backgroundColor: {
-                  easing: 'easeInOutQuart',
-                  from: 'red', // Start color when stock is low
-                  to: 'transparent', // End color
-                  duration: 1000, // Animation duration
-                  loop: true, // Loop the animation
-                },
-              }
-            }
-
-            // No animation for other stocks
-            return null
-          }),
+          })
         },
       ],
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
@@ -514,7 +498,7 @@ const Dashboard = () => {
           return context.dataset.label === 'Remain Stock' ? value.toLocaleString() : ''
         },
         // Second label configuration
-        backgroundColor: colorModeContext === 'light' ? 'white' : '#212631', // Background color for better visibility
+        backgroundColor: colorModeContext === 'light' ? 'white' : '#212633', // Background color for better visibility
         borderRadius: 4, // Optional: rounded corners
         padding: 4, // Optional: padding around the label
         // Using this configuration to create another label for "Actual Stock"
