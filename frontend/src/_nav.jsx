@@ -290,20 +290,20 @@ const useNavigation = () => {
             },
           ],
         },
-         {
-          component: CNavGroup,
-          name: 'TWIIS-Tools-GI',
-          to: '/order',
-          icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
-          items: [
-            {
-              component: CNavItem,
-              name: 'Double Input',
-              to: '/tools-gi/double-input',
-              icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
-            },
-          ],
-        },
+        //  {
+        //   component: CNavGroup,
+        //   name: 'TWIIS-Tools-GI',
+        //   to: '/order',
+        //   icon: <CIcon icon={cilNoteAdd} customClassName="nav-icon" />,
+        //   items: [
+        //     {
+        //       component: CNavItem,
+        //       name: 'Double Input',
+        //       to: '/tools-gi/double-input',
+        //       icon: <CIcon icon={cilMinus} customClassName="nav-icon" />,
+        //     },
+        //   ],
+        // },
       )
     }
     if (roleName === 'group head' || roleName === 'line head' || roleName === 'section head') {

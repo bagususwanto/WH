@@ -1,11 +1,11 @@
 // Here you can add other styles
-$sidebar-bg: #232946;
-$sidebar-nav-link-active-color: #121629;
-$sidebar-nav-link-active-bg: #b8c1ec;
-$sidebar-nav-link-hover-color: #121629;
-$sidebar-nav-link-hover-bg: #b8c1ec;
-$sidebar-nav-link-hover-icon-color: #121629;
-$sidebar-nav-link-active-icon-color: #121629;
+$sidebar-bg: #17436a;
+$sidebar-nav-link-active-color: #ffffff;
+$sidebar-nav-link-active-bg: #1962aa;
+$sidebar-nav-link-hover-color: #ffffff;
+$sidebar-nav-link-hover-bg: #124c85;
+$sidebar-nav-link-hover-icon-color: #ffffff;
+$sidebar-nav-link-active-icon-color: #ffffff;
 
 // Impor kembali variabel CoreUI setelah melakukan override
 @import '@coreui/coreui/scss/coreui';

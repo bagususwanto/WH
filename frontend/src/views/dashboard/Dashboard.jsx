@@ -339,6 +339,45 @@ const Dashboard = () => {
   const handleChartChange = (selectedOption) => {
     setSelectedChart(selectedOption.value) // Update selected chart based on user's choice
   }
+  const barDashedBorderPlugin = {
+  id: 'barDashedBorderPlugin',
+  afterDatasetsDraw(chart) {
+    const {
+      ctx,
+      scales: { x, y },
+    } = chart;
+
+    const dataset = chart.data.datasets[0];
+    const originalData = dataset.originalData || [];
+
+    dataset.data.forEach((value, index) => {
+      const item = originalData[index];
+      if (!item) return;
+
+      if (item.Incomings && item.Incomings[0]?.actual > 0) {
+        const barX = x.getPixelForValue(index);
+        const barY = y.getPixelForValue(value); // stock
+        const baseY = y.getPixelForValue(0);    // bottom
+        const barWidth = x.getPixelForValue(index + 0.5) - x.getPixelForValue(index - 0.5);
+        const barHeight = baseY - barY;
+
+        ctx.save();
+        ctx.strokeStyle = '#BF67A3';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          barX - barWidth / 2,
+          barY - 4, // sedikit naik biar efek penuh
+          barWidth,
+          barHeight + 8 // tinggi fleksibel
+        );
+        ctx.restore();
+      }
+    });
+  },
+};
+
+
   const prepareChartData = (data, chartTitle, shiftLevel) => {
     return {
       labels: data.map(
@@ -392,8 +431,10 @@ const Dashboard = () => {
             }
 
             return 0 // No border width by default
-          })
+          }),
+           originalData: data,
         },
+        
       ],
       shiftLevel, // Used to draw red line (shiftLevel digunakan untuk menggambar garis merah)
     }
@@ -1168,7 +1209,8 @@ onClick: (event, elements, chart) => {
               {selectedChart === 'critical' && inventoriescritical.length > 0 && (
                 <Bar
                   data={prepareChartData(inventoriescritical, 'Critical Stock', 2)}
-                  options={chartOptions(inventoriescritical, 0, 4.9, 4.5, 2.5, 1.5)} // Pastikan options mengandung annotation yang sudah diperbarui
+                  options={chartOptions(inventoriescritical, 0, 4.9, 4.5, 2.5, 1.5)}
+                  plugins={[barDashedBorderPlugin]} // Pastikan options mengandung annotation yang sudah diperbarui
                   height={410}
                 />
               )}
@@ -1491,12 +1533,20 @@ onClick: (event, elements, chart) => {
             <CCol md={4}>
               <CFormInput
                 type="number"
-                selected={editData.actual}
-                onChange={(e) => setEditData({ ...editData, actual: e.target.value })}
+                value={editData.actual}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Cek jika kosong atau >= 0 (mencegah input minus)
+                  if (value === '' || Number(value) >= 0) {
+                    setEditData({ ...editData, actual: value });
+                  }
+                }}
+                min={0} // Untuk mencegah input negatif lewat panah spinner
                 label="Qty Receiv"
                 className="mb-3"
               />
             </CCol>
+
             <CCol md={4}>
               <CFormInput
                 type="text"
