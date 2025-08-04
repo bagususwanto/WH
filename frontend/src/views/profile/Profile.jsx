@@ -39,6 +39,7 @@ import useMasterDataService from '../../services/MasterDataService'
 
 import useNotificationService from '../../services/NotificationService'
 import { GlobalContext } from '../../context/GlobalProvider'
+import config from '../../utils/Config'
 
 const Profile = () => {
   const { getMasterData, postMasterData } = useMasterDataService()
@@ -173,7 +174,13 @@ const Profile = () => {
                   <CCardBody>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                       <img
-                        src={selectedImage} // Show the selected or API image
+                         src={
+    userData.img
+      ? userData.img.startsWith('http') || userData.img.startsWith('//')
+        ? userData.img
+        : `${config.BACKEND_URL}${userData.img}`
+      : ''
+  } 
                         alt="User Profile"
                         style={{
                           width: '200px',
@@ -184,11 +191,11 @@ const Profile = () => {
                       />
                     </div>
 
-                    <hr />
+                    {/* <hr /> */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <CButton color="light" onClick={toggleModal}>
+                      {/* <CButton color="light" onClick={toggleModal}>
                         Choose Your Photo
-                      </CButton>
+                      </CButton> */}
 
                       <hr style={{ width: '100%' }} />
 
@@ -205,7 +212,7 @@ const Profile = () => {
                   <CModalBody>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <div>
-                        <CButton className=" px-5 py-3" color="primary" onClick={openFileExplorer}>
+                        <CButton className="px-5 py-3" color="primary" onClick={openFileExplorer}>
                           From Gallery
                         </CButton>
                         {/* Hidden input for file selection */}
@@ -233,7 +240,7 @@ const Profile = () => {
                       {/* Added margin bottom for spacing */}
                       <CRow>
                         {/* Old Password */}
-                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mb-1 mt-1">
+                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mt-1 mb-1">
                             Old Password
                         </CFormLabel>
                         <div className="d-flex justify-content-center">
@@ -248,7 +255,7 @@ const Profile = () => {
                         </div>
 
                         {/* New Password */}
-                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mb-1 mt-2">
+                        <CFormLabel style={{ fontSize: '0.8rem' }} className="mt-2 mb-1">
                             New Password
                         </CFormLabel>
                         <div className="d-flex justify-content-center">
@@ -313,7 +320,7 @@ const Profile = () => {
                         <div>
                           <CRow className="text-start">
                             <CCol xs="3">
-                              <label className="fw-bold py-2 text-muted">Change Biodata Diri</label>
+                              <label className="py-2 text-muted fw-bold">Change Biodata Diri</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -329,7 +336,7 @@ const Profile = () => {
                               <label className="py-2">Position</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 "> {userData.position}</label>
+                              <label className="py-2"> {userData.position}</label>
                             </CCol>
                           </CRow>
                           <CRow className="text-start">
@@ -337,7 +344,7 @@ const Profile = () => {
                               <label className="py-2">Line</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 ">
+                              <label className="py-2">
                                 {userData.Organization?.Line?.lineName}
                               </label>
                             </CCol>
@@ -347,7 +354,7 @@ const Profile = () => {
                               <label className="py-2">Section</label>
                             </CCol>
                             <CCol xs="7">
-                              <label className="py-2 ">
+                              <label className="py-2">
                                 {userData.Organization?.Section?.sectionName}
                               </label>
                             </CCol>
@@ -357,14 +364,14 @@ const Profile = () => {
                               <label className="py-2">Departement</label>
                             </CCol>
                             <CCol xs="6">
-                              <label className="py-2 ">
+                              <label className="py-2">
                                 {userData.Organization?.Department?.departmentName}
                               </label>
                             </CCol>
                           </CRow>
                           <CRow>
                             <CCol xs="3">
-                              <label className="fw-bold py-2 text-muted">Change Contact</label>
+                              <label className="py-2 text-muted fw-bold">Change Contact</label>
                             </CCol>
                           </CRow>
                           <CRow>
@@ -401,7 +408,7 @@ const Profile = () => {
                     <CCardBody className="d-flex flex-column justify-content-between">
                       {userData.map((user) => (
                         <CRow className="align-items-center">
-                          <label className="fw-bold fs-5 mb-2"> Your Structure Approval</label>
+                          <label className="mb-2 fw-bold fs-5"> Your Structure Approval</label>
                           <CAccordion activeItemKey={1}>
                             <CAccordionItem itemKey={1}>
                               <CAccordionHeader className="text-muted">
@@ -413,7 +420,7 @@ const Profile = () => {
                                     <label className="py-2">Name </label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">Bagus</label>
+                                    <label className="py-2">Bagus</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -421,7 +428,7 @@ const Profile = () => {
                                     <label className="py-2">Position</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">Line Head</label>
+                                    <label className="py-2">Line Head</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -429,7 +436,7 @@ const Profile = () => {
                                     <label className="py-2">Line</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">
+                                    <label className="py-2">
                                       {' '}
                                       {user.Organization.Line.lineName},{' '}
                                     </label>
@@ -447,7 +454,7 @@ const Profile = () => {
                                     <label className="py-2">Name</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">Prihandono</label>
+                                    <label className="py-2">Prihandono</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -455,7 +462,7 @@ const Profile = () => {
                                     <label className="py-2">Position</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">SectionHead</label>
+                                    <label className="py-2">SectionHead</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -463,7 +470,7 @@ const Profile = () => {
                                     <label className="py-2">Line</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">
+                                    <label className="py-2">
                                       {' '}
                                       {user.Organization.Section.sectionName},{' '}
                                     </label>
@@ -481,7 +488,7 @@ const Profile = () => {
                                     <label className="py-2">Name</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">Andjar Januar</label>
+                                    <label className="py-2">Andjar Januar</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -489,7 +496,7 @@ const Profile = () => {
                                     <label className="py-2">Position</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 "> Department Head</label>
+                                    <label className="py-2"> Department Head</label>
                                   </CCol>
                                 </CRow>
                                 <CRow className="">
@@ -497,7 +504,7 @@ const Profile = () => {
                                     <label className="py-2">Line</label>
                                   </CCol>
                                   <CCol xs="9 ">
-                                    <label className="py-2 ">
+                                    <label className="py-2">
                                       {user.Organization.Department.departmentName},{' '}
                                     </label>
                                   </CCol>

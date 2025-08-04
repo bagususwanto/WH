@@ -855,7 +855,14 @@ const User = () => {
 
   const imageBodyTemplate = (rowData) => {
     return (
-      <img src={`${config.BACKEND_URL}${rowData.img}`} style={{ width: '50px', height: '50px' }} />
+    <img
+  src={
+    rowData.img
+      ? rowData.img.startsWith('http') || rowData.img.startsWith('//')
+        ? rowData.img
+        : `${config.BACKEND_URL}${rowData.img}`
+      : ''
+  } />
     )
   }
 

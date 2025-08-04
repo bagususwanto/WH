@@ -65,20 +65,20 @@ const AppHeaderDropdown = ({ colorMode }) => {
 
   return (
     <CDropdown variant="nav-item" onClick={handleDropdownToggle}>
-      <CDropdownToggle className="py-0 pe-0 d-flex align-items-center" caret={false}>
+      <CDropdownToggle className="d-flex align-items-center py-0 pe-0" caret={false}>
         <CAvatar
           src={
-            imgProfile
-              ? `${config.BACKEND_URL}${imgProfile}`
-              : colorMode === 'light'
-                ? profile
-                : colorMode === 'dark'
-                  ? profileDark
-                  : ''
-          }
+  imgProfile
+    ? imgProfile.startsWith('http') || imgProfile.startsWith('//')
+      ? imgProfile
+      : `${config.BACKEND_URL}${imgProfile}`
+    : colorMode === 'light'
+      ? profile
+      : profileDark
+}
           size="md"
         />
-        <div className="ms-2 d-flex flex-column">
+        <div className="d-flex flex-column ms-2">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
           <span style={{ fontSize: '1em' }}>
             {firstName}
@@ -87,7 +87,7 @@ const AppHeaderDropdown = ({ colorMode }) => {
         </div>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
-        <CDropdownHeader className="bg-body-secondary fw-semibold my-2">Account</CDropdownHeader>
+        <CDropdownHeader className="bg-body-secondary my-2 fw-semibold">Account</CDropdownHeader>
         <CDropdownItem onClick={handleProfile} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilUser} className="me-2" />
           Profile
