@@ -1232,7 +1232,7 @@ const User = () => {
                       <CImage
                         align="start"
                         rounded
-                        src={`${config.BACKEND_URL}${currentUser.img}`}
+                        src={currentUser.img.startsWith('http') || currentUser.img.startsWith('//') ? currentUser.img : `${config.BACKEND_URL}${currentUser.img}`}
                         className="shadow-sm w-100 h-100"
                         style={{
                           objectFit: 'cover',
