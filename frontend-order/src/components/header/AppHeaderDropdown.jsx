@@ -137,12 +137,21 @@ const AppHeaderDropdown = () => {
       onMouseLeave={() => setIsDropdownOpen(false)} // Tutup saat keluar
     >
       <CDropdownToggle
-        className="py-0 pe-0 d-flex align-items-center"
+        className="d-flex align-items-center py-0 pe-0"
         caret={false}
         onClick={() => setIsDropdownOpen((prev) => !prev)} // Tampilkan/hidden dropdown saat diklik
       >
-        <CAvatar src={imgProfile ? `${config.BACKEND_URL}${imgProfile}` : profile} size="md" />
-        <div className="ms-2 d-flex flex-column">
+        <CAvatar           
+        src={
+  imgProfile
+    ? imgProfile.startsWith('http') || imgProfile.startsWith('//')
+      ? imgProfile
+      : `${config.BACKEND_URL}${imgProfile}`
+    : colorMode === 'light'
+      ? profile
+      : profileDark
+} size="md" />
+        <div className="d-flex flex-column ms-2">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
           <span style={{ fontSize: '1em' }}>
             {firstName}
@@ -151,7 +160,7 @@ const AppHeaderDropdown = () => {
         </div>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
-        <CDropdownHeader className="bg-body-secondary fw-semibold my-2">My Account</CDropdownHeader>
+        <CDropdownHeader className="bg-body-secondary my-2 fw-semibold">My Account</CDropdownHeader>
         <CDropdownItem onClick={handleProfile} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilUser} className="me-2" />
           Profile
