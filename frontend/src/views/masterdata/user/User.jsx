@@ -862,7 +862,9 @@ const User = () => {
         ? rowData.img
         : `${config.BACKEND_URL}${rowData.img}`
       : ''
-  } />
+  }
+    style={{ width: '50px', height: '50px' }} 
+  />
     )
   }
 
