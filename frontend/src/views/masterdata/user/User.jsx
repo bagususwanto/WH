@@ -62,6 +62,7 @@ const User = () => {
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentUser, setCurrentUser] = useState({
     id: '',
+    noreg: '',
     username: '',
     password: '',
     confirmPassword: '',
@@ -71,6 +72,7 @@ const User = () => {
     noHandphone: '',
     email: '',
     img: '',
+    unitCode: '',
     groupId: '',
     lineId: '',
     sectionId: '',
@@ -92,6 +94,8 @@ const User = () => {
   const [loadingImport, setLoadingImport] = useState(false)
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
   const animatedComponents = makeAnimated()
+  const [isDisabled, setIsDisabled] = useState(false)
+  const [isUpdate, setIsUpdate] = useState(false)
 
   const {
     getMasterData,
@@ -135,6 +139,7 @@ const User = () => {
   const apiPlant = 'plant-public'
   const apiWarehouse = 'warehouse-public'
   const apiOrg = 'organization-public'
+  const apiNoreg = 'user-noreg'
 
   useEffect(() => {
     setLoading(false)
@@ -278,7 +283,7 @@ const User = () => {
     try {
       const response = await getMasterData(apiSection)
       const sectionOptions = response.data.map((section) => ({
-        label: `${section.sectionName} - ${section.sectionCode}`,
+        label: section.sectionName,
         value: section.sectionName,
         id: section.id,
       }))
@@ -339,6 +344,8 @@ const User = () => {
         sectionId: org.sectionId,
         departmentId: org.departmentId,
         divisionId: org.divisionId,
+        plantId: org.plantId,
+        unitCode: org.unitCode,
       }))
       setOrgOptions(orgOptions)
     } catch (error) {
@@ -410,6 +417,7 @@ const User = () => {
     setIsEdit(false)
     setCurrentUser({
       id: '',
+       noreg: '',
       username: '',
       password: '',
       confirmPassword: '',
@@ -419,6 +427,7 @@ const User = () => {
       noHandphone: '',
       email: '',
       img: '',
+       unitCode: '',
       groupId: '',
       lineId: '',
       sectionId: '',
@@ -495,6 +504,9 @@ const User = () => {
   )
 
   const handleEditUser = (user) => {
+    if (user.noreg) {
+      setIsDisabled(true)
+    }
     const selectedRole = roleOptions.find((option) => option.value === user.Role.roleName)
     setRoleValid(selectedRole.value)
     const selectedPosition = positionOptions.find((option) => option.value === user.position)
@@ -529,6 +541,7 @@ const User = () => {
     setIsEdit(true)
     setCurrentUser({
       id: user.id,
+      noreg: user.noreg || '',
       username: user.username,
       password: user.password,
       confirmPassword: user.confirmPassword,
@@ -538,6 +551,7 @@ const User = () => {
       noHandphone: user.noHandphone,
       email: user.email,
       img: user.img,
+       unitCode: user.Organization?.unitCode || '',
       groupId: selectedGroup || null,
       lineId: selectedLine || null,
       sectionId: selectedSection || null,
@@ -601,6 +615,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
+        { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'groupId', message: 'Group is required' },
         { field: 'lineId', message: 'Line is required' },
         { field: 'sectionId', message: 'Section is required' },
@@ -617,6 +632,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
+          { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'lineId', message: 'Line is required' },
         { field: 'sectionId', message: 'Section is required' },
         { field: 'departmentId', message: 'Department is required' },
@@ -632,6 +648,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
+          { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'sectionId', message: 'Section is required' },
         { field: 'departmentId', message: 'Department is required' },
         { field: 'divisionId', message: 'Division is required' },
@@ -646,6 +663,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
+          { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'departmentId', message: 'Department is required' },
         { field: 'divisionId', message: 'Division is required' },
         { field: 'warehouseIds', message: 'Warehouse Access are required' },
@@ -659,6 +677,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
+          { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'warehouseIds', message: 'Warehouse Access are required' },
         { field: 'isProduction', message: 'Production is required' },
         { field: 'isWarehouse', message: 'Warehouse is required' },
@@ -693,9 +712,13 @@ const User = () => {
     try {
       const userToSave = { ...currentUser }
 
-      if (isEdit) {
+      if (isEdit || isUpdate) {
         await updateMasterDataById(apiMasterUserOrg, currentUser.id, userToSave)
-        MySwal.fire('Updated!', 'User has been updated.', 'success')
+        if(isEdit) {
+          MySwal.fire('Updated!', 'User has been updated.', 'success')
+        } else {
+        MySwal.fire('Added!', 'User has been added.', 'success')
+        }
       } else {
         delete userToSave.id
         await postMasterData(apiMasterUserOrg, userToSave)
@@ -750,7 +773,7 @@ const User = () => {
       options={columns}
       optionLabel="header"
       onChange={onColumnToggle}
-      className="w-full sm:w-20rem mb-2 mt-2"
+      className="mt-2 mb-2 w-full sm:w-20rem"
       display="chip"
       placeholder="Show Hiden Columns"
       style={{ borderRadius: '5px' }}
@@ -935,6 +958,122 @@ const User = () => {
   const togglePasswordVisibilityConfirm = () => {
     setShowConfirmPassword(!showConfirmPassword)
   }
+  const handleNoregChange = async (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Hanya angka
+
+     // jika noreg digit sudah 8 digit akses API untuk mendapatkan data user
+    if (value.length === 8) {
+     await getMasterData(`${apiNoreg}?no=${value}&flag=0`)
+      .then((response) => {
+        if (response.data) {
+
+          const selectedPosition = positionOptions.find(
+            (option) => option.value === response.data.position,
+          )
+           const selectedGroup = groupOptions.find(
+      (option) => option.value === response.data.Organization?.Group?.groupName,
+    )
+    const selectedLine = lineOptions.find(
+      (option) => option.value === response.data.Organization?.Line?.lineName,
+    )
+    const selectedSection = sectionOptions.find(
+      (option) => option.value === response.data.Organization?.Section?.sectionName,
+    )
+    const selectedDepartment = departmentOptions.find(
+      (option) => option.value === response.data.Organization?.Department?.departmentName,
+    )
+    const selectedDivision = divisionOptions.find(
+      (option) => option.value === response.data.Organization?.Division?.divisionName,
+    )
+    const selectedPlant = plantOptions.find(
+      (option) => option.value === response.data.Organization?.Plant?.plantName,
+    )
+
+          setCurrentUser((prevState) => ({
+            ...prevState,
+            id: response.data.id || '',
+            noreg: value,
+            username: response.data.username || '',
+            name: response.data.name || '',
+            roleId:  '',
+            position: selectedPosition || '',
+            noHandphone:  '',
+            email: '',
+            img:  '',
+             unitCode: response.data.Organization?.unitCode || '',
+            groupId: selectedGroup || '',
+            lineId: selectedLine || '',
+            sectionId: selectedSection || '',
+            departmentId: selectedDepartment || '',
+            divisionId: selectedDivision || '',
+            warehouseIds: [],
+            plantId: selectedPlant || '',
+            isProduction:  '',
+            isWarehouse:  '',
+          }))
+        }
+        setIsDisabled(true) 
+        setIsUpdate(true) // Set isUpdate to true when noreg is found
+      })
+      .catch((error) => {
+        setCurrentUser((prevState) => ({
+          ...prevState,
+          noreg: value,
+          username: '',
+          password: '',
+          confirmPassword: '',
+          name: '',
+          roleId: '',
+          position: '',
+          noHandphone: '',
+          email: '',
+          img: '',
+           unitCode: '',
+          groupId: '',
+          lineId: '',
+          sectionId: '',
+          departmentId: '',
+          divisionId: '',
+          warehouseIds: [],
+          plantId: '',
+          isProduction: '',
+          isWarehouse: '',
+        }))
+        setIsDisabled(false) // Reset isDisabled if noreg not found
+        setIsUpdate(false) // Reset isUpdate if noreg not found
+        console.error('Error fetching user data:', error)
+      })
+    } else {
+
+    // Perbarui state noreg
+        setCurrentUser((prevState) => ({
+          ...prevState,
+          noreg: value,
+          username: '',
+          password: '',
+          confirmPassword: '',
+          name: '',
+          roleId: '',
+          position: '',
+          noHandphone: '',
+          email: '',
+          img: '',
+           unitCode: '',
+          groupId: '',
+          lineId: '',
+          sectionId: '',
+          departmentId: '',
+          divisionId: '',
+          warehouseIds: [],
+          plantId: '',
+          isProduction: '',
+          isWarehouse: '',
+        }))
+
+         setIsDisabled(false) // Reset isDisabled if noreg not found
+        setIsUpdate(false) // Reset isUpdate if noreg not found
+      }
+  }
 
   return (
     <CRow>
@@ -954,7 +1093,7 @@ const User = () => {
                         label="Add"
                         icon="pi pi-plus"
                         severity="primary"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={handleAddUser}
                         data-pr-tooltip="XLS"
                       />
@@ -972,7 +1111,7 @@ const User = () => {
                         label="Excel"
                         icon="pi pi-file-excel"
                         severity="success"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
@@ -997,7 +1136,7 @@ const User = () => {
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
                   tableStyle={{ minWidth: '30rem' }}
-                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  className="p-datatable-gridlines p-datatable-sm text-nowrap custom-datatable"
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
@@ -1022,6 +1161,7 @@ const User = () => {
                     sortable
                   />
                   <Column field="name" header="Name" style={{ width: '25%' }} sortable />
+                  <Column field="noreg" header="Noreg" style={{ width: '25%' }} sortable />
                   <Column header="Position" field="position" style={{ width: '25%' }} sortable />
                   <Column header="Role" field="Role.roleName" style={{ width: '25%' }} sortable />
                   {visibleColumns.map((col, index) => (
@@ -1043,7 +1183,12 @@ const User = () => {
         </CCard>
       </CCol>
 
-      <CModal backdrop="static" size="xl" visible={modal} onClose={() => setModal(false)}>
+      <CModal backdrop="static" size="xl" visible={modal} onClose={() => {
+        setModal(false)
+        setIsDisabled(false) // Reset isDisabled saat modal ditutup
+        setIsUpdate(false) // Reset isUpdate saat modal ditutup
+      }
+        }>
         <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit User' : 'Add User'}</CModalTitle>
         </CModalHeader>
@@ -1059,7 +1204,7 @@ const User = () => {
                 <CCol
                   xs={12}
                   lg={3}
-                  className="d-flex justify-content-center align-items-center mb-3"
+                  className="d-flex align-items-center justify-content-center mb-3"
                   style={{
                     marginLeft: 'auto',
                     marginRight: 'auto',
@@ -1101,7 +1246,7 @@ const User = () => {
                     </div>
                   ) : (
                     <div
-                      className="d-flex justify-content-center align-items-center border border-secondary"
+                      className="d-flex align-items-center justify-content-center border border-secondary"
                       style={{
                         width: '160px',
                         height: '160px',
@@ -1127,6 +1272,18 @@ const User = () => {
                 <CCol xs={12} lg={9}>
                   <CRow className="gy-3">
                     <CCol xs={12} md={12} lg={6}>
+                      <label className="mb-2" htmlFor="noreg">
+                        Noreg
+                      </label>
+                      <CFormInput
+                        id="noreg"
+                        value={currentUser.noreg}
+                        onChange={handleNoregChange}
+                        disabled={isEdit}
+                        readOnly={isEdit}
+                      />
+                    </CCol>
+                    <CCol xs={12} md={12} lg={6}>
                       <label className="mb-2 required-label" htmlFor="username">
                         Username <span>*</span>
                       </label>
@@ -1136,11 +1293,11 @@ const User = () => {
                         onChange={(e) =>
                           setCurrentUser({ ...currentUser, username: e.target.value })
                         }
-                        disabled={isEdit}
+                        disabled={isEdit || isDisabled}
                         readOnly={isEdit}
                       />
                     </CCol>
-                    <CCol xs={12} md={12} lg={6}>
+                    <CCol xs={12} md={12} lg={12}>
                       <label className="mb-2 required-label" htmlFor="fullname">
                         Fullname <span>*</span>
                       </label>
@@ -1153,9 +1310,13 @@ const User = () => {
                             name: e.target.value,
                           })
                         }
+                        disabled={isDisabled}
                       />
                     </CCol>
-                    <CCol className="mb-3" xs={12} md={12} lg={6}>
+                  </CRow>
+                </CCol>
+              </div>
+                <CCol className="mb-3" xs={12} md={12} lg={6}>
                       <label className="mb-2" htmlFor="email">
                         Email
                       </label>
@@ -1178,9 +1339,6 @@ const User = () => {
                         onAccept={(value) => handleOnAcceptNoHandphone(value)}
                       />
                     </CCol>
-                  </CRow>
-                </CCol>
-              </div>
 
               {/* Password & Confirmation Password */}
               {!isEdit && (
@@ -1253,6 +1411,7 @@ const User = () => {
                     id="position"
                     onChange={(e) => setCurrentUser({ ...currentUser, position: e })}
                     styles={customStyles}
+                    isDisabled={isDisabled}
                   />
                 </div>
               </CCol>
@@ -1281,6 +1440,18 @@ const User = () => {
               <CCol xs={12}>
                 <h5>Organization</h5>
               </CCol>
+                <CCol className="mb-3" xs={12} md={12} lg={6}>
+                      <label className="mb-2 required-label" htmlFor="unitCode">
+                        Unit Code <span>*</span>
+                      </label>
+                      <CFormInput
+                        disabled
+                        type="unitCode"
+                        id="unitCode"
+                        value={currentUser.unitCode}
+                        onChange={(e) => setCurrentUser({ ...currentUser, unitCode: e.target.value })}
+                      />
+                    </CCol>
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="group">
@@ -1288,6 +1459,7 @@ const User = () => {
                     {['group head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
+                  isDisabled={isDisabled}
                     value={currentUser.groupId}
                     options={groupOptions}
                     className="basic-single"
@@ -1298,11 +1470,13 @@ const User = () => {
                       if (!e) {
                         setCurrentUser({
                           ...currentUser,
+                           unitCode: '',
                           groupId: '',
                           lineId: '',
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
+                           plantId: '',
                         })
                         return
                       }
@@ -1315,6 +1489,8 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
@@ -1326,6 +1502,7 @@ const User = () => {
                       const division = divisionOptions.find(
                         (division) => division.id === org.divisionId,
                       )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
                       setCurrentUser({
                         ...currentUser,
                         groupId: e,
@@ -1333,6 +1510,8 @@ const User = () => {
                         sectionId: section ? section : '',
                         departmentId: department ? department : '',
                         divisionId: division ? division : '',
+                        plantId: plant ? plant : '',
+                        unitCode: org.unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1345,6 +1524,7 @@ const User = () => {
                     Line {['group head', 'line head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
+                   isDisabled={isDisabled}
                     value={currentUser.lineId}
                     options={lineOptions}
                     className="basic-single"
@@ -1359,6 +1539,8 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
@@ -1370,6 +1552,8 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
@@ -1380,12 +1564,15 @@ const User = () => {
                       const division = divisionOptions.find(
                         (division) => division.id === org.divisionId,
                       )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
                       setCurrentUser({
                         ...currentUser,
                         lineId: e,
                         sectionId: section ? section : '',
                         departmentId: department ? department : '',
                         divisionId: division ? division : '',
+                        plantId: plant ? plant : '',
+                         unitCode: org.unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1403,6 +1590,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
+                   isDisabled={isDisabled}
                     value={currentUser.sectionId}
                     options={sectionOptions}
                     className="basic-single"
@@ -1416,6 +1604,8 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
@@ -1426,6 +1616,8 @@ const User = () => {
                           sectionId: e,
                           departmentId: '',
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
@@ -1435,11 +1627,14 @@ const User = () => {
                       const division = divisionOptions.find(
                         (division) => division.id === org.divisionId,
                       )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
                       setCurrentUser({
                         ...currentUser,
                         sectionId: e,
                         departmentId: department ? department : '',
                         divisionId: division ? division : '',
+                        plantId: plant ? plant : '',
+                         unitCode: org.unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1459,6 +1654,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
+                   isDisabled={isDisabled}
                     value={currentUser.departmentId}
                     options={departmentOptions}
                     className="basic-single"
@@ -1471,6 +1667,8 @@ const User = () => {
                           ...currentUser,
                           departmentId: '',
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
@@ -1480,16 +1678,21 @@ const User = () => {
                           ...currentUser,
                           departmentId: e,
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
                       const division = divisionOptions.find(
                         (division) => division.id === org.divisionId,
                       )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
                       setCurrentUser({
                         ...currentUser,
                         departmentId: e,
                         divisionId: division ? division : '',
+                        plantId: plant ? plant : '',
+                         unitCode: org.unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1509,6 +1712,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
+                   isDisabled={isDisabled}
                     value={currentUser.divisionId}
                     options={divisionOptions}
                     className="basic-single"
@@ -1520,12 +1724,27 @@ const User = () => {
                         setCurrentUser({
                           ...currentUser,
                           divisionId: '',
+                           plantId: '',
+                            unitCode: '',
                         })
                         return
                       }
+                      const org = orgOptions.find((org) => org.divisionId === e.id)
+                      if (!org) {
+                        setCurrentUser({
+                          ...currentUser,
+                          divisionId: e,
+                          plantId: '',
+                           unitCode: '',
+                        })
+                        return
+                      }
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
                       setCurrentUser({
                         ...currentUser,
                         divisionId: e,
+                        plantId: plant ? plant : '',
+                          unitCode: org.unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1545,6 +1764,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
+                   isDisabled={isDisabled}
                     value={currentUser.plantId}
                     options={plantOptions}
                     className="basic-single"

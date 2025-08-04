@@ -49,7 +49,7 @@ const Section = () => {
   const [shouldFetch, setShouldFetch] = useState(false)
   const [currentSection, setCurrentSection] = useState({
     id: '',
-    sectionCode: '',
+    // sectionCode: '',
     sectionName: '',
     wbsId: '',
     gicId: '',
@@ -171,7 +171,7 @@ const Section = () => {
     setIsEdit(false)
     setCurrentSection({
       id: '',
-      sectionCode: '',
+      // sectionCode: '',
       sectionName: '',
       wbsId: '',
       gicId: '',
@@ -203,7 +203,7 @@ const Section = () => {
     setIsEdit(true)
     setCurrentSection({
       id: sections.id,
-      sectionCode: sections.sectionCode,
+      // sectionCode: sections.sectionCode,
       sectionName: sections.sectionName,
       wbsId: selectedWbs,
       gicId: selectedGic,
@@ -239,7 +239,7 @@ const Section = () => {
 
   const validateSection = (sections) => {
     const requiredFields = [
-      { field: 'sectionCode', message: 'Section code is required' },
+      // { field: 'sectionCode', message: 'Section code is required' },
       { field: 'sectionName', message: 'Section name is required' },
       { field: 'wbsId', message: 'WBS is required' },
       { field: 'gicId', message: 'GIC is required' },
@@ -303,7 +303,7 @@ const Section = () => {
     const globalFilter = filters.global.value ? filters.global.value.toLowerCase() : ''
     return sections.filter((item) => {
       return [
-        item.sectionCode,
+        // item.sectionCode,
         item.sectionName,
         item.WB?.wbsNumber,
         item.GIC?.gicNumber,
@@ -333,7 +333,7 @@ const Section = () => {
       options={columns}
       optionLabel="header"
       onChange={onColumnToggle}
-      className="w-full sm:w-20rem mb-2 mt-2"
+      className="mt-2 mb-2 w-full sm:w-20rem"
       display="chip"
       placeholder="Show Hiden Columns"
       style={{ borderRadius: '5px' }}
@@ -344,7 +344,7 @@ const Section = () => {
     import('xlsx').then((xlsx) => {
       const mappedData = sections.map((item, index) => ({
         No: index + 1,
-        'Section Code': item.sectionCode,
+        // 'Section Code': item.sectionCode,
         'Section Name': item.sectionName,
         WBS: item.wbsId,
         GIC: item.gicId,
@@ -420,7 +420,7 @@ const Section = () => {
                         label="Add"
                         icon="pi pi-plus"
                         severity="primary"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={handleAddSection}
                         data-pr-tooltip="XLS"
                       />
@@ -429,7 +429,7 @@ const Section = () => {
                         label="Excel"
                         icon="pi pi-file-excel"
                         severity="success"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
@@ -445,7 +445,7 @@ const Section = () => {
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
                   tableStyle={{ minWidth: '30rem' }}
-                  className="p-datatable-gridlines p-datatable-sm custom-datatable text-nowrap"
+                  className="p-datatable-gridlines p-datatable-sm text-nowrap custom-datatable"
                   scrollable
                   globalFilter={filters.global.value} // Aplikasikan filter global di sini
                   header={header}
@@ -460,12 +460,12 @@ const Section = () => {
                     alignFrozen="left"
                     sortable
                   />
-                  <Column
+                  {/* <Column
                     field="sectionCode"
                     header="Section Code"
                     style={{ width: '25%' }}
                     sortable
-                  />
+                  /> */}
                   <Column
                     field="sectionName"
                     header="Section Name"
@@ -522,7 +522,7 @@ const Section = () => {
                 <h5>Section Information</h5>
               </CCol>
 
-              <CCol className="mb-3" sm={12} md={12} lg={6}>
+              {/* <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                     <label className="mb-2 required-label" htmlFor="group">
                         Section Code
@@ -544,7 +544,7 @@ const Section = () => {
                         }}
                     />
                 </div>
-              </CCol>
+              </CCol> */}
 
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
@@ -553,6 +553,7 @@ const Section = () => {
                     </label>
                     <CFormInput
                         id="sectionName"
+                        disabled={isEdit}
                         value={currentSection.sectionName}
                         onChange={(e) =>
                             setCurrentSection({

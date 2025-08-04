@@ -12,6 +12,7 @@ import {
   getProfile,
   getStructureApproval,
   changePassword,
+  getUseridsByOrganization,
 } from "../controllers/User.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
 import { uploadProfileImage } from "../middleware/UploadImageMiddleware.js";
@@ -36,5 +37,6 @@ router.put("/user-delete-image/:id", checkRole(["super admin"]), deleteImage);
 router.get("/profile", getProfile);
 router.get("/structure-approval", getStructureApproval);
 router.post("/change-password", changePassword);
+router.get("/user-organization", getUseridsByOrganization);
 
 export default router;

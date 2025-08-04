@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../utils/AxiosInstance'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import useAuth from '../hooks/UseAuth'
 
 const MySwal = withReactContent(Swal)
 
 const useAuthService = () => {
   const navigate = useNavigate()
+   const {  setTokenAndDecode, clearAuth } = useAuth()
 
   const handleError = (error, message) => {
     console.error(message, error)
@@ -17,6 +19,7 @@ const useAuthService = () => {
   const login = async (username, password) => {
     try {
       const response = await axiosInstance.post('/login', { username, password })
+       setTokenAndDecode(response.data.accessToken)
       return response
     } catch (error) {
       if (error.response?.status === 403) {
@@ -29,8 +32,10 @@ const useAuthService = () => {
   const logout = async () => {
     try {
       const response = await axiosInstance.delete('/logout')
+      clearAuth()
       return response
     } catch (error) {
+        clearAuth()
       handleError(error, 'Error during logout:')
     }
   }

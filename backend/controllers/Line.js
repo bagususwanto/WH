@@ -143,3 +143,45 @@ export const deleteLine = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const checkLineId = async (req, res) => {
+  try {
+    const lineId = req.params.lineId;
+
+    if (!lineId) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Line ID is required" });
+    }
+
+    const line = await Line.findOne({
+      where: { id: lineId },
+    });
+
+    if (!line) {
+      return res.status(404).json({ status: false, message: "Line not found" });
+    }
+
+    res.status(200).json({ status: true, message: "Line found" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getLineByIds = async (req, res) => {
+  try {
+    const ids = req.query.ids?.split(",").map((id) => parseInt(id));
+
+    const response = await Line.findAll({
+      where: {
+        id: ids,
+      },
+      attributes: ["id", "lineName"],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

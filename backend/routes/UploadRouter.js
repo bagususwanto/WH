@@ -8,6 +8,7 @@ import {
   uploadMasterDeliverySchedule,
   uploadMappingMaterialAddress,
   uploadStockIWMS,
+  uploadUserHR,
 } from "../controllers/Excel.js";
 import uploadFile from "../middleware/UploadMiddleware.js";
 import { checkRole } from "../middleware/RoleMiddleware.js";
@@ -122,6 +123,12 @@ router.post(
   checkUserWarehouse,
   uploadFile.single("file"),
   uploadStockIWMS
+);
+router.post(
+  "/upload-master-user",
+  checkRole(["super admin"]),
+  uploadFile.single("file"),
+  uploadUserHR
 );
 
 export default router;

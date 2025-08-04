@@ -13,13 +13,13 @@ export const getSection = async (req, res) => {
       include: [
         {
           model: GIC,
-          required: true,
+          required: false,
           attributes: ["id", "gicNumber"],
           where: { flag: 1 },
         },
         {
           model: WBS,
-          required: true,
+          required: false,
           attributes: ["id", "wbsNumber"],
           where: { flag: 1 },
         },
@@ -90,16 +90,15 @@ export const getSectionById = async (req, res) => {
 
 export const createSection = async (req, res) => {
   try {
-    const sectionCode = await Section.findOne({
-      where: { sectionCode: req.body.sectionCode, flag: 1 },
+    const section = await Section.findOne({
+      where: { section: req.body.sectionName, flag: 1 },
     });
-    if (sectionCode) {
+    if (section) {
       return res.status(400).json({ message: "Section already exists" });
     }
 
     await Section.create(
       {
-        sectionCode: req.body.sectionCode,
         sectionName: req.body.sectionName,
         gicId: req.body.gicId,
         wbsId: req.body.wbsId,
@@ -217,6 +216,50 @@ export const getSectionByPlant = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.error(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const checkSectionId = async (req, res) => {
+  try {
+    const sectionId = req.params.sectionId;
+
+    if (!sectionId) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Section ID is required" });
+    }
+
+    const section = await Section.findOne({
+      where: { id: sectionId },
+    });
+
+    if (!section) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Section not found" });
+    }
+
+    res.status(200).json({ status: true, message: "Section found" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getSectionByIds = async (req, res) => {
+  try {
+    const ids = req.query.ids?.split(",").map((id) => parseInt(id));
+
+    const response = await Section.findAll({
+      where: {
+        id: ids,
+      },
+      attributes: ["id", "sectionName"],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

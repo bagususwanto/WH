@@ -9,17 +9,13 @@ const { DataTypes } = Sequelize;
 const Section = db.define(
   "Section",
   {
-    sectionCode: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-    },
     sectionName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     gicId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: GIC,
         key: "id",
@@ -27,7 +23,7 @@ const Section = db.define(
     },
     wbsId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: WBS,
         key: "id",
@@ -43,7 +39,6 @@ const Section = db.define(
     freezeTableName: true,
   }
 );
-
 
 GIC.hasMany(Section, { foreignKey: "gicId" });
 Section.belongsTo(GIC, { foreignKey: "gicId" });

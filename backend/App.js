@@ -102,11 +102,17 @@ app.use(
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3005",
+      "http://localhost:5005",
       "https://twiis-toyota.web.app",
       "https://twiis-gi-toyota.web.app",
       "https://twiis-receiving-toyota.web.app",
       "https://redpost-warehouse.web.app",
       "https://g5xqwfz1-3001.asse.devtunnels.ms",
+      "http://192.168.8.3:5173",
+      "http://192.168.8.7:5173",
+      "http://192.168.8.20:3001",
+      "http://192.168.8.24:3001",
+      "http://localhost:5173",
     ],
   })
 );
@@ -123,8 +129,8 @@ app.use((req, res, next) => {
 // Auth router
 app.use("/api", authRouter);
 app.use("/api", publicRouter);
-
 app.use(verifyToken);
+
 // app.use(checkPasswordExpiration);
 
 // Master data router
@@ -199,11 +205,11 @@ app.use("/api", notificationRouter);
 app.use("/api", vendorMovementRouter);
 
 // Membuat server HTTPS
-// https.createServer(credentials, app).listen(port, () => {
-//   console.log(`Server running at https://${host}:${port}`);
-// });
+https.createServer(credentials, app).listen(port, () => {
+  console.log(`Server running at https://${host}:${port}`);
+});
 
 // Membuat server HTTP
-app.listen(port, () => {
-  console.log(`Server running at http://${host}:${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server running at http://${host}:${port}`);
+// });

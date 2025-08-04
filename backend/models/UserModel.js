@@ -23,13 +23,17 @@ const User = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    noreg: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     roleId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Role,
         key: "id",
@@ -105,7 +109,7 @@ const User = db.define(
     },
     organizationId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Organization,
         key: "id",
@@ -135,34 +139,34 @@ const User = db.define(
 Role.hasMany(User, { foreignKey: "roleId" });
 User.belongsTo(Role, { foreignKey: "roleId" });
 
-Group.hasMany(User, { foreignKey: "groupId", onDelete: "NO ACTION" });
-User.belongsTo(Group, { foreignKey: "groupId", onDelete: "NO ACTION" });
+Group.hasMany(User, { foreignKey: "groupId", onDelete: "SET NULL" });
+User.belongsTo(Group, { foreignKey: "groupId", onDelete: "SET NULL" });
 
-Line.hasMany(User, { foreignKey: "lineId", onDelete: "NO ACTION" });
-User.belongsTo(Line, { foreignKey: "lineId", onDelete: "NO ACTION" });
+Line.hasMany(User, { foreignKey: "lineId", onDelete: "SET NULL" });
+User.belongsTo(Line, { foreignKey: "lineId", onDelete: "SET NULL" });
 
-Section.hasMany(User, { foreignKey: "sectionId", onDelete: "NO ACTION" });
-User.belongsTo(Section, { foreignKey: "sectionId", onDelete: "NO ACTION" });
+Section.hasMany(User, { foreignKey: "sectionId", onDelete: "SET NULL" });
+User.belongsTo(Section, { foreignKey: "sectionId", onDelete: "SET NULL" });
 
 // Warehouse.hasMany(User, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
 // User.belongsTo(Warehouse, { foreignKey: "warehouseId", onDelete: "NO ACTION" });
 
-Department.hasMany(User, { foreignKey: "departmentId", onDelete: "NO ACTION" });
+Department.hasMany(User, { foreignKey: "departmentId", onDelete: "SET NULL" });
 User.belongsTo(Department, {
   foreignKey: "departmentId",
-  onDelete: "NO ACTION",
+  onDelete: "SET NULL",
 });
 
-Division.hasMany(User, { foreignKey: "divisionId", onDelete: "NO ACTION" });
-User.belongsTo(Division, { foreignKey: "divisionId", onDelete: "NO ACTION" });
+Division.hasMany(User, { foreignKey: "divisionId", onDelete: "SET NULL" });
+User.belongsTo(Division, { foreignKey: "divisionId", onDelete: "SET NULL" });
 
 Organization.hasMany(User, {
   foreignKey: "organizationId",
-  onDelete: "NO ACTION",
+  onDelete: "SET NULL",
 });
 User.belongsTo(Organization, {
   foreignKey: "organizationId",
-  onDelete: "NO ACTION",
+  onDelete: "SET NULL",
 });
 
 User.belongsTo(Warehouse, {

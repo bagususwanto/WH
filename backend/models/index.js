@@ -45,6 +45,7 @@ import DeliveryNote from "./DeliveryNoteModel.js";
 import IncomingHistory from "./IncomingHistoryModel.js";
 import VendorMovement from "./VendorMovementModel.js";
 import DeliveryNoteVendorMovement from "./DeliveryNoteVendorMovementModel.js";
+import RefreshToken from "./RefreshTokenModel.js";
 
 // log
 import LogApproval from "./LogApprovalModel.js";
@@ -60,7 +61,7 @@ import { logMasterAssociations } from "./Association.js";
     // await LogEntry.sync();
     // await db.sync({ force: true });
     // await LogEntry.sync({ force: true });
-    // await LogEntry.sync({ alter: true });
+    // await Organization.sync({ alter: true });
     console.log("Database synced successfully.");
   } catch (error) {
     console.error("Unable to sync the database:", error);

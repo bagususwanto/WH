@@ -13,6 +13,10 @@ const { DataTypes } = Sequelize;
 const Organization = db.define(
   "Organization",
   {
+    unitCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     groupId: {
       type: DataTypes.INTEGER,
       allowNull: true,

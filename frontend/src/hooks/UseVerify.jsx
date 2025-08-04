@@ -1,85 +1,70 @@
-import { useState, useEffect } from 'react'
-import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../utils/AxiosInstance'
 import swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import useAuth from './UseAuth'
 
 const MySwal = withReactContent(swal)
 
+let isRefreshing = false // Flag to prevent multiple refresh requests
+let refreshPromise = null // Store the promise for the refresh request
+
 const useVerify = () => {
-  const [name, setName] = useState('')
-  const [roleName, setRoleName] = useState('')
-  const [warehouseId, setWarehouseId] = useState(0)
-  const [token, setToken] = useState('')
-  const [expire, setExpire] = useState(0)
-  const [isWarehouse, setIsWarehouse] = useState(0)
-  const [imgProfile, setImgProfile] = useState('')
+  const { auth, setTokenAndDecode } = useAuth()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    refreshToken()
-  }, [])
-
-  const refreshToken = async () => {
-    try {
-      const response = await axiosInstance.get('/token')
-      setToken(response.data.accessToken)
-      const decoded = jwtDecode(response.data.accessToken)
-      setName(decoded.name)
-      setRoleName(decoded.roleName)
-      setWarehouseId(decoded.anotherWarehouseId)
-      setExpire(decoded.exp)
-      setIsWarehouse(decoded.isWarehouse)
-      setImgProfile(decoded.img)
-    } catch (error) {
-      console.error('Error refreshing token:', error)
-      MySwal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Token Expired',
-      })
-      navigate('/login')
-    }
-  }
 
   const axiosJWT = axiosInstance.create()
 
   axiosJWT.interceptors.request.use(
     async (config) => {
       const currentDate = new Date()
-      if (expire * 1000 < currentDate.getTime()) {
-        try {
-          const response = await axiosInstance.get('/token')
-          config.headers.Authorization = `Bearer ${response.data.accessToken}`
-          setToken(response.data.accessToken)
-          const decoded = jwtDecode(response.data.accessToken)
-          setName(decoded.name)
-          setRoleName(decoded.roleName)
-          setWarehouseId(decoded.anotherWarehouseId)
-          setExpire(decoded.exp)
-          setIsWarehouse(decoded.isWarehouse)
-          setImgProfile(decoded.img)
-        } catch (error) {
-          console.error('Error refreshing token in interceptor:', error)
-          MySwal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Token Expired',
-          })
-          navigate('/login')
+      if (auth.expire * 1000 < currentDate.getTime()) {
+        console.log('Token expired, refreshing...')
+
+        if (!isRefreshing) {
+          isRefreshing = true
+          refreshPromise = axiosInstance
+            .get('/token') // pakai axios TANPA interceptor
+            .then((response) => {
+              const newAccessToken = response.data.accessToken
+              setTokenAndDecode(newAccessToken)
+              isRefreshing = false
+              return newAccessToken
+            })
+            .catch((error) => {
+              isRefreshing = false
+              console.error('Token refresh failed:', error)
+              MySwal.fire({
+                icon: 'error',
+                title: 'Session expired',
+                text: 'Please log in again.',
+              })
+              navigate('/login')
+              return Promise.reject(error)
+            })
         }
+
+        try {
+          const newToken = await refreshPromise
+          config.headers.Authorization = `Bearer ${newToken}`
+        } catch (err) {
+          return Promise.reject(err)
+        }
+
       } else {
-        config.headers.Authorization = `Bearer ${token}`
+        config.headers.Authorization = `Bearer ${auth.token}`
       }
+
       return config
     },
-    (error) => {
-      return Promise.reject(error)
-    },
+    (error) => Promise.reject(error)
   )
 
-  return { name, roleName, warehouseId, token, isWarehouse, imgProfile, axiosJWT }
+  return {
+    ...auth,
+    axiosJWT,
+    setTokenAndDecode,
+  }
 }
 
 export default useVerify

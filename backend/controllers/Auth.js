@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import UserWarehouse from "../models/UserWarehouseModel.js";
 import { PASSWORD_EXPIRATION_DAYS } from "../middleware/CheckPasswordExpiration.js";
 import Organization from "../models/OrganizationModel.js";
+import RefreshToken from "../models/RefreshTokenModel.js";
+import User from "../models/UserModel.js";
 
 // Function to generate access and refresh tokens
 const generateTokens = (
@@ -52,6 +54,7 @@ const generateTokens = (
       expiresIn: "12h",
     }
   );
+
   return { accessToken, refreshToken };
 };
 
@@ -137,7 +140,14 @@ export const login = async (req, res) => {
       plantId
     );
 
-    await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
+    // await Users.update({ refreshToken }, { where: { id: userId, flag: 1 } });
+
+    // Save the refresh token to the database
+    await RefreshToken.create({
+      token: refreshToken,
+      userId,
+      expiredAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
+    });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -156,19 +166,16 @@ export const login = async (req, res) => {
 // Logout function
 export const logout = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-
   if (!refreshToken) return res.sendStatus(204);
 
+  const tokenData = await RefreshToken.findOne({
+    where: { token: refreshToken },
+  });
+  if (!tokenData) return res.sendStatus(204);
+
   try {
-    const user = await Users.findOne({ where: { refreshToken, flag: 1 } });
-    if (!user) return res.sendStatus(204);
-
-    await Users.update(
-      { refreshToken: null },
-      { where: { id: user.id, flag: 1 } }
-    );
-
     res.clearCookie("refreshToken");
+    await RefreshToken.destroy({ where: { userId: tokenData.userId } });
     res.status(200).json({ message: "Berhasil logout" });
   } catch (error) {
     console.error("Error during logout:", error);
@@ -179,63 +186,105 @@ export const logout = async (req, res) => {
 // Refresh token function
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
+  console.log("Received refresh token:", refreshToken);
 
-  if (!refreshToken)
-    return res
-      .status(401)
-      .json({ message: "No token provided. Unauthorized access!" });
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: "No token provided. Unauthorized access!",
+    });
+  }
 
   try {
-    const user = await Users.findOne({
-      where: { refreshToken, flag: 1 },
+    const tokenData = await RefreshToken.findOne({
+      where: { token: refreshToken },
       include: [
         {
-          model: Role,
-          where: { flag: 1 },
-        },
-        {
-          model: Organization,
-          where: { flag: 1 },
+          model: User,
+          required: true,
+          include: [
+            { model: Role, required: true },
+            { model: Organization, required: true },
+          ],
         },
       ],
     });
-    if (!user) return res.status(401).json({ message: "Unauthorized access!" });
 
-    jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      (err, decoded) => {
-        if (err)
-          return res
-            .status(403)
-            .json({ message: "Invalid or expired token. Access forbidden!" });
+    if (!tokenData) {
+      console.log("❌ Token not found");
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
 
-        const {
-          id: userId,
-          username,
-          name,
-          isProduction,
-          isWarehouse,
-          anotherWarehouseId,
-          img,
-        } = user;
-        const roleName = user.Role.roleName;
-        const plantId = user.Organization.plantId;
-        const { accessToken } = generateTokens(
-          userId,
-          username,
-          name,
-          isProduction,
-          isWarehouse,
-          roleName,
-          anotherWarehouseId,
-          img,
-          plantId
-        );
+    if (tokenData.expiredAt < new Date()) {
+      console.log("❌ Token expired");
+      return res.status(403).json({ message: "Expired token" });
+    }
 
-        res.json({ accessToken });
+    // verify token jwt
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err) => {
+      if (err) {
+        console.error("❌ Invalid refresh token:", err);
+        return res.status(403).json({ message: "Invalid refresh token" });
       }
+    });
+
+    const {
+      id: userId,
+      username,
+      name,
+      isProduction,
+      isWarehouse,
+      anotherWarehouseId,
+      img,
+    } = tokenData.User;
+    const roleName = tokenData.User.Role.roleName;
+    const plantId = tokenData.User.Organization.plantId;
+
+    // Generate new tokens
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+      userId,
+      username,
+      name,
+      isProduction,
+      isWarehouse,
+      roleName,
+      anotherWarehouseId,
+      img,
+      plantId
     );
+
+    // Gunakan transaksi agar update & insert atomik
+    const transaction = await RefreshToken.sequelize.transaction();
+    try {
+      // Simpan token baru
+      await RefreshToken.create(
+        {
+          token: newRefreshToken,
+          userId,
+          expiredAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
+        },
+        { transaction }
+      );
+
+      await RefreshToken.destroy({
+        where: { token: refreshToken },
+        transaction,
+      });
+
+      await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+
+    // Set new cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true, // Set to true if using HTTPS
+      sameSite: "None",
+      maxAge: 12 * 60 * 60 * 1000,
+    });
+
+    res.json({ accessToken });
   } catch (error) {
     console.error("Error refreshing token:", error);
     res.status(500).json({ message: "Terjadi kesalahan pada server" });
@@ -273,4 +322,70 @@ export const checkValidasiUserWH = async (req, res) => {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const verifyTokenAccess = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "No token provided. Unauthorized access!" });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decoded) => {
+    if (err) {
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired token. Access forbidden!" });
+    }
+
+    // helper functions to get organization and warehouse IDs
+    const getOrganizationByUserId = async (userId) => {
+      const user = await Users.findOne({
+        where: { id: userId },
+        include: [
+          {
+            model: Organization,
+            required: true,
+          },
+        ],
+      });
+      return user;
+    };
+
+    // helper functions to get organization and warehouse IDs
+    const getWarehouseIdsByUserId = async (userId) => {
+      const user = await UserWarehouse.findAll({
+        where: { userId: userId, flag: 1 },
+      });
+      return user.map((user) => user.warehouseId);
+    };
+
+    const user = await getOrganizationByUserId(decoded.userId);
+    const warehouseIds = await getWarehouseIdsByUserId(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Balikin user info
+    res.json({
+      username: decoded.username,
+      userId: decoded.userId,
+      roleName: decoded.roleName,
+      groupId: user.Organization.groupId,
+      lineId: user.Organization.lineId,
+      sectionId: user.Organization.sectionId,
+      departmentId: user.Organization.departmentId,
+      divisionId: user.Organization.divisionId,
+      organizationId: user.organizationId,
+      warehouseId: user.warehouseId,
+      warehouseIds: warehouseIds,
+      isProduction: decoded.isProduction,
+      isWarehouse: decoded.isWarehouse,
+      anotherWarehouseId: decoded.anotherWarehouseId,
+    });
+  });
 };

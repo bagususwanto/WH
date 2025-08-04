@@ -16,6 +16,13 @@ import DeliverySchedule from "../models/DeliveryScheduleModel.js";
 import DeliveryNote from "../models/DeliveryNoteModel.js";
 import XLSX from "xlsx";
 import Plant from "../models/PlantModel.js";
+import Division from "../models/DivisionModel.js";
+import Department from "../models/DepartmentModel.js";
+import Section from "../models/SectionModel.js";
+import Group from "../models/GroupModel.js";
+import Organization from "../models/OrganizationModel.js";
+import User from "../models/UserModel.js";
+import Line from "../models/LineModel.js";
 
 const BATCH_SIZE = 1000; // Set batch size sesuai kebutuhan
 
@@ -2243,6 +2250,310 @@ export const uploadStockIWMS = async (req, res) => {
     res.status(200).send({
       message: `Uploaded the file successfully: ${req.file.originalname}`,
       errors: validationErrors.length > 0 ? validationErrors : "",
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error(error);
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file?.originalname}. ${error}`,
+    });
+  }
+};
+
+const validateHeaderUserHR = (header) => {
+  const expectedHeader = [
+    "Name",
+    "Noreg",
+    "Unit Code",
+    "Jabatan",
+    "Division",
+    "Department",
+    "Section",
+    "Line",
+    "Group",
+    "Lokasi",
+  ];
+  return header.every(
+    (value, index) =>
+      value.trim().toLowerCase() === expectedHeader[index].toLowerCase()
+  );
+};
+
+export const uploadUserHR = async (req, res) => {
+  let transaction;
+  const userId = req.user.userId;
+
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload an Excel file!" });
+    }
+
+    const path = `./resources/uploads/excel/${req.file.filename}`;
+    const sheetName = "template";
+    const rows = await readXlsxFile(path, { sheet: sheetName });
+    const header = rows.shift();
+
+    if (rows.length > 10000) {
+      return res
+        .status(400)
+        .send({ message: "Batch size exceeds the limit! Max 5000 rows data" });
+    }
+
+    // Kolom yang akan dicek untuk duplikasi, misalnya kolom pertama
+    const checkColumnIndex = 1;
+
+    // Gunakan Set untuk memeriksa duplikasi
+    const seen = new Set();
+    const duplicates = [];
+
+    rows.forEach((row, index) => {
+      const key = row[checkColumnIndex]; // Ambil nilai kolom yang akan diperiksa
+      if (seen.has(key)) {
+        duplicates.push({ rowNumber: index + 2, data: row }); // Simpan informasi duplikat
+      } else {
+        seen.add(key);
+      }
+    });
+
+    // Cek hasil
+    if (duplicates.length > 0) {
+      console.log("Duplicate data found:", duplicates);
+      return res.status(400).json({
+        message: "Duplicate data found in the file.",
+        duplicates,
+      });
+    }
+
+    if (!validateHeaderUserHR(header)) {
+      return res.status(400).send({ message: "Invalid header!" });
+    }
+
+    transaction = await db.transaction();
+
+    // Create a log for this batch import
+    const logImport = await LogImport.create(
+      {
+        typeLog: "master user-organization",
+        fileName: req.file.originalname,
+        userId,
+        importDate: req.body.importDate,
+      },
+      { transaction }
+    );
+
+    const logImportId = logImport.id;
+
+    // Pre-fetch necessary data
+    const [
+      existingUsers,
+      existingDivisions,
+      existingDepartments,
+      existingSections,
+      existingLines,
+      existingGroups,
+      existingOrganizations,
+      existingPlants,
+    ] = await Promise.all([
+      User.findAll({ transaction }),
+      Division.findAll({ where: { flag: 1 }, transaction }),
+      Department.findAll({ where: { flag: 1 }, transaction }),
+      Section.findAll({ where: { flag: 1 }, transaction }),
+      Line.findAll({ where: { flag: 1 }, transaction }),
+      Group.findAll({ where: { flag: 1 }, transaction }),
+      Organization.findAll({ where: { flag: 1 }, transaction }),
+      Plant.findAll({ where: { flag: 1 }, transaction }),
+    ]);
+
+    const userMap = new Map(existingUsers.map((user) => [user.noreg, user]));
+    const divisionMap = new Map(
+      existingDivisions.map((div) => [div.divisionName, div.id])
+    );
+    const departmentMap = new Map(
+      existingDepartments.map((dep) => [dep.departmentName, dep.id])
+    );
+    const sectionMap = new Map(
+      existingSections.map((sec) => [sec.sectionName, sec.id])
+    );
+    const lineMap = new Map(
+      existingLines.map((line) => [line.lineName, line.id])
+    );
+    const groupMap = new Map(
+      existingGroups.map((group) => [group.groupName, group.id])
+    );
+    const organizationMap = new Map(
+      existingOrganizations.map((org) => [org.unitCode, org.id])
+    );
+    const plantMap = new Map(
+      existingPlants.map((plant) => [plant.plantName, plant.id])
+    );
+
+    const newUsers = [];
+    const updatedUsers = [];
+    const validationErrors = [];
+    const organizationCache = new Map(); // Cache untuk organization yang baru dibuat
+
+    for (const row of rows) {
+      try {
+        const [
+          name,
+          noreg,
+          unitCode,
+          jabatan,
+          division,
+          department,
+          section,
+          line,
+          group,
+          lokasi,
+        ] = row;
+
+        if (!name || !noreg || !unitCode || !jabatan || !lokasi) {
+          throw new Error(`Invalid data in row: ${row.join(", ")}`);
+        }
+
+        let divisionId = divisionMap.get(division) || null;
+        if (!divisionId && division) {
+          const newDivision = await Division.create(
+            {
+              divisionName: division,
+            },
+            { transaction, userId }
+          );
+          divisionId = newDivision.id;
+          divisionMap.set(division, divisionId);
+        }
+
+        let departmentId = departmentMap.get(department) || null;
+        if (!departmentId && department) {
+          const newDepartment = await Department.create(
+            {
+              departmentName: department,
+            },
+            { transaction, userId }
+          );
+          departmentId = newDepartment.id;
+          departmentMap.set(department, departmentId);
+        }
+
+        let sectionId = sectionMap.get(section) || null;
+        if (!sectionId && section) {
+          const newSection = await Section.create(
+            {
+              sectionName: section,
+            },
+            { transaction, userId }
+          );
+          sectionId = newSection.id;
+          sectionMap.set(section, sectionId);
+        }
+
+        let lineId = lineMap.get(line) || null;
+        if (!lineId && line) {
+          const newLine = await Line.create(
+            {
+              lineName: line,
+            },
+            { transaction, userId }
+          );
+          lineId = newLine.id;
+          lineMap.set(line, lineId);
+        }
+
+        let groupId = groupMap.get(group) || null;
+        if (!groupId && group) {
+          const newGroup = await Group.create(
+            {
+              groupName: group,
+            },
+            { transaction, userId }
+          );
+          groupId = newGroup.id;
+          groupMap.set(group, groupId);
+        }
+
+        const plantId = plantMap.get(lokasi);
+        if (!plantId) throw new Error(`Plant not found: ${lokasi}`);
+
+        let organizationId = organizationMap.get(unitCode);
+
+        // Cek juga di cache untuk organization yang baru dibuat dalam loop ini
+        if (!organizationId) {
+          organizationId = organizationCache.get(unitCode);
+        }
+
+        if (!organizationId) {
+          // Create organization immediately
+          const newOrganization = await Organization.create(
+            {
+              unitCode,
+              divisionId,
+              departmentId,
+              sectionId,
+              lineId,
+              groupId,
+              plantId,
+              logImportId,
+            },
+            { transaction, userId }
+          );
+
+          organizationId = newOrganization.id;
+
+          // Update cache dan map
+          organizationCache.set(unitCode, organizationId);
+          organizationMap.set(unitCode, organizationId);
+        }
+
+        const existingUser = userMap.get(noreg);
+        const userData = {
+          username: noreg.slice(1), // hanya ambil digit ke-2 sampai digit akhir
+          password: noreg.slice(1), // Sementara menggunakan noreg sebagai password
+          name,
+          noreg,
+          position: jabatan,
+          organizationId,
+          plantId,
+          logImportId,
+        };
+
+        if (existingUser) {
+          // User sudah ada, update
+          updatedUsers.push({ ...userData, id: existingUser.id });
+        } else {
+          // User baru
+          newUsers.push(userData);
+        }
+      } catch (error) {
+        validationErrors.push({ error: error.message });
+      }
+    }
+
+    // Bulk insert new users
+    if (newUsers.length > 0) {
+      await User.bulkCreate(
+        newUsers.map((user) => ({
+          ...user,
+          flag: 0,
+        })),
+        {
+          transaction,
+        }
+      );
+    }
+
+    // Bulk update existing users
+    if (updatedUsers.length > 0) {
+      const updatePromises = updatedUsers.map((user) =>
+        User.update(user, { where: { id: user.id }, transaction })
+      );
+      await Promise.all(updatePromises);
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: `Uploaded the file successfully: ${req.file.originalname}`,
+      errors: validationErrors.length > 0 ? validationErrors : [],
     });
   } catch (error) {
     if (transaction) await transaction.rollback();

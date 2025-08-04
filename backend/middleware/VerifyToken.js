@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Users from "../models/UserModel.js";
 import UserWarehouse from "../models/UserWarehouseModel.js";
+import Organization from "../models/OrganizationModel.js";
 
 export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization; // Akses header langsung
@@ -32,11 +33,11 @@ export const verifyToken = async (req, res, next) => {
       username: decoded.username,
       userId: decoded.userId,
       roleName: decoded.roleName,
-      groupId: user.groupId,
-      lineId: user.lineId,
-      sectionId: user.sectionId,
-      departmentId: user.departmentId,
-      divisionId: user.divisionId,
+      groupId: user.Organization.groupId,
+      lineId: user.Organization.lineId,
+      sectionId: user.Organization.sectionId,
+      departmentId: user.Organization.departmentId,
+      divisionId: user.Organization.divisionId,
       organizationId: user.organizationId,
       warehouseId: user.warehouseId,
       warehouseIds: warehouseIds,
@@ -52,6 +53,12 @@ export const verifyToken = async (req, res, next) => {
 const getOrganizationByUserId = async (userId) => {
   const user = await Users.findOne({
     where: { id: userId, flag: 1 },
+    include: [
+      {
+        model: Organization,
+        required: true,
+      },
+    ],
   });
   return user;
 };
