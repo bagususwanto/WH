@@ -2507,7 +2507,6 @@ export const uploadUserHR = async (req, res) => {
         const existingUser = userMap.get(noreg);
         const userData = {
           username: noreg.slice(1), // hanya ambil digit ke-2 sampai digit akhir
-          password: noreg.slice(1), // Sementara menggunakan noreg sebagai password
           name,
           noreg,
           img: `https://hrportal.toyota.co.id/Content/images/${noreg}.jpg`,

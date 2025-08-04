@@ -21,7 +21,7 @@ const User = db.define(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     noreg: {
       type: DataTypes.STRING,
