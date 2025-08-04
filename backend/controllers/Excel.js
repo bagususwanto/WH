@@ -2510,6 +2510,7 @@ export const uploadUserHR = async (req, res) => {
           password: noreg.slice(1), // Sementara menggunakan noreg sebagai password
           name,
           noreg,
+          img: `https://hrportal.toyota.co.id/Content/images/${noreg}.jpg`,
           position: jabatan,
           organizationId,
           plantId,
