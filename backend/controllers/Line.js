@@ -188,7 +188,7 @@ export const getLineByIds = async (req, res) => {
 };
 
 export const getLineSpecific = async (req, res) => {
-  const { sectionId, roleName } = req.query;
+  const { sectionId, roleName } = req.user;
   let include = [
     {
       model: LogMaster,
@@ -230,7 +230,7 @@ export const getLineSpecific = async (req, res) => {
     include.push({
       model: Organization,
       required: true,
-      where: { id: sectionId },
+      where: { sectionId },
     });
   }
 
