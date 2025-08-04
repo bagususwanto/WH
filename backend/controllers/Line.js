@@ -1,5 +1,6 @@
 import Line from "../models/LineModel.js";
 import LogMaster from "../models/LogMasterModel.js";
+import Organization from "../models/OrganizationModel.js";
 import User from "../models/UserModel.js";
 
 export const getLine = async (req, res) => {
@@ -179,6 +180,66 @@ export const getLineByIds = async (req, res) => {
       },
       attributes: ["id", "lineName"],
     });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getLineSpecific = async (req, res) => {
+  const { sectionId, roleName } = req.query;
+  let whereCondition = { flag: 1 };
+
+  if (
+    roleName === "group head" ||
+    roleName === "line head" ||
+    roleName === "section head"
+  ) {
+    whereCondition.sectionId = sectionId;
+  }
+
+  try {
+    const response = await Line.findAll({
+      where: { flag: 1 },
+      include: [
+        {
+          model: Organization,
+          where: whereCondition,
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "createdBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Line", action: "create" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+        },
+        {
+          model: LogMaster,
+          required: false,
+          as: "updatedBy",
+          attributes: ["id", "createdAt", "userId"],
+          where: { masterType: "Line" },
+          include: [
+            {
+              model: User,
+              required: false,
+              attributes: ["id", "username"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
+      ],
+    });
+
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
