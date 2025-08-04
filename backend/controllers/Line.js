@@ -189,55 +189,55 @@ export const getLineByIds = async (req, res) => {
 
 export const getLineSpecific = async (req, res) => {
   const { sectionId, roleName } = req.query;
-  let whereCondition = { flag: 1 };
+  let include = [
+    {
+      model: LogMaster,
+      required: false,
+      as: "createdBy",
+      attributes: ["id", "createdAt", "userId"],
+      where: { masterType: "Line", action: "create" },
+      include: [
+        {
+          model: User,
+          required: false,
+          attributes: ["id", "username"],
+        },
+      ],
+    },
+    {
+      model: LogMaster,
+      required: false,
+      as: "updatedBy",
+      attributes: ["id", "createdAt", "userId"],
+      where: { masterType: "Line" },
+      include: [
+        {
+          model: User,
+          required: false,
+          attributes: ["id", "username"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit: 1,
+    },
+  ];
 
   if (
     roleName === "group head" ||
     roleName === "line head" ||
     roleName === "section head"
   ) {
-    whereCondition.sectionId = sectionId;
+    include.push({
+      model: Organization,
+      required: true,
+      where: { id: sectionId },
+    });
   }
 
   try {
     const response = await Line.findAll({
       where: { flag: 1 },
-      include: [
-        {
-          model: Organization,
-          where: whereCondition,
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "createdBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Line", action: "create" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-        },
-        {
-          model: LogMaster,
-          required: false,
-          as: "updatedBy",
-          attributes: ["id", "createdAt", "userId"],
-          where: { masterType: "Line" },
-          include: [
-            {
-              model: User,
-              required: false,
-              attributes: ["id", "username"],
-            },
-          ],
-          order: [["createdAt", "DESC"]],
-          limit: 1,
-        },
-      ],
+      include,
     });
 
     res.status(200).json(response);
