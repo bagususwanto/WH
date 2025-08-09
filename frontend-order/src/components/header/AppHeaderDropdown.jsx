@@ -147,9 +147,7 @@ const AppHeaderDropdown = () => {
     ? imgProfile.startsWith('http') || imgProfile.startsWith('//')
       ? imgProfile
       : `${config.BACKEND_URL}${imgProfile}`
-    : colorMode === 'light'
-      ? profile
-      : profileDark
+    : profile
 } size="md" />
         <div className="d-flex flex-column ms-2">
           <span style={{ fontSize: '0.7em' }}>Welcome,</span>
