@@ -16,22 +16,27 @@ export const getOrganization = async (req, res) => {
         {
           model: Group,
           where: { flag: 1 },
+          required: false,
         },
         {
           model: Line,
           where: { flag: 1 },
+          required: false,
         },
         {
           model: Section,
           where: { flag: 1 },
+          required: false,
         },
         {
           model: Department,
           where: { flag: 1 },
+          required: false,
         },
         {
           model: Division,
           where: { flag: 1 },
+          required: false,
         },
         {
           model: Plant,

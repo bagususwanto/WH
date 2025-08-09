@@ -1587,7 +1587,7 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.lineId === e.id 
+                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId === e.id 
                       && org.sectionId === section?.id && org.departmentId === department?.id 
                       && org.divisionId === division?.id && org.plantId === plant?.id)?.unitCode
 
@@ -1658,7 +1658,7 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.sectionId === e.id 
+                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null && org.sectionId === e.id 
                       && org.departmentId === department?.id && org.divisionId === division?.id 
                       && org.plantId === plant?.id)?.unitCode
 
@@ -1725,7 +1725,8 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.departmentId === e.id 
+                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null 
+                      && org.sectionId == null && org.departmentId === e.id 
                       && org.divisionId === division?.id && org.plantId === plant?.id)?.unitCode
 
                       setCurrentUser({
@@ -1784,7 +1785,8 @@ const User = () => {
                    
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.divisionId === e.id 
+                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null 
+                      && org.sectionId == null && org.departmentId == null && org.divisionId === e.id 
                       && org.plantId === plant?.id)?.unitCode
 
                       setCurrentUser({
