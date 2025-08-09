@@ -1489,7 +1489,22 @@ const User = () => {
                         })
                         return
                       }
-                      const org = orgOptions.find((org) => org.groupId === e.id)
+                     
+                      const line = lineOptions.find((line) => line.id === org.lineId)
+                      const section = sectionOptions.find((section) => section.id === org.sectionId)
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
+                      const org = orgOptions.find((org) => org.groupId === e.id 
+                      && org.lineId === line?.id && org.sectionId === section?.id 
+                      && org.departmentId === department?.id && org.divisionId === division?.id 
+                      && org.plantId === plant?.id)
+
                       if (!org) {
                         setCurrentUser({
                           ...currentUser,
@@ -1503,15 +1518,7 @@ const User = () => {
                         })
                         return
                       }
-                      const line = lineOptions.find((line) => line.id === org.lineId)
-                      const section = sectionOptions.find((section) => section.id === org.sectionId)
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+                      
                       setCurrentUser({
                         ...currentUser,
                         groupId: e,
@@ -1553,7 +1560,20 @@ const User = () => {
                         })
                         return
                       }
-                      const org = orgOptions.find((org) => org.lineId === e.id)
+                     
+                      const section = sectionOptions.find((section) => section.id === org.sectionId)
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
+                      const org = orgOptions.find((org) => org.lineId === e.id 
+                      && org.sectionId === section?.id && org.departmentId === department?.id 
+                      && org.divisionId === division?.id && org.plantId === plant?.id)
+
                       if (!org) {
                         setCurrentUser({
                           ...currentUser,
@@ -1566,14 +1586,7 @@ const User = () => {
                         })
                         return
                       }
-                      const section = sectionOptions.find((section) => section.id === org.sectionId)
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
                       setCurrentUser({
                         ...currentUser,
                         lineId: e,
@@ -1618,7 +1631,19 @@ const User = () => {
                         })
                         return
                       }
-                      const org = orgOptions.find((org) => org.sectionId === e.id)
+                    
+                      const department = departmentOptions.find(
+                        (department) => department.id === org.departmentId,
+                      )
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
+                      const org = orgOptions.find((org) => org.sectionId === e.id 
+                      && org.departmentId === department?.id && org.divisionId === division?.id 
+                      && org.plantId === plant?.id)
+
                       if (!org) {
                         setCurrentUser({
                           ...currentUser,
@@ -1630,13 +1655,7 @@ const User = () => {
                         })
                         return
                       }
-                      const department = departmentOptions.find(
-                        (department) => department.id === org.departmentId,
-                      )
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
                       setCurrentUser({
                         ...currentUser,
                         sectionId: e,
@@ -1681,7 +1700,15 @@ const User = () => {
                         })
                         return
                       }
-                      const org = orgOptions.find((org) => org.departmentId === e.id)
+                     
+                      const division = divisionOptions.find(
+                        (division) => division.id === org.divisionId,
+                      )
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
+                      const org = orgOptions.find((org) => org.departmentId === e.id 
+                      && org.divisionId === division?.id && org.plantId === plant?.id)
+
                       if (!org) {
                         setCurrentUser({
                           ...currentUser,
@@ -1692,10 +1719,7 @@ const User = () => {
                         })
                         return
                       }
-                      const division = divisionOptions.find(
-                        (division) => division.id === org.divisionId,
-                      )
-                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
                       setCurrentUser({
                         ...currentUser,
                         departmentId: e,
@@ -1738,7 +1762,11 @@ const User = () => {
                         })
                         return
                       }
-                      const org = orgOptions.find((org) => org.divisionId === e.id)
+                   
+                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
+                      const org = orgOptions.find((org) => org.divisionId === e.id 
+                      && org.plantId === plant?.id)
                       if (!org) {
                         setCurrentUser({
                           ...currentUser,
@@ -1748,7 +1776,7 @@ const User = () => {
                         })
                         return
                       }
-                      const plant = plantOptions.find((plant) => plant.id === org.plantId)
+
                       setCurrentUser({
                         ...currentUser,
                         divisionId: e,
