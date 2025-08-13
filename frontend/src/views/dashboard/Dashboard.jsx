@@ -1178,10 +1178,10 @@ onClick: (event, elements, chart) => {
                       <div
                         style={{
                           backgroundColor: 'transparent',
-                          color: '#7E99A3', // Warna teks sesuai border
+                          color: '#bf67A3', // Warna teks sesuai border
                           padding: '2px 10px',
                           borderRadius: '3px',
-                          border: '3px solid #7E99A3', // Border warna merah
+                          border: '3px solid #bf67A3', // Border warna merah
                           fontWeight: 'bold',
                           fontSize: '12px',
                         }}
