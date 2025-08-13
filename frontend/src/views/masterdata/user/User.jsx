@@ -473,20 +473,16 @@ const User = () => {
       // Mapping data untuk ekspor
       const mappedData = [
         {
-          materialNo: '',
-          description: '',
-          uom: '',
-          price: '',
-          type: '',
-          mrpType: '',
-          minStock: '',
-          maxStock: '',
-          minOrder: '',
-          packaging: '',
-          unitPackaging: '',
-          category: '',
-          supplierCode: '',
-          addressRack: '',
+          ['Name']: '',
+          ['Noreg']: '',
+          ['Unit Code']: '',
+          ['Jabatan']: '',
+          ['Division']: '',
+          ['Department']: '',
+          ['Section']: '',
+          ['Line']: '',
+          ['Group']: '',
+          ['Lokasi']: '',
         },
       ]
 
@@ -497,7 +493,7 @@ const User = () => {
         type: 'array',
       })
 
-      saveAsExcelFile(excelBuffer, 'template_master_data_material')
+      saveAsExcelFile(excelBuffer, 'template_upload_hr')
     })
   }
 
