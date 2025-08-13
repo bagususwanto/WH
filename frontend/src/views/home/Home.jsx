@@ -8,9 +8,11 @@ import animationData2 from '../../assets/lottie/Animation - order.json'
 import orderIcon from '../../assets/icons//shopping-cart.png'; // Contoh: Ganti dengan nama file Anda
 import inputIcon from '../../assets/icons/inventory.png'; // Contoh
 import dataIcon from '../../assets/icons/registration.png';   // Contoh
+import { useNavigate } from "react-router-dom";
 
 
 const Home = () => {
+  const navigate =useNavigate();
   const { roleName } = useVerify()
   const animations = [
     animationData2,
@@ -41,15 +43,50 @@ useEffect(() => {
 
       <p className='subtitle-little'> Enjoy choice!</p>
       <div className='button-group'>
-        <button className='rounded-button'>
+        <button 
+        className='rounded-button'
+        onClick={(e) => {
+                  e.preventDefault() // Prevent default button behavior
+
+                  // Define the URL based on the user's role
+                  let url
+                  if (roleName === 'super admin') {
+                    url = `${config.ORDER_URL}/home`
+                  } else if (roleName === 'group head') {
+                    url = `${config.ORDER_URL}/home`
+                  } else if (roleName === 'line head') {
+                    url = `${config.ORDER_URL}/approveall`
+                  } else if (roleName === 'group head') {
+                    url = `${config.ORDER_URL}/approveall`
+                  } else if (roleName === 'section head') {
+                    url = `${config.ORDER_URL}/approveall`
+                  } else {
+                    // Optional: handle other roles or show a message if the role is not recognized
+                    alert('You do not have access to this link.')
+                    return
+                  }
+
+                  // Open the determined URL in a new tab
+                  window.open(url, '_blank')
+                }}
+            >
           <img src={orderIcon} alt="Order Icon" className="button-icon" />
           <span>Go To Order</span>
         </button>
-        <button className='rounded-button'>
+
+
+        <button 
+        className='rounded-button'
+        onClick={() => navigate ("/inventory/input")}
+        >
           <img src={inputIcon} alt="Input Icon" className="button-icon" />
           <span>Input Inventory</span>
         </button>
-        <button className='rounded-button'>
+
+        <button 
+        className='rounded-button'
+        onClick={() => navigate ("/inventory/data")}
+        >
           <img src={dataIcon} alt="Data Icon" className="button-icon" />
           <span>Data Inventory</span>
         </button>
