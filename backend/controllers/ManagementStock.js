@@ -86,21 +86,21 @@ export const getInventory = async (req, res) => {
               },
             ],
           },
-          {
-            model: LogEntry,
-            attributes: ["id", "userId", "createdAt", "updatedAt"],
-            limit: 1,
-            order: [["createdAt", "DESC"]],
-            required: false,
-            include: [
-              {
-                model: User,
-                attributes: ["id", "username", "createdAt", "updatedAt"],
-                where: { flag: 1 },
-                required: false,
-              },
-            ],
-          },
+          // {
+          //   model: LogEntry,
+          //   attributes: ["id", "userId", "createdAt", "updatedAt"],
+          //   limit: 1,
+          //   order: [["createdAt", "DESC"]],
+          //   required: false,
+          //   include: [
+          //     {
+          //       model: User,
+          //       attributes: ["id", "username", "createdAt", "updatedAt"],
+          //       where: { flag: 1 },
+          //       required: false,
+          //     },
+          //   ],
+          // },
           {
             model: Incoming,
             limit: 1,
