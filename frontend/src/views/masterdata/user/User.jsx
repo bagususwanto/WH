@@ -96,6 +96,11 @@ const User = () => {
   const animatedComponents = makeAnimated()
   const [isDisabled, setIsDisabled] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false)
+  const [uploadData, setUploadData] = useState({
+    importDate: date,
+    file: null,
+  })
+  const [imported, setImported] = useState(false)
 
   const {
     getMasterData,
@@ -103,6 +108,7 @@ const User = () => {
     updateMasterDataById,
     postMasterData,
     uploadImageMaterial,
+    uploadMasterData,
   } = useMasterDataService()
 
   const [filters, setFilters] = useState({
@@ -129,6 +135,7 @@ const User = () => {
   const apiUserDelete = 'user-delete'
   const apiDeleteImgUser = 'user-delete-image'
   const apiUploadImageUser = 'user-upload-image'
+  const apiUpload = 'upload-master-user'
   const apiPosition = 'position'
   const apiRole = 'role-public'
   const apiGroup = 'group-public'
@@ -159,7 +166,7 @@ const User = () => {
   useEffect(() => {
     if (!shouldFetch) return
     getUser()
-  }, [shouldFetch])
+  }, [shouldFetch, imported])
 
   const customStyles = {
     control: (provided) => ({
@@ -417,7 +424,7 @@ const User = () => {
     setIsEdit(false)
     setCurrentUser({
       id: '',
-       noreg: '',
+      noreg: '',
       username: '',
       password: '',
       confirmPassword: '',
@@ -427,7 +434,7 @@ const User = () => {
       noHandphone: '',
       email: '',
       img: '',
-       unitCode: '',
+      unitCode: '',
       groupId: '',
       lineId: '',
       sectionId: '',
@@ -453,25 +460,29 @@ const User = () => {
     }))
   }
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    setUploadData((prevData) => ({
+      ...prevData,
+      file: file,
+    }))
+  }
+
   const downloadTemplate = () => {
     import('xlsx').then((xlsx) => {
       // Mapping data untuk ekspor
       const mappedData = [
         {
-          materialNo: '',
-          description: '',
-          uom: '',
-          price: '',
-          type: '',
-          mrpType: '',
-          minStock: '',
-          maxStock: '',
-          minOrder: '',
-          packaging: '',
-          unitPackaging: '',
-          category: '',
-          supplierCode: '',
-          addressRack: '',
+          ['Name']: '',
+          ['Noreg']: '',
+          ['Unit Code']: '',
+          ['Jabatan']: '',
+          ['Division']: '',
+          ['Department']: '',
+          ['Section']: '',
+          ['Line']: '',
+          ['Group']: '',
+          ['Lokasi']: '',
         },
       ]
 
@@ -482,7 +493,7 @@ const User = () => {
         type: 'array',
       })
 
-      saveAsExcelFile(excelBuffer, 'template_master_data_material')
+      saveAsExcelFile(excelBuffer, 'template_upload_hr')
     })
   }
 
@@ -551,7 +562,7 @@ const User = () => {
       noHandphone: user.noHandphone,
       email: user.email,
       img: user.img,
-       unitCode: user.Organization?.unitCode || '',
+      unitCode: user.Organization?.unitCode || '',
       groupId: selectedGroup || null,
       lineId: selectedLine || null,
       sectionId: selectedSection || null,
@@ -632,7 +643,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
-          { field: 'unitCode', message: 'Unit Code is required' },
+        { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'lineId', message: 'Line is required' },
         { field: 'sectionId', message: 'Section is required' },
         { field: 'departmentId', message: 'Department is required' },
@@ -648,7 +659,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
-          { field: 'unitCode', message: 'Unit Code is required' },
+        { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'sectionId', message: 'Section is required' },
         { field: 'departmentId', message: 'Department is required' },
         { field: 'divisionId', message: 'Division is required' },
@@ -663,7 +674,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
-          { field: 'unitCode', message: 'Unit Code is required' },
+        { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'departmentId', message: 'Department is required' },
         { field: 'divisionId', message: 'Division is required' },
         { field: 'warehouseIds', message: 'Warehouse Access are required' },
@@ -677,7 +688,7 @@ const User = () => {
         { field: 'name', message: 'Fullname is required' },
         { field: 'roleId', message: 'Role is required' },
         { field: 'position', message: 'Position is required' },
-          { field: 'unitCode', message: 'Unit Code is required' },
+        { field: 'unitCode', message: 'Unit Code is required' },
         { field: 'warehouseIds', message: 'Warehouse Access are required' },
         { field: 'isProduction', message: 'Production is required' },
         { field: 'isWarehouse', message: 'Warehouse is required' },
@@ -714,10 +725,10 @@ const User = () => {
 
       if (isEdit || isUpdate) {
         await updateMasterDataById(apiMasterUserOrg, currentUser.id, userToSave)
-        if(isEdit) {
+        if (isEdit) {
           MySwal.fire('Updated!', 'User has been updated.', 'success')
         } else {
-        MySwal.fire('Added!', 'User has been added.', 'success')
+          MySwal.fire('Added!', 'User has been added.', 'success')
         }
       } else {
         delete userToSave.id
@@ -846,6 +857,50 @@ const User = () => {
     })
   }
 
+  const handleImport = async () => {
+    setLoadingImport(true)
+    try {
+      if (!uploadData.file) {
+        MySwal.fire('Error', 'Please select a file', 'error')
+        return
+      }
+
+      const response = await uploadMasterData(apiUpload, uploadData)
+
+      // Format pesan error jika ada
+      const errors = response.data.errors
+        ? response.data.errors
+            .map((err) => `- ${err.error}`) // Format setiap error
+            .join('\n') // Gabungkan setiap pesan error dengan newline
+        : ''
+
+      // Tampilkan pesan sukses dengan detail error (jika ada)
+      if (errors) {
+        MySwal.fire({
+          title: 'Success with Errors',
+          html: `
+            <div>
+              <p>${response.data.message}</p>
+              <p><strong>Errors:</strong></p>
+              <pre style="text-align: left; background: #f0f0f0; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">${errors}</pre>
+            </div>
+          `,
+          icon: 'warning', // Gunakan icon warning untuk success dengan error
+        })
+      } else {
+        MySwal.fire('Success', response.data.message, 'success')
+      }
+
+      setImported(true)
+      setShouldFetch(true)
+    } catch (error) {
+      console.error('Error during import:', error)
+    } finally {
+      setLoadingImport(false)
+      setModalUpload(false)
+    }
+  }
+
   const LoadingComponent = () => (
     <div className="text-center">
       <CSpinner color="primary" />
@@ -855,16 +910,16 @@ const User = () => {
 
   const imageBodyTemplate = (rowData) => {
     return (
-    <img
-  src={
-    rowData.img
-      ? rowData.img.startsWith('http') || rowData.img.startsWith('//')
-        ? rowData.img
-        : `${config.BACKEND_URL}${rowData.img}`
-      : ''
-  }
-    style={{ width: '50px', height: '50px' }} 
-  />
+      <img
+        src={
+          rowData.img
+            ? rowData.img.startsWith('http') || rowData.img.startsWith('//')
+              ? rowData.img
+              : `${config.BACKEND_URL}${rowData.img}`
+            : ''
+        }
+        style={{ width: '50px', height: '50px' }}
+      />
     )
   }
 
@@ -970,118 +1025,116 @@ const User = () => {
   const handleNoregChange = async (e) => {
     const value = e.target.value.replace(/\D/g, '') // Hanya angka
 
-     // jika noreg digit sudah 8 digit akses API untuk mendapatkan data user
+    // jika noreg digit sudah 8 digit akses API untuk mendapatkan data user
     if (value.length === 8) {
-     await getMasterData(`${apiNoreg}?no=${value}&flag=0`)
-      .then((response) => {
-        if (response.data) {
+      await getMasterData(`${apiNoreg}?no=${value}&flag=0`)
+        .then((response) => {
+          if (response.data) {
+            const selectedPosition = positionOptions.find(
+              (option) => option.value === response.data.position,
+            )
+            const selectedGroup = groupOptions.find(
+              (option) => option.value === response.data.Organization?.Group?.groupName,
+            )
+            const selectedLine = lineOptions.find(
+              (option) => option.value === response.data.Organization?.Line?.lineName,
+            )
+            const selectedSection = sectionOptions.find(
+              (option) => option.value === response.data.Organization?.Section?.sectionName,
+            )
+            const selectedDepartment = departmentOptions.find(
+              (option) => option.value === response.data.Organization?.Department?.departmentName,
+            )
+            const selectedDivision = divisionOptions.find(
+              (option) => option.value === response.data.Organization?.Division?.divisionName,
+            )
+            const selectedPlant = plantOptions.find(
+              (option) => option.value === response.data.Organization?.Plant?.plantName,
+            )
 
-          const selectedPosition = positionOptions.find(
-            (option) => option.value === response.data.position,
-          )
-           const selectedGroup = groupOptions.find(
-      (option) => option.value === response.data.Organization?.Group?.groupName,
-    )
-    const selectedLine = lineOptions.find(
-      (option) => option.value === response.data.Organization?.Line?.lineName,
-    )
-    const selectedSection = sectionOptions.find(
-      (option) => option.value === response.data.Organization?.Section?.sectionName,
-    )
-    const selectedDepartment = departmentOptions.find(
-      (option) => option.value === response.data.Organization?.Department?.departmentName,
-    )
-    const selectedDivision = divisionOptions.find(
-      (option) => option.value === response.data.Organization?.Division?.divisionName,
-    )
-    const selectedPlant = plantOptions.find(
-      (option) => option.value === response.data.Organization?.Plant?.plantName,
-    )
-
+            setCurrentUser((prevState) => ({
+              ...prevState,
+              id: response.data.id || '',
+              noreg: value,
+              username: response.data.username || '',
+              name: response.data.name || '',
+              roleId: '',
+              position: selectedPosition || '',
+              noHandphone: '',
+              email: '',
+              img: '',
+              unitCode: response.data.Organization?.unitCode || '',
+              groupId: selectedGroup || '',
+              lineId: selectedLine || '',
+              sectionId: selectedSection || '',
+              departmentId: selectedDepartment || '',
+              divisionId: selectedDivision || '',
+              warehouseIds: [],
+              plantId: selectedPlant || '',
+              isProduction: '',
+              isWarehouse: '',
+            }))
+          }
+          setIsDisabled(true)
+          setIsUpdate(true) // Set isUpdate to true when noreg is found
+        })
+        .catch((error) => {
           setCurrentUser((prevState) => ({
             ...prevState,
-            id: response.data.id || '',
             noreg: value,
-            username: response.data.username || '',
-            name: response.data.name || '',
-            roleId:  '',
-            position: selectedPosition || '',
-            noHandphone:  '',
+            username: '',
+            password: '',
+            confirmPassword: '',
+            name: '',
+            roleId: '',
+            position: '',
+            noHandphone: '',
             email: '',
-            img:  '',
-             unitCode: response.data.Organization?.unitCode || '',
-            groupId: selectedGroup || '',
-            lineId: selectedLine || '',
-            sectionId: selectedSection || '',
-            departmentId: selectedDepartment || '',
-            divisionId: selectedDivision || '',
+            img: '',
+            unitCode: '',
+            groupId: '',
+            lineId: '',
+            sectionId: '',
+            departmentId: '',
+            divisionId: '',
             warehouseIds: [],
-            plantId: selectedPlant || '',
-            isProduction:  '',
-            isWarehouse:  '',
+            plantId: '',
+            isProduction: '',
+            isWarehouse: '',
           }))
-        }
-        setIsDisabled(true) 
-        setIsUpdate(true) // Set isUpdate to true when noreg is found
-      })
-      .catch((error) => {
-        setCurrentUser((prevState) => ({
-          ...prevState,
-          noreg: value,
-          username: '',
-          password: '',
-          confirmPassword: '',
-          name: '',
-          roleId: '',
-          position: '',
-          noHandphone: '',
-          email: '',
-          img: '',
-           unitCode: '',
-          groupId: '',
-          lineId: '',
-          sectionId: '',
-          departmentId: '',
-          divisionId: '',
-          warehouseIds: [],
-          plantId: '',
-          isProduction: '',
-          isWarehouse: '',
-        }))
-        setIsDisabled(false) // Reset isDisabled if noreg not found
-        setIsUpdate(false) // Reset isUpdate if noreg not found
-        console.error('Error fetching user data:', error)
-      })
+          setIsDisabled(false) // Reset isDisabled if noreg not found
+          setIsUpdate(false) // Reset isUpdate if noreg not found
+          console.error('Error fetching user data:', error)
+        })
     } else {
+      // Perbarui state noreg
+      setCurrentUser((prevState) => ({
+        ...prevState,
+        noreg: value,
+        username: '',
+        password: '',
+        confirmPassword: '',
+        name: '',
+        roleId: '',
+        position: '',
+        noHandphone: '',
+        email: '',
+        img: '',
+        unitCode: '',
+        groupId: '',
+        lineId: '',
+        sectionId: '',
+        departmentId: '',
+        divisionId: '',
+        warehouseIds: [],
+        plantId: '',
+        isProduction: '',
+        isWarehouse: '',
+      }))
 
-    // Perbarui state noreg
-        setCurrentUser((prevState) => ({
-          ...prevState,
-          noreg: value,
-          username: '',
-          password: '',
-          confirmPassword: '',
-          name: '',
-          roleId: '',
-          position: '',
-          noHandphone: '',
-          email: '',
-          img: '',
-           unitCode: '',
-          groupId: '',
-          lineId: '',
-          sectionId: '',
-          departmentId: '',
-          divisionId: '',
-          warehouseIds: [],
-          plantId: '',
-          isProduction: '',
-          isWarehouse: '',
-        }))
-
-         setIsDisabled(false) // Reset isDisabled if noreg not found
-        setIsUpdate(false) // Reset isUpdate if noreg not found
-      }
+      setIsDisabled(false) // Reset isDisabled if noreg not found
+      setIsUpdate(false) // Reset isUpdate if noreg not found
+    }
   }
 
   return (
@@ -1192,12 +1245,16 @@ const User = () => {
         </CCard>
       </CCol>
 
-      <CModal backdrop="static" size="xl" visible={modal} onClose={() => {
-        setModal(false)
-        setIsDisabled(false) // Reset isDisabled saat modal ditutup
-        setIsUpdate(false) // Reset isUpdate saat modal ditutup
-      }
-        }>
+      <CModal
+        backdrop="static"
+        size="xl"
+        visible={modal}
+        onClose={() => {
+          setModal(false)
+          setIsDisabled(false) // Reset isDisabled saat modal ditutup
+          setIsUpdate(false) // Reset isUpdate saat modal ditutup
+        }}
+      >
         <CModalHeader onClose={() => setModal(false)}>
           <CModalTitle>{isEdit ? 'Edit User' : 'Add User'}</CModalTitle>
         </CModalHeader>
@@ -1232,7 +1289,11 @@ const User = () => {
                       <CImage
                         align="start"
                         rounded
-                        src={currentUser.img.startsWith('http') || currentUser.img.startsWith('//') ? currentUser.img : `${config.BACKEND_URL}${currentUser.img}`}
+                        src={
+                          currentUser.img.startsWith('http') || currentUser.img.startsWith('//')
+                            ? currentUser.img
+                            : `${config.BACKEND_URL}${currentUser.img}`
+                        }
                         className="shadow-sm w-100 h-100"
                         style={{
                           objectFit: 'cover',
@@ -1325,29 +1386,29 @@ const User = () => {
                   </CRow>
                 </CCol>
               </div>
-                <CCol className="mb-3" xs={12} md={12} lg={6}>
-                      <label className="mb-2" htmlFor="email">
-                        Email
-                      </label>
-                      <CFormInput
-                        type="email"
-                        id="email"
-                        value={currentUser.email}
-                        onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })}
-                      />
-                    </CCol>
-                    <CCol className="mb-3" xs={12} md={12} lg={6}>
-                      <label className="mb-2" htmlFor="noHandphone">
-                        Phone Number
-                      </label>
-                      <CFormInputWithMask
-                        inputRef={inputRef} // Menggunakan inputRef untuk mengontrol fokus
-                        mask="+{62} 000-0000-0000"
-                        id="noHandphone"
-                        value={currentUser.noHandphone}
-                        onAccept={(value) => handleOnAcceptNoHandphone(value)}
-                      />
-                    </CCol>
+              <CCol className="mb-3" xs={12} md={12} lg={6}>
+                <label className="mb-2" htmlFor="email">
+                  Email
+                </label>
+                <CFormInput
+                  type="email"
+                  id="email"
+                  value={currentUser.email}
+                  onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })}
+                />
+              </CCol>
+              <CCol className="mb-3" xs={12} md={12} lg={6}>
+                <label className="mb-2" htmlFor="noHandphone">
+                  Phone Number
+                </label>
+                <CFormInputWithMask
+                  inputRef={inputRef} // Menggunakan inputRef untuk mengontrol fokus
+                  mask="+{62} 000-0000-0000"
+                  id="noHandphone"
+                  value={currentUser.noHandphone}
+                  onAccept={(value) => handleOnAcceptNoHandphone(value)}
+                />
+              </CCol>
 
               {/* Password & Confirmation Password */}
               {!isEdit && (
@@ -1449,18 +1510,18 @@ const User = () => {
               <CCol xs={12}>
                 <h5>Organization</h5>
               </CCol>
-                <CCol className="mb-3" xs={12} md={12} lg={6}>
-                      <label className="mb-2 required-label" htmlFor="unitCode">
-                        Unit Code <span>*</span>
-                      </label>
-                      <CFormInput
-                        disabled
-                        type="unitCode"
-                        id="unitCode"
-                        value={currentUser.unitCode}
-                        onChange={(e) => setCurrentUser({ ...currentUser, unitCode: e.target.value })}
-                      />
-                    </CCol>
+              <CCol className="mb-3" xs={12} md={12} lg={6}>
+                <label className="mb-2 required-label" htmlFor="unitCode">
+                  Unit Code <span>*</span>
+                </label>
+                <CFormInput
+                  disabled
+                  type="unitCode"
+                  id="unitCode"
+                  value={currentUser.unitCode}
+                  onChange={(e) => setCurrentUser({ ...currentUser, unitCode: e.target.value })}
+                />
+              </CCol>
               <CCol className="mb-3" sm={12} md={12} lg={6}>
                 <div className="form-group">
                   <label className="mb-2 required-label" htmlFor="group">
@@ -1468,7 +1529,7 @@ const User = () => {
                     {['group head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
-                  isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.groupId}
                     options={groupOptions}
                     className="basic-single"
@@ -1479,13 +1540,13 @@ const User = () => {
                       if (!e) {
                         setCurrentUser({
                           ...currentUser,
-                           unitCode: '',
+                          unitCode: '',
                           groupId: '',
                           lineId: '',
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
-                           plantId: '',
+                          plantId: '',
                         })
                         return
                       }
@@ -1505,7 +1566,7 @@ const User = () => {
                         })
                         return
                       }
-                     
+
                       const line = lineOptions.find((line) => line.id === org.lineId)
                       const section = sectionOptions.find((section) => section.id === org.sectionId)
                       const department = departmentOptions.find(
@@ -1516,11 +1577,16 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                     const unitCode = orgOptions.find((org) => org.groupId === e.id 
-                      && org.lineId === line?.id && org.sectionId === section?.id 
-                      && org.departmentId === department?.id && org.divisionId === division?.id 
-                      && org.plantId === plant?.id)?.unitCode
-                      
+                      const unitCode = orgOptions.find(
+                        (org) =>
+                          org.groupId === e.id &&
+                          org.lineId === line?.id &&
+                          org.sectionId === section?.id &&
+                          org.departmentId === department?.id &&
+                          org.divisionId === division?.id &&
+                          org.plantId === plant?.id,
+                      )?.unitCode
+
                       setCurrentUser({
                         ...currentUser,
                         groupId: e,
@@ -1542,7 +1608,7 @@ const User = () => {
                     Line {['group head', 'line head'].includes(roleValid) ? <span>*</span> : ''}
                   </label>
                   <Select
-                   isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.lineId}
                     options={lineOptions}
                     className="basic-single"
@@ -1572,12 +1638,12 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
-                     
+
                       const section = sectionOptions.find((section) => section.id === org.sectionId)
                       const department = departmentOptions.find(
                         (department) => department.id === org.departmentId,
@@ -1587,9 +1653,15 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId === e.id 
-                      && org.sectionId === section?.id && org.departmentId === department?.id 
-                      && org.divisionId === division?.id && org.plantId === plant?.id)?.unitCode
+                      const unitCode = orgOptions.find(
+                        (org) =>
+                          org.groupId == null &&
+                          org.lineId === e.id &&
+                          org.sectionId === section?.id &&
+                          org.departmentId === department?.id &&
+                          org.divisionId === division?.id &&
+                          org.plantId === plant?.id,
+                      )?.unitCode
 
                       setCurrentUser({
                         ...currentUser,
@@ -1598,7 +1670,7 @@ const User = () => {
                         departmentId: department ? department : '',
                         divisionId: division ? division : '',
                         plantId: plant ? plant : '',
-                         unitCode: unitCode,
+                        unitCode: unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1616,7 +1688,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
-                   isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.sectionId}
                     options={sectionOptions}
                     className="basic-single"
@@ -1630,8 +1702,8 @@ const User = () => {
                           sectionId: '',
                           departmentId: '',
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
@@ -1644,12 +1716,12 @@ const User = () => {
                           sectionId: e,
                           departmentId: '',
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
-                    
+
                       const department = departmentOptions.find(
                         (department) => department.id === org.departmentId,
                       )
@@ -1658,9 +1730,15 @@ const User = () => {
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null && org.sectionId === e.id 
-                      && org.departmentId === department?.id && org.divisionId === division?.id 
-                      && org.plantId === plant?.id)?.unitCode
+                      const unitCode = orgOptions.find(
+                        (org) =>
+                          org.groupId == null &&
+                          org.lineId == null &&
+                          org.sectionId === e.id &&
+                          org.departmentId === department?.id &&
+                          org.divisionId === division?.id &&
+                          org.plantId === plant?.id,
+                      )?.unitCode
 
                       setCurrentUser({
                         ...currentUser,
@@ -1668,7 +1746,7 @@ const User = () => {
                         departmentId: department ? department : '',
                         divisionId: division ? division : '',
                         plantId: plant ? plant : '',
-                         unitCode: unitCode,
+                        unitCode: unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1688,7 +1766,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
-                   isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.departmentId}
                     options={departmentOptions}
                     className="basic-single"
@@ -1701,8 +1779,8 @@ const User = () => {
                           ...currentUser,
                           departmentId: '',
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
@@ -1714,27 +1792,33 @@ const User = () => {
                           ...currentUser,
                           departmentId: e,
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
-                     
+
                       const division = divisionOptions.find(
                         (division) => division.id === org.divisionId,
                       )
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null 
-                      && org.sectionId == null && org.departmentId === e.id 
-                      && org.divisionId === division?.id && org.plantId === plant?.id)?.unitCode
+                      const unitCode = orgOptions.find(
+                        (org) =>
+                          org.groupId == null &&
+                          org.lineId == null &&
+                          org.sectionId == null &&
+                          org.departmentId === e.id &&
+                          org.divisionId === division?.id &&
+                          org.plantId === plant?.id,
+                      )?.unitCode
 
                       setCurrentUser({
                         ...currentUser,
                         departmentId: e,
                         divisionId: division ? division : '',
                         plantId: plant ? plant : '',
-                         unitCode: unitCode,
+                        unitCode: unitCode,
                       })
                     }}
                     styles={customStyles}
@@ -1754,7 +1838,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
-                   isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.divisionId}
                     options={divisionOptions}
                     className="basic-single"
@@ -1766,8 +1850,8 @@ const User = () => {
                         setCurrentUser({
                           ...currentUser,
                           divisionId: '',
-                           plantId: '',
-                            unitCode: '',
+                          plantId: '',
+                          unitCode: '',
                         })
                         return
                       }
@@ -1778,16 +1862,22 @@ const User = () => {
                           ...currentUser,
                           divisionId: e,
                           plantId: '',
-                           unitCode: '',
+                          unitCode: '',
                         })
                         return
                       }
-                   
+
                       const plant = plantOptions.find((plant) => plant.id === org.plantId)
 
-                      const unitCode = orgOptions.find((org) => org.groupId == null && org.lineId == null 
-                      && org.sectionId == null && org.departmentId == null && org.divisionId === e.id 
-                      && org.plantId === plant?.id)?.unitCode
+                      const unitCode = orgOptions.find(
+                        (org) =>
+                          org.groupId == null &&
+                          org.lineId == null &&
+                          org.sectionId == null &&
+                          org.departmentId == null &&
+                          org.divisionId === e.id &&
+                          org.plantId === plant?.id,
+                      )?.unitCode
 
                       setCurrentUser({
                         ...currentUser,
@@ -1813,7 +1903,7 @@ const User = () => {
                     )}
                   </label>
                   <Select
-                   isDisabled={isDisabled}
+                    isDisabled={isDisabled}
                     value={currentUser.plantId}
                     options={plantOptions}
                     className="basic-single"
@@ -1938,7 +2028,7 @@ const User = () => {
           </div>
           <div className="mb-3">
             <CFormInput
-              // onChange={handleFileChange} // Handle perubahan file
+              onChange={handleFileChange} // Handle perubahan file
               type="file"
               label="Excel File"
               accept=".xlsx" // Hanya menerima file Excel
