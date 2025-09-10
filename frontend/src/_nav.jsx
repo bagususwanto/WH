@@ -113,7 +113,7 @@ const useNavigation = () => {
       })
     }
     // NAV INVENTORY
-    if (roleName === 'warehouse staff' || roleName === 'warehouse member') {
+    if (roleName === 'super admin' ||roleName === 'warehouse staff' || roleName === 'warehouse member') {
       baseNav.push(
         {
           component: CNavTitle,
