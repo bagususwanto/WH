@@ -226,7 +226,7 @@ const Inventory = () => {
           //   ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss')
           //   : '',
           formattedUpdateBy: item.inventoryUpdateBy || '',
-          lastUpdate: item.inventoryUpdateAt,
+          lastUpdate: item.inventoryUpdateAt ? format(parseISO(item.inventoryUpdateAt), 'yyyy-MM-dd HH:mm:ss') : '',
         }
       })
       setInventory(dataWithFormattedFields)
