@@ -45,6 +45,14 @@ const Inventory = db.define(
         key: "id",
       },
     },
+    inventoryUpdateBy: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    inventoryUpdateAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     logImportId: {
       type: DataTypes.INTEGER,
       allowNull: true,

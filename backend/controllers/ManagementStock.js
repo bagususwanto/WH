@@ -993,7 +993,11 @@ export const submitInventory = async (req, res) => {
     await Promise.all(
       items.map((item) =>
         Inventory.update(
-          { quantityActual: item.quantity },
+          {
+            quantityActual: item.quantity,
+            inventoryUpdateBy: req.user.username,
+            inventoryUpdateAt: new Date(),
+          },
           { where: { id: item.id }, transaction }
         )
       )

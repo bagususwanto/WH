@@ -221,10 +221,12 @@ const Inventory = () => {
           ...item,
           discrepancy,
           evaluation, // Tambahkan evaluasi ke item yang dikembalikan
-          formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
-          lastUpdate: item.Log_Entries?.[0]?.createdAt
-            ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss')
-            : '',
+          // formattedUpdateBy: item.Log_Entries?.[0]?.User?.username || '',
+          // lastUpdate: item.Log_Entries?.[0]?.createdAt
+          //   ? format(parseISO(item.Log_Entries?.[0]?.createdAt), 'yyyy-MM-dd HH:mm:ss')
+          //   : '',
+          formattedUpdateBy: item.inventoryUpdateBy || '',
+          lastUpdate: item.inventoryUpdateAt,
         }
       })
       setInventory(dataWithFormattedFields)
@@ -601,10 +603,10 @@ const Inventory = () => {
   }
 
   const actionBodyTemplate = (rowData) => (
-    <div className="d-flex justify-content-center align-items-center">
+    <div className="d-flex align-items-center justify-content-center">
       <Button
         icon="pi pi-pencil"
-        className="p-row-editor-init p-link"
+        className="p-link p-row-editor-init"
         onClick={() => handleInputInventory(rowData)}
       />
     </div>
@@ -626,10 +628,10 @@ const Inventory = () => {
   }
 
   const statusDetailTemplate = (rowData) => (
-    <div className="d-flex justify-content-center align-items-center">
+    <div className="d-flex align-items-center justify-content-center">
       <Button
         icon="pi pi-file"
-        className="p-row-editor-init p-link"
+        className="p-link p-row-editor-init"
         onClick={() => setModalDetail(rowData)} // Simpan data baris ke state
       />
     </div>
@@ -659,7 +661,7 @@ const Inventory = () => {
       options={columns}
       optionLabel="header"
       onChange={onColumnToggle}
-      className="w-full sm:w-20rem mb-2 mt-2"
+      className="mt-2 mb-2 w-full sm:w-20rem"
       display="chip"
       placeholder="Show Hiden Columns"
       style={{ borderRadius: '5px' }}
@@ -762,7 +764,7 @@ const Inventory = () => {
                   options={plant}
                   onChange={handlePlantChange}
                   placeholder="Select Plant"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                   id={filters['Address_Rack.Storage.Plant.id']?.value}
@@ -774,7 +776,7 @@ const Inventory = () => {
                   options={storage}
                   onChange={handleStorageChange}
                   placeholder="Select Storage"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
@@ -785,7 +787,7 @@ const Inventory = () => {
                   options={typeMaterial}
                   onChange={handleTypeChange}
                   placeholder="Select Type"
-                  className="p-column-filter mb-2"
+                  className="mb-2 p-column-filter"
                   showClear
                   style={{ width: '100%', borderRadius: '5px' }}
                 />
@@ -809,7 +811,7 @@ const Inventory = () => {
                         label="Excel"
                         icon="pi pi-file-excel"
                         severity="success"
-                        className="rounded-5 me-2 mb-2"
+                        className="me-2 mb-2 rounded-5"
                         onClick={exportExcel}
                         data-pr-tooltip="XLS"
                       />
@@ -818,7 +820,7 @@ const Inventory = () => {
                         label="Execute"
                         icon="pi pi-play"
                         severity="warning"
-                        className="rounded-5 mb-2"
+                        className="mb-2 rounded-5"
                         onClick={handleExecute}
                       />
                     </div>
@@ -831,7 +833,7 @@ const Inventory = () => {
                 <DataTable
                   value={visibleData}
                   tableStyle={{ minWidth: '50rem' }}
-                  className="p-datatable-gridlines custom-datatable text-nowrap"
+                  className="p-datatable-gridlines text-nowrap custom-datatable"
                   paginator
                   rowsPerPageOptions={[10, 50, 100, 500]}
                   rows={10}
@@ -1004,7 +1006,7 @@ const Inventory = () => {
         <CModalBody>
           {modalDetail?.Material && (
             <CRow className="mb-3">
-              <CRow className="mb-2 mt-1">
+              <CRow className="mt-1 mb-2">
                 <CCol xs={3}>
                   <strong>Material Number:</strong>
                 </CCol>
@@ -1016,20 +1018,20 @@ const Inventory = () => {
                   </span>
                 </CCol>
               </CRow>
-              <CRow className="mb-2 mt-1">
+              <CRow className="mt-1 mb-2">
                 <CCol xs={3}>
                   <strong>Description:</strong>
                 </CCol>
                 <CCol xs={8}>{modalDetail.Material.description} </CCol>
               </CRow>
-              <CRow className="mb-2 mt-1">
+              <CRow className="mt-1 mb-2">
                 <CCol xs={3}>
                   <strong>Address:</strong>
                 </CCol>
                 <CCol xs={8}>{modalDetail.Address_Rack.addressRackName} </CCol>
               </CRow>
               <hr />
-              <CRow className="mb-2 ">
+              <CRow className="mb-2">
                 <CCol xs={3}>
                   <strong>Stock Level:</strong>
                 </CCol>
@@ -1049,10 +1051,10 @@ const Inventory = () => {
                     if (progress >= 31) color = 'success'
 
                     return (
-                      <div className="w-100 position-relative">
+                      <div className="position-relative w-100">
                         <div
                           style={{ fontSize: '12px' }}
-                          className="mt-1 text-muted d-flex justify-content-between"
+                          className="d-flex justify-content-between mt-1 text-muted"
                         >
                           {quantityActual} / {maxStock} {modalDetail?.Material?.uom}
                         </div>
@@ -1094,7 +1096,7 @@ const Inventory = () => {
                 progress = isFinite(progress) ? Math.max(0, Math.min(progress, 100)) : 0
 
                 return progress < 90 ? (
-                  <CRow className="mb-2 mt-1">
+                  <CRow className="mt-1 mb-2">
                     <CCol xs={3}>
                       <strong>Stock Shift:</strong>
                     </CCol>
